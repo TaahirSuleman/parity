@@ -11,7 +11,7 @@
 **Spec:** `docs/19-design-spec.md` (scope from `docs/18-decision-and-development-plan.md`).
 
 ## Global Constraints
-- Every runtime model is a Meta model: `muse-spark-1.3`; `muse-spark-1.3-contributor` for eval only.
+- Every runtime model is a Meta model. Roles per spec §6.1: `muse-spark-1.3-contributor` by default; `muse-wonder-1.0` or `muse-spark-1.3` as judge; standard `muse-spark-1.3` in private mode; `muse-voice-transcribe-1.0` in P6. Model IDs come from settings, never hard-coded in stages.
 - `MODEL_API_KEY` comes from `.env` or the environment; it is never printed, logged or committed.
 - Every model call is cached on disk (`sha256(model + canonical body)`) and traced: model, request ID, tokens, latency, cost.
 - Every computer-use request sets `"truncation": "auto"`. Viewport is 1280×720.
@@ -56,10 +56,11 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 
 **Interfaces:**
 - Produces: `Settings` (dataclass from env with the names in `.env.example`; `load_settings(env: Mapping | None = None) -> Settings`; loads `.env` via python-dotenv without overriding existing env).
-- `cost_usd(model: str, input_tokens: int, cached_tokens: int, output_tokens: int) -> float` using the table `PRICES = {"muse-spark-1.3": (1.25, 0.15, 4.25), "muse-spark-1.3-contributor": (0.10, 0.002, 0.20)}` per 1M; unknown model → `0.0` plus a logged warning.
+- `cost_usd(model: str, input_tokens: int, cached_tokens: int, output_tokens: int) -> float` using the table `PRICES = {"muse-spark-1.3": (1.25, 0.15, 4.25), "muse-spark-1.3-contributor": (0.10, 0.002, 0.20), "muse-wonder-1.0": (4.00, 0.20, 20.00)}` per 1M; `asr_cost_usd(audio_ms: int) -> float` at $0.18 per hour; unknown model → `0.0` plus a logged warning.
+- `Settings` model fields: `model` (default `muse-spark-1.3-contributor`), `judge_model` (default `muse-spark-1.3` until the Task 19 comparison), `private` (bool; when true `model_for(stage)` returns `muse-spark-1.3` for every Spark stage). `model_for(stage: str) -> str` is the only place stages get a model ID.
 - pydantic models exactly as spec §5: `Run, Step, Percept, Candidate, Finding, Rejected, Judgement, Fix, Reaudit, Decision, ModelCall, VerifierResult, Check, BBox, Element, AxNode, Capture`. `BBox` has `x_min, y_min, x_max, y_max: int` with a validator clamping to 0–1000. `RunStatus`, `FindingStatus`, `Severity` are `StrEnum`s.
 
-- [ ] **Step 1:** Tests: `test_settings_defaults_replay` (no env → `default_mode == "replay"`, `live_per_ip_per_hour == 3`); `test_settings_never_exposes_key` (`repr(settings)` does not contain the key value); `test_cost_spark13` (`cost_usd("muse-spark-1.3", 1_000_000, 0, 0) == 1.25`); `test_bbox_clamps` (`BBox(x_min=-5, y_min=0, x_max=1200, y_max=10)` → 0 and 1000); `test_finding_roundtrip` (model_dump_json → model_validate_json equality).
+- [ ] **Step 1:** Tests: `test_settings_defaults_replay` (no env → `default_mode == "replay"`, `live_per_ip_per_hour == 3`); `test_model_for_defaults_contributor`; `test_private_mode_uses_standard_spark` (`model_for("comparator") == "muse-spark-1.3"`); `test_settings_never_exposes_key` (`repr(settings)` does not contain the key value); `test_cost_spark13` (`cost_usd("muse-spark-1.3", 1_000_000, 0, 0) == 1.25`); `test_bbox_clamps` (`BBox(x_min=-5, y_min=0, x_max=1200, y_max=10)` → 0 and 1000); `test_finding_roundtrip` (model_dump_json → model_validate_json equality).
 - [ ] **Step 2:** Run `pytest tests/test_config.py tests/test_pricing.py tests/test_models.py -v`. Expected: FAIL (modules missing).
 - [ ] **Step 3:** Implement the three modules.
 - [ ] **Step 4:** Run the tests. Expected: PASS.
@@ -155,9 +156,9 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Test: `tests/test_judge.py`
 
 **Interfaces:**
-- Produces: `async judge(client, finding, capture, run_id) -> Judgement`. JSON `{"is_barrier": bool, "severity": "...", "wcag": [{"sc": "1.1.1", "name": "..."}], "impact": "..."}`. `is_barrier is not True` or unparseable → `Judgement(is_barrier=None, severity="needs_review", …)`.
+- Produces: `async judge(client, finding, capture, run_id, model: str | None = None) -> Judgement`; `model` defaults to `settings.model_for("judge")`. JSON `{"is_barrier": bool, "severity": "...", "wcag": [{"sc": "1.1.1", "name": "..."}], "impact": "..."}`. `is_barrier is not True` or unparseable → `Judgement(is_barrier=None, severity="needs_review", …)`. A `MetaError` from a non-Spark judge retries once on `muse-spark-1.3` and records `fallback: true` in `Judgement.model_meta`.
 
-- [ ] **Step 1:** Tests: `test_judge_hero_is_barrier` (fixture → `is_barrier is True`, severity in the enum, a `wcag` entry); `test_judge_unparseable_needs_review`; `test_judge_list_instead_of_bool_needs_review`.
+- [ ] **Step 1:** Tests: `test_judge_hero_is_barrier` (fixture → `is_barrier is True`, severity in the enum, a `wcag` entry); `test_judge_unparseable_needs_review`; `test_judge_list_instead_of_bool_needs_review`; `test_wonder_error_falls_back_to_spark`.
 - [ ] **Step 2–5:** Fail, implement, pass, commit `feat: judge (fails closed)`.
 
 ### Task 9: Runner, bundle, index and event bus
@@ -251,11 +252,18 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 
 ### Task 19: Eval harness and ablations
 - Create `eval/harness.py`, `eval/ablations.py`, `eval/report.py`; results to `eval/results/<ts>.json` and `eval/results/latest.md`.
-- Produces: `match(findings, labels) -> Matches` (by `element.dom_id`), `metrics(matches) -> {recall, precision, fp_on_clean, n}`; axe baseline from `axe_violations` targets; per-page tokens, cost, seconds. CLI flags per spec §13; model default `muse-spark-1.3-contributor`.
-- Tests: `test_match_by_dom_id`, `test_metrics_arithmetic`, `test_axe_baseline_counts`. Run the full eval (3 runs × 4 configurations ≈ 36 contributor calls per page set); commit the results file.
+- Produces: `match(findings, labels) -> Matches` (by `element.dom_id`), `metrics(matches) -> {recall, precision, fp_on_clean, n}`; `judge_agreement(judgements, labels) -> {agreement, needs_review_rate, cost_per_finding}`; axe baseline from `axe_violations` targets; per-page tokens, cost, seconds. CLI flags per spec §13 including `--effort` and `--judge-model`; model default `muse-spark-1.3-contributor`.
+- Tests: `test_match_by_dom_id`, `test_metrics_arithmetic`, `test_axe_baseline_counts`, `test_judge_agreement_arithmetic`.
+- Runs: full eval (3 runs × 4 ablation configurations); effort sweep (low/medium/high, 1 run each); judge comparison (Spark 1.3 vs Wonder 1.0 on the same verified findings); one standard-tier run to confirm contributor numbers transfer. Set `PARITY_JUDGE_MODEL` and the default effort from the winners and record both in spec D6. Commit the results file.
+
+### Task 19b: Public-site sample (spec §17) — first to drop if the schedule slips
+- Create `parity/cli.py` (`parity audit --url --goal --public`), `parity/pipeline/guard.py`, `scripts/anonymise_bundle.py`; test `tests/test_guard.py`.
+- Produces: `guard_action(action: dict, target: AxNode | None, field_type: str | None) -> Allowed | Blocked(reason)` with the irreversible-name pattern `IRREVERSIBLE = r"\b(pay|buy|place order|submit|sign ?up|subscribe|confirm|delete|checkout now)\b"` (case-insensitive) and blocked field types `password, cc-number, cc-csc, email, tel`; any `submit` event blocked. `robots_allows(url) -> bool`. `anonymise(bundle, letter)` replaces host, URLs and title with "Site <letter>" and drops screenshots of steps without verified findings.
+- Tests: `test_blocks_pay_click`, `test_blocks_password_typing`, `test_allows_add_to_cart_click`, `test_blocks_form_submit`, `test_robots_disallow_stops_run`, `test_anonymise_removes_host` (no original host string anywhere in the output bundle).
+- Run 2–3 public flows locally (product → cart, stopping before checkout). Commit only anonymised bundles under `fixtures/replay/public-<letter>/`; keep raw bundles out of git. Record verified-finding counts in `eval/results/public.json`.
 
 ### Task 20: Eval in the product
-- Route `GET /api/eval` reads `eval/results/latest.json`; UI **Eval** tab: table (Parity vs axe-core: recall, precision, n), ablation strip (screenshot-only / tree-only / no grounding / full), cost and time per page. Header numbers come from the same file. Commit; push; tag `p4`.
+- Route `GET /api/eval` reads `eval/results/latest.json` and `public.json`; UI **Eval** tab: table (Parity vs axe-core: recall, precision, n), ablation strip (screenshot-only / tree-only / no grounding / full), judge comparison row, cost and time per page, and a "Real-world sample" list of anonymised public runs opening in Replay. Header numbers come from the same file. Commit; push; tag `p4`.
 
 ---
 
@@ -275,11 +283,27 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 ### Task 24: UI polish for judges
 - Replay selected by default with a visible label; a "Live (rate-limited)" toggle; friendly 429; a ≤10 s architecture card in the Eval tab; keyboard focus order and visible focus rings in the workbench itself (it must pass axe too: add `test_workbench_axe_clean`).
 
-### Task 25: Freeze
-- Run the cold-review checklist (`docs/submission-checklist.md`) against the hosted URL; fix; commit; push; tag `p5`. Feature freeze Tue 3 Nov 12:00 ET.
+### Task 25: P5 close
+- Redeploy; commit; push; tag `p5`. The cold-review checklist (`docs/submission-checklist.md`) runs against the hosted URL after P6, Tue 3 Nov 11:00–12:00 ET, then feature freeze at 12:00 ET. If P6 is not done by 11:00, ship without Voice and say so in the README.
 
 ---
 
-## Stretch (only after P5)
-- Voice Transcribe on a real VoiceOver recording of the checkout (Gate G-V ≥ 90% word accuracy) → `sr_transcript` on the finding and a clip player in the Screen reader panel.
-- 2–3 public flows, read-only, counts only, disclosed before naming.
+---
+
+# Phase 6: Voice, real screen-reader audio (Mon 2 Nov night to Tue 3 Nov 11:00, before the freeze)
+
+Exit check: in Replay, selecting the hero finding plays the VoiceOver segment saying "Submit, button", shows its Voice Transcribe transcript with the badge *Muse Voice Transcribe · real VoiceOver audio*, and the card shows `transcript_agrees` ticked. G-V accuracy is shown beside it.
+
+### Task 26: Recording kit (manual step for the builder)
+- Create `scripts/vo_focus_logger.js` (injected into the store page; logs `{t_ms, dom_id}` on every focus or VoiceOver cursor change via `focusin` and a `MutationObserver` on `aria-activedescendant`, posts to `POST /api/voice/focuslog` in dev only) and `docs/voice-recording.md` (exact macOS steps: VoiceOver on, speech rate, record system audio with a named free tool, export WAV 16 kHz mono 16-bit, save the VoiceOver caption text).
+- Deliverable: `store/voice/checkout.wav`, `checkout.json` (focus log) and `checkout.captions.txt` committed; then the same for product and cart if time allows. **Can be recorded any time after Task 13; ideally during the Sun tester session.**
+
+### Task 27: Transcribe and align
+- Create `parity/voice.py`; test `tests/test_voice.py` with a cached transcribe fixture.
+- Produces: `async transcribe_page(client, page: str) -> PageVoice` (keywords = AX names on that page; mode `PUSH_TO_TALK`); `align(transcript_turns, focus_log) -> dict[dom_id, Segment(start_ms, end_ms, text)]`; `word_accuracy(hypothesis, reference) -> float` (1 − WER on normalised words); `transcript_agrees(segment, ax_role, ax_name) -> bool`.
+- Tests: `test_align_assigns_turns_by_time`, `test_word_accuracy_identical_is_one`, `test_word_accuracy_arithmetic`, `test_transcript_agrees_submit_button`, `test_missing_clip_returns_none` (pages without a recording skip Voice cleanly).
+
+### Task 28: Voice in the pipeline and UI
+- Runner: after `verify`, attach `Finding.voice` when the page has a clip; emit `voice.transcribed`. Gate G-V: `accuracy >= 0.90` → hero shows Voice as primary evidence; else as corroboration with the accuracy. Serve clips at `/store/voice/*.wav` with HTTP range support so the player can seek to a segment.
+- UI: clip player in the Screen reader panel scoped to the selected finding's segment; transcript line; badge. vitest: `test_reducer_attaches_voice`; Playwright smoke: the hero card has an audio element with a `#t=` fragment.
+- Re-record `fixtures/replay/hero-checkout` with Voice; commit; push; tag `p6`. Update README and the video script with the G-V result.

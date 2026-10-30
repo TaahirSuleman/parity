@@ -1,6 +1,6 @@
 # 19 — Design spec
 
-**Status:** DRAFT for approval, Fri 30 Oct 2026; storage revised Sat 31 Oct (D8). Implements doc 18 (scope is fixed there). Decisions taken in the 30 Oct brainstorm are marked **[D30]**.
+**Status:** DRAFT for approval, Fri 30 Oct 2026; revised Sat 31 Oct: storage (D8), Voice in P6 (D3), model roles (D6), public-site sample (D7). Implements doc 18 (scope is fixed there). Decisions taken in the 30 Oct brainstorm are marked **[D30]**.
 **Precedence:** constitution > doc 18 > this doc > doc 20 (plan).
 
 ## 1. Decisions taken on 30 Oct [D30]
@@ -9,11 +9,11 @@
 | D1 | Toolchain via Homebrew: `python@3.12`, `node` (26), `uv`. No local Docker; the image builds on Cloud Build. | The Mac has Python 3.9 only. Vite needs Node. |
 | D2 | **Host: Google Cloud Run** (one container, `min=max=1`, CPU always allocated, 2 vCPU / 2 GiB, 60-min request timeout). | $150 free credit; HTTPS and a public URL for free; the builder knows GCP. `max=1` keeps the in-memory rate limiter, event bus and warm Chromium consistent. |
 | D8 | **Storage (31 Oct): run bundles are the truth, written through a `BlobStore` interface with two backends.** Local: the filesystem under `PARITY_DATA_DIR`. Cloud Run: objects in a Cloud Storage bucket, written with the `google-cloud-storage` client API (no FUSE mount). **SQLite is a derived cache only**, on local disk, rebuilt from the bundles at boot. | Cloud Run's local disk is in memory and wiped on restart. SQLite WAL is unsafe on a bucket mount, and appends there re-upload the whole object. Filestore (≈$200/mo minimum), Cloud SQL (≈$10/mo), Spanner (≈$65/mo+) and hosted Postgres/libSQL are overkill for a few hundred write-once runs with one writer. Litestream loses to per-run objects during deploy overlap. Firestore is the upgrade path if we ever need more than one instance. |
-| D3 | Voice Transcribe (Gate G-V) is a stretch after P5. The AX tree is the screen-reader truth. `Finding.sr_transcript` stays optional. | Time. |
+| D3 | **Voice is in scope as P6** (revised 31 Oct): built after P5 and before the Tue 3 Nov 12:00 freeze. Recorded VoiceOver clips of the store pages are transcribed by `muse-voice-transcribe-1.0`; the transcript corroborates findings and plays in the Screen reader panel (§16). The AX tree stays the gating truth; Gate G-V decides only whether Voice is shown as corroboration or as primary evidence. | The hero is stronger when judges hear what a blind shopper hears. Not early, because P1–P5 carry the demo. |
 | D4 | **Approve fix = record the decision + export a `.patch`.** Re-audit runs on an in-memory patched copy. The hosted store never mutates. | Judges share the store; approval still lands live in the active run via SSE, and old runs keep their decisions. |
 | D5 | Stack versions pinned: FastAPI 0.162, uvicorn 0.54, Playwright 1.64, pydantic 2.14, sse-starlette 3.6, aiosqlite 0.22, httpx 0.28, google-cloud-storage 3.17, pytest 9; React 19.3, Vite 8.3, TypeScript 7.0, Tailwind 4.3, axe-core 4.14, vitest 5. | Latest on 30 Oct. |
-| D6 | Model roles: Spark 1.3 `reasoning.effort` = low (navigator), medium (seer, comparator, judge, fixer). `-contributor` for the eval harness only. | Measured in doc 17; cost. |
-| D7 | Public-site runs are out of the plan (stretch). | Budget. |
+| D6 | **Model roles** (revised 31 Oct; §6.1). Default model `muse-spark-1.3-contributor` for navigator (effort low), seer, comparator and fixer (effort medium). Judge: `muse-wonder-1.0` if the eval shows it beats Spark on label agreement, else Spark 1.3; any Wonder error falls back to Spark. A **private mode** switches every stage to standard `muse-spark-1.3` for sites whose data must not be used for training. | Contributor is the same model at ≈1/12 the price; Meta may train on inputs, which is fine for our store and public pages. A different judge model avoids self-grading and shows Muse models combined. |
+| D7 | **Public-site runs are in scope** (revised 31 Oct; §17): 2–3 read-only flows, run locally by CLI in P4, shown in the UI as anonymised Replay bundles. First item dropped if the schedule slips. | Doc 18 §6 requires a real-world sample; it is Impact evidence. Cost is negligible (≈$0.02–0.30 per flow); the constraint is time and site terms. The earlier "budget" reason was wrong. |
 
 ## 2. Repo layout
 ```
@@ -48,7 +48,7 @@ All stages are plain async functions over pydantic models. The model perceives; 
 | Seer | `see(client, capture) -> list[Percept]` | Spark 1.3 grounding, JSON | Boxes clamped to 0–1000; empty list is valid. |
 | Comparator | `compare(client, capture, percepts, feedback=None) -> list[Candidate]` | Spark 1.3, JSON | Shape validation; unparseable → `[]` and a `comparator.unparseable` event (fails closed). |
 | Verifier | `verify(candidate, capture, prior: list[Finding]) -> VerifierResult` | none | §4. |
-| Judge | `judge(client, finding, capture) -> Judgement` | Spark 1.3, JSON | Unparseable or `is_barrier` not a strict bool → `needs_review` (fails closed). |
+| Judge | `judge(client, finding, capture) -> Judgement` | `PARITY_JUDGE_MODEL` (Wonder 1.0 or Spark 1.3), JSON; fallback to Spark on error | Unparseable or `is_barrier` not a strict bool → `needs_review` (fails closed). |
 | Fixer | `propose_fix(client, finding, capture) -> Fix` | Spark 1.3, JSON | Patched snippet must parse and must still contain the element's tag; the diff is computed in code. |
 | Re-audit | `reaudit(client, page_html, fix, finding) -> ReauditResult` | none, then Comparator on the patched page | `gap_closed` is decided by code: the element's new AX name must equal, or contain, the sighted text (normalised); the Comparator result is recorded as a second signal only. |
 | Human gate | `decide(run, finding, decision, reason)` | none | Only a decision can move a finding to `approved`/`rejected`; a run with pending fixes is `awaiting_review`. |
@@ -79,7 +79,7 @@ Step       run_id, index, url, actions[], screenshot(path), ax_tree(path), axe(p
 Percept    step_index, visible_text, kind(button|link|text|image|price|error|icon|other), bbox
 Candidate  step_index, sighted_text, sr_quote, why_it_matters, bbox, attempt
 Finding    id, run_id, step_index, status(verified|judged|fix_proposed|reaudited|approved|rejected),
-           sighted_text, sr_role, sr_name, sr_transcript?, bbox, element{backend_id, css_path, box_px, outer_html},
+           sighted_text, sr_role, sr_name, voice?{clip_key, start_ms, end_ms, transcript, agrees}, bbox, element{backend_id, css_path, box_px, outer_html},
            verifier{passed, checks{name:{passed, detail}}}, judgement?, fix?, reaudit?, decision?
 Rejected   same as Candidate + verifier result (shown as the red row)
 Judgement  is_barrier, severity(critical|serious|moderate|minor), wcag[{sc, name}], impact, model_meta
@@ -110,7 +110,20 @@ Two layers. Only the first holds data; the second can be deleted at any time.
 - httpx async, `Authorization: Bearer`, base from env. `POST /responses`; `GET /models` as the preflight.
 - **Cache:** key = sha256(model + canonical JSON body); `cache/<key>.json`. A hit costs $0 and is traced with `cache_hit=true`. Computer-use turns include `previous_response_id`, so they cache per turn.
 - **Retries:** 3 attempts with backoff 1 s, 3 s, 9 s on 5xx and network errors; the request ID (`x-request-id` header, else response `id`) and timestamp go into the trace and the log line for the dev.meta.ai/support report.
-- **Trace:** one `ModelCall` per attempt, appended to `trace.jsonl` and the index, and emitted as a `model.call` event. Cost = tokens × `pricing.py` (Spark 1.3: $1.25 in, $0.15 cached, $4.25 out per 1M; contributor: $0.10 / $0.002 / $0.20).
+- **Trace:** one `ModelCall` per attempt, appended to `trace.jsonl` and the index, and emitted as a `model.call` event. Cost = tokens × `pricing.py`, per 1M tokens in / cached / out: Spark 1.3 $1.25 / $0.15 / $4.25; Spark 1.3 contributor $0.10 / $0.002 / $0.20; Wonder 1.0 $4.00 / $0.20 / $20.00. Voice Transcribe: $0.18 per audio hour.
+- `POST /asr/transcribe` (multipart, `audioEncoding: "WAV"`) is a second method, `transcribe(wav: bytes, keywords: list[str], stage, run_id) -> Transcript`, cached and traced the same way.
+
+### 6.1 Model roles [D6]
+| Stage | Model | Effort | Notes |
+|---|---|---|---|
+| Navigator | `PARITY_MODEL` (contributor) | low | Computer use proven on Spark 1.3; `truncation: "auto"` on every turn |
+| Seer, Comparator | `PARITY_MODEL` | medium | Effort chosen by the eval effort sweep (§13); default medium |
+| Judge | `PARITY_JUDGE_MODEL` | medium | Wonder 1.0 or Spark 1.3, chosen by the eval judge comparison; fallback to Spark |
+| Fixer | `PARITY_MODEL` | medium | Re-audit checks every fix in code |
+| Voice | `muse-voice-transcribe-1.0` | n/a | P6; keyword biasing with the page's AX names |
+| Private mode | `muse-spark-1.3` for every Spark stage | as above | `PARITY_PRIVATE=true`; Wonder judge stays allowed (standard tier) |
+The workbench badge shows the exact model ID per step, so the contributor tier is visible, not hidden.
+Expected cost per run with these roles: single page ≈ $0.01 (contributor) plus ≈ $0.03–0.05 per finding if Wonder judges; three-page flow ≈ $0.02–0.05 plus judging.
 - Outputs are read from `output[].content[].type == "output_text"`; failures are detected by HTTP status only.
 
 ## 7. API routes (FastAPI, prefix `/api`)
@@ -129,14 +142,14 @@ Two layers. Only the first holds data; the second can be deleted at any time.
 Static: `/store/*` demo store, `/` the SPA. Local one-command run: `make demo` (installs, builds, starts on :8080, opens the workbench).
 
 ## 8. SSE events (`{type, run_id, at, data}`)
-`run.started`, `nav.actions {turn, actions[]}`, `step.captured {index, url, axe_violations, ax_nodes}`, `seer.done {index, percepts}`, `comparator.candidates {index, n, attempt}`, `verifier.result {candidate, passed, checks, finding_id?}`, `judge.result {finding_id, judgement}`, `fixer.proposed {finding_id, diff}`, `reaudit.result {finding_id, gap_closed, before, after}`, `model.call {stage, model, request_id, tokens, latency_ms, cost_usd, cache_hit}`, `decision.recorded {finding_id, decision}`, `run.finished {summary}`, `run.failed {error}`.
+`run.started`, `nav.actions {turn, actions[]}`, `nav.blocked {turn, action, reason}`, `voice.transcribed {page, accuracy?}`, `step.captured {index, url, axe_violations, ax_nodes}`, `seer.done {index, percepts}`, `comparator.candidates {index, n, attempt}`, `verifier.result {candidate, passed, checks, finding_id?}`, `judge.result {finding_id, judgement}`, `fixer.proposed {finding_id, diff}`, `reaudit.result {finding_id, gap_closed, before, after}`, `model.call {stage, model, request_id, tokens, latency_ms, cost_usd, cache_hit}`, `decision.recorded {finding_id, decision}`, `run.finished {summary}`, `run.failed {error}`.
 Replay emits the same events from `events.jsonl` with 250 ms pacing (×1 or ×2 selectable); screenshots come from the bundle. Replay is labelled in the UI and in every event (`run.mode`).
 
 ## 9. Workbench (React SPA; designed around the hero)
 Layout at ≥1280 px: header, three columns, trace drawer.
 - **Header:** flow name and mode pill (**Live** / **Replay**), **Run the audit** button, axe-core badge (`axe-core · 0 violations`) beside the Parity counter (`Parity · 6 verified · 1 rejected`), cost and time for the run.
 - **Left, Sighted:** the latest screenshot with grounding boxes; the selected finding's box in green; percept boxes faint. Badge: *Muse Spark 1.3 · computer use* while navigating, *· grounding* when the Seer runs.
-- **Right, Screen reader:** large monospace line for the selected element: `button, "Submit"`; below it the price line `Price: not announced`. Optional VoiceOver clip player (hidden unless the bundle has one). Badge: *Chrome accessibility tree (deterministic)*.
+- **Right, Screen reader:** large monospace line for the selected element: `button, "Submit"`; below it the price line `Price: not announced`. From P6: a **VoiceOver clip** player for the selected element's segment, with its Voice Transcribe transcript and a badge *Muse Voice Transcribe · real VoiceOver audio* (§16); hidden for pages without a recording. Badge: *Chrome accessibility tree (deterministic)*.
 - **Centre, Findings feed:** cards appear as `verifier.result` events arrive. A card shows the sighted crop, the screen-reader quote, the five verifier checks as green ticks, WCAG SC and severity (*Spark · judge*), the fix diff (*Spark · fixer*), the re-audit before/after (*code*), and **Approve** / **Reject** with a reason field. A rejected candidate renders as a red row with the failed check. Hero card: "Pay R1,249" vs `button, "Submit"`.
 - **Trace drawer:** table of model calls (stage, model, request ID, tokens, latency, cost, cache hit). **Eval tab:** recall and precision table, axe baseline, ablation strip, cost and time per page.
 - Every model-backed element carries a badge naming the Meta model and the capability; deterministic steps say so.
@@ -160,6 +173,8 @@ ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.
 
 ## 13. Eval harness (`eval/`)
 - `harness.py --model muse-spark-1.3-contributor --pages product,cart,checkout [--no-screenshot|--no-tree|--no-grounding] --runs 3`: runs capture → seer → comparator → verifier per page, matches verified findings to labels by element id (a finding matches a label when its mapped node has the label's `id`), and writes `eval/results/<timestamp>.json`: per-page and total recall, precision, false positives on clean controls, axe-core recall on the same labels, tokens, cost and seconds per page.
+- Extra flags: `--effort low|medium|high` (effort sweep for seer and comparator), `--judge-model muse-spark-1.3|muse-wonder-1.0` (judge comparison: agreement of `is_barrier` with labels on verified findings, plus false positives on clean controls, cost per finding). The winners set the defaults in D6 and are recorded in the results file.
+- Contributor and standard Spark 1.3 are the same model, so a small check (one run per page on standard) confirms the contributor numbers transfer.
 - `ablations.py` runs the three ablations plus full Parity and writes one table. `--no-grounding` strips boxes before the Verifier, so `located` fails; precision drop is the measurement.
 - Labels never enter prompts; a test asserts `eval` is not imported by `parity`.
 - Numbers in the README, video and form come from one results file (recipe rule L9).
@@ -174,3 +189,17 @@ ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.
 - The key is read from env only; logs redact `Authorization`. `.env` is git-ignored; the deny list in `.claude/settings.json` blocks reading it.
 - Live runs: allowed origins, 12 navigator turns, 60 s per model call, 10 min per run, one concurrent Live run per server (a queue of 1; others get 429).
 - No "compliance" wording anywhere in the UI or docs; findings are evidence and every fix waits for a human.
+
+## 16. Voice: real screen-reader audio (P6) [D3]
+- **Recording (manual, the builder, on macOS):** VoiceOver on, rate set to a typical user speed, Safari or Chrome on the local store; navigate each store page with VO+Right through every element; record system audio to WAV, 16 kHz mono 16-bit. One clip per page, stored in `store/voice/<page>.wav` with `store/voice/<page>.json` listing the element order (dom id per VO stop) written during recording by a small helper that logs focus changes.
+- **Transcription:** `transcribe(wav, keywords=<AX names on that page>)` with `mode: "PUSH_TO_TALK"`; turns are aligned to elements by the focus log timestamps. Cached; recorded clips are transcribed once per clip and bundled.
+- **Use in findings:** non-gating evidence check `transcript_agrees`: the aligned transcript segment, normalised, contains the AX name (for example "Submit, button"). The card shows the clip segment and the transcript beside the AX quote.
+- **Gate G-V:** word accuracy of transcripts vs the VO speech text (VoiceOver's caption panel, saved during recording) on the checkout clip. ≥ 90%: Voice is shown as primary evidence in the hero. < 90%: shown as corroboration with the measured accuracy beside it. The AX tree remains the gate either way.
+- **Limits:** Live runs on Cloud Run cannot run VoiceOver, so Voice applies to the recorded store pages and their Replay bundles. The UI says so.
+
+## 17. Public-site sample (P4) [D7]
+- **CLI only:** `parity audit --url <start> --goal "<text>" --public` runs locally; never from the hosted UI. The hosted Live mode stays restricted to the store.
+- **Read-only guard:** in public mode the Navigator's action executor refuses, and ends the flow before, any click on an element whose AX name or text matches pay/buy/place order/submit/sign up/subscribe/confirm/delete, any typing into password, card, email or phone fields, and any form submit. The refusal is logged as `nav.blocked` and the run ends with status `done` and reason `stopped before irreversible step`.
+- **Bot walls:** consent banners may be dismissed only with the most privacy-preserving option; CAPTCHAs, bot challenges and logins end the run with reason `blocked by site`. Never bypassed.
+- **Politeness:** respect robots.txt for the start URL, one run per site, no parallel requests, ≤ 12 navigator turns.
+- **Disclosure:** results are stored as Replay bundles under `fixtures/replay/public-<letter>/` with the site name and URLs replaced by "Site A/B/C" and screenshots kept only for verified findings. Counts of verified findings appear in the README and the Eval tab. A site is named only after its owner has been notified.

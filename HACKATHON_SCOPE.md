@@ -27,4 +27,4 @@
 No pre-existing application code, models, datasets or prompts are reused. Public statistics quoted in the demo (WebAIM Million 2026; US ADA web suits 2025) are cited in the README.
 
 ## Models at runtime
-Only Meta models: `muse-spark-1.3`, `muse-spark-1.3-contributor` (eval), and optionally `muse-voice-transcribe-1.0` (stretch, off by default). Playwright and axe-core are not models.
+Only Meta models: `muse-spark-1.3-contributor` (default for navigation, perception and fixes), `muse-spark-1.3` (private mode and judge fallback), `muse-wonder-1.0` (judge, if the eval selects it) and `muse-voice-transcribe-1.0` (transcribes recorded VoiceOver audio). Playwright and axe-core are not models. VoiceOver is Apple's screen reader, used only to record audio clips; it is not called at runtime.

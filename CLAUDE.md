@@ -20,7 +20,7 @@
 5. Skill `meta-model-api`: verified request formats. Use it before writing any API call.
 
 ## Hard rules (disqualification or credibility)
-- **Runtime models:** every model called at runtime is a Meta model (`muse-spark-1.3`, `-contributor`, `muse-voice-transcribe-1.0`). No other LLMs or TTS at runtime. Playwright and axe-core are fine (not models).
+- **Runtime models:** every model called at runtime is a Meta model (`muse-spark-1.3`, `-contributor`, `muse-wonder-1.0` as judge, `muse-voice-transcribe-1.0`; roles in doc 19 §6.1). No other LLMs or TTS at runtime. Playwright and axe-core are fine (not models).
 - **No-login demo:** judges can try it without logging in. Ship a hosted URL with a "Run the audit" button and Live/Replay modes, plus a one-command local run.
 - **Built this week:** a new repo; everything built this week; `HACKATHON_SCOPE.md` lists pre-existing OSS.
 - **Never claim "compliance".** Findings are evidence, and a human approves every fix.

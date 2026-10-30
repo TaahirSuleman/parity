@@ -11,8 +11,9 @@ from parity.store.models import ModelCall
 
 
 class FakeMetaClient:
-    def __init__(self, fixture_dir: Path, trace: TraceSink | None = None):
+    def __init__(self, fixture_dir: Path, trace: TraceSink | None = None, default: dict[str, Any] | None = None):
         self.fixture_dir = Path(fixture_dir)
+        self.default = default
         self.trace = trace or ListTraceSink()
         self.calls: list[dict[str, Any]] = []
 
@@ -23,9 +24,12 @@ class FakeMetaClient:
         self.calls.append(body)
         key = cache_key(body)
         path = self.fixture_dir / f"{key}.json"
-        if not path.exists():
+        if not path.exists() and self.default is not None:
+            raw = dict(self.default)
+        elif not path.exists():
             raise KeyError(f"no fixture for stage {stage}: expected {path.name} in {self.fixture_dir}")
-        raw = json.loads(path.read_text())
+        else:
+            raw = json.loads(path.read_text())
         usage = Usage.from_raw(raw.get("usage"))
         await self.trace.record(
             ModelCall(

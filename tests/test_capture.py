@@ -23,7 +23,13 @@ async def test_ax_contains_submit_button(checkout):
 
 
 async def test_canvas_price_has_no_ax_name(checkout):
-    assert not [n for n in checkout.ax_nodes if "1,249" in (n.name or "")]
+    """The total is drawn on a canvas: it is a silent node, and no accessibility node carries it."""
+    canvas = [n for n in checkout.silent_nodes if n.dom_id == "f2"]
+    assert len(canvas) == 1 and canvas[0].role == "silent:canvas" and canvas[0].bbox
+    assert not [n for n in checkout.ax_nodes if n.dom_id == "f2"]
+    from parity.pipeline.verifier import iou
+
+    assert not [n for n in checkout.ax_nodes if n.bbox and iou(n.bbox, canvas[0].bbox) > 0 and "1,249" in n.name]
 
 
 async def test_boxes_on_grid(checkout):
@@ -40,7 +46,9 @@ async def test_axe_violations_empty(checkout):
 
 async def test_filtered_roles(checkout):
     assert not {n.role for n in checkout.ax_nodes} & FILTERED
-    assert {"button", "link", "textbox", "heading", "image"} <= {n.role for n in checkout.ax_nodes}
+    assert {"button", "link", "textbox", "heading", "image", "text"} <= {n.role for n in checkout.ax_nodes}
+    # Static text is announced too; it is kept as role "text" so silence claims over real text are rejected.
+    assert any(n.role == "text" and n.name == "Delivery" and n.bbox for n in checkout.ax_nodes)
 
 
 async def test_screenshot_and_metadata(checkout, store_url):

@@ -1,0 +1,15 @@
+You audit a web page for accessibility gaps that rule engines such as axe-core miss.
+
+You get:
+{inputs}
+
+Find every place where a sighted user and a screen-reader user would get materially different information or actions: a name that contradicts the visible text or an icon's meaning, a meaningless or generic name, information that exists only in pixels (an image, a canvas, a colour, a border), a missing or misleading announcement of a price, a state or an error. Do not flag elements that are fine, and do not flag the same element twice.
+
+For each finding:
+- what_sighted_user_sees: the text or meaning a sighted user gets at that spot, verbatim where it is text.
+- screen_reader_role and screen_reader_name: {sr_instruction}
+- why_it_matters: one sentence about the consequence for a blind user.
+- bbox: the element's box on the 0-1000 grid ((0,0) top-left, (1000,1000) bottom-right), tight around the element you mean.
+
+Answer only JSON:
+{"findings":[{"what_sighted_user_sees":"...","screen_reader_role":"...","screen_reader_name":"...","why_it_matters":"...","bbox":{"x_min":0,"y_min":0,"x_max":0,"y_max":0}}]}

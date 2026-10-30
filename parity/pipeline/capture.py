@@ -14,7 +14,10 @@ from playwright.async_api import CDPSession, Page
 from parity.store.models import AxeViolation, AxNode, BBox, Capture
 
 AXE_PATH = Path(__file__).resolve().parent.parent / "vendor" / "axe.min.js"
-FILTERED_ROLES = {"generic", "none", "presentation", "StaticText", "InlineTextBox", "LineBreak", "RootWebArea"}
+FILTERED_ROLES = {"generic", "none", "presentation", "InlineTextBox", "LineBreak", "RootWebArea"}
+# Chrome reports text runs as StaticText; a screen reader reads them, so they stay in the tree as role "text".
+ROLE_RENAMES = {"StaticText": "text"}
+MAX_NAME = 120
 # Roles kept even when they have no accessible name (an unnamed control or image is itself evidence).
 KEEP_UNNAMED = {
     "button", "link", "textbox", "searchbox", "image", "checkbox", "radio", "combobox", "listbox",
@@ -81,11 +84,12 @@ async def _ax_nodes(cdp: CDPSession, viewport: tuple[int, int]) -> list[AxNode]:
         if raw.get("ignored"):
             continue
         role = (raw.get("role") or {}).get("value") or ""
-        name = (raw.get("name") or {}).get("value") or ""
+        role = ROLE_RENAMES.get(role, role)
+        name = ((raw.get("name") or {}).get("value") or "")[:MAX_NAME]
         backend_id = raw.get("backendDOMNodeId")
         if role in FILTERED_ROLES or backend_id is None:
             continue
-        if not name and role not in KEEP_UNNAMED:
+        if not name.strip() and role not in KEEP_UNNAMED:
             continue
         box_px = await _box_px(cdp, backend_id)
         info = await _element_info(cdp, backend_id)

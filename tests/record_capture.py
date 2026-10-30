@@ -5,13 +5,15 @@ Writes tests/fixtures/capture_checkout.json and capture_checkout.png.
 """
 
 import asyncio
+import sys
 from pathlib import Path
 
 from playwright.async_api import async_playwright
 
-from parity.pipeline.capture import capture
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from parity.pipeline.capture import capture  # noqa: E402
 OUT = ROOT / "tests" / "fixtures"
 
 

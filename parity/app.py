@@ -1,33 +1,85 @@
-"""FastAPI application factory: /api, /store (demo store) and / (the workbench SPA)."""
+"""FastAPI application factory: /api, /store (demo store) and / (the workbench SPA).
+
+Boot order (spec docs/19 §5.1): open the index, fail runs interrupted by a restart, rebuild the
+index from the bundles, discover replay bundles, then serve.
+"""
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from parity import __version__
+from parity.api.events import EventBus
+from parity.api.routes import router
 from parity.config import Settings, load_settings
+from parity.meta.client import MetaClient, TraceRouter
+from parity.pipeline import browser
+from parity.store.blob import LocalBlobStore, make_blob_store
+from parity.store.bundle import RunBundle
+from parity.store.index import RunIndex
 
+log = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parent.parent
 STORE_DIR = ROOT / "store"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
+async def discover_replays(replay_bundle: RunBundle) -> dict[str, str]:
+    """flow_id -> the newest recorded run for that flow (the committed hero bundle)."""
+    by_flow: dict[str, str] = {}
+    for run_id in await replay_bundle.list_run_ids():
+        try:
+            run = (await replay_bundle.load(run_id)).run
+        except Exception as exc:
+            log.warning("replay bundle %s unreadable: %s", run_id, exc)
+            continue
+        by_flow[run.flow_id] = run_id  # list_run_ids is sorted; later ids win
+    return by_flow
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
-    app = FastAPI(title="Parity", version="0.1.0", docs_url=None, redoc_url=None)
-    app.state.settings = settings
+    logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
-    @app.get("/api/health")
-    async def health() -> dict:
-        return {
-            "ok": True,
-            "mode_default": settings.default_mode,
-            "live_enabled": settings.live_enabled,
-            "storage": "gcs" if settings.gcs_bucket else "local",
-        }
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        st = app.state
+        await st.index.init()
+        recovered = await st.index.recover_interrupted(st.bundle)
+        indexed = await st.index.rebuild(st.bundle)
+        st.replay_for_flow = await discover_replays(st.replay_bundle)
+        st.replay_ids = sorted(st.replay_for_flow.values())
+        log.info("boot: %d runs indexed, %d recovered, replays %s, storage %s", indexed, len(recovered), st.replay_ids, "gcs" if settings.gcs_bucket else "local")
+        try:
+            yield
+        finally:
+            await st.index.close()
+            if st.client is not None:
+                await st.client.aclose()
+            await browser.shutdown()
 
+    app = FastAPI(title="Parity", version=__version__, docs_url=None, redoc_url=None, lifespan=lifespan)
+    st = app.state
+    st.settings = settings
+    st.bundle = RunBundle(make_blob_store(settings))
+    st.replay_bundle = RunBundle(LocalBlobStore(settings.replay_dir))
+    st.index = RunIndex(settings.index_path)
+    st.bus = EventBus(st.bundle)
+    st.trace = TraceRouter()
+    st.client = MetaClient(settings, cache_dir=settings.cache_dir, trace=st.trace) if settings.has_key else None
+    st.live_lock = asyncio.Lock()
+    st.self_base_url = f"http://127.0.0.1:{settings.port}"
+    st.replay_for_flow = {}
+    st.replay_ids = []
+
+    app.include_router(router)
     app.mount("/store", StaticFiles(directory=STORE_DIR, html=True), name="store")
     if STATIC_DIR.exists():
         app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="spa")

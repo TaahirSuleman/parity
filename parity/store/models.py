@@ -269,6 +269,7 @@ class Run(Strict):
     duration_ms: int = 0
     client_ip_hash: str = ""
     error: str | None = None
+    replay_of: str | None = None  # source run id when mode == replay
 
 
 class Event(Strict):

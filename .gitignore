@@ -4,3 +4,11 @@ node_modules/
 cache/
 data/
 *.pyc
+web/node_modules/
+web/dist/
+parity/static/
+parity/vendor/
+.pytest_cache/
+.superpowers/
+.DS_Store
+__pycache__/

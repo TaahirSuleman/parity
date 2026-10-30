@@ -1,0 +1,27 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv .venv && uv pip install --python .venv/bin/python -e ".[dev]"
+      - run: .venv/bin/python -m playwright install --with-deps chromium
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26"
+      - run: mkdir -p parity/vendor && npm i --no-save --prefix /tmp/axe axe-core@4.14.0 && cp /tmp/axe/node_modules/axe-core/axe.min.js parity/vendor/axe.min.js
+      - run: .venv/bin/python -m pytest -q
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26"
+      - if: hashFiles('web/package.json') != ''
+        run: cd web && npm ci && npm test

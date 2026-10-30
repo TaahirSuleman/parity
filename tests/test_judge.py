@@ -78,3 +78,14 @@ async def test_spark_error_propagates(hero, tmp_path):
     fake = FakeMetaClient(tmp_path, errors={"muse-spark-1.3": MetaError("boom", status=500, request_id="req-s", attempts=3)})
     with pytest.raises(MetaError):
         await judge(fake, finding, cap, run_id="r1", model="muse-spark-1.3")
+
+
+async def test_judge_incomplete_response_needs_review_and_records_status(hero, tmp_path):
+    cap, finding = hero
+    incomplete = {"id": "resp_inc", "status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"},
+                  "output": [{"type": "reasoning", "content": []}], "usage": {"input_tokens": 1500, "output_tokens": 1500}}
+    fake = FakeMetaClient(tmp_path, default=incomplete)
+    j = await judge(fake, finding, cap, run_id="r1", model="muse-spark-1.3")
+    assert j.is_barrier is None and j.severity == Severity.needs_review
+    assert j.model_meta["status"] == "incomplete" and j.model_meta["incomplete_reason"] == "max_output_tokens"
+    assert fake.calls[0]["max_output_tokens"] >= 4000

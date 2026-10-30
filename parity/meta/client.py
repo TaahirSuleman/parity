@@ -16,6 +16,7 @@ import math
 import sys
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
@@ -79,6 +80,27 @@ class ListTraceSink:
 
     async def record(self, call: ModelCall) -> None:
         self.calls.append(call)
+
+
+class TraceRouter:
+    """Routes each ModelCall to the sink bound for its run_id (the runner binds one per run)."""
+
+    def __init__(self) -> None:
+        self.sinks: dict[str, Callable[[ModelCall], Awaitable[None]]] = {}
+        self.unrouted: list[ModelCall] = []
+
+    def bind(self, run_id: str, sink: Callable[[ModelCall], Awaitable[None]]) -> None:
+        self.sinks[run_id] = sink
+
+    def unbind(self, run_id: str) -> None:
+        self.sinks.pop(run_id, None)
+
+    async def record(self, call: ModelCall) -> None:
+        sink = self.sinks.get(call.run_id)
+        if sink is None:
+            self.unrouted.append(call)
+            return
+        await sink(call)
 
 
 def canonical(body: dict[str, Any]) -> bytes:

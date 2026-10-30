@@ -12,10 +12,11 @@ from parity.store.models import ModelCall
 
 class FakeMetaClient:
     def __init__(self, fixture_dir: Path, trace: TraceSink | None = None, default: dict[str, Any] | None = None,
-                 errors: dict[str, Exception] | None = None):
+                 errors: dict[str, Exception] | None = None, stage_defaults: dict[str, dict[str, Any]] | None = None):
         self.fixture_dir = Path(fixture_dir)
         self.default = default
-        self.errors = errors or {}  # model id -> exception to raise, for failure-path tests
+        self.stage_defaults = stage_defaults or {}  # stage -> response used when no exact fixture matches
+        self.errors = errors or {}  # model id or stage -> exception to raise, for failure-path tests
         self.trace = trace or ListTraceSink()
         self.calls: list[dict[str, Any]] = []
 
@@ -24,11 +25,14 @@ class FakeMetaClient:
 
     async def responses(self, body: dict[str, Any], *, stage: str, run_id: str, step_index: int | None = None) -> MetaResponse:
         self.calls.append(body)
-        if str(body.get("model", "")) in self.errors:
-            raise self.errors[str(body.get("model", ""))]
+        for probe in (str(body.get("model", "")), stage):
+            if probe in self.errors:
+                raise self.errors[probe]
         key = cache_key(body)
         path = self.fixture_dir / f"{key}.json"
-        if not path.exists() and self.default is not None:
+        if not path.exists() and stage in self.stage_defaults:
+            raw = dict(self.stage_defaults[stage])
+        elif not path.exists() and self.default is not None:
             raw = dict(self.default)
         elif not path.exists():
             raise KeyError(f"no fixture for stage {stage}: expected {path.name} in {self.fixture_dir}")

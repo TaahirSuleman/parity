@@ -5,6 +5,7 @@ Run: .venv/bin/python scripts/record_fixtures.py
 """
 
 import asyncio
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -15,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 from parity.config import load_settings  # noqa: E402
 from parity.meta.client import ListTraceSink, MetaClient  # noqa: E402
 from parity.pipeline.comparator import compare  # noqa: E402
+from parity.pipeline.judge import judge  # noqa: E402
 from parity.pipeline.seer import see  # noqa: E402
 from parity.pipeline.verifier import verify  # noqa: E402
 from parity.store.models import Capture  # noqa: E402
@@ -35,22 +37,41 @@ async def main() -> None:
         candidates = await compare(client, cap, percepts, run_id="fixture", model=model)
     finally:
         await client.aclose()
+    verified = []
+    rejected = []
+    for c in candidates:
+        r = verify(c, cap, verified)
+        if r.passed:
+            from parity.store.models import Finding
+            node = next((n for n in cap.ax_nodes if n.backend_id == r.element.backend_id), None)
+            verified.append(Finding(id=f"fx-{len(verified)+1}", run_id="fixture", step_index=0, sighted_text=c.sighted_text,
+                                    sr_role=node.role if node else "", sr_name=node.name if node else "", why_it_matters=c.why_it_matters,
+                                    bbox=c.bbox, element=r.element, verifier=r))
+        else:
+            rejected.append((c, r))
+    client = MetaClient(settings, cache_dir=settings.cache_dir, trace=trace)
+    judgements = {}
+    try:
+        for f in verified:
+            judgements[f.id] = await judge(client, f, cap, run_id="fixture", model=settings.model_for("judge"))
+    finally:
+        await client.aclose()
     (FIX / "meta").mkdir(exist_ok=True)
+    manifest = {}
+    hero = next((f for f in verified if f.element.dom_id == "f5"), None)
     for call in trace.calls:
         src = settings.cache_dir / f"{call.prompt_sha256}.json"
         shutil.copy(src, FIX / "meta" / src.name)
+        if call.stage not in manifest and (call.stage != "judge" or (hero and call.step_index == 0 and manifest.get('judge') is None and len([c for c in trace.calls if c.stage == 'judge']) >= 1)):
+            manifest[call.stage] = src.name
         print(f"{call.stage}: model={call.model} request_id={call.request_id} tokens={call.total_tokens} latency_ms={call.latency_ms} cost=${call.cost_usd:.4f} cache_hit={call.cache_hit}")
-    print(f"\n{len(percepts)} percepts; {len(candidates)} candidates:")
-    verified = []
-    for c in candidates:
-        r = verify(c, cap, verified)
-        mark = "PASS" if r.passed else "fail"
-        dom = r.element.dom_id if r.element else "-"
-        box = c.bbox and (c.bbox.x_min, c.bbox.y_min, c.bbox.x_max, c.bbox.y_max)
-        print(f"  [{mark}] {dom:>5} {str(box):24} | sighted={c.sighted_text[:34]!r:38} sr={c.sr_quote[:28]!r:30} {'' if r.passed else r.feedback}")
-        if r.passed:
-            from parity.store.models import Finding
-            verified.append(Finding(id=str(len(verified)), run_id="fixture", step_index=0, sighted_text=c.sighted_text, sr_role="", sr_name="", bbox=c.bbox, element=r.element, verifier=r))
+    (FIX / "meta" / "manifest.json").write_text(json.dumps(manifest, indent=1))
+    print(f"\n{len(percepts)} percepts; {len(candidates)} candidates; manifest: {manifest}")
+    for f in verified:
+        j = judgements[f.id]
+        print(f"  [PASS] {f.element.dom_id or '-':>5} | sighted={f.sighted_text[:34]!r:38} sr={f.sr_role}, {f.sr_name!r:16} judge={j.is_barrier} {j.severity} {[w.sc for w in j.wcag]}")
+    for c, r in rejected:
+        print(f"  [fail] {'-':>5} | sighted={c.sighted_text[:34]!r:38} sr={c.sr_quote[:28]!r:30} {r.feedback}")
 
 
 if __name__ == "__main__":

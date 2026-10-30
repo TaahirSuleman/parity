@@ -10,11 +10,17 @@ VIEWPORT = {"width": 1280, "height": 720}
 
 _playwright: Playwright | None = None
 _browser: Browser | None = None
-_lock = asyncio.Lock()
+_loop: asyncio.AbstractEventLoop | None = None
+_lock: asyncio.Lock | None = None
 
 
 async def get_browser() -> Browser:
-    global _playwright, _browser
+    """The shared browser, bound to the running loop; a new loop (tests, reloads) gets a fresh one."""
+    global _playwright, _browser, _loop, _lock
+    loop = asyncio.get_running_loop()
+    if _loop is not loop:
+        _playwright, _browser, _loop, _lock = None, None, loop, asyncio.Lock()
+    assert _lock is not None
     async with _lock:
         if _browser is None or not _browser.is_connected():
             _playwright = _playwright or await async_playwright().start()

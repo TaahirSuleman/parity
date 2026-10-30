@@ -18,6 +18,8 @@ from parity.store.models import Capture, Finding, Judgement, Severity, WcagRef
 log = logging.getLogger(__name__)
 PROMPT = (Path(__file__).resolve().parent.parent / "meta" / "prompts" / "judge.txt").read_text()
 FALLBACK_MODEL = "muse-spark-1.3"
+# Reasoning tokens count against this budget; 1500 was exhausted by reasoning alone with no answer left.
+MAX_OUTPUT_TOKENS = 6000
 VALID_SEVERITIES = {s.value for s in Severity} - {Severity.needs_review.value}
 
 
@@ -60,7 +62,7 @@ async def judge(client, finding: Finding, capture: Capture, run_id: str, *, mode
 
     async def call(model_id: str):
         body = {"model": model_id, "reasoning": {"effort": effort}, "text": {"format": {"type": "json_object"}},
-                "max_output_tokens": 1500, "input": [{"role": "user", "content": content}]}
+                "max_output_tokens": MAX_OUTPUT_TOKENS, "input": [{"role": "user", "content": content}]}
         return await client.responses(body, stage="judge", run_id=run_id, step_index=finding.step_index)
 
     fallback = False
@@ -76,5 +78,9 @@ async def judge(client, finding: Finding, capture: Capture, run_id: str, *, mode
     judgement = parse_judgement(resp.text)
     if judgement.severity == Severity.needs_review:
         log.warning("judge answer unparseable or unsure for finding %s; needs human review", finding.id)
-    judgement.model_meta = {"model": used, "fallback": fallback, "request_id": resp.request_id, "response_id": resp.response_id}
+    status = str(resp.raw.get("status") or "completed")
+    if status != "completed":
+        log.warning("judge response %s for finding %s: %s", status, finding.id, resp.raw.get("incomplete_details"))
+    judgement.model_meta = {"model": used, "fallback": fallback, "request_id": resp.request_id, "response_id": resp.response_id,
+                            "status": status, "incomplete_reason": (resp.raw.get("incomplete_details") or {}).get("reason")}
     return judgement

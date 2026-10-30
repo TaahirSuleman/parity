@@ -1,0 +1,97 @@
+import json
+from pathlib import Path
+
+import pytest
+
+from parity.pipeline.verifier import NOT_ANNOUNCED, iou, locate, normalise, verify
+from parity.store.models import AxeViolation, BBox, Candidate, Capture, Element, Finding, VerifierResult
+
+FIXTURE = Path(__file__).parent / "fixtures" / "capture_checkout.json"
+
+
+@pytest.fixture
+def cap() -> Capture:
+    return Capture.model_validate_json(FIXTURE.read_text())
+
+
+def box_of(cap: Capture, dom_id: str) -> BBox:
+    for n in [*cap.ax_nodes, *cap.silent_nodes]:
+        if n.dom_id == dom_id and n.bbox:
+            return n.bbox
+    raise AssertionError(f"no node {dom_id}")
+
+
+def cand(cap: Capture, dom_id: str | None, sighted: str, sr: str, bbox: BBox | None = None) -> Candidate:
+    return Candidate(step_index=0, sighted_text=sighted, sr_quote=sr, bbox=bbox or (box_of(cap, dom_id) if dom_id else None))
+
+
+def test_hero_passes(cap):
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [])
+    assert r.passed is True
+    assert set(r.checks) == {"located", "sr_quote_exact", "diverges", "not_axe", "unique"}
+    assert all(c.passed for c in r.checks.values())
+    assert r.element and r.element.dom_id == "f5" and r.element.css_path == "button#f5"
+    assert r.feedback is None
+
+
+def test_quote_whitespace_case_normalised(cap):
+    r = verify(cand(cap, "f5", "Pay R1,249", 'Button, " submit "'), cap, [])
+    assert r.checks["sr_quote_exact"].passed is True
+
+
+def test_wrong_quote_fails_with_feedback(cap):
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Pay now"'), cap, [])
+    assert r.passed is False
+    assert r.checks["sr_quote_exact"].passed is False
+    assert "exact role and accessible name" in (r.feedback or "")
+    assert "Submit" not in (r.feedback or "")  # feedback instructs; it never hands over the answer
+
+
+def test_no_divergence_fails(cap):
+    r = verify(cand(cap, "c2", "Save for later", 'button, "Save for later"'), cap, [])
+    assert r.checks["diverges"].passed is False and r.passed is False
+
+
+def test_missing_bbox_fails_located(cap):
+    r = verify(cand(cap, None, "Pay R1,249", 'button, "Submit"', bbox=None), cap, [])
+    assert r.checks["located"].passed is False and r.passed is False
+    assert "box" in (r.feedback or "")
+
+
+def test_out_of_range_bbox_fails_located(cap):
+    r = verify(cand(cap, None, "Pay R1,249", 'button, "Submit"', bbox=BBox(x_min=995, y_min=995, x_max=1000, y_max=1000)), cap, [])
+    assert r.checks["located"].passed is False
+
+
+def test_canvas_not_announced_passes(cap):
+    r = verify(cand(cap, "f2", "R1,249.00", NOT_ANNOUNCED), cap, [])
+    assert r.passed is True, r.checks
+    assert r.element and r.element.dom_id == "f2"
+
+
+def test_not_announced_rejected_when_named(cap):
+    r = verify(cand(cap, "c1", "Returns policy", NOT_ANNOUNCED), cap, [])
+    assert r.checks["sr_quote_exact"].passed is False and r.passed is False
+
+
+def test_axe_target_rejected(cap):
+    f5 = next(n for n in cap.ax_nodes if n.dom_id == "f5")
+    cap.axe_violations.append(AxeViolation(id="button-name", targets=["#f5"], backend_ids=[f5.backend_id]))
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [])
+    assert r.checks["not_axe"].passed is False and r.passed is False
+
+
+def test_duplicate_rejected(cap):
+    first = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [])
+    prior = Finding(
+        id="x", run_id="r", step_index=0, sighted_text="Pay R1,249", sr_role="button", sr_name="Submit",
+        bbox=box_of(cap, "f5"), element=first.element, verifier=first,
+    )
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [prior])
+    assert r.checks["unique"].passed is False and r.passed is False
+
+
+def test_helpers():
+    assert normalise('  Button,  "SUBMIT" ') == 'button, "submit"'
+    assert iou(BBox(x_min=0, y_min=0, x_max=10, y_max=10), BBox(x_min=5, y_min=0, x_max=15, y_max=10)) == pytest.approx(1 / 3)
+    assert iou(BBox(x_min=0, y_min=0, x_max=10, y_max=10), BBox(x_min=20, y_min=20, x_max=30, y_max=30)) == 0.0

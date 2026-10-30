@@ -327,6 +327,68 @@
    "dom_id": "f4"
   }
  ],
+ "silent_nodes": [
+  {
+   "backend_id": 29,
+   "role": "silent:canvas",
+   "name": "",
+   "css_path": "canvas#f2",
+   "box_px": [
+    237,
+    302,
+    377,
+    332
+   ],
+   "bbox": {
+    "x_min": 185,
+    "y_min": 419,
+    "x_max": 295,
+    "y_max": 461
+   },
+   "outer_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
+   "dom_id": "f2"
+  },
+  {
+   "backend_id": 45,
+   "role": "silent:img",
+   "name": "",
+   "css_path": "a#f4 > img:nth-of-type(1)",
+   "box_px": [
+    831,
+    323,
+    877,
+    339
+   ],
+   "bbox": {
+    "x_min": 649,
+    "y_min": 449,
+    "x_max": 685,
+    "y_max": 471
+   },
+   "outer_html": "<img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": null
+  },
+  {
+   "backend_id": 48,
+   "role": "silent:img",
+   "name": "",
+   "css_path": "button#f5 > img:nth-of-type(1)",
+   "box_px": [
+    691,
+    372,
+    809,
+    392
+   ],
+   "bbox": {
+    "x_min": 540,
+    "y_min": 517,
+    "x_max": 632,
+    "y_max": 544
+   },
+   "outer_html": "<img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": null
+  }
+ ],
  "axe_violations": [],
- "captured_at": "2026-10-30T23:10:00.295562Z"
+ "captured_at": "2026-10-30T23:13:15.482411Z"
 }

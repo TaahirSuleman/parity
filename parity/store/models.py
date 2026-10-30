@@ -113,6 +113,8 @@ class Capture(Strict):
     viewport: tuple[int, int] = (1280, 720)
     screenshot_png: bytes = Field(default=b"", exclude=True, repr=False)
     ax_nodes: list[AxNode] = Field(default_factory=list)
+    # Visible DOM elements with no accessibility node (canvas, alt="" images, aria-hidden): what pixels show and screen readers never get.
+    silent_nodes: list[AxNode] = Field(default_factory=list)
     axe_violations: list[AxeViolation] = Field(default_factory=list)
     captured_at: datetime = Field(default_factory=now)
 

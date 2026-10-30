@@ -101,6 +101,51 @@ async def _ax_nodes(cdp: CDPSession, viewport: tuple[int, int]) -> list[AxNode]:
     return nodes
 
 
+SILENT_SELECTOR = 'canvas, img[alt=""], [role="presentation"], [role="none"], [aria-hidden="true"], svg:not([role])'
+_SILENT_JS = """
+() => {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  function pathOf(node) {
+    if (!node || node.nodeType !== 1) return "";
+    const t = node.tagName.toLowerCase();
+    if (node.id) return t + "#" + CSS.escape(node.id);
+    if (t === "body" || t === "html") return t;
+    let i = 1, sib = node;
+    while ((sib = sib.previousElementSibling)) if (sib.tagName === node.tagName) i++;
+    const parent = pathOf(node.parentElement);
+    return (parent ? parent + " > " : "") + t + ":nth-of-type(" + i + ")";
+  }
+  return Array.from(document.querySelectorAll(%s)).map(el => {
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2 || r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh) return null;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === "hidden" || cs.display === "none") return null;
+    return { tag: el.tagName.toLowerCase(), id: el.id || null, cssPath: pathOf(el),
+             box: [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)],
+             outerHTML: (el.outerHTML || "").slice(0, %d) };
+  }).filter(Boolean);
+}
+""" % (repr(SILENT_SELECTOR), MAX_OUTER_HTML)
+
+
+async def _silent_nodes(page: Page, cdp: CDPSession, viewport: tuple[int, int], taken: set[int]) -> list[AxNode]:
+    """Visible elements that render pixels but have no accessibility node of their own."""
+    root = (await cdp.send("DOM.getDocument", {"depth": 0}))["root"]["nodeId"]
+    nodes: list[AxNode] = []
+    for info in await page.evaluate(_SILENT_JS):
+        backend_id = await _backend_id_for(cdp, root, info["cssPath"])
+        if backend_id is None or backend_id in taken:
+            continue
+        box = tuple(info["box"])
+        nodes.append(
+            AxNode(
+                backend_id=backend_id, role=f"silent:{info['tag']}", name="", css_path=info["cssPath"], box_px=box,
+                bbox=to_grid(box, viewport), outer_html=info.get("outerHTML"), dom_id=info.get("id"),
+            )
+        )
+    return nodes
+
+
 async def _backend_id_for(cdp: CDPSession, root_id: int, selector: str) -> int | None:
     try:
         found = await cdp.send("DOM.querySelector", {"nodeId": root_id, "selector": selector})
@@ -144,10 +189,11 @@ async def capture(page: Page, step_index: int) -> Capture:
     try:
         await cdp.send("DOM.enable")
         ax_nodes = await _ax_nodes(cdp, viewport)
+        silent_nodes = await _silent_nodes(page, cdp, viewport, {n.backend_id for n in ax_nodes})
         axe_violations = await _axe(page, cdp)
     finally:
         await cdp.detach()
     return Capture(
         step_index=step_index, url=page.url, viewport=viewport, screenshot_png=screenshot, ax_nodes=ax_nodes,
-        axe_violations=axe_violations,
+        silent_nodes=silent_nodes, axe_violations=axe_violations,
     )

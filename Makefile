@@ -10,7 +10,7 @@ venv:
 	@command -v uv >/dev/null || brew install uv
 	@command -v python3.12 >/dev/null || brew install python@3.12
 	@test -d .venv || uv venv --python 3.12 .venv
-	uv pip install --python $(PY) -e ".[dev]"
+	uv pip install --python $(PY) -e ".[dev]" --config-settings editable_mode=compat
 	$(PY) -m playwright install chromium
 
 web:

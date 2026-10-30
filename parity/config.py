@@ -1,0 +1,99 @@
+"""Settings loaded from the environment (names match .env.example).
+
+The real key never appears in repr/str: ``model_api_key`` is a ``repr=False`` field.
+"""
+
+from __future__ import annotations
+
+import os
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from dotenv import dotenv_values
+
+STANDARD_SPARK = "muse-spark-1.3"
+CONTRIBUTOR_SPARK = "muse-spark-1.3-contributor"
+SPARK_STAGES = {"navigator", "seer", "comparator", "fixer", "reaudit", "auditor"}
+
+
+def _bool(value: str) -> bool:
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+@dataclass(frozen=True)
+class Settings:
+    model_api_key: str = field(default="", repr=False)
+    meta_api_base: str = "https://api.meta.ai/v1"
+    model: str = CONTRIBUTOR_SPARK
+    judge_model: str = STANDARD_SPARK
+    eval_model: str = CONTRIBUTOR_SPARK
+    voice_model: str = "muse-voice-transcribe-1.0"
+    private: bool = False
+    data_dir: Path = Path("./data")
+    gcs_bucket: str = ""
+    index_path: Path = Path("./data/index.db")
+    cache_dir: Path = Path("./cache")
+    replay_dir: Path = Path("./fixtures/replay")
+    port: int = 8080
+    default_mode: str = "replay"
+    live_enabled: bool = True
+    live_per_ip_per_hour: int = 3
+    live_global_per_day: int = 40
+    live_target_origins: str = "self"
+    log_level: str = "info"
+
+    def model_for(self, stage: str) -> str:
+        """The only place a pipeline stage learns which model ID to call."""
+        if stage == "voice":
+            return self.voice_model
+        if stage == "judge":
+            chosen = self.judge_model
+        else:
+            chosen = self.model
+        if self.private and chosen.endswith("-contributor"):
+            return STANDARD_SPARK
+        return chosen
+
+    @property
+    def has_key(self) -> bool:
+        return bool(self.model_api_key) and not self.model_api_key.startswith("REPLACE")
+
+
+def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None = Path(".env")) -> Settings:
+    """Build Settings. With ``env`` given, only that mapping is read (tests).
+
+    Without it, ``.env`` values are merged under ``os.environ`` (the environment wins).
+    """
+    if env is None:
+        merged: dict[str, str] = {}
+        if dotenv_path and dotenv_path.exists():
+            merged.update({k: v for k, v in dotenv_values(dotenv_path).items() if v is not None})
+        merged.update(os.environ)
+        env = merged
+
+    def get(name: str, default: str) -> str:
+        value = env.get(name)
+        return default if value is None or value == "" else value
+
+    return Settings(
+        model_api_key=env.get("MODEL_API_KEY", ""),
+        meta_api_base=get("META_API_BASE", Settings.meta_api_base),
+        model=get("PARITY_MODEL", Settings.model),
+        judge_model=get("PARITY_JUDGE_MODEL", Settings.judge_model),
+        eval_model=get("PARITY_EVAL_MODEL", Settings.eval_model),
+        voice_model=get("PARITY_VOICE_MODEL", Settings.voice_model),
+        private=_bool(get("PARITY_PRIVATE", "false")),
+        data_dir=Path(get("PARITY_DATA_DIR", str(Settings.data_dir))),
+        gcs_bucket=get("PARITY_GCS_BUCKET", ""),
+        index_path=Path(get("PARITY_INDEX_PATH", str(Settings.index_path))),
+        cache_dir=Path(get("PARITY_CACHE_DIR", str(Settings.cache_dir))),
+        replay_dir=Path(get("PARITY_REPLAY_DIR", str(Settings.replay_dir))),
+        port=int(get("PORT", str(Settings.port))),
+        default_mode=get("PARITY_DEFAULT_MODE", Settings.default_mode),
+        live_enabled=_bool(get("PARITY_LIVE_ENABLED", "true")),
+        live_per_ip_per_hour=int(get("PARITY_LIVE_PER_IP_PER_HOUR", "3")),
+        live_global_per_day=int(get("PARITY_LIVE_GLOBAL_PER_DAY", "40")),
+        live_target_origins=get("PARITY_LIVE_TARGET_ORIGINS", "self"),
+        log_level=get("LOG_LEVEL", "info"),
+    )

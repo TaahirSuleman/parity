@@ -241,6 +241,16 @@ ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.
 - **Events:** `agent.tool_call {turn, tool, args_summary}`, `agent.refused {turn, tool, feedback}` in addition to §8. The workbench timeline shows each tool call with its Meta-model badge.
 - **Fallback if the spike fails** (Spark rejects `computer` plus function tools in one request): the agent gets only `computer`; code calls `audit_view` whenever the screenshot hash changes and treats a text answer as `finish` with the same precondition. Everything else is unchanged.
 
+### 18.4 Stretch: single agent vs multi-agent, measured (Task 29)
+A fair comparison, not a strawman: the multi-agent variant gets the same models, the same Verifier gate, the same budgets and the same pages.
+- **Multi-agent variant** (`parity/agent/multi.py`, eval-only, never served): a **coordinator** agent with one tool, `delegate(agent, task)`, over three specialist agents, each its own model loop with its own instructions:
+  - **Navigator:** computer use only; returns "now on <screen>" when it reaches a new screen.
+  - **Inspector:** tools `get_ax_subtree(bbox)`, `crop_screenshot(bbox)` and `propose_candidate(...)`; candidates go through the same Verifier, so the gate is identical.
+  - **Critic:** reads verified findings, may call `get_ax_subtree` and `crop_screenshot`, and returns a verdict per finding in the judge's JSON shape (fails closed).
+- **Shared budget:** the same total model-turn cap as the single agent (12 navigation turns plus the per-screen audit allowance), and the same token ceiling; a run that exceeds it is scored as unfinished.
+- **Metrics per architecture** (3 runs each, store v2, contributor tier): recall, precision, false positives on clean controls, run-to-run variance of the finding set (Jaccard), unfinished-run rate, model calls, tokens, cost and wall time per flow, and Verifier rejection rate (how much noise each architecture generates).
+- **Reporting:** one row per architecture in the Eval tab and README, whichever wins. The expected result is that single-agent matches recall at lower cost and variance; if multi-agent wins on recall, that is reported too, and D9 is revisited only after submission.
+
 ## 16. Voice: real screen-reader audio (P6) [D3]
 - **Recording (manual, the builder, on macOS):** VoiceOver on, rate set to a typical user speed, Safari or Chrome on the local store; navigate each store page with VO+Right through every element; record system audio to WAV, 16 kHz mono 16-bit. One clip per page, stored in `store/voice/<page>.wav` with `store/voice/<page>.json` listing the element order (dom id per VO stop) written during recording by a small helper that logs focus changes.
 - **Transcription:** `transcribe(wav, keywords=<AX names on that page>)` with `mode: "PUSH_TO_TALK"`; turns are aligned to elements by the focus log timestamps. Cached; recorded clips are transcribed once per clip and bundled.

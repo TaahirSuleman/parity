@@ -331,3 +331,13 @@ Exit check: in Replay, selecting the hero finding plays the VoiceOver segment sa
 - Runner: after `verify`, attach `Finding.voice` when the page has a clip; emit `voice.transcribed`. Gate G-V: `accuracy >= 0.90` → hero shows Voice as primary evidence; else as corroboration with the accuracy. Serve clips at `/store/voice/*.wav` with HTTP range support so the player can seek to a segment.
 - UI: clip player in the Screen reader panel scoped to the selected finding's segment; transcript line; badge. vitest: `test_reducer_attaches_voice`; Playwright smoke: the hero card has an audio element with a `#t=` fragment.
 - Re-record `fixtures/replay/hero-checkout` with Voice; commit; push; tag `p6`. Update README and the video script with the G-V result.
+
+---
+
+# Stretch (only if P1–P6 land by Mon 2 Nov night; otherwise skip)
+
+### Task 29: Single agent vs multi-agent evaluation (spec §18.4)
+- Create `parity/agent/multi.py` (coordinator with `delegate`; navigator, inspector, critic loops; instructions in `parity/meta/prompts/multi_*.md`), `eval/architectures.py`; test `tests/test_multi_agent.py`.
+- Produces: `async run_multi_agent(ctx, page, flow, budget: Budget) -> AgentResult` with the same return type as `run_agent`; `Budget(max_turns: int, max_tokens: int)` shared by both architectures and enforced in the client wrapper; harness flag `--orchestration single|multi`; `jaccard(a: set[str], b: set[str]) -> float` over finding dom ids across runs.
+- Tests (FakeMetaClient): `test_multi_inspector_candidates_pass_through_verifier` (a bad candidate is rejected exactly as in single-agent); `test_multi_budget_exceeded_marks_unfinished`; `test_critic_unparseable_needs_review`; `test_jaccard_arithmetic`; `test_multi_never_served` (no API route can start a multi-agent run).
+- Run: 3 runs per architecture on product, cart and checkout with `muse-spark-1.3-contributor`; write `eval/results/architectures.json`; add the row to the Eval tab and README with n disclosed. Commit; push.

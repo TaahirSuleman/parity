@@ -32,7 +32,7 @@
 - **Backend:** Python 3.12, FastAPI, async Playwright (Chromium). Pipeline stages are plain modules: navigator → capture → seer → comparator → verifier → judge → fixer → re-audit → human gate.
 - **Checks inside the tools:** a finding cannot persist without passing the verifier. The model perceives; code decides.
 - **Frontend:** React + Vite + TypeScript + Tailwind SPA, served by FastAPI, with live updates over SSE. The workbench is designed first; every step shows a Meta-model badge.
-- **Storage:** SQLite (WAL) for runs, findings and trace; screenshots on disk. Replay mode serves cached runs.
+- **Storage:** run bundles (JSON + PNG) are the truth, on local disk or a Cloud Storage bucket via the client API; SQLite is a derived cache rebuilt at boot (doc 19 D8). Replay mode serves committed bundles.
 - **Deploy:** one Docker image (a Playwright base image) on a container host with HTTPS. Live mode is rate-limited per IP; Replay is the default for judges.
 - **Demo store:** static pages served by the same app at `/store`, with ~30 seeded axe-passing faults and ~10 clean controls. Labels live outside the agent's code path.
 - **Eval:** recall and precision vs labels; axe-core baseline; ablations (screenshot-only, tree-only, no grounding); cost and time per page.

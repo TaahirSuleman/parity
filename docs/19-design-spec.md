@@ -1,16 +1,17 @@
 # 19 — Design spec
 
-**Status:** DRAFT for approval, Fri 30 Oct 2026. Implements doc 18 (scope is fixed there). Decisions taken in the 30 Oct brainstorm are marked **[D30]**.
+**Status:** DRAFT for approval, Fri 30 Oct 2026; storage revised Sat 31 Oct (D8). Implements doc 18 (scope is fixed there). Decisions taken in the 30 Oct brainstorm are marked **[D30]**.
 **Precedence:** constitution > doc 18 > this doc > doc 20 (plan).
 
 ## 1. Decisions taken on 30 Oct [D30]
 | # | Decision | Why |
 |---|---|---|
 | D1 | Toolchain via Homebrew: `python@3.12`, `node` (26), `uv`. No local Docker; the image builds on Cloud Build. | The Mac has Python 3.9 only. Vite needs Node. |
-| D2 | **Host: Google Cloud Run** (one container, `min=max=1`, CPU always allocated, 2 vCPU / 2 GiB, 60-min request timeout). Run bundles persist on a **Cloud Storage bucket mounted as a volume** at `/data`. The SQLite index lives on the container's local disk and is rebuilt from the bundles on start. | $150 free credit; HTTPS and a public URL for free; the builder knows GCP. SQLite WAL is unsafe on a FUSE mount, so the index is derived, never the truth. `max=1` keeps the in-memory rate limiter and the warm Chromium consistent. |
+| D2 | **Host: Google Cloud Run** (one container, `min=max=1`, CPU always allocated, 2 vCPU / 2 GiB, 60-min request timeout). | $150 free credit; HTTPS and a public URL for free; the builder knows GCP. `max=1` keeps the in-memory rate limiter, event bus and warm Chromium consistent. |
+| D8 | **Storage (31 Oct): run bundles are the truth, written through a `BlobStore` interface with two backends.** Local: the filesystem under `PARITY_DATA_DIR`. Cloud Run: objects in a Cloud Storage bucket, written with the `google-cloud-storage` client API (no FUSE mount). **SQLite is a derived cache only**, on local disk, rebuilt from the bundles at boot. | Cloud Run's local disk is in memory and wiped on restart. SQLite WAL is unsafe on a bucket mount, and appends there re-upload the whole object. Filestore (≈$200/mo minimum), Cloud SQL (≈$10/mo), Spanner (≈$65/mo+) and hosted Postgres/libSQL are overkill for a few hundred write-once runs with one writer. Litestream loses to per-run objects during deploy overlap. Firestore is the upgrade path if we ever need more than one instance. |
 | D3 | Voice Transcribe (Gate G-V) is a stretch after P5. The AX tree is the screen-reader truth. `Finding.sr_transcript` stays optional. | Time. |
 | D4 | **Approve fix = record the decision + export a `.patch`.** Re-audit runs on an in-memory patched copy. The hosted store never mutates. | Judges share the store; approval still lands live in the active run via SSE, and old runs keep their decisions. |
-| D5 | Stack versions pinned: FastAPI 0.162, uvicorn 0.54, Playwright 1.64, pydantic 2.14, sse-starlette 3.6, aiosqlite 0.22, httpx 0.28, pytest 9; React 19.3, Vite 8.3, TypeScript 7.0, Tailwind 4.3, axe-core 4.14, vitest 5. | Latest on 30 Oct. |
+| D5 | Stack versions pinned: FastAPI 0.162, uvicorn 0.54, Playwright 1.64, pydantic 2.14, sse-starlette 3.6, aiosqlite 0.22, httpx 0.28, google-cloud-storage 3.17, pytest 9; React 19.3, Vite 8.3, TypeScript 7.0, Tailwind 4.3, axe-core 4.14, vitest 5. | Latest on 30 Oct. |
 | D6 | Model roles: Spark 1.3 `reasoning.effort` = low (navigator), medium (seer, comparator, judge, fixer). `-contributor` for the eval harness only. | Measured in doc 17; cost. |
 | D7 | Public-site runs are out of the plan (stretch). | Budget. |
 
@@ -24,7 +25,8 @@ parity/                 Python package (the agent + server)
   meta/prompts/*.txt    one file per model-facing prompt
   pipeline/runner.py    orchestrates a run; emits events; writes the bundle
   pipeline/navigator.py capture.py seer.py comparator.py verifier.py judge.py fixer.py reaudit.py
-  store/bundle.py       run bundle on disk (truth)   store/index.py  SQLite index   store/models.py  pydantic types
+  store/blob.py         BlobStore: LocalBlobStore | GcsBlobStore     store/bundle.py  run bundle over a BlobStore (truth)
+  store/index.py        SQLite index (derived cache)                 store/models.py  pydantic types
   replay.py             replays a bundle as paced events
   ratelimit.py          per-IP and global Live limits
 web/                    React + Vite + TS + Tailwind workbench (built into parity/static at image build)
@@ -87,8 +89,22 @@ Decision   decision(approve|reject), reason, decided_at
 ModelCall  id, run_id, step_index?, stage, model, request_id, response_id, prompt_sha256, cache_hit,
            input_tokens, output_tokens, total_tokens, latency_ms, cost_usd, http_status, error, at
 ```
-**Bundle on disk:** `data/runs/<run_id>/{run.json, steps/<n>/{step.json, screenshot.png, ax.json, axe.json}, findings/<id>.json, rejected/<id>.json, trace.jsonl, events.jsonl, fix.patch}`. Only `runner.py` and the decision route write it.
-**SQLite index** (`data/index.db`, WAL): tables `runs`, `findings`, `model_calls` with the columns above (JSON blobs for nested parts). Rebuilt by `parity index rebuild` from bundles; used for listing, the eval harness and the cost header.
+### 5.1 Storage [D8]
+Two layers. Only the first holds data; the second can be deleted at any time.
+
+**Layer 1, run bundle (truth).** Keys: `runs/<run_id>/{run.json, steps/<n>/{step.json, screenshot.png, ax.json, axe.json}, findings/<id>.json, rejected/<id>.json, trace.jsonl, events.jsonl, fix.patch}`. Only `runner.py` and the decision route write it.
+- `BlobStore` interface: `put(key, data: bytes, content_type)`, `get(key) -> bytes`, `exists(key)`, `list(prefix) -> list[str]`. No append operation.
+- `LocalBlobStore(root)`: files under `PARITY_DATA_DIR` (default `./data`). Used by `make demo`, tests and the eval harness.
+- `GcsBlobStore(bucket, prefix)`: `google-cloud-storage` client, calls wrapped in `asyncio.to_thread`. Selected when `PARITY_GCS_BUCKET` is set.
+- Every object is written whole. `trace.jsonl` and `events.jsonl` are buffered in memory per run and rewritten as whole objects at the end of each stage, so a crash loses at most the current stage.
+- Write-once per key, and keys are per run, so two Cloud Run revisions overlapping during a deploy never write the same object.
+- Committed Replay bundles live in the image under `PARITY_REPLAY_DIR` and are read through a `LocalBlobStore`; they never depend on the bucket.
+
+**Layer 2, SQLite index (derived cache).** File `PARITY_INDEX_PATH` (default `./data/index.db`; on Cloud Run `/tmp/index.db`), WAL, one process. Tables `runs`, `findings`, `model_calls` with the columns above (JSON blobs for nested parts). Used for listing runs, the trace drawer, the cost header and eval cost-per-page queries.
+- Every write goes to the bundle first, then the index. If the index write fails, the request still succeeds and a warning is logged.
+- At boot, `rebuild()` lists `runs/*/run.json`, loads each bundle and repopulates the index (≈1 s for a few hundred runs). `parity index rebuild` runs it by hand.
+- At boot, any run whose `run.json` says `running` or `queued` is marked `failed` with error `interrupted by restart`, in the bundle first.
+- Locally the index sits on real disk and survives restarts; on Cloud Run it sits on in-memory disk and is rebuilt on every start.
 
 ## 6. Meta client (`meta/client.py`)
 - httpx async, `Authorization: Bearer`, base from env. `POST /responses`; `GET /models` as the preflight.
@@ -100,7 +116,7 @@ ModelCall  id, run_id, step_index?, stage, model, request_id, response_id, promp
 ## 7. API routes (FastAPI, prefix `/api`)
 | Method | Route | Purpose |
 |---|---|---|
-| GET | `/health` | `{ok, mode_default, live_enabled, models_ok}` |
+| GET | `/health` | `{ok, mode_default, live_enabled, models_ok, storage: "local"\|"gcs", runs_indexed}` |
 | GET | `/flows` | demo flows: `checkout` (single page), `purchase` (product → cart → checkout) |
 | POST | `/runs` | `{flow_id, mode}` → `{run_id}`. Live is rate-limited (429 with retry-after); Replay returns a new run id backed by the committed bundle. |
 | GET | `/runs` | list (index) |
@@ -133,11 +149,14 @@ ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.
 - **Live:** real Navigator and model calls against the bundled store. Per-IP limit (3/hour) and global limit (40/day) from env; 429 shows a friendly message and offers Replay. On the hosted URL, targets are restricted to the store origin.
 - The UI labels the mode everywhere; nothing mock is shown unlabelled.
 
-## 12. Deploy (Cloud Run) [D2]
+## 12. Deploy (Cloud Run) [D2, D8]
 - `Dockerfile`: stage 1 `node:26` builds `web/` → `parity/static`; stage 2 `mcr.microsoft.com/playwright/python:v1.64.1-noble` installs the package and runs `uvicorn parity.app:create_app --factory --port $PORT`.
-- `deploy/cloudrun.sh`: `gcloud builds submit` → Artifact Registry → `gcloud run deploy parity --region us-central1 --min-instances 1 --max-instances 1 --cpu 2 --memory 2Gi --no-cpu-throttling --timeout 3600 --concurrency 20 --allow-unauthenticated --set-secrets MODEL_API_KEY=parity-model-api-key:latest --add-volume name=data,type=cloud-storage,bucket=$BUCKET --add-volume-mount volume=data,mount-path=/data`.
-- Env on Cloud Run: `PARITY_DATA_DIR=/data`, `PARITY_CACHE_DIR=/data/cache`, `PARITY_DEFAULT_MODE=replay`.
-- Risk: FUSE write latency on PNGs. Mitigation: write the step locally, then copy; the bundle layout is the same. Fallback: local disk only, accepting loss on redeploy (Replay is baked into the image either way).
+- `deploy/cloudrun.sh`: `gcloud builds submit` → Artifact Registry → `gcloud run deploy parity --region us-central1 --min-instances 1 --max-instances 1 --cpu 2 --memory 2Gi --no-cpu-throttling --timeout 3600 --concurrency 20 --allow-unauthenticated --set-secrets MODEL_API_KEY=parity-model-api-key:latest --service-account parity-run@$PROJECT.iam.gserviceaccount.com --set-env-vars PARITY_GCS_BUCKET=$BUCKET,...`. No volume mount.
+- One-time setup in the script: create the bucket in `us-central1` (uniform access, not public), a service account with `roles/storage.objectAdmin` on that bucket only and `roles/secretmanager.secretAccessor` on the key secret.
+- Env on Cloud Run: `PARITY_GCS_BUCKET=<bucket>`, `PARITY_INDEX_PATH=/tmp/index.db`, `PARITY_CACHE_DIR=/tmp/cache`, `PARITY_DEFAULT_MODE=replay`. The model response cache is ephemeral on Cloud Run; it is a dev cost saver, not data.
+- Screenshots are served by the app from the bucket (`GET /runs/{id}/steps/{n}/screenshot.png`); the bucket is never public.
+- Cost: storage and operations for this volume are a few cents a month; the Cloud Run instance dominates.
+- Memory budget: in-memory disk counts against the 2 GiB, so the index and cache stay small and Chromium gets the rest. Raise to 4 GiB if memory alerts appear.
 
 ## 13. Eval harness (`eval/`)
 - `harness.py --model muse-spark-1.3-contributor --pages product,cart,checkout [--no-screenshot|--no-tree|--no-grounding] --runs 3`: runs capture → seer → comparator → verifier per page, matches verified findings to labels by element id (a finding matches a label when its mapped node has the label's `id`), and writes `eval/results/<timestamp>.json`: per-page and total recall, precision, false positives on clean controls, axe-core recall on the same labels, tokens, cost and seconds per page.

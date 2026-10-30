@@ -6,7 +6,7 @@
 
 **Architecture:** FastAPI + async Playwright pipeline (navigator → capture → seer → comparator → verifier → judge → fixer → re-audit → human gate) writing a run bundle on disk and streaming events over SSE to a React workbench. Muse Spark 1.3 perceives; code verifies; the Verifier is the only door a finding can pass through.
 
-**Tech Stack:** Python 3.12, FastAPI 0.162, Playwright 1.64, pydantic 2.14, sse-starlette 3.6, aiosqlite 0.22, httpx 0.28, pytest 9; React 19.3, Vite 8.3, TypeScript 7, Tailwind 4.3, axe-core 4.14, vitest 5; Cloud Run.
+**Tech Stack:** Python 3.12, FastAPI 0.162, Playwright 1.64, pydantic 2.14, sse-starlette 3.6, aiosqlite 0.22, httpx 0.28, google-cloud-storage 3.17, pytest 9; React 19.3, Vite 8.3, TypeScript 7, Tailwind 4.3, axe-core 4.14, vitest 5; Cloud Run.
 
 **Spec:** `docs/19-design-spec.md` (scope from `docs/18-decision-and-development-plan.md`).
 
@@ -163,16 +163,17 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 ### Task 9: Runner, bundle, index and event bus
 
 **Files:**
-- Create: `parity/store/bundle.py`, `parity/store/index.py`, `parity/api/events.py`, `parity/pipeline/runner.py`
-- Test: `tests/test_bundle.py`, `tests/test_index.py`, `tests/test_runner.py`
+- Create: `parity/store/blob.py`, `parity/store/bundle.py`, `parity/store/index.py`, `parity/api/events.py`, `parity/pipeline/runner.py`
+- Test: `tests/test_blob.py`, `tests/test_bundle.py`, `tests/test_index.py`, `tests/test_runner.py`
 
-**Interfaces:**
-- Produces: `RunBundle(root)`: `create(run) / write_step / write_finding / write_rejected / append_trace / append_event / write_run / load(run_id) -> LoadedRun`.
-- `RunIndex(db_path)`: `async upsert_run / upsert_finding / insert_call / list_runs / rebuild(data_dir)`.
+**Interfaces (spec §5.1):**
+- Produces: `BlobStore` protocol: `async put(key: str, data: bytes, content_type: str) -> None`, `async get(key) -> bytes`, `async exists(key) -> bool`, `async list(prefix) -> list[str]`. `LocalBlobStore(root: Path)`; `GcsBlobStore(bucket: str, prefix: str = "", client=None)` using `google-cloud-storage` 3.17 via `asyncio.to_thread`. `make_blob_store(settings) -> BlobStore` picks GCS when `PARITY_GCS_BUCKET` is set.
+- `RunBundle(store: BlobStore)`: `create(run) / write_step / write_finding / write_rejected / add_trace / add_event / flush(run_id) / write_run / load(run_id) -> LoadedRun / list_run_ids()`. `add_trace`/`add_event` buffer in memory; `flush` rewrites `trace.jsonl` and `events.jsonl` whole. The runner calls `flush` at the end of every stage.
+- `RunIndex(db_path)`: `async upsert_run / upsert_finding / insert_call / list_runs / rebuild(bundle: RunBundle)`. `recover_interrupted(bundle) -> list[str]` marks `running`/`queued` runs `failed` ("interrupted by restart"), bundle first.
 - `EventBus`: `publish(run_id, Event)`, `subscribe(run_id) -> AsyncIterator[Event]`, `history(run_id)` from `events.jsonl`.
 - `async run_single_page(settings, client, bus, bundle, index, flow: Flow) -> Run`. `Flow(id, name, start_url, goal, pages: list[str])` with `FLOWS = {"checkout": Flow(..., start_url="/store/checkout.html", goal="Pay for the order")}` in `parity/flows.py`. Stage order per spec §3; the bundle is written after every stage; a `MetaError` ends the run as `failed`.
 
-- [ ] **Step 1:** Tests: `test_bundle_layout` (paths from spec §5 exist after a fake run); `test_index_rebuild_matches_bundles`; `test_runner_hero_end_to_end` (FakeMetaClient + store page: `run.status == "done"`, one finding with `element.dom_id == "f5"`, `axe_violations == 0`, events in order `run.started, step.captured, seer.done, comparator.candidates, verifier.result…, run.finished`); `test_runner_meta_error_marks_failed` (fake raises `MetaError` → status `failed`, `run.json` has `error`, trace rows exist).
+- [ ] **Step 1:** Tests: `test_local_blob_roundtrip_and_list`; `test_gcs_blob_uses_client` (a fake `google.cloud.storage` client records `upload_from_string` with the right key and content type; no network); `test_bundle_layout` (keys from spec §5.1 exist after a fake run); `test_flush_rewrites_whole_event_log` (two flushes → one object holding all events, in order); `test_index_rebuild_matches_bundles`; `test_index_failure_does_not_fail_write` (index raises → bundle still written); `test_recover_interrupted_marks_failed`; `test_runner_hero_end_to_end` (FakeMetaClient + store page: `run.status == "done"`, one finding with `element.dom_id == "f5"`, `axe_violations == 0`, events in order `run.started, step.captured, seer.done, comparator.candidates, verifier.result…, run.finished`); `test_runner_meta_error_marks_failed` (fake raises `MetaError` → status `failed`, `run.json` has `error`, trace rows exist).
 - [ ] **Step 2–5:** Fail, implement, pass, commit `feat: runner writes bundle, index and events`.
 
 ### Task 10: API, SSE and Replay
@@ -264,7 +265,9 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Create `parity/ratelimit.py` (`RateLimiter(per_ip_per_hour, global_per_day, clock)`; `check(ip) -> Allowed | Denied(retry_after_s)`), one-Live-run-at-a-time lock in the runner, 429 responses with JSON `{error, retry_after_s, suggestion: "replay"}`. Tests: `test_per_ip_limit`, `test_global_limit`, `test_second_concurrent_live_429`, `test_replay_unlimited`.
 
 ### Task 22: Dockerfile and Cloud Run
-- Create `Dockerfile` (two stages per spec §12), `deploy/cloudrun.sh`, `deploy/README.md` (bucket, secret, first deploy, redeploy). Verify locally that `docker build` is not required: Cloud Build builds it. First deploy; confirm `/api/health` returns `models_ok: true` and Replay works from a private window on a phone.
+- Create `Dockerfile` (two stages per spec §12), `deploy/cloudrun.sh` (idempotent: enable APIs, create bucket, service account with `storage.objectAdmin` on that bucket and `secretAccessor` on the key secret, build, deploy with `PARITY_GCS_BUCKET` and no volume mount), `deploy/README.md` (first deploy, redeploy, teardown). Docker is not needed locally: Cloud Build builds the image.
+- App boot: `make_blob_store`, `recover_interrupted`, `index.rebuild`, then serve. `/api/health` adds `storage: "gcs" | "local"` and `runs_indexed`.
+- Verify: first deploy; `/api/health` returns `models_ok: true` and `storage: "gcs"`; run one Live audit; redeploy; the run and its decision are still listed and its screenshots load; Replay works from a private window on a phone.
 
 ### Task 23: README and submission text
 - `README.md`: one line pre-existing vs built this week; the hero; architecture diagram image (`docs/img/architecture.png`, exported from a Mermaid or Excalidraw source in `docs/img/`); "How it acts" (the model decides; allow-listed code acts); what is deterministic; run locally (`cp .env.example .env`, `make setup`, `make demo`); eval numbers from `eval/results/latest.md`; limits and honesty (no compliance claims). Form essays drafted in `docs/21-submission-text.md`.

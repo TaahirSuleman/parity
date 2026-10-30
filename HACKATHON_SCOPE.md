@@ -19,6 +19,7 @@
 | Playwright (Python) | browser automation, screenshots, CDP accessibility tree | Apache-2.0 |
 | axe-core | rule-engine baseline the agent is compared against | MPL-2.0 |
 | FastAPI, uvicorn, sse-starlette, httpx, pydantic, aiosqlite, python-dotenv | backend | MIT / BSD |
+| google-cloud-storage | run bundle storage on Cloud Run | Apache-2.0 |
 | pytest, pytest-asyncio | tests | MIT |
 | React, Vite, TypeScript, Tailwind CSS | workbench | MIT / Apache-2.0 |
 | Playwright Docker base image | deploy image | Apache-2.0 |

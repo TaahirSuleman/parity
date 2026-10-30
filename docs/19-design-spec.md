@@ -1,6 +1,6 @@
 # 19 — Design spec
 
-**Status:** DRAFT for approval, Fri 30 Oct 2026; revised Sat 31 Oct: storage (D8), Voice in P6 (D3), model roles (D6), public-site sample (D7). Implements doc 18 (scope is fixed there). Decisions taken in the 30 Oct brainstorm are marked **[D30]**.
+**Status:** DRAFT for approval, Fri 30 Oct 2026; revised Sat 31 Oct: storage (D8), Voice in P6 (D3), model roles (D6), public-site sample (D7), orchestration (D9), Meta integration (D10), workbench design pass (§9.1). Implements doc 18 (scope is fixed there). Decisions taken in the 30 Oct brainstorm are marked **[D30]**.
 **Precedence:** constitution > doc 18 > this doc > doc 20 (plan).
 
 ## 1. Decisions taken on 30 Oct [D30]
@@ -15,6 +15,9 @@
 | D6 | **Model roles** (revised 31 Oct; §6.1). Default model `muse-spark-1.3-contributor` for navigator (effort low), seer, comparator and fixer (effort medium). Judge: `muse-wonder-1.0` if the eval shows it beats Spark on label agreement, else Spark 1.3; any Wonder error falls back to Spark. A **private mode** switches every stage to standard `muse-spark-1.3` for sites whose data must not be used for training. | Contributor is the same model at ≈1/12 the price; Meta may train on inputs, which is fine for our store and public pages. A different judge model avoids self-grading and shows Muse models combined. |
 | D7 | **Public-site runs are in scope** (revised 31 Oct; §17): 2–3 read-only flows, run locally by CLI in P4, shown in the UI as anonymised Replay bundles. First item dropped if the schedule slips. | Doc 18 §6 requires a real-world sample; it is Impact evidence. Cost is negligible (≈$0.02–0.30 per flow); the constraint is time and site terms. The earlier "budget" reason was wrong. |
 
+| D9 | **Orchestration (31 Oct): one agent with gated tools, not multi-agent** (§18). The auditor agent (Spark 1.3 computer use plus two function tools, `audit_view` and `finish`) decides where to go and when to audit. Seer, comparator, judge and fixer are model calls *inside* tools or code stages, not autonomous agents. Conditional on the Task 13b spike; fallback keeps the same tools but code calls `audit_view` after every screen change. | Matches Meta's workshop pattern (model chooses, code acts, checks inside tools) and scores on Tooling without the cost and unverifiability of agents talking to agents. Every finding still passes through one code gate. |
+| D10 | **Meta integration (31 Oct):** our own thin httpx client over the Responses and ASR endpoints, not the OpenAI SDK. Computer-use turns chain with `previous_response_id`; the full item list is still persisted per run for resume and branch. JSON via `json_object` plus code validation; `reasoning.effort` set per role. | The SDK lacks the ASR multipart endpoint and Meta-specific items (`computer_call.actions` batches, 0–1000 `bbox`); a raw client keeps cache keys on the exact request body and reads `x-request-id` directly. `previous_response_id` is the format proven live in doc 17. |
+
 ## 2. Repo layout
 ```
 parity/                 Python package (the agent + server)
@@ -23,6 +26,8 @@ parity/                 Python package (the agent + server)
   api/routes.py         REST routes      api/sse.py  event bus → SSE
   meta/client.py        Meta API client: cache, retries, trace     meta/pricing.py   price table
   meta/prompts/*.txt    one file per model-facing prompt
+  agent/loop.py tools.py  auditor agent loop and gated tool registry (§18.3)
+  pipeline/audit.py     audit_view: capture → seer → comparator → verifier → judge for one screen
   pipeline/runner.py    orchestrates a run; emits events; writes the bundle
   pipeline/navigator.py capture.py seer.py comparator.py verifier.py judge.py fixer.py reaudit.py
   store/blob.py         BlobStore: LocalBlobStore | GcsBlobStore     store/bundle.py  run bundle over a BlobStore (truth)
@@ -55,7 +60,7 @@ All stages are plain async functions over pydantic models. The model perceives; 
 
 **Feedback loop:** a Comparator candidate that fails the Verifier yields an actionable string (for example "the screen-reader quote does not match any element at that box; quote the exact role and name"). The Comparator is re-run once with the feedback list (cap 2 attempts per page). Feedback never includes labels; the agent folder cannot import `eval/`.
 
-**Run loop (`runner.py`):** goal → for each navigator turn: execute actions → `capture` → `see` → `compare` → `verify` each → `judge` verified → `propose_fix` for judged barriers → `reaudit` → emit events and write the bundle after every stage. A run ends when the Navigator returns text, hits 12 turns, or fails. Single-page flows skip the Navigator (fixed `goto`).
+**Run loop:** see §18. In short: one auditor agent drives the browser and calls `audit_view` on each new screen; `audit_view` runs capture → seer → comparator → verifier → judge inside the tool; after the walk, code runs fixer → re-audit per verified barrier, then the run waits for the human. Single-page flows skip the agent and call `audit_view` directly.
 
 ## 4. Verifier (code, the gate every finding must pass)
 A candidate becomes a `Finding` only if **all** checks pass. Each check is a named function returning `(passed, detail)`, stored on the finding.
@@ -154,6 +159,13 @@ Layout at ≥1280 px: header, three columns, trace drawer.
 - **Trace drawer:** table of model calls (stage, model, request ID, tokens, latency, cost, cache hit). **Eval tab:** recall and precision table, axe baseline, ablation strip, cost and time per page.
 - Every model-backed element carries a badge naming the Meta model and the capability; deterministic steps say so.
 
+### 9.1 Design pass before building (Task 10b)
+No Figma. A written brief plus a static mock in the real stack, reviewed once by the builder before any wiring.
+- **Brief** `docs/22-workbench-design.md`: visual direction, colour and type tokens, spacing scale, the three states (idle, running, hero selected), and what the UI must not do.
+- **Direction:** an instrument, not a dashboard. The page screenshot dominates; the screen-reader output is large monospace; colour carries meaning only (green verified, red rejected, amber needs review); neutral surfaces in light and dark; no gradients, glass, decorative cards, emoji or stock icons; badges read like instrument labels (`MUSE SPARK 1.3 · GROUNDING`).
+- **Mock:** `web/` components rendered from a hand-written hero fixture (`web/src/fixtures/hero.json`, shaped like spec §5 and §8), at 1280×720 and 1440×900. Screenshots go to the builder for one round of changes; Task 11 then wires the same components to SSE.
+- **The workbench is itself accessible:** landmarks, focus order, visible focus, contrast AA, findings announced via a polite live region; axe-clean (asserted in Task 24).
+
 ## 10. Demo store (`store/`)
 ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.html`. Checkout keeps the validated hero (`Pay R1,249` with `aria-label="Submit"`, canvas price, red-border error, "Click here" link, trash icon named "Close", alt="image" banner) and two clean controls. V2 adds faults to ~30 and clean controls to ~10, spread across pages, each with a stable `id`. Labels (`eval/labels.json`: page, element id, fault kind, description, clean=false|true) live outside `parity/`. The pages must stay at **0 axe-core violations**; a test asserts it.
 
@@ -189,6 +201,45 @@ ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.
 - The key is read from env only; logs redact `Authorization`. `.env` is git-ignored; the deny list in `.claude/settings.json` blocks reading it.
 - Live runs: allowed origins, 12 navigator turns, 60 s per model call, 10 min per run, one concurrent Live run per server (a queue of 1; others get 429).
 - No "compliance" wording anywhere in the UI or docs; findings are evidence and every fix waits for a human.
+
+## 18. Orchestration and the workshop comparison [D9, D10]
+### 18.1 What Meta's workshop repo does (meta-models/legal-agent-workshop; analysed in `learnings/12a`, re-checked 31 Oct)
+- **Single agent, model-driven loop.** Responses API via the OpenAI SDK, `store=False`, the whole item list resent each turn, one function tool per turn (`parallel_tool_calls=False`). The model picks every tool; the code never hard-codes the order.
+- **Checks live inside the tools.** `record_fact` refuses quotes not found in the cached transcript; `submit_memo` runs rules, then an LLM claims judge; refusals return actionable feedback; 3 strikes go to a human.
+- **State only via tools.** A case record where only gated tools can mark an item proven or escalated; an audit log of every actor.
+- **Run ledger with resume and branch.** Every turn persisted; `resume()` as a state machine (`paused`, `needs_input`, `awaiting_signoff`); `branch()` replays a run with verification switched on so the same trajectory is judged before and after.
+- **Offline fake model** behind the real client via an httpx transport.
+- **Gaps:** judges fail open; cost is tokens only and only for agent turns; the visual check (signatures with SAM) is a placeholder; ground truth scores coverage only, not accuracy.
+
+### 18.2 Parity compared
+| Concern | Workshop | Parity | Verdict |
+|---|---|---|---|
+| Who decides the next step | Model, every turn | Model for navigation and when to audit; code for the per-screen audit pipeline and the post-walk fix batch | Hybrid. A model-chosen audit order adds cost and variance without improving findings; navigation is where judgement pays. |
+| Agents | One | One auditor agent; specialist model calls inside tools | Same as Meta. No agent-to-agent messaging. |
+| Gate a finding must pass | Quote on page (code) | Box maps to a real element, exact accessible-name quote, divergence, not axe, unique (code) | Ours is the real multimodal verifier Meta left as a placeholder. |
+| Judge failure | Fails open | Fails closed to `needs_review` | Ours. |
+| Retry with feedback | 3 tries, non-leaking feedback | Comparator 2 tries with verifier feedback; `finish` 3 refusals then accepted with a flag | Same pattern. |
+| Human gate | Sign-off state machine | `awaiting_review`; only a decision moves a finding to approved or rejected | Same pattern. |
+| Before and after on one run | `branch()` re-runs with checks on | `parity verify RUN --off` re-scores stored candidates with the Verifier bypassed, no model calls; the UI shows "without the Verifier: N reported, M false" | Same idea, cheaper. Strong demo beat. |
+| Cost | Tokens, agent turns only | Every call priced, including calls inside tools | Ours. |
+| Accuracy | Coverage judge | Recall and precision vs labels, axe baseline, ablations | Ours. |
+| Client | OpenAI SDK, `store=False` | Own httpx client, `previous_response_id` for computer use | Ours, for ASR and Meta-specific items (D10). |
+
+### 18.3 The auditor agent (Phase 2)
+- **Request:** `muse-spark-1.3` family per §6.1, `tools: [{"type":"computer"}, audit_view, finish]`, `truncation: "auto"`, `parallel_tool_calls: false`, `instructions` from `meta/prompts/auditor.md`, the flow goal as the first user message with the first screenshot.
+- **Tools** (registry in `parity/agent/tools.py`: strict JSON schema, `additionalProperties: false`, unknown tool refused, exceptions returned as `{error}` observations, `NotImplementedError` pauses the run):
+
+| Tool | Args | Inside the tool | Returns to the model |
+|---|---|---|---|
+| `computer` (built in) | action batch | allow-listed executor; public-mode guard (§17); origin check | screenshot |
+| `audit_view` | `{reason: str}` | capture → seer → comparator (≤ 2 tries with verifier feedback) → verifier → judge; findings persisted only here | `{verified: [{id, sighted, screen_reader}], rejected: n, axe_violations: n}`; never labels |
+| `finish` | `{summary: str}` | refused if the current screen, by screenshot hash, has not been audited, or no screen was audited; 3 refusals then accepted with `finish_forced: true` | `{accepted}` or `{error, feedback}` |
+
+- **Budgets:** 12 turns; on the last turn only `finish` is offered. One Live run per server.
+- **After the walk (code, batch):** for each finding with `judgement.is_barrier is True`: fixer → re-audit; then status `awaiting_review`.
+- **Persisted:** `conversation.json` (every request item and response item, screenshots by key) beside the bundle, so a run can be resumed after a crash or branched in eval.
+- **Events:** `agent.tool_call {turn, tool, args_summary}`, `agent.refused {turn, tool, feedback}` in addition to §8. The workbench timeline shows each tool call with its Meta-model badge.
+- **Fallback if the spike fails** (Spark rejects `computer` plus function tools in one request): the agent gets only `computer`; code calls `audit_view` whenever the screenshot hash changes and treats a text answer as `finish` with the same precondition. Everything else is unchanged.
 
 ## 16. Voice: real screen-reader audio (P6) [D3]
 - **Recording (manual, the builder, on macOS):** VoiceOver on, rate set to a typical user speed, Safari or Chrome on the local store; navigate each store page with VO+Right through every element; record system audio to WAV, 16 kHz mono 16-bit. One clip per page, stored in `store/voice/<page>.wav` with `store/voice/<page>.json` listing the element order (dom id per VO stop) written during recording by a small helper that logs focus changes.

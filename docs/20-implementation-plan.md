@@ -45,7 +45,7 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - [ ] **Step 1:** `brew install python@3.12 node uv`; `uv venv --python 3.12 .venv`; write `pyproject.toml` with dependencies from the Tech Stack, `[tool.pytest.ini_options] asyncio_mode = "auto"`, package `parity`.
 - [ ] **Step 2:** Write `tests/test_smoke.py::test_import` asserting `import parity` and `parity.__version__ == "0.1.0"`.
 - [ ] **Step 3:** Run `uv pip install -e ".[dev]" && .venv/bin/playwright install chromium && .venv/bin/pytest -q`. Expected: 1 passed.
-- [ ] **Step 4:** `ci.yml`: on push, Python 3.12, `uv pip install -e ".[dev]"`, `playwright install --with-deps chromium`, `pytest -q`; Node 26, `npm ci && npm test` in `web/` (skips until Task 11 creates it: guard with `if: hashFiles('web/package.json') != ''`).
+- [ ] **Step 4:** `ci.yml`: on push, Python 3.12, `uv pip install -e ".[dev]"`, `playwright install --with-deps chromium`, `pytest -q`; Node 26, `npm ci && npm test` in `web/` (skips until Task 10b creates it: guard with `if: hashFiles('web/package.json') != ''`).
 - [ ] **Step 5:** Commit `chore: scaffold parity (python 3.12, pytest, makefile, ci)`.
 
 ### Task 2: Config, pricing and data model
@@ -95,9 +95,9 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 **Interfaces:**
 - Produces: `create_app(settings: Settings | None = None) -> FastAPI` mounting `/store` (StaticFiles) and `/api/health`. `tests/conftest.py` fixture `store_url` starts uvicorn on a free port in a thread and yields `http://127.0.0.1:<port>/store/`.
 
-- [ ] **Step 1:** Test `test_checkout_has_zero_axe_violations` (Playwright loads `store_url + "checkout.html"`, injects `node_modules/axe-core/axe.min.js` from `web/` (Task 11) or a vendored `parity/vendor/axe.min.js` fetched at setup, asserts `len(violations) == 0`); `test_checkout_hero_ids_exist` (ids above present); `test_health_ok`.
+- [ ] **Step 1:** Test `test_checkout_has_zero_axe_violations` (Playwright loads `store_url + "checkout.html"`, injects `node_modules/axe-core/axe.min.js` from `web/` (Task 10b) or a vendored `parity/vendor/axe.min.js` fetched at setup, asserts `len(violations) == 0`); `test_checkout_hero_ids_exist` (ids above present); `test_health_ok`.
 - [ ] **Step 2:** Run. Expected: FAIL.
-- [ ] **Step 3:** Write the page, `app.py`, and `make vendor-axe` (copies `axe.min.js` from `web/node_modules/axe-core/` into `parity/vendor/`; until Task 11, `npm i axe-core@4.14.0 --prefix web`).
+- [ ] **Step 3:** Write the page, `app.py`, and `make vendor-axe` (copies `axe.min.js` from `web/node_modules/axe-core/` into `parity/vendor/`; until Task 10b, `npm i axe-core@4.14.0 --prefix web`).
 - [ ] **Step 4:** Run tests. Expected: PASS.
 - [ ] **Step 5:** Commit `feat: ShopRight checkout demo page served at /store`.
 
@@ -171,6 +171,7 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Produces: `BlobStore` protocol: `async put(key: str, data: bytes, content_type: str) -> None`, `async get(key) -> bytes`, `async exists(key) -> bool`, `async list(prefix) -> list[str]`. `LocalBlobStore(root: Path)`; `GcsBlobStore(bucket: str, prefix: str = "", client=None)` using `google-cloud-storage` 3.17 via `asyncio.to_thread`. `make_blob_store(settings) -> BlobStore` picks GCS when `PARITY_GCS_BUCKET` is set.
 - `RunBundle(store: BlobStore)`: `create(run) / write_step / write_finding / write_rejected / add_trace / add_event / flush(run_id) / write_run / load(run_id) -> LoadedRun / list_run_ids()`. `add_trace`/`add_event` buffer in memory; `flush` rewrites `trace.jsonl` and `events.jsonl` whole. The runner calls `flush` at the end of every stage.
 - `RunIndex(db_path)`: `async upsert_run / upsert_finding / insert_call / list_runs / rebuild(bundle: RunBundle)`. `recover_interrupted(bundle) -> list[str]` marks `running`/`queued` runs `failed` ("interrupted by restart"), bundle first.
+- `async audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) -> AuditSummary` in `parity/pipeline/audit.py` (spec §18.3): the one unit that turns a screen into findings. The P1 runner calls it directly; in P2 it becomes the agent's tool unchanged. `AuditSummary(verified: list[FindingBrief], rejected: int, axe_violations: int)`.
 - `EventBus`: `publish(run_id, Event)`, `subscribe(run_id) -> AsyncIterator[Event]`, `history(run_id)` from `events.jsonl`.
 - `async run_single_page(settings, client, bus, bundle, index, flow: Flow) -> Run`. `Flow(id, name, start_url, goal, pages: list[str])` with `FLOWS = {"checkout": Flow(..., start_url="/store/checkout.html", goal="Pay for the order")}` in `parity/flows.py`. Stage order per spec §3; the bundle is written after every stage; a `MetaError` ends the run as `failed`.
 
@@ -190,10 +191,26 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - [ ] **Step 1:** Tests via `httpx.AsyncClient(transport=ASGITransport)`: `test_post_replay_run_streams_hero` (POST mode replay on a fixture bundle in a temp `PARITY_REPLAY_DIR`; events contain a `verifier.result` with `sighted_text == "Pay R1,249"`); `test_events_after_finish_replays_history_then_closes`; `test_get_run_detail_includes_trace`; `test_screenshot_png_content_type`; `test_unknown_flow_404`.
 - [ ] **Step 2–5:** Fail, implement, pass, commit `feat: api routes, sse stream and replay mode`.
 
+### Task 10b: Workbench design pass (spec §9.1) — can start right after Task 2, in parallel with Tasks 3–10
+
+**Files:**
+- Create: `docs/22-workbench-design.md`, `web/` (Vite react-ts scaffold, Tailwind via `@tailwindcss/vite`, tokens in `web/src/theme.css` as CSS variables for light and dark), `web/src/fixtures/hero.json`, `web/src/components/{Header,SightedPanel,ScreenReaderPanel,FindingsFeed,FindingCard,RejectedRow,TraceDrawer,MetaBadge}.tsx`, `web/src/MockApp.tsx` (state switcher: idle, running, hero selected)
+- Test: `web/src/components/FindingCard.test.tsx` (renders `Pay R1,249`, `button, "Submit"`, five verifier ticks, badge text `MUSE SPARK 1.3`)
+
+**Interfaces:**
+- Consumes: spec §5 and §8 shapes (hand-written in `web/src/state/types.ts`; Task 11 keeps these types).
+- Produces: presentational components with props only, no fetching, which Task 11 wires to the reducer.
+
+- [ ] **Step 1:** Write the brief (direction, tokens, three states, anti-patterns) per spec §9.1.
+- [ ] **Step 2:** Write the FindingCard test; run `npm test`; expected FAIL.
+- [ ] **Step 3:** Build the components and `MockApp` from the fixture; run `npm test`; expected PASS.
+- [ ] **Step 4:** `npm run dev`; screenshot the three states at 1280×720 and 1440×900 in the browser pane, light and dark; send them to the builder. **Stop for one review round**; apply changes.
+- [ ] **Step 5:** Commit `feat(web): workbench design brief and static mock`.
+
 ### Task 11: Workbench v1 **[subagent-ok]**
 
 **Files:**
-- Create: `web/` (Vite react-ts template, Tailwind via `@tailwindcss/vite`), `web/src/state/reducer.ts`, `web/src/state/types.ts` (mirror of spec §5 and §8), `web/src/components/{Header,SightedPanel,ScreenReaderPanel,FindingsFeed,FindingCard,RejectedRow,TraceDrawer,MetaBadge}.tsx`, `web/src/api.ts`, `web/src/App.tsx`
+- Create: `web/src/state/reducer.ts`, `web/src/api.ts`, `web/src/App.tsx` (wires the Task 10b components; `web/` scaffold, types and components come from Task 10b)
 - Test: `web/src/state/reducer.test.ts` (vitest), `tests/test_web_smoke.py` (Playwright against the built SPA)
 
 **Interfaces:**
@@ -220,11 +237,18 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 ### Task 13: Store pages for the flow
 - Create `store/product.html` (Add to cart), `store/cart.html` (Checkout link), link to `checkout.html`; `confirm.html` after pay. Keep every page at 0 axe violations (extend `test_store_pages.py` to all pages). Add flow `purchase` to `FLOWS` (`start_url="/store/product.html"`, goal "Buy the noise-cancelling headphones and pay"). Commit.
 
-### Task 14: Navigator
-- Create `parity/pipeline/navigator.py`, `parity/pipeline/actions.py`, test `tests/test_navigator.py`, fixtures from one recorded live flow.
-- Produces: `async navigate(client, page, flow, run_id, on_step: Callable[[int], Awaitable[None]], max_turns=12) -> NavResult(turns, finished_text, actions_log)`; `execute(page, action: dict) -> None` with allowlist `ALLOWED = {"click","double_click","type","keypress","scroll","wait","screenshot"}`, chord join `+`, key map (`CTRL→Control, ENTER→Enter, …`); `is_allowed_target(url, settings) -> bool`.
-- Tests: `test_execute_rejects_unknown_action` (logged, not raised); `test_keypress_chord_joined`; `test_navigate_fixture_flow_reaches_confirm` (fake turns from fixtures drive the real store; `#done` or confirm page visible; `on_step` called once per turn); `test_target_origin_blocked`.
-- Runner: `run_flow` uses `navigate` with `on_step` running capture → seer → comparator → verifier → judge per turn; events `nav.actions`. Commit; push; tag `p2`. UI: Sighted panel badge switches to `computer use` on `nav.actions`.
+### Task 13b: Spike, computer use plus function tools in one request (30 min, a few cents)
+- Throwaway script in the scratchpad, not committed: one `muse-spark-1.3` request with `tools: [{"type":"computer"}, audit_view, finish]` on the product page screenshot, goal "Buy the headphones; call audit_view on each new screen". Pass = the API accepts the request and, within 4 turns, returns both a `computer_call` and a `function_call`. Record the result and request IDs in spec D9. Fail = take the fallback in spec §18.3.
+
+### Task 14: Auditor agent (spec §18.3)
+- Create `parity/agent/loop.py`, `parity/agent/tools.py`, `parity/pipeline/actions.py`, `parity/meta/prompts/auditor.md`; test `tests/test_agent.py`, `tests/test_actions.py`; fixtures from one recorded live flow.
+- Produces: `async run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12) -> AgentResult(turns, finished: bool, finish_forced: bool, summary: str)`; `TOOLS: dict[str, Tool]` with `Tool(definition: dict, run: Callable[[RunContext, dict], Awaitable[dict]])` for `audit_view` and `finish`; `dispatch(ctx, call) -> dict` (unknown tool → `{"error": "unknown tool"}`; exception → `{"error": str}`; `NotImplementedError` → run `paused`); `execute(page, action: dict) -> None` with allowlist `ALLOWED = {"click","double_click","type","keypress","scroll","wait","screenshot"}`, chord join `+`, key map (`CTRL→Control, ENTER→Enter, …`); `is_allowed_target(url, settings) -> bool`. The loop persists `conversation.json` after every turn and emits `agent.tool_call`, `agent.refused`, `nav.actions`.
+- Tests: `test_execute_rejects_unknown_action` (logged, not raised); `test_keypress_chord_joined`; `test_target_origin_blocked`; `test_dispatch_unknown_tool_refused`; `test_finish_refused_when_screen_unaudited` (feedback names the action to take); `test_finish_forced_after_three_refusals`; `test_last_turn_offers_only_finish`; `test_agent_fixture_flow_reaches_confirm` (fake turns drive the real store; `audit_view` called on product, cart and checkout; the hero finding exists; run `done`); `test_fallback_mode_audits_on_screen_change` (agent has only `computer`; code calls `audit_view` when the screenshot hash changes).
+- Runner: `run_flow` = `run_agent` (or the fallback loop) → fix batch (P3) → `awaiting_review`. UI: timeline rows for `agent.tool_call` with badges; the Sighted panel badge switches to `computer use` on `nav.actions`. Commit; push; tag `p2`.
+
+### Task 14b: Verifier on and off, post hoc (no model calls)
+- Create `parity/cli.py` command `parity verify RUN --off`: re-scores the stored candidates of a run with the Verifier bypassed and writes `verifier_off.json` (`reported`, `false_vs_labels` when labels exist for the page). Route `GET /runs/{id}/verifier-off`; the findings feed gets a toggle "Without the Verifier" that shows the extra, red-outlined findings.
+- Tests: `test_verifier_off_reports_all_candidates`, `test_verifier_off_makes_no_model_calls` (FakeMetaClient records zero calls).
 
 ---
 
@@ -257,7 +281,7 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Runs: full eval (3 runs × 4 ablation configurations); effort sweep (low/medium/high, 1 run each); judge comparison (Spark 1.3 vs Wonder 1.0 on the same verified findings); one standard-tier run to confirm contributor numbers transfer. Set `PARITY_JUDGE_MODEL` and the default effort from the winners and record both in spec D6. Commit the results file.
 
 ### Task 19b: Public-site sample (spec §17) — first to drop if the schedule slips
-- Create `parity/cli.py` (`parity audit --url --goal --public`), `parity/pipeline/guard.py`, `scripts/anonymise_bundle.py`; test `tests/test_guard.py`.
+- Modify `parity/cli.py` (add `parity audit --url --goal --public`); create `parity/pipeline/guard.py`, `scripts/anonymise_bundle.py`; test `tests/test_guard.py`.
 - Produces: `guard_action(action: dict, target: AxNode | None, field_type: str | None) -> Allowed | Blocked(reason)` with the irreversible-name pattern `IRREVERSIBLE = r"\b(pay|buy|place order|submit|sign ?up|subscribe|confirm|delete|checkout now)\b"` (case-insensitive) and blocked field types `password, cc-number, cc-csc, email, tel`; any `submit` event blocked. `robots_allows(url) -> bool`. `anonymise(bundle, letter)` replaces host, URLs and title with "Site <letter>" and drops screenshots of steps without verified findings.
 - Tests: `test_blocks_pay_click`, `test_blocks_password_typing`, `test_allows_add_to_cart_click`, `test_blocks_form_submit`, `test_robots_disallow_stops_run`, `test_anonymise_removes_host` (no original host string anywhere in the output bundle).
 - Run 2–3 public flows locally (product → cart, stopping before checkout). Commit only anonymised bundles under `fixtures/replay/public-<letter>/`; keep raw bundles out of git. Record verified-finding counts in `eval/results/public.json`.

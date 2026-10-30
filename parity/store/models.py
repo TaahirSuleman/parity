@@ -197,6 +197,7 @@ class Finding(Strict):
     sighted_text: str
     sr_role: str
     sr_name: str
+    why_it_matters: str = ""
     voice: VoiceEvidence | None = None
     bbox: BBox
     element: Element

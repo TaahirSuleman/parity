@@ -11,9 +11,11 @@ from parity.store.models import ModelCall
 
 
 class FakeMetaClient:
-    def __init__(self, fixture_dir: Path, trace: TraceSink | None = None, default: dict[str, Any] | None = None):
+    def __init__(self, fixture_dir: Path, trace: TraceSink | None = None, default: dict[str, Any] | None = None,
+                 errors: dict[str, Exception] | None = None):
         self.fixture_dir = Path(fixture_dir)
         self.default = default
+        self.errors = errors or {}  # model id -> exception to raise, for failure-path tests
         self.trace = trace or ListTraceSink()
         self.calls: list[dict[str, Any]] = []
 
@@ -22,6 +24,8 @@ class FakeMetaClient:
 
     async def responses(self, body: dict[str, Any], *, stage: str, run_id: str, step_index: int | None = None) -> MetaResponse:
         self.calls.append(body)
+        if str(body.get("model", "")) in self.errors:
+            raise self.errors[str(body.get("model", ""))]
         key = cache_key(body)
         path = self.fixture_dir / f"{key}.json"
         if not path.exists() and self.default is not None:

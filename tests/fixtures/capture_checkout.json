@@ -1,0 +1,332 @@
+{
+ "step_index": 0,
+ "url": "file:///Users/ammarah/Desktop/Meta_Hackathon/parity/store/checkout.html",
+ "viewport": [
+  1280,
+  720
+ ],
+ "ax_nodes": [
+  {
+   "backend_id": 16,
+   "role": "navigation",
+   "name": "Primary",
+   "css_path": "body > header:nth-of-type(1) > nav:nth-of-type(1)",
+   "box_px": [
+    1152,
+    14,
+    1256,
+    32
+   ],
+   "bbox": {
+    "x_min": 900,
+    "y_min": 19,
+    "x_max": 981,
+    "y_max": 44
+   },
+   "outer_html": "<nav aria-label=\"Primary\"><a href=\"product.html\">Shop</a><a href=\"cart.html\">Cart</a></nav>",
+   "dom_id": null
+  },
+  {
+   "backend_id": 19,
+   "role": "region",
+   "name": "Your order",
+   "css_path": "body > main:nth-of-type(1) > section:nth-of-type(1)",
+   "box_px": [
+    166,
+    70,
+    628,
+    429
+   ],
+   "bbox": {
+    "x_min": 130,
+    "y_min": 97,
+    "x_max": 491,
+    "y_max": 596
+   },
+   "outer_html": "<section class=\"card\" aria-labelledby=\"order-h\">\n    <h1 id=\"order-h\">Your order</h1>\n    <img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">\n    <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n    <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n    <p><a id=\"c1\" href=\"#returns\">Returns policy</a></p>\n  </section>",
+   "dom_id": null
+  },
+  {
+   "backend_id": 32,
+   "role": "region",
+   "name": "Payment",
+   "css_path": "body > main:nth-of-type(1) > section:nth-of-type(2)",
+   "box_px": [
+    652,
+    70,
+    1114,
+    429
+   ],
+   "bbox": {
+    "x_min": 509,
+    "y_min": 97,
+    "x_max": 870,
+    "y_max": 596
+   },
+   "outer_html": "<section class=\"card\" aria-labelledby=\"pay-h\">\n    <h2 id=\"pay-h\">Payment</h2>\n    <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\" style=\"\">\n    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">\n    <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">\n    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n    <div class=\"actions\">\n      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n      <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n      <button id=\"c2\" class=\"ghost\">Save for later</button>\n    </div>\n    <div id=\"done\" role=\"status\">Order confirmed ✓</div>\n  </section>",
+   "dom_id": null
+  },
+  {
+   "backend_id": 17,
+   "role": "link",
+   "name": "Shop",
+   "css_path": "body > header:nth-of-type(1) > nav:nth-of-type(1) > a:nth-of-type(1)",
+   "box_px": [
+    1170,
+    14,
+    1208,
+    31
+   ],
+   "bbox": {
+    "x_min": 914,
+    "y_min": 19,
+    "x_max": 944,
+    "y_max": 43
+   },
+   "outer_html": "<a href=\"product.html\">Shop</a>",
+   "dom_id": null
+  },
+  {
+   "backend_id": 18,
+   "role": "link",
+   "name": "Cart",
+   "css_path": "body > header:nth-of-type(1) > nav:nth-of-type(1) > a:nth-of-type(2)",
+   "box_px": [
+    1226,
+    14,
+    1256,
+    31
+   ],
+   "bbox": {
+    "x_min": 958,
+    "y_min": 19,
+    "x_max": 981,
+    "y_max": 43
+   },
+   "outer_html": "<a href=\"cart.html\">Cart</a>",
+   "dom_id": null
+  },
+  {
+   "backend_id": 20,
+   "role": "heading",
+   "name": "Your order",
+   "css_path": "h1#order-h",
+   "box_px": [
+    187,
+    91,
+    607,
+    114
+   ],
+   "bbox": {
+    "x_min": 146,
+    "y_min": 126,
+    "x_max": 474,
+    "y_max": 158
+   },
+   "outer_html": "<h1 id=\"order-h\">Your order</h1>",
+   "dom_id": "order-h"
+  },
+  {
+   "backend_id": 21,
+   "role": "image",
+   "name": "image",
+   "css_path": "img#f1",
+   "box_px": [
+    187,
+    126,
+    487,
+    216
+   ],
+   "bbox": {
+    "x_min": 146,
+    "y_min": 175,
+    "x_max": 380,
+    "y_max": 300
+   },
+   "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "f1"
+  },
+  {
+   "backend_id": 33,
+   "role": "heading",
+   "name": "Payment",
+   "css_path": "h2#pay-h",
+   "box_px": [
+    673,
+    91,
+    1093,
+    112
+   ],
+   "bbox": {
+    "x_min": 526,
+    "y_min": 126,
+    "x_max": 854,
+    "y_max": 156
+   },
+   "outer_html": "<h2 id=\"pay-h\">Payment</h2>",
+   "dom_id": "pay-h"
+  },
+  {
+   "backend_id": 35,
+   "role": "textbox",
+   "name": "Name on card",
+   "css_path": "input#name",
+   "box_px": [
+    673,
+    140,
+    1093,
+    179
+   ],
+   "bbox": {
+    "x_min": 526,
+    "y_min": 194,
+    "x_max": 854,
+    "y_max": 249
+   },
+   "outer_html": "<input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\" style=\"\">",
+   "dom_id": "name"
+  },
+  {
+   "backend_id": 38,
+   "role": "textbox",
+   "name": "Card number",
+   "css_path": "input#card",
+   "box_px": [
+    673,
+    207,
+    1093,
+    248
+   ],
+   "bbox": {
+    "x_min": 526,
+    "y_min": 288,
+    "x_max": 854,
+    "y_max": 344
+   },
+   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "card"
+  },
+  {
+   "backend_id": 41,
+   "role": "textbox",
+   "name": "Expiry",
+   "css_path": "input#exp",
+   "box_px": [
+    673,
+    276,
+    1093,
+    315
+   ],
+   "bbox": {
+    "x_min": 526,
+    "y_min": 383,
+    "x_max": 854,
+    "y_max": 438
+   },
+   "outer_html": "<input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">",
+   "dom_id": "exp"
+  },
+  {
+   "backend_id": 47,
+   "role": "button",
+   "name": "Submit",
+   "css_path": "button#f5",
+   "box_px": [
+    673,
+    360,
+    827,
+    408
+   ],
+   "bbox": {
+    "x_min": 526,
+    "y_min": 500,
+    "x_max": 646,
+    "y_max": 567
+   },
+   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "f5"
+  },
+  {
+   "backend_id": 49,
+   "role": "button",
+   "name": "Close",
+   "css_path": "button#f6",
+   "box_px": [
+    837,
+    360,
+    883,
+    408
+   ],
+   "bbox": {
+    "x_min": 654,
+    "y_min": 500,
+    "x_max": 690,
+    "y_max": 567
+   },
+   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "f6"
+  },
+  {
+   "backend_id": 50,
+   "role": "button",
+   "name": "Save for later",
+   "css_path": "button#c2",
+   "box_px": [
+    893,
+    364,
+    1012,
+    404
+   ],
+   "bbox": {
+    "x_min": 698,
+    "y_min": 506,
+    "x_max": 791,
+    "y_max": 561
+   },
+   "outer_html": "<button id=\"c2\" class=\"ghost\">Save for later</button>",
+   "dom_id": "c2"
+  },
+  {
+   "backend_id": 31,
+   "role": "link",
+   "name": "Returns policy",
+   "css_path": "a#c1",
+   "box_px": [
+    187,
+    340,
+    288,
+    357
+   ],
+   "bbox": {
+    "x_min": 146,
+    "y_min": 472,
+    "x_max": 225,
+    "y_max": 496
+   },
+   "outer_html": "<a id=\"c1\" href=\"#returns\">Returns policy</a>",
+   "dom_id": "c1"
+  },
+  {
+   "backend_id": 44,
+   "role": "link",
+   "name": "Click here",
+   "css_path": "a#f4",
+   "box_px": [
+    831,
+    327,
+    877,
+    342
+   ],
+   "bbox": {
+    "x_min": 649,
+    "y_min": 454,
+    "x_max": 685,
+    "y_max": 475
+   },
+   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "f4"
+  }
+ ],
+ "axe_violations": [],
+ "captured_at": "2026-10-30T23:10:00.295562Z"
+}

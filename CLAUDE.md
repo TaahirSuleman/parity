@@ -12,6 +12,7 @@
 
 ## Read first (in order). The full docs map and precedence rules are in `docs/README.md`
 1. `docs/18-decision-and-development-plan.md`: user, hero moment, architecture, workbench, eval, day plan, video. **The source of truth for scope.**
+1b. `docs/19-design-spec.md` (interfaces, data model, routes, deploy on Cloud Run) and `docs/20-implementation-plan.md` (the phased TDD plan being executed).
 2. `docs/17-validation-results.md`: what is proven on the live API (and what failed).
 3. `docs/14-build-playbook-verifiable-agents.md`: the verifiable-agent architecture. Learn the patterns; write our own code (no workshop code).
 4. `docs/submission-checklist.md`: video and cold-review rules.

@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Checkout</title>
+<style>body{font-family:Arial;margin:0;background:#fafafa}main{max-width:980px;margin:20px auto;display:flex;gap:24px}
+.card{background:#fff;padding:18px;border-radius:8px;flex:1}.btn{background:#0a7d3b;color:#fff;border:0;padding:12px 18px;font-size:16px;border-radius:6px}
+.err{border:2px solid #d0021b}label{display:block;margin-top:10px;font-size:14px}input{padding:8px;width:90%}</style></head><body>
+<header style="background:#222;color:#fff;padding:12px 20px">ShopRight · Checkout</header>
+<main>
+<section class="card" aria-label="Order summary"><h1 style="font-size:20px">Your order</h1>
+<img id="f1" alt="image" width="300" height="90" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>">
+<p>Noise-cancelling headphones × 1</p>
+<p>Total: <canvas id="f2" width="140" height="30" role="presentation"></canvas></p>
+<p><a id="c1" href="#returns">Returns policy</a></p>
+</section>
+<section class="card" aria-label="Payment"><h2 style="font-size:18px">Payment</h2>
+<label for="name">Name on card</label><input id="name" value="T Suleman">
+<label for="card">Card number</label><input id="card" class="err" value="4111 1111 1111 111">
+<label for="exp">Expiry</label><input id="exp" value="09/27">
+<p style="font-size:13px">By paying you agree to the <a id="f4" href="#terms" aria-label="Click here">Terms</a>.</p>
+<button id="f5" class="btn" aria-label="Submit">Pay R1,249</button>
+<button id="f6" aria-label="Close" style="margin-left:10px;background:#fff;border:1px solid #ccc;padding:10px">🗑️</button>
+<button id="c2" style="margin-left:10px;padding:10px">Save for later</button>
+</section></main>
+<div id="done" style="display:none;padding:20px;font-size:22px;color:green">Order confirmed ✓</div><script>document.getElementById("f5").onclick=()=>{if(document.getElementById("exp").value.trim()==="10/28")document.getElementById("done").style.display="block";};const c=document.getElementById('f2').getContext('2d');c.font='bold 22px Arial';c.fillText('R1,249.00',2,22);</script>
+</body></html>

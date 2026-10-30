@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout · ShopRight</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <span class="brand">ShopRight</span>
+  <nav aria-label="Primary"><a href="product.html">Shop</a><a href="cart.html">Cart</a></nav>
+</header>
+<main>
+  <section class="card" aria-labelledby="order-h">
+    <h1 id="order-h">Your order</h1>
+    <img id="f1" alt="image" width="300" height="90"
+         src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>">
+    <div class="line"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>
+    <div class="line"><span>Delivery</span><span>Free</span></div>
+    <p class="total">Total: <canvas id="f2" width="140" height="30" role="presentation"></canvas></p>
+    <p><a id="c1" href="#returns">Returns policy</a></p>
+  </section>
+  <section class="card" aria-labelledby="pay-h">
+    <h2 id="pay-h">Payment</h2>
+    <label for="name">Name on card</label><input id="name" value="T Suleman" autocomplete="cc-name">
+    <label for="card">Card number</label><input id="card" class="err" value="4111 1111 1111 111" autocomplete="cc-number" inputmode="numeric">
+    <label for="exp">Expiry</label><input id="exp" value="09/27" autocomplete="cc-exp">
+    <p class="small">By paying you agree to the <a id="f4" href="#terms" aria-label="Click here"><img alt="" width="46" height="16" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>"></a>.</p>
+    <div class="actions">
+      <button id="f5" class="btn" aria-label="Submit"><img alt="" width="118" height="20" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>"></button>
+      <button id="f6" class="icon" aria-label="Close">🗑️</button>
+      <button id="c2" class="ghost">Save for later</button>
+    </div>
+    <div id="done" role="status">Order confirmed ✓</div>
+  </section>
+</main>
+<script>
+  document.getElementById("f5").addEventListener("click", function () {
+    if (document.getElementById("exp").value.trim() === "10/28") {
+      document.getElementById("done").style.display = "block";
+    }
+  });
+  var ctx = document.getElementById("f2").getContext("2d");
+  ctx.font = "bold 22px Arial";
+  ctx.fillStyle = "#1b1b1f";
+  ctx.fillText("R1,249.00", 2, 22);
+</script>
+</body>
+</html>

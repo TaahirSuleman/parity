@@ -222,7 +222,7 @@ async def run_eval(*, client=None, client_factory=None, base_url: str, pages: li
             n_find = sum(v["n"] for v in per_page.values())
             matched = mean([sum(x["precision"] * x["n"] for x in [per_page[p]["runs"][i] for p in pages]) for i in range(runs)]) if pages else 0.0
             results["configs"][cfg] = {
-                "per_page": per_page,
+                "runs": runs, "per_page": per_page,
                 "total": {"recall": hits_total / n_labels if n_labels else 0.0, "precision": matched / n_find if n_find else 0.0,
                           "fp_on_clean": sum(v["fp_on_clean"] for v in per_page.values()), "n": n_find, "n_labels": n_labels,
                           "tokens": sum(v["tokens"] for v in per_page.values()), "cost_usd": sum(v["cost_usd"] for v in per_page.values()),
@@ -290,12 +290,31 @@ def write_results(results: dict[str, Any], out_dir: Path = RESULTS_DIR, name: st
     path = out_dir / f"{stamp}.json"
     path.write_text(json.dumps(results, indent=1, default=_json_default) + "\n")
     latest = out_dir / "latest.json"
-    merged = json.loads(latest.read_text()) if latest.exists() else {}
-    merged.update({k: v for k, v in results.items() if v not in ({}, None)})
-    merged["updated_at"] = results["generated_at"]
+    merged = merge_latest(json.loads(latest.read_text()) if latest.exists() else {}, results)
     latest.write_text(json.dumps(merged, indent=1, default=_json_default) + "\n")
     (out_dir / "latest.md").write_text(render(merged))
     return path
+
+
+def merge_latest(existing: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
+    """latest.json is the union of every invocation: a configuration is replaced only by one with at least as many
+    runs, judges accumulate, and the other sections are replaced when the new results carry them."""
+    out = dict(existing)
+    for key, value in new.items():
+        if value in ({}, None, []):
+            continue
+        if key == "configs":
+            cfgs = dict(out.get("configs", {}))
+            for name, entry in value.items():
+                if name not in cfgs or int(entry.get("runs", 1)) >= int(cfgs[name].get("runs", 1)):
+                    cfgs[name] = entry
+            out["configs"] = cfgs
+        elif key == "judge":
+            out["judge"] = {**out.get("judge", {}), **value}
+        else:
+            out[key] = value
+    out["updated_at"] = new.get("generated_at", existing.get("updated_at"))
+    return out
 
 
 def _json_default(o):

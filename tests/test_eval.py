@@ -78,3 +78,18 @@ async def test_harness_offline_run_on_checkout(tmp_path, server_url, page):
     assert full["per_page"]["checkout.html"]["cost_usd"] >= 0 and full["per_page"]["checkout.html"]["seconds"] > 0
     assert result["axe"]["violations"] == 0 and result["axe"]["recall"] == 0.0
     assert result["model"] and result["labels"] == str(Path("eval/labels.json"))
+
+
+def test_merge_latest_keeps_the_richer_configs_and_all_judges():
+    """Two harness invocations (ablations x3 runs; sweeps x1 run) must not clobber each other's part of latest.json."""
+    from eval.harness import merge_latest
+
+    existing = {"configs": {"full": {"total": {"recall": 0.8}, "runs": 3}}, "judge": {"muse-spark-1.3": {"n": 30}}, "effort_sweep": {"low": {}}}
+    sweeps = {"configs": {"full": {"total": {"recall": 0.7}, "runs": 1}, "tree_only": {"total": {}, "runs": 1}}, "judge": {"muse-wonder-1.0": {"n": 30}},
+              "standard_tier_check": {"model": "muse-spark-1.3"}, "generated_at": "t2"}
+    out = merge_latest(existing, sweeps)
+    assert out["configs"]["full"]["runs"] == 3 and out["configs"]["full"]["total"]["recall"] == 0.8  # the 3-run result stays
+    assert out["configs"]["tree_only"]["runs"] == 1  # a configuration not seen before is added
+    assert set(out["judge"]) == {"muse-spark-1.3", "muse-wonder-1.0"}
+    assert out["effort_sweep"] == {"low": {}} and out["standard_tier_check"]["model"] == "muse-spark-1.3"
+    assert out["updated_at"] == "t2"

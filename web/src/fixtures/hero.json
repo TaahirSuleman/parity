@@ -5,15 +5,15 @@
   "flow_id": "checkout",
   "goal": "Pay for the order",
   "target_url": "file:///Users/ammarah/Desktop/Meta_Hackathon/parity/store/checkout.html",
-  "status": "done",
-  "started_at": "2026-10-31T00:38:03.731097Z",
-  "finished_at": "2026-10-31T00:38:04.138048Z",
+  "status": "awaiting_review",
+  "started_at": "2026-10-31T17:36:26.023841Z",
+  "finished_at": "2026-10-31T17:36:26.530330Z",
   "axe_violations": 0,
   "findings_verified": 6,
   "findings_rejected": 0,
-  "tokens": 36132,
+  "tokens": 58178,
   "cost_usd": 0.0,
-  "duration_ms": 404,
+  "duration_ms": 504,
   "client_ip_hash": "",
   "error": null,
   "replay_of": null
@@ -33,7 +33,7 @@
    ],
    "axe_violations": 0,
    "ax_nodes": 37,
-   "captured_at": "2026-10-31T00:38:04.120182Z"
+   "captured_at": "2026-10-31T17:36:26.310708Z"
   }
  ],
  "findings": [
@@ -219,7 +219,7 @@
    "id": "hero-fixture-f03",
    "run_id": "hero-fixture",
    "step_index": 0,
-   "status": "judged",
+   "status": "reaudited",
    "sighted_text": "Pay R1,249",
    "sr_role": "button",
    "sr_name": "Submit",
@@ -304,8 +304,24 @@
      "incomplete_reason": null
     }
    },
-   "fix": null,
-   "reaudit": null,
+   "fix": {
+    "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+    "after_html": "<button id=\"f5\" class=\"btn\">Pay R1,249</button>",
+    "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -25,7 +25,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n+      <button id=\"f5\" class=\"btn\">Pay R1,249</button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">\ud83d\uddd1\ufe0f</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
+    "explanation": "Removed the generic aria-label and image-of-text and replaced with real text Pay R1,249 so the accessible name matches the visible label.",
+    "model_meta": {
+     "model": "muse-spark-1.3-contributor",
+     "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+     "response_id": "resp_6ae622e3be9442a79d67498b",
+     "status": "completed"
+    }
+   },
+   "reaudit": {
+    "gap_closed": true,
+    "sr_name_before": "Submit",
+    "sr_name_after": "Pay R1,249",
+    "comparator_still_flags": true
+   },
    "decision": null
   },
   {
@@ -605,7 +621,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.122803Z"
+   "at": "2026-10-31T17:36:26.312906Z"
   },
   {
    "id": "fake-2",
@@ -626,7 +642,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.124111Z"
+   "at": "2026-10-31T17:36:26.314037Z"
   },
   {
    "id": "fake-3",
@@ -647,7 +663,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.129106Z"
+   "at": "2026-10-31T17:36:26.318919Z"
   },
   {
    "id": "fake-4",
@@ -668,7 +684,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.130718Z"
+   "at": "2026-10-31T17:36:26.320183Z"
   },
   {
    "id": "fake-5",
@@ -689,7 +705,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.132010Z"
+   "at": "2026-10-31T17:36:26.321313Z"
   },
   {
    "id": "fake-6",
@@ -710,7 +726,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.133269Z"
+   "at": "2026-10-31T17:36:26.322574Z"
   },
   {
    "id": "fake-7",
@@ -731,7 +747,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.134546Z"
+   "at": "2026-10-31T17:36:26.323872Z"
   },
   {
    "id": "fake-8",
@@ -752,7 +768,154 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-31T00:38:04.136081Z"
+   "at": "2026-10-31T17:36:26.325119Z"
+  },
+  {
+   "id": "fake-9",
+   "run_id": "hero-fixture",
+   "step_index": 0,
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "response_id": "resp_6ae622e3be9442a79d67498b",
+   "prompt_sha256": "4e965fdad2e3800c6c93c170326d75a9594cf5f307f610f5d2d5fe3c8b44bfe3",
+   "cache_hit": true,
+   "input_tokens": 1672,
+   "cached_tokens": 0,
+   "output_tokens": 1025,
+   "total_tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "http_status": 200,
+   "error": null,
+   "attempt": 1,
+   "at": "2026-10-31T17:36:26.327197Z"
+  },
+  {
+   "id": "fake-10",
+   "run_id": "hero-fixture",
+   "step_index": 0,
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "response_id": "resp_6ae622e3be9442a79d67498b",
+   "prompt_sha256": "2e367f2db4c6fe683d39efb03b3e48bee9acc4b78a8095e064c0c956ee114068",
+   "cache_hit": true,
+   "input_tokens": 1672,
+   "cached_tokens": 0,
+   "output_tokens": 1025,
+   "total_tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "http_status": 200,
+   "error": null,
+   "attempt": 1,
+   "at": "2026-10-31T17:36:26.327759Z"
+  },
+  {
+   "id": "fake-11",
+   "run_id": "hero-fixture",
+   "step_index": 0,
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "response_id": "resp_6ae622e3be9442a79d67498b",
+   "prompt_sha256": "47e89df05e1b233b631862caf289b6ae900fc65552a5e152c23afb673897a3dd",
+   "cache_hit": true,
+   "input_tokens": 1672,
+   "cached_tokens": 0,
+   "output_tokens": 1025,
+   "total_tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "http_status": 200,
+   "error": null,
+   "attempt": 1,
+   "at": "2026-10-31T17:36:26.328351Z"
+  },
+  {
+   "id": "fake-12",
+   "run_id": "hero-fixture",
+   "step_index": 0,
+   "stage": "comparator",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e4625cd9-13b4-4bf8-bbf6-c00380a99f57",
+   "response_id": "resp_6ae5260ac1e9632611ab40c9",
+   "prompt_sha256": "181222dce80bb8c3f459d4c8d554185c62464dd4f558070cdded0db0e66a4e4e",
+   "cache_hit": true,
+   "input_tokens": 3443,
+   "cached_tokens": 0,
+   "output_tokens": 2421,
+   "total_tokens": 5864,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "http_status": 200,
+   "error": null,
+   "attempt": 1,
+   "at": "2026-10-31T17:36:26.527036Z"
+  },
+  {
+   "id": "fake-13",
+   "run_id": "hero-fixture",
+   "step_index": 0,
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "response_id": "resp_6ae622e3be9442a79d67498b",
+   "prompt_sha256": "1d1114665ee15d40d2e997be12bd7a7ec5c40028b9bb175aa6ac218afaf29ae1",
+   "cache_hit": true,
+   "input_tokens": 1672,
+   "cached_tokens": 0,
+   "output_tokens": 1025,
+   "total_tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "http_status": 200,
+   "error": null,
+   "attempt": 1,
+   "at": "2026-10-31T17:36:26.528883Z"
+  },
+  {
+   "id": "fake-14",
+   "run_id": "hero-fixture",
+   "step_index": 0,
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "response_id": "resp_6ae622e3be9442a79d67498b",
+   "prompt_sha256": "4f37e89fb6b19f8764e76f8c066055cb3d3c9df06e18eb005725b8467fdf1bd0",
+   "cache_hit": true,
+   "input_tokens": 1672,
+   "cached_tokens": 0,
+   "output_tokens": 1025,
+   "total_tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "http_status": 200,
+   "error": null,
+   "attempt": 1,
+   "at": "2026-10-31T17:36:26.529484Z"
+  },
+  {
+   "id": "fake-15",
+   "run_id": "hero-fixture",
+   "step_index": 0,
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "response_id": "resp_6ae622e3be9442a79d67498b",
+   "prompt_sha256": "7a0271fed6d3dcd67e5ed355831d4448d25129686a859203e25509c97d6ae595",
+   "cache_hit": true,
+   "input_tokens": 1672,
+   "cached_tokens": 0,
+   "output_tokens": 1025,
+   "total_tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "http_status": 200,
+   "error": null,
+   "attempt": 1,
+   "at": "2026-10-31T17:36:26.530047Z"
   }
  ],
  "events": [
@@ -769,7 +932,7 @@
    "navigator_model": null,
    "type": "run.started",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:03.733102+00:00"
+   "at": "2026-10-31T17:36:26.025591+00:00"
   },
   {
    "index": 0,
@@ -779,7 +942,7 @@
    "reason": "single-page flow",
    "type": "step.captured",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.122228+00:00"
+   "at": "2026-10-31T17:36:26.312421+00:00"
   },
   {
    "stage": "seer",
@@ -794,7 +957,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.123171+00:00"
+   "at": "2026-10-31T17:36:26.313211+00:00"
   },
   {
    "index": 0,
@@ -1088,7 +1251,7 @@
    ],
    "type": "seer.done",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.123423+00:00"
+   "at": "2026-10-31T17:36:26.313444+00:00"
   },
   {
    "stage": "comparator",
@@ -1103,7 +1266,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.124384+00:00"
+   "at": "2026-10-31T17:36:26.314261+00:00"
   },
   {
    "index": 0,
@@ -1111,7 +1274,7 @@
    "attempt": 1,
    "type": "comparator.candidates",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.124461+00:00"
+   "at": "2026-10-31T17:36:26.314341+00:00"
   },
   {
    "index": 0,
@@ -1191,7 +1354,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.125433+00:00"
+   "at": "2026-10-31T17:36:26.315236+00:00"
   },
   {
    "index": 0,
@@ -1271,7 +1434,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.126040+00:00"
+   "at": "2026-10-31T17:36:26.316084+00:00"
   },
   {
    "index": 0,
@@ -1351,7 +1514,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.126575+00:00"
+   "at": "2026-10-31T17:36:26.316792+00:00"
   },
   {
    "index": 0,
@@ -1431,7 +1594,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.127246+00:00"
+   "at": "2026-10-31T17:36:26.317337+00:00"
   },
   {
    "index": 0,
@@ -1511,7 +1674,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.127965+00:00"
+   "at": "2026-10-31T17:36:26.317872+00:00"
   },
   {
    "index": 0,
@@ -1591,7 +1754,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.128531+00:00"
+   "at": "2026-10-31T17:36:26.318373+00:00"
   },
   {
    "stage": "judge",
@@ -1606,7 +1769,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.129291+00:00"
+   "at": "2026-10-31T17:36:26.319094+00:00"
   },
   {
    "finding_id": "hero-fixture-f01",
@@ -1631,7 +1794,7 @@
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.130224+00:00"
+   "at": "2026-10-31T17:36:26.319689+00:00"
   },
   {
    "stage": "judge",
@@ -1646,7 +1809,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.130978+00:00"
+   "at": "2026-10-31T17:36:26.320334+00:00"
   },
   {
    "finding_id": "hero-fixture-f02",
@@ -1671,7 +1834,7 @@
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.131525+00:00"
+   "at": "2026-10-31T17:36:26.320834+00:00"
   },
   {
    "stage": "judge",
@@ -1686,7 +1849,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.132216+00:00"
+   "at": "2026-10-31T17:36:26.321476+00:00"
   },
   {
    "finding_id": "hero-fixture-f03",
@@ -1715,7 +1878,7 @@
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.132786+00:00"
+   "at": "2026-10-31T17:36:26.322016+00:00"
   },
   {
    "stage": "judge",
@@ -1730,7 +1893,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.133479+00:00"
+   "at": "2026-10-31T17:36:26.322769+00:00"
   },
   {
    "finding_id": "hero-fixture-f04",
@@ -1755,7 +1918,7 @@
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.134030+00:00"
+   "at": "2026-10-31T17:36:26.323349+00:00"
   },
   {
    "stage": "judge",
@@ -1770,7 +1933,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.134811+00:00"
+   "at": "2026-10-31T17:36:26.324041+00:00"
   },
   {
    "finding_id": "hero-fixture-f05",
@@ -1799,7 +1962,7 @@
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.135495+00:00"
+   "at": "2026-10-31T17:36:26.324565+00:00"
   },
   {
    "stage": "judge",
@@ -1814,7 +1977,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.136268+00:00"
+   "at": "2026-10-31T17:36:26.325286+00:00"
   },
   {
    "finding_id": "hero-fixture-f06",
@@ -1843,14 +2006,188 @@
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.136872+00:00"
+   "at": "2026-10-31T17:36:26.325783+00:00"
   },
   {
-   "status": "done",
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.327366+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f01",
+   "reason": "snippet changes the element's tag from <img> to <button>",
+   "type": "fixer.rejected",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.327451+00:00"
+  },
+  {
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.327941+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f02",
+   "reason": "snippet changes the element's tag from <canvas> to <button>",
+   "type": "fixer.rejected",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.327980+00:00"
+  },
+  {
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.328502+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f03",
+   "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -25,7 +25,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n+      <button id=\"f5\" class=\"btn\">Pay R1,249</button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">\ud83d\uddd1\ufe0f</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
+   "fix": {
+    "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+    "after_html": "<button id=\"f5\" class=\"btn\">Pay R1,249</button>",
+    "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -25,7 +25,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n+      <button id=\"f5\" class=\"btn\">Pay R1,249</button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">\ud83d\uddd1\ufe0f</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
+    "explanation": "Removed the generic aria-label and image-of-text and replaced with real text Pay R1,249 so the accessible name matches the visible label.",
+    "model_meta": {
+     "model": "muse-spark-1.3-contributor",
+     "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+     "response_id": "resp_6ae622e3be9442a79d67498b",
+     "status": "completed"
+    }
+   },
+   "type": "fixer.proposed",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.329238+00:00"
+  },
+  {
+   "stage": "comparator",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e4625cd9-13b4-4bf8-bbf6-c00380a99f57",
+   "tokens": 5864,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.527376+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f03",
+   "gap_closed": true,
+   "before": "Submit",
+   "after": "Pay R1,249",
+   "reaudit": {
+    "gap_closed": true,
+    "sr_name_before": "Submit",
+    "sr_name_after": "Pay R1,249",
+    "comparator_still_flags": true
+   },
+   "type": "reaudit.result",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.528468+00:00"
+  },
+  {
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.529098+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f04",
+   "reason": "snippet is for element #f5, not #f6",
+   "type": "fixer.rejected",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.529157+00:00"
+  },
+  {
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.529671+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f05",
+   "reason": "snippet changes the element's tag from <a> to <button>",
+   "type": "fixer.rejected",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.529721+00:00"
+  },
+  {
+   "stage": "fixer",
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e6598563-805e-4abf-822c-4bddd301cc62",
+   "tokens": 2697,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.530261+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f06",
+   "reason": "snippet changes the element's tag from <input> to <button>",
+   "type": "fixer.rejected",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T17:36:26.530312+00:00"
+  },
+  {
+   "status": "awaiting_review",
    "findings_verified": 6,
    "findings_rejected": 0,
    "axe_violations": 0,
-   "tokens": 36132,
+   "tokens": 58178,
    "cost_usd": 0.0,
    "verified": [
     {
@@ -1884,11 +2221,13 @@
      "screen_reader": "textbox, \"Card number\""
     }
    ],
+   "fixes_proposed": 1,
    "agent": null,
    "final_url": "file:///Users/ammarah/Desktop/Meta_Hackathon/parity/store/checkout.html",
+   "duration_ms": 504,
    "type": "run.finished",
    "run_id": "hero-fixture",
-   "at": "2026-10-31T00:38:04.138044+00:00"
+   "at": "2026-10-31T17:36:26.530995+00:00"
   }
  ]
 }

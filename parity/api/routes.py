@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
@@ -12,6 +13,7 @@ from pydantic import BaseModel, Field
 from parity import replay
 from parity.api.sse import sse_response
 from parity.flows import FLOWS
+from parity.pipeline.gate import ConflictError, decide
 from parity.pipeline.runner import run_flow
 from parity.store.models import RunMode
 from parity.verifier_off import verifier_off
@@ -24,6 +26,11 @@ class RunRequest(BaseModel):
     flow_id: str
     mode: RunMode = RunMode.replay
     pace_ms: int = Field(default=replay.DEFAULT_PACE_MS, ge=0, le=5000)
+
+
+class DecisionRequest(BaseModel):
+    decision: Literal["approve", "reject"]
+    reason: str = Field(min_length=1, max_length=2000)
 
 
 @router.get("/health")
@@ -130,3 +137,30 @@ async def run_verifier_off(run_id: str, request: Request) -> dict:
     except KeyError:
         raise HTTPException(404, "unknown run") from None
     return report.model_dump(mode="json")
+
+
+@router.post("/runs/{run_id}/findings/{finding_id}/decision")
+async def record_decision(run_id: str, finding_id: str, req: DecisionRequest, request: Request) -> dict:
+    """The human gate: the only way a finding becomes approved or rejected (spec D4)."""
+    st = request.app.state
+    try:
+        finding, run = await decide(st.bundle, st.index, st.bus, run_id, finding_id, req.decision, req.reason)
+    except KeyError:
+        raise HTTPException(404, "unknown run or finding") from None
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from None
+    except ConflictError as exc:
+        raise HTTPException(409, str(exc)) from None
+    return {"finding": finding.model_dump(mode="json"), "run": run.model_dump(mode="json")}
+
+
+@router.get("/runs/{run_id}/patch")
+async def run_patch(run_id: str, request: Request) -> Response:
+    """fix.patch: the approved fixes only, as one git-style patch."""
+    st = request.app.state
+    if not await st.bundle.exists(run_id):
+        raise HTTPException(404, "unknown run")
+    patch = await st.bundle.read_patch(run_id)
+    if not patch:
+        raise HTTPException(404, "no approved fixes yet")
+    return Response(content=patch, media_type="text/x-diff", headers={"Content-Disposition": f'attachment; filename="parity-{run_id}.patch"'})

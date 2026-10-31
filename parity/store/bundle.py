@@ -115,6 +115,20 @@ class RunBundle:
     async def write_patch(self, run_id: str, patch: str) -> None:
         await self.store.put(keys.patch(run_id), patch.encode(), "text/x-diff")
 
+    async def read_patch(self, run_id: str) -> str | None:
+        key = keys.patch(run_id)
+        if not await self.store.exists(key):
+            return None
+        return (await self.store.get(key)).decode()
+
+    async def append_event(self, run_id: str, event: Event) -> None:
+        """Persist one event after the run's buffers were flushed (a decision): read, append, write whole."""
+        events = await self.events(run_id)
+        events.append(event)
+        if run_id in self._events:
+            self._events[run_id].append(event)
+        await self.store.put(keys.events(run_id), _jsonl(events), "application/x-ndjson")
+
     def add_trace(self, run_id: str, call: ModelCall) -> None:
         self._trace.setdefault(run_id, []).append(call)
 

@@ -7,6 +7,8 @@ interface Props {
   flowId: string;
   onFlowChange: (id: string) => void;
   run: Run | null;
+  approved?: number; // fixes approved by a human
+  pending?: number; // fixes still waiting for a decision
   mode: RunMode;
   canLive: boolean;
   running: boolean;
@@ -21,7 +23,7 @@ export function fmtDuration(ms: number): string {
   return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)} s`;
 }
 
-export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, onModeChange, onRun }: Props) {
+export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, onModeChange, onRun, approved = 0, pending = 0 }: Props) {
   const axe = run?.axe_violations ?? 0;
   return (
     <header className="surface" style={{ borderRadius: 0, borderWidth: "0 0 1px 0" }}>
@@ -56,6 +58,8 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
             {fmtCost(run?.cost_usd ?? 0)} · {fmtDuration(run?.duration_ms ?? 0)}
           </span>
           {run?.mode === "replay" && <span className="badge" title={`Replay of recorded run ${run.replay_of ?? ""}`}>replay</span>}
+          {run?.status === "awaiting_review" && <span className="badge" style={{ color: "var(--warn)" }} title="Proposed fixes wait for a human decision">awaiting review</span>}
+          {approved + pending > 0 && <span className="counter" title="Fixes approved · fixes waiting for a decision">{`${approved} approved · ${pending} to review`}</span>}
         </div>
       </div>
       {running && <div className="progress" aria-hidden="true" />}

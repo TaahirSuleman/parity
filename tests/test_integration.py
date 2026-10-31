@@ -14,7 +14,7 @@ import httpx
 import pytest
 
 from parity.meta.fake import FakeMetaClient
-from tests.helpers import parse_sse
+from tests.helpers import make_replay_bundle, parse_sse
 from tests.test_runner import META, stage_defaults
 
 
@@ -33,6 +33,7 @@ def live_server(tmp_path_factory):
     from parity.config import load_settings
 
     root = tmp_path_factory.mktemp("parity-live")
+    asyncio.run(make_replay_bundle(root / "replay"))
     port = _free_port()
     settings = load_settings(env={
         "PARITY_DATA_DIR": str(root / "data"), "PARITY_CACHE_DIR": str(root / "cache"),
@@ -75,8 +76,16 @@ async def test_live_checkout_end_to_end_through_the_served_app(live_server):
         assert any(t == "verifier.result" and d["finding"]["sighted_text"] == "Pay R1,249" for t, d in events)
 
         detail = (await client.get(f"/api/runs/{run_id}")).json()
-        assert detail["run"]["status"] == "done" and detail["run"]["mode"] == "live"
+        assert detail["run"]["status"] == "awaiting_review" and detail["run"]["mode"] == "live"
         assert detail["findings"] and detail["trace"] and detail["steps"]
+        hero = next(f for f in detail["findings"] if f["element"]["dom_id"] == "f5")
+        assert hero["fix"] and hero["reaudit"]["gap_closed"] is True and hero["status"] == "reaudited"
+        # the human gate: approving the one fix finishes the run and exports the patch
+        r = await client.post(f"/api/runs/{run_id}/findings/{hero['id']}/decision", json={"decision": "approve", "reason": "Re-audit shows the price is announced"})
+        assert r.status_code == 200 and r.json()["run"]["status"] == "done"
+        patch = await client.get(f"/api/runs/{run_id}/patch")
+        assert patch.status_code == 200 and "+++ b/store/checkout.html" in patch.text
+        assert (await client.get(f"/api/runs/{run_id}")).json()["run"]["status"] == "done"
         assert (await client.get(f"/api/runs/{run_id}/verifier-off")).status_code == 200
         shot = await client.get(f"/api/runs/{run_id}/steps/0/screenshot.png")
         assert shot.status_code == 200 and shot.content[:4] == b"\x89PNG"
@@ -131,7 +140,7 @@ async def test_sse_reconnect_mid_run_replays_full_history(api):
                     break  # drop the connection while the run is still pacing out events
     full = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
     types = [t for t, _ in full]
-    assert seen == 2 and types[0] == "run.started" and types[-1] == "run.finished" and len(types) == 5
+    assert seen == 2 and types[0] == "run.started" and types[-1] == "run.finished" and len(types) == 8
 
 
 async def test_twenty_concurrent_subscribers_see_identical_streams(api):
@@ -140,7 +149,7 @@ async def test_twenty_concurrent_subscribers_see_identical_streams(api):
     run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 100})).json()["run_id"]
     bodies = await asyncio.gather(*(client.get(f"/api/runs/{run_id}/events") for _ in range(20)))
     streams = [[t for t, _ in parse_sse(b.text)] for b in bodies]
-    assert streams[0][-1] == "run.finished" and len(streams[0]) == 5
+    assert streams[0][-1] == "run.finished" and len(streams[0]) == 8
     assert all(s == streams[0] for s in streams)
 
 
@@ -199,3 +208,16 @@ async def test_browser_shutdown_from_another_loop_returns_quickly():
     finally:
         stop.set()
         thread.join(timeout=10)
+
+
+async def test_decision_on_a_replay_run_through_the_served_app(live_server):
+    """What a judge does: watch the replay, approve the fix, download the patch."""
+    async with httpx.AsyncClient(base_url=live_server, timeout=60) as client:
+        run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+        events = await _drain_sse(client, f"/api/runs/{run_id}/events")
+        assert events[-1][0] == "run.finished" and events[-1][1]["status"] == "awaiting_review"
+        r = await client.post(f"/api/runs/{run_id}/findings/{run_id}-f01/decision", json={"decision": "approve", "reason": "ok"})
+        assert r.status_code == 200, r.text
+        history = await _drain_sse(client, f"/api/runs/{run_id}/events")
+        assert history[-1][0] == "decision.recorded" and history[-1][1]["finding_id"] == f"{run_id}-f01"
+        assert (await client.get(f"/api/runs/{run_id}/patch")).status_code == 200

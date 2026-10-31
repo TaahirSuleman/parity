@@ -49,12 +49,13 @@ async def test_runner_hero_end_to_end(tmp_path, server_url, page):
         run = await run_single_page(settings, client, bus, bundle, index, FLOWS["checkout"], base_url=server_url, page_factory=page_factory)
         calls = await index.calls_for(run.id)
         listed = await index.list_runs()
-    assert run.status == RunStatus.done, run.error
+    assert run.status == RunStatus.awaiting_review, run.error  # the hero fix is proposed and re-audited; a human decides
     assert run.axe_violations == 0 and run.findings_verified >= 1 and run.tokens > 0 and run.duration_ms > 0
     loaded = await bundle.load(run.id)
     hero = [f for f in loaded.findings if f.element.dom_id == "f5"]
     assert len(hero) == 1 and hero[0].sr_name == "Submit" and hero[0].sighted_text == "Pay R1,249"
-    assert hero[0].judgement is not None and hero[0].status == "judged"
+    assert hero[0].judgement is not None and hero[0].status == "reaudited"
+    assert hero[0].fix is not None and "Pay R1,249" in hero[0].fix.after_html and hero[0].reaudit is not None and hero[0].reaudit.gap_closed is True
     types = [e.type for e in loaded.events if e.type != "model.call"]
     assert types[:4] == ["run.started", "step.captured", "seer.done", "comparator.candidates"]
     assert "verifier.result" in types and "judge.result" in types and types[-1] == "run.finished"
@@ -124,4 +125,4 @@ async def test_final_run_state_is_written_before_the_terminal_event(tmp_path, se
         watcher = asyncio.create_task(watch("fixed-id"))
         run = await run_single_page(settings, client, bus, bundle, index, FLOWS["checkout"], base_url=server_url, page_factory=page_factory, run_id="fixed-id")
         await asyncio.wait_for(watcher, 10)
-    assert run.status == RunStatus.done and seen == ["done"]
+    assert run.status == RunStatus.awaiting_review and seen == ["awaiting_review"]

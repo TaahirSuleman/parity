@@ -38,20 +38,23 @@ class _FirstTag(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
         self.first: str | None = None
+        self.attrs: dict[str, str | None] = {}
 
     def handle_starttag(self, tag: str, attrs: Any) -> None:
         if self.first is None:
             self.first = tag
+            self.attrs = dict(attrs)
 
     def handle_startendtag(self, tag: str, attrs: Any) -> None:
         self.handle_starttag(tag, attrs)
 
 
-def first_tag(html: str) -> str | None:
+def first_tag(html: str) -> tuple[str | None, dict[str, str | None]]:
+    """The snippet's outermost element: (tag, attributes)."""
     parser = _FirstTag()
     parser.feed(html or "")
     parser.close()
-    return parser.first
+    return parser.first, parser.attrs
 
 
 def validate_snippet(before_html: str, after_html: str) -> None:
@@ -60,11 +63,13 @@ def validate_snippet(before_html: str, after_html: str) -> None:
         raise FixRejected("empty snippet")
     if FORBIDDEN.search(after_html):
         raise FixRejected("snippet adds script or an inline event handler")
-    before_tag, after_tag = first_tag(before_html), first_tag(after_html)
+    (before_tag, before_attrs), (after_tag, after_attrs) = first_tag(before_html), first_tag(after_html)
     if after_tag is None:
         raise FixRejected("snippet is not an HTML element")
     if before_tag != after_tag:
         raise FixRejected(f"snippet changes the element's tag from <{before_tag}> to <{after_tag}>")
+    if before_attrs.get("id") and after_attrs.get("id") != before_attrs["id"]:
+        raise FixRejected(f"snippet is for element #{after_attrs.get('id') or '?'}, not #{before_attrs['id']}")
 
 
 def apply_fix(page_html: str, element: Element, after_html: str) -> str:

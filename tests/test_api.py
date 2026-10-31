@@ -45,7 +45,7 @@ async def test_events_after_finish_replays_history_then_closes(api):
     second = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
     assert [t for t, _ in first] == [t for t, _ in second] and second[-1][0] == "run.finished"
     detail = (await client.get(f"/api/runs/{run_id}")).json()
-    assert detail["run"]["status"] == "done" and detail["run"]["mode"] == "replay"
+    assert detail["run"]["status"] == "awaiting_review" and detail["run"]["mode"] == "replay"
 
 
 async def test_get_run_detail_includes_trace(api):
@@ -121,4 +121,49 @@ async def test_replay_writes_final_state_before_terminal_event(api):
         if ev.type == "run.finished":
             seen.append((await st.bundle.load(run.id)).run.status)
     await asyncio.sleep(0)
-    assert seen == ["done"]
+    assert seen == ["awaiting_review"]
+
+
+async def replayed_run(client) -> str:
+    run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+    await client.get(f"/api/runs/{run_id}/events")  # drain: the replay has finished
+    return run_id
+
+
+async def test_decision_requires_reason(api):
+    client, _ = api
+    run_id = await replayed_run(client)
+    url = f"/api/runs/{run_id}/findings/{run_id}-f01/decision"
+    assert (await client.post(url, json={"decision": "approve", "reason": "   "})).status_code == 422
+    assert (await client.post(url, json={"decision": "maybe", "reason": "x"})).status_code == 422
+    assert (await client.post(f"/api/runs/{run_id}/findings/nope/decision", json={"decision": "approve", "reason": "x"})).status_code == 404
+    assert (await client.post(f"/api/runs/nope/findings/x/decision", json={"decision": "approve", "reason": "x"})).status_code == 404
+    assert (await client.get(f"/api/runs/{run_id}/patch")).status_code == 404  # nothing approved yet
+
+
+async def test_decision_records_and_patch_contains_only_approved(api):
+    client, _ = api
+    run_id = await replayed_run(client)
+    fid = f"{run_id}-f01"
+    r = await client.post(f"/api/runs/{run_id}/findings/{fid}/decision", json={"decision": "approve", "reason": "Looks right"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["finding"]["status"] == "approved" and body["finding"]["decision"]["reason"] == "Looks right"
+    assert body["run"]["status"] == "done"  # nothing left to review
+    patch = await client.get(f"/api/runs/{run_id}/patch")
+    assert patch.status_code == 200 and patch.headers["content-type"].startswith("text/x-diff")
+    assert "+++ b/store/checkout.html" in patch.text and "Pay R1,249" in patch.text
+    events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
+    assert events[-1][0] == "decision.recorded" and events[-1][1]["decision"]["decision"] == "approve" and events[-1][1]["run_status"] == "done"
+    assert (await client.post(f"/api/runs/{run_id}/findings/{fid}/decision", json={"decision": "reject", "reason": "changed my mind"})).status_code == 409
+    detail = (await client.get(f"/api/runs/{run_id}")).json()
+    assert detail["run"]["status"] == "done" and detail["findings"][0]["status"] == "approved"
+    assert [r["status"] for r in (await client.get("/api/runs")).json() if r["id"] == run_id] == ["done"]
+
+
+async def test_rejected_fix_leaves_no_patch(api):
+    client, _ = api
+    run_id = await replayed_run(client)
+    r = await client.post(f"/api/runs/{run_id}/findings/{run_id}-f01/decision", json={"decision": "reject", "reason": "Not a barrier in context"})
+    assert r.status_code == 200 and r.json()["finding"]["status"] == "rejected" and r.json()["run"]["status"] == "done"
+    assert (await client.get(f"/api/runs/{run_id}/patch")).status_code == 404

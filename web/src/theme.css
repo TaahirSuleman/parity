@@ -90,3 +90,6 @@ button { font: inherit; color: inherit; }
   .card, .row-rejected { animation: none; }
   .progress::after { animation: none; width: 100%; }
 }
+
+.diff { max-height: 220px; overflow: auto; font-size: 12px; line-height: 1.45; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0 0; white-space: pre; }
+.fix-reason { flex: 1 1 220px; min-width: 0; }

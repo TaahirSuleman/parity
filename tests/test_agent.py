@@ -97,8 +97,9 @@ async def test_agent_fixture_flow_reaches_confirm(tmp_path, server_url, page):
     async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
         run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
         loaded = await bundle.load(run.id)
-    assert run.status == RunStatus.done, run.error
-    assert page.url.endswith("confirm.html")
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error  # awaiting review once a fix is proposed
+    finished = next(e for e in loaded.events if e.type == "run.finished").data
+    assert finished["final_url"].endswith("confirm.html")  # where the walk ended; re-audits move the page afterwards
     audited = [e.data["args"]["reason"] for e in loaded.events if e.type == "agent.tool_call" and e.data["tool"] == "audit_view"]
     assert audited == ["product page", "cart", "checkout", "confirmation"]
     assert [s.url.rsplit("/", 1)[-1] for s in loaded.steps] == ["product.html", "cart.html", "checkout.html", "confirm.html"]
@@ -200,7 +201,7 @@ async def test_fallback_mode_audits_on_screen_change(tmp_path, server_url, page)
     async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
         run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory, agent_mode="fallback")
         loaded = await bundle.load(run.id)
-    assert run.status == RunStatus.done, run.error
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error  # awaiting review once a fix is proposed
     assert [s.url.rsplit("/", 1)[-1] for s in loaded.steps] == ["product.html", "cart.html", "checkout.html"]
     assert all(t["type"] == "computer" for call in auditor_calls(client) for t in call["tools"])
     result: AgentResult = AgentResult(**next(e for e in loaded.events if e.type == "run.finished").data["agent"])
@@ -304,3 +305,80 @@ async def test_incomplete_empty_turn_is_nudged_not_fatal(tmp_path, server_url, p
     calls = auditor_calls(client)
     assert len(calls) == 3
     assert NUDGE in json.dumps(calls[1]["input"])
+
+
+async def test_off_origin_navigation_stops_the_run(tmp_path, server_url, page, monkeypatch):
+    """Once an action lands outside the allowed origins the batch stops, nav.blocked is recorded and the run ends."""
+    import parity.agent.loop as loop_mod
+
+    seen = {"n": 0}
+
+    def leaky(url, settings, base_url):
+        seen["n"] += 1
+        return seen["n"] < 2  # the check after the second action says: off-origin
+
+    monkeypatch.setattr(loop_mod, "is_allowed_target", leaky)
+    script = [turn(computer_call([{"type": "wait", "ms": 10}, {"type": "wait", "ms": 10}], "c1")), turn(function_call("finish", {"summary": "x"}, "c2"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    blocked = [e for e in loaded.events if e.type == "nav.blocked"]
+    assert blocked and blocked[-1].data["reason"] == "navigated outside the allowed origins"
+    assert len(auditor_calls(client)) == 1  # no further turn after the stop
+    result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
+    assert result["finished"] is False and result["summary"].startswith("stopped:")
+    conv = json.loads((tmp_path / "data" / "runs" / run.id / "agent" / "conversation.json").read_text())
+    assert [t["turn"] for t in conv["turns"]] == [1]
+
+
+async def test_two_function_calls_in_one_turn_are_dispatched_in_order(tmp_path, server_url, page):
+    script = [turn(function_call("audit_view", {"reason": "product"}, "c1"), function_call("finish", {"summary": "done"}, "c2"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    assert [e.data["tool"] for e in loaded.events if e.type == "agent.tool_call"] == ["audit_view", "finish"]
+    assert len(auditor_calls(client)) == 1
+
+
+async def test_audit_view_on_an_audited_screen_makes_no_new_model_calls(tmp_path, server_url, page):
+    script = [turn(function_call("audit_view", {"reason": "first"}, "c1")), turn(function_call("audit_view", {"reason": "again"}, "c2")),
+              turn(function_call("finish", {"summary": "done"}, "c3"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    assert len(loaded.steps) == 1  # the screen was captured once
+    tool_calls = [e for e in loaded.events if e.type == "agent.tool_call" and e.data["tool"] == "audit_view"]
+    assert tool_calls[1].data["result"]["already_audited"] is True and "already_audited" not in tool_calls[0].data["result"]
+
+
+async def test_safety_checks_are_acknowledged_in_the_next_request(tmp_path, server_url, page):
+    checks = [{"id": "sc1", "code": "irreversible_action", "message": "This may place an order"}]
+    item = computer_call([{"type": "wait", "ms": 10}], "c1")
+    item["pending_safety_checks"] = checks
+    script = [turn(item), turn(function_call("audit_view", {"reason": "p"}, "c2"), function_call("finish", {"summary": "done"}, "c3"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    second = auditor_calls(client)[1]["input"][0]
+    assert second["type"] == "computer_call_output" and second["acknowledged_safety_checks"] == checks
+    nav = next(e for e in loaded.events if e.type == "nav.actions")
+    assert nav.data["safety_checks"] == 1 and nav.data["safety_codes"] == ["irreversible_action"]

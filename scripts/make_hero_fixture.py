@@ -35,7 +35,9 @@ async def main() -> None:
         bundle = RunBundle(LocalBlobStore(Path(tmp)))
         index = RunIndex(Path(tmp) / "index.db")
         await index.init()
-        client = FakeMetaClient(META, trace=TraceRouter())
+        manifest = json.loads((META / "manifest.json").read_text())
+        defaults = {stage: json.loads((META / name).read_text()) for stage, name in manifest.items()}
+        client = FakeMetaClient(META, trace=TraceRouter(), stage_defaults=defaults)  # exact hashes first, recorded stage answers otherwise
         async with async_playwright() as p:
             browser = await p.chromium.launch()
             page = await browser.new_page(viewport={"width": 1280, "height": 720})
@@ -47,7 +49,7 @@ async def main() -> None:
             await browser.close()
         await index.close()
         loaded = await bundle.load(run.id)
-    assert run.status == "done", run.error
+    assert run.status in ("done", "awaiting_review"), run.error
     data = {
         "run": loaded.run.model_dump(mode="json"), "steps": [s.model_dump(mode="json") for s in loaded.steps],
         "findings": [f.model_dump(mode="json") for f in loaded.findings], "rejected": [r.model_dump(mode="json") for r in loaded.rejected],

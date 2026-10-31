@@ -62,3 +62,21 @@ async def test_workbench_is_keyboard_reachable_with_visible_focus(page, server_u
     texts = " | ".join(r["text"] for r in ring)
     for control in ("Replay", "Live", "Run the audit", "Pay R1,249"):
         assert control in texts, f"{control!r} is not reachable by keyboard: {texts}"
+
+
+async def test_replay_approve_records_the_decision(page, server_url):
+    """The judge's path: replay, open the hero card, approve the fix with the suggested reason, see it recorded."""
+    await page.goto(server_url + "/")
+    await page.get_by_role("button", name="Replay").click()
+    await page.get_by_role("button", name="Run the audit").click()
+    card = page.get_by_role("button", name="Pay R1,249").first
+    await card.wait_for(timeout=30000)
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=30000)
+    await card.click()
+    approve = page.get_by_role("button", name="Approve fix")
+    await approve.wait_for()
+    assert await page.get_by_label("Reason").input_value()
+    await approve.click()
+    await page.get_by_text("Approved ·").wait_for(timeout=10000)
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('1 approved')", timeout=10000)
+    assert "awaiting review" not in (await page.locator("header").inner_text()).lower()

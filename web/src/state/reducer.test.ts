@@ -39,12 +39,12 @@ describe("reduce", () => {
   it("run.finished sets the status, phase and counters; judge.result attaches the judgement", () => {
     const state = play(events);
     expect(state.phase).toBe("finished");
-    expect(state.run?.status).toBe("done");
+    expect(state.run?.status).toBe("awaiting_review")  // the hero run proposes a fix, so a human must decide;
     expect(state.run?.findings_verified).toBe(hero.run.findings_verified);
     expect(state.run?.axe_violations).toBe(0);
     const hero5 = state.findings.find((f) => f.element.dom_id === "f5")!;
     expect(hero5.judgement?.wcag.map((w) => w.sc)).toContain("2.5.3");
-    expect(hero5.status).toBe("judged");
+    expect(hero5.status).toBe("reaudited")  // judged, then fixed and re-audited in the hero run;
     expect(state.steps[0].screenshot).toBe("steps/0/screenshot.png");
   });
 
@@ -81,5 +81,27 @@ describe("agent outcome", () => {
     expect(done.agent?.turns).toBe(9);
     expect(done.agent?.finish_forced).toBe(true);
     expect(done.timeline[done.timeline.length - 1].label).toMatch(/forced/i);
+  });
+});
+
+describe("the human gate", () => {
+  const base = play(events.filter((e) => ["run.started", "step.captured", "verifier.result"].includes(e.type)));
+  const fid = base.findings[0].id;
+  const at = "2026-10-31T00:00:00Z";
+
+  it("fixer.rejected and reaudit.failed leave notes on the finding instead of a fix", () => {
+    let s = reduce(base, { type: "fixer.rejected", run_id: base.run!.id, at, finding_id: fid, reason: "snippet changes the element's tag" });
+    expect(s.findings[0].fix_note).toMatch(/changes the element/);
+    expect(s.findings[0].fix).toBeFalsy();
+    s = reduce(s, { type: "reaudit.failed", run_id: base.run!.id, at, finding_id: fid, reason: "page closed" });
+    expect(s.findings[0].reaudit_note).toMatch(/page closed/);
+  });
+
+  it("decision.recorded flips the finding and carries the run's status", () => {
+    const s = reduce(base, { type: "decision.recorded", run_id: base.run!.id, at, finding_id: fid, status: "approved", run_status: "done",
+      decision: { decision: "approve", reason: "ok", decided_at: at }, approved: 1, pending: 0 });
+    expect(s.findings[0].status).toBe("approved");
+    expect(s.findings[0].decision?.reason).toBe("ok");
+    expect(s.run?.status).toBe("done");
   });
 });

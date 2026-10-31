@@ -60,6 +60,7 @@ class RunContext:
     findings: list[Finding] = field(default_factory=list)
     rejected: list[Rejected] = field(default_factory=list)
     page: Any = None  # the live Playwright page, set by the runner (tools need it)
+    captures: dict[int, Capture] = field(default_factory=dict)  # per step, for the fixer and the re-audit after the walk
     agent: Any = None  # AgentState while the auditor agent runs
 
     async def emit(self, type: str, data: dict[str, Any] | None = None) -> Event:
@@ -112,6 +113,7 @@ def brief(finding: Finding) -> FindingBrief:
 async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) -> AuditSummary:
     settings, run = ctx.settings, ctx.run
     cap = await capture(page, step_index)
+    ctx.captures[step_index] = cap
     step = Step(run_id=run.id, index=step_index, url=cap.url, viewport=cap.viewport)
     await ctx.bundle.write_step(step, cap)
     run.axe_violations += len(cap.axe_violations)

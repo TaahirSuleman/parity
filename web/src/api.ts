@@ -1,4 +1,4 @@
-import type { ParityEvent, RunMode } from "./state/types";
+import type { Finding, ParityEvent, Run, RunMode } from "./state/types";
 
 export interface Health { ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; replay_runs: string[]; replay_flows: Record<string, string>; version: string }
 export interface FlowInfo { id: string; name: string; start_url: string; goal: string; pages: string[]; single_page: boolean }
@@ -27,12 +27,12 @@ export const startRun = (flowId: string, mode: RunMode) =>
     json<{ run_id: string; mode: RunMode; replay_of?: string }>(r),
   );
 export const decide = (runId: string, findingId: string, decision: "approve" | "reject", reason: string) =>
-  fetch(`/api/runs/${runId}/findings/${findingId}/decision`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, reason }) }).then((r) => json<unknown>(r));
+  fetch(`/api/runs/${runId}/findings/${findingId}/decision`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, reason }) }).then((r) => json<{ finding: Finding; run: Run }>(r));
 export const screenshotUrl = (runId: string, index: number) => `/api/runs/${runId}/steps/${index}/screenshot.png`;
 
 export const EVENT_TYPES = [
   "run.started", "nav.actions", "nav.blocked", "agent.tool_call", "agent.refused", "step.captured", "seer.done", "comparator.candidates",
-  "verifier.result", "judge.result", "fixer.proposed", "reaudit.result", "model.call", "decision.recorded", "voice.transcribed", "run.finished", "run.failed",
+  "verifier.result", "judge.result", "fixer.proposed", "fixer.rejected", "reaudit.result", "reaudit.failed", "model.call", "decision.recorded", "voice.transcribed", "run.finished", "run.failed",
 ];
 
 /** Subscribe to a run's SSE stream. Returns a function that closes it. */

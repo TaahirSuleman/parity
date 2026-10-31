@@ -17,6 +17,7 @@ from parity.flows import Flow
 from parity.meta.client import MetaError, TraceRouter
 from parity.pipeline import browser
 from parity.pipeline.audit import Ablation, RunContext, audit_view
+from parity.pipeline.gate import fix_findings
 from parity.store.bundle import RunBundle
 from parity.store.models import Run, RunMode, RunStatus, now
 
@@ -61,12 +62,18 @@ async def run_flow(
         else:
             agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
             verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
-        run.status = RunStatus.done
-        await _close(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see "done"
+        final_url = page.url  # where the walk ended, before re-audits reuse the page
+
+        async def same_page() -> Page:
+            return page
+
+        fixes = await fix_findings(ctx, same_page)
+        run.status = RunStatus.awaiting_review if fixes else RunStatus.done  # a human decides every proposed fix
+        await _close(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
         await ctx.emit("run.finished", {
             "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
             "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
-            "agent": result_dict(agent) if agent else None, "final_url": page.url, "duration_ms": run.duration_ms,
+            "fixes_proposed": fixes, "agent": result_dict(agent) if agent else None, "final_url": final_url, "duration_ms": run.duration_ms,
         })
     except MetaError as exc:
         run.status = RunStatus.failed

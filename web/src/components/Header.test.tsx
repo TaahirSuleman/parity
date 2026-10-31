@@ -17,3 +17,13 @@ describe("Header flow picker", () => {
     expect(onFlowChange).toHaveBeenCalledWith("checkout");
   });
 });
+
+describe("Header review state", () => {
+  it("shows awaiting review with the approved and pending counts", () => {
+    const run = { id: "r1", mode: "replay" as const, flow_id: "checkout", goal: "", target_url: "", status: "awaiting_review" as const, started_at: "2026-10-31T00:00:00Z",
+      axe_violations: 0, findings_verified: 3, findings_rejected: 1, tokens: 0, cost_usd: 0, duration_ms: 0 };
+    render(<Header flows={[{ id: "checkout", name: "Checkout", single_page: true }]} flowId="checkout" onFlowChange={() => {}} run={run} mode="replay" canLive={false} running={false} onModeChange={() => {}} onRun={() => {}} approved={1} pending={2} />);
+    expect(screen.getByText(/awaiting review/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 approved · 2 to review/)).toBeInTheDocument();
+  });
+});

@@ -85,9 +85,15 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
       return { ...patchFinding(state, String(ev.finding_id), { fix: ev.fix as Finding["fix"], status: "fix_proposed" }), stage: "fixer" };
     case "reaudit.result":
       return { ...patchFinding(state, String(ev.finding_id), { reaudit: ev.reaudit as Finding["reaudit"], status: "reaudited" }), stage: "reaudit" };
+    case "fixer.rejected":
+      return { ...patchFinding(state, String(ev.finding_id), { fix_note: String(ev.reason ?? "") }), stage: "fixer" };
+    case "reaudit.failed":
+      return { ...patchFinding(state, String(ev.finding_id), { reaudit_note: String(ev.reason ?? "") }), stage: "reaudit" };
     case "decision.recorded": {
       const decision = ev.decision as Finding["decision"];
-      return patchFinding(state, String(ev.finding_id), { decision, status: decision?.decision === "approve" ? "approved" : "rejected" });
+      const next = patchFinding(state, String(ev.finding_id), { decision, status: decision?.decision === "approve" ? "approved" : "rejected" });
+      const runStatus = ev.run_status as Run["status"] | undefined;
+      return runStatus && next.run ? { ...next, run: { ...next.run, status: runStatus } } : next;
     }
     case "model.call": {
       const call: CallEvent = {

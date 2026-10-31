@@ -21,6 +21,7 @@ export interface Finding {
   sighted_text: string; sr_role: string; sr_name: string; why_it_matters: string;
   voice?: VoiceEvidence | null; bbox: BBox; element: Element; verifier: VerifierResult;
   judgement?: Judgement | null; fix?: Fix | null; reaudit?: Reaudit | null; decision?: Decision | null;
+  fix_note?: string | null; reaudit_note?: string | null; // why there is no fix / no re-audit (fixer.rejected, reaudit.failed)
 }
 export interface Candidate { step_index: number; sighted_text: string; sr_quote: string; why_it_matters: string; bbox: BBox | null; attempt: number }
 export interface Rejected { id: string; run_id: string; step_index: number; candidate: Candidate; verifier: VerifierResult }

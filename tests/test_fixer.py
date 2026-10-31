@@ -76,6 +76,14 @@ async def test_fix_rejected_when_tag_changes(hero, tmp_path):
         await propose_fix(fake, finding, cap, run_id="r1", model=MODEL)
 
 
+async def test_fix_rejected_when_id_changes(hero, tmp_path):
+    """A snippet for a different element (another id) must never be spliced in: the fix targets one element."""
+    cap, finding = hero
+    fake = FakeMetaClient(tmp_path, default=response_with({"after_html": '<button id="f6" class="btn">Pay R1,249</button>', "explanation": ""}))
+    with pytest.raises(FixRejected):
+        await propose_fix(fake, finding, cap, run_id="r1", model=MODEL)
+
+
 async def test_fix_rejected_when_snippet_adds_script_or_is_unparseable(hero, tmp_path):
     cap, finding = hero
     for answer in ('<button id="f5" onclick="x()">Pay</button>', '<button id="f5">Pay<script>1</script></button>'):

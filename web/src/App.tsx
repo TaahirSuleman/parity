@@ -56,7 +56,11 @@ export default function App() {
 
   const onDecision = useCallback((id: string, decision: "approve" | "reject", reason: string) => {
     if (!state.run) return;
-    decide(state.run.id, id, decision, reason).catch((e) => dispatch({ kind: "error", message: e instanceof ApiError ? e.detail : String(e) }));
+    const runId = state.run.id;
+    decide(runId, id, decision, reason)
+      .then((res) => dispatch({ kind: "event", ev: { type: "decision.recorded", run_id: runId, at: new Date().toISOString(), finding_id: id,
+        decision: res.finding.decision, status: res.finding.status, run_status: res.run.status } }))  // the stream has closed by now
+      .catch((e) => dispatch({ kind: "error", message: e instanceof ApiError ? e.detail : String(e) }));
   }, [state.run]);
 
   const lastStep = state.steps[state.steps.length - 1];

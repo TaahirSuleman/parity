@@ -10,6 +10,7 @@ from datetime import UTC, datetime
 
 from playwright.async_api import Page
 
+from parity.agent.loop import AgentMode, AgentResult, result_dict, run_agent
 from parity.api.events import EventBus
 from parity.config import Settings
 from parity.flows import Flow
@@ -27,11 +28,12 @@ def new_run_id() -> str:
     return f"{datetime.now(UTC):%Y%m%d-%H%M%S}-{secrets.token_hex(2)}"
 
 
-async def run_single_page(
+async def run_flow(
     settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, *, base_url: str,
     mode: RunMode = RunMode.live, run_id: str | None = None, client_ip_hash: str = "", ablation: Ablation | None = None,
-    page_factory: PageFactory = browser.new_page,
+    page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools",
 ) -> Run:
+    """Own one run end to end: single page → audit_view directly; multi-page → the auditor agent."""
     run = Run(
         id=run_id or new_run_id(), mode=mode, flow_id=flow.id, goal=flow.goal, target_url=base_url.rstrip("/") + flow.start_url,
         status=RunStatus.running, client_ip_hash=client_ip_hash,
@@ -43,18 +45,27 @@ async def run_single_page(
     if isinstance(router, TraceRouter):
         router.bind(run.id, ctx.record_call)
     await ctx.emit("run.started", {"flow_id": flow.id, "flow_name": flow.name, "goal": flow.goal, "mode": mode, "target_url": run.target_url,
-                                   "model": settings.model_for("comparator"), "judge_model": settings.model_for("judge")})
+                                   "single_page": flow.single_page, "agent_mode": None if flow.single_page else agent_mode,
+                                   "model": settings.model_for("comparator"), "judge_model": settings.model_for("judge"),
+                                   "navigator_model": None if flow.single_page else settings.model_for("navigator")})
     t0 = time.perf_counter()
     page: Page | None = None
+    agent: AgentResult | None = None
     try:
         page = await page_factory()
+        ctx.page = page
         await page.goto(run.target_url, wait_until="load")
-        summary = await audit_view(ctx, page, 0, reason="single-page flow")
+        if flow.single_page:
+            summary = await audit_view(ctx, page, 0, reason="single-page flow")
+            verified = [b.__dict__ for b in summary.verified]
+        else:
+            agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
+            verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
         run.status = RunStatus.done
         await ctx.emit("run.finished", {
             "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
-            "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd,
-            "verified": [b.__dict__ for b in summary.verified],
+            "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
+            "agent": result_dict(agent) if agent else None, "final_url": page.url,
         })
     except MetaError as exc:
         run.status = RunStatus.failed
@@ -79,3 +90,8 @@ async def run_single_page(
         await ctx.save_run()
         await bundle.flush(run.id)
     return run
+
+
+async def run_single_page(settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, **kwargs) -> Run:
+    """Phase 1 entry point, kept for callers and tests: a run_flow on a single-page flow."""
+    return await run_flow(settings, client, bus, bundle, index, flow, **kwargs)

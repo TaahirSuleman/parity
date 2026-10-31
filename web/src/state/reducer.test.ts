@@ -57,3 +57,19 @@ describe("reduce", () => {
     expect(select(done, done.findings[2].id).selectedFindingId).toBe(done.findings[2].id);
   });
 });
+
+describe("agent timeline", () => {
+  it("records nav.actions, agent.tool_call and agent.refused as timeline rows and switches the stage", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const at = "2026-10-31T00:00:00Z";
+    const s1 = reduce(started, { type: "agent.tool_call", run_id: started.run!.id, at, turn: 1, tool: "audit_view", args: { reason: "product page" }, result: { verified: [], rejected: 0 } });
+    const s2 = reduce(s1, { type: "nav.actions", run_id: started.run!.id, at, turn: 2, actions: ["click"], n: 1 });
+    const s3 = reduce(s2, { type: "agent.refused", run_id: started.run!.id, at, turn: 3, tool: "finish", args: {}, feedback: "call audit_view first" });
+    expect(s3.timeline.map((r) => r.kind)).toEqual(["tool_call", "actions", "refused"]);
+    expect(s3.timeline[0].label).toContain("audit_view");
+    expect(s3.timeline[1].label).toContain("click");
+    expect(s3.timeline[2].label).toContain("audit_view first");
+    expect(s2.stage).toBe("navigator");
+    expect(s3.timeline[2].turn).toBe(3);
+  });
+});

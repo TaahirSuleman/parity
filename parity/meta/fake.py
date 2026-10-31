@@ -12,8 +12,10 @@ from parity.store.models import ModelCall
 
 class FakeMetaClient:
     def __init__(self, fixture_dir: Path, trace: TraceSink | None = None, default: dict[str, Any] | None = None,
-                 errors: dict[str, Exception] | None = None, stage_defaults: dict[str, dict[str, Any]] | None = None):
+                 errors: dict[str, Exception] | None = None, stage_defaults: dict[str, dict[str, Any]] | None = None,
+                 script: dict[str, list[dict[str, Any]]] | None = None):
         self.fixture_dir = Path(fixture_dir)
+        self.script = {k: list(v) for k, v in (script or {}).items()}  # stage -> responses served in order
         self.default = default
         self.stage_defaults = stage_defaults or {}  # stage -> response used when no exact fixture matches
         self.errors = errors or {}  # model id or stage -> exception to raise, for failure-path tests
@@ -30,7 +32,11 @@ class FakeMetaClient:
                 raise self.errors[probe]
         key = cache_key(body)
         path = self.fixture_dir / f"{key}.json"
-        if not path.exists() and stage in self.stage_defaults:
+        if stage in self.script:
+            if not self.script[stage]:
+                raise KeyError(f"script for stage {stage} exhausted after {len(self.calls)} calls")
+            raw = dict(self.script[stage].pop(0))
+        elif not path.exists() and stage in self.stage_defaults:
             raw = dict(self.stage_defaults[stage])
         elif not path.exists() and self.default is not None:
             raw = dict(self.default)

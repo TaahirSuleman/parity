@@ -59,6 +59,8 @@ class RunContext:
     ablation: Ablation = field(default_factory=Ablation)
     findings: list[Finding] = field(default_factory=list)
     rejected: list[Rejected] = field(default_factory=list)
+    page: Any = None  # the live Playwright page, set by the runner (tools need it)
+    agent: Any = None  # AgentState while the auditor agent runs
 
     async def emit(self, type: str, data: dict[str, Any] | None = None) -> Event:
         event = Event(type=type, run_id=self.run.id, data=data or {})

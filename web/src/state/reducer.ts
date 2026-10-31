@@ -1,7 +1,7 @@
 import type { CallEvent, Finding, ParityEvent, Rejected, Run, RunMode, RunState, Step } from "./types";
 
 export const initialState: RunState = {
-  run: null, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null,
+  run: null, timeline: [], models: { navigator: null, comparator: "muse-spark-1.3-contributor", judge: "muse-spark-1.3" }, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null,
 };
 
 export function resetFor(mode: RunMode): RunState {
@@ -27,10 +27,25 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
         status: "running", started_at: ev.at, finished_at: null, axe_violations: 0, findings_verified: 0, findings_rejected: 0,
         tokens: 0, cost_usd: 0, duration_ms: 0, error: null, replay_of: (ev.replay_of as string | undefined) ?? null,
       };
-      return { ...resetFor(mode), run: started, phase: "running" };
+      const models = {
+        navigator: (ev.navigator_model as string | null | undefined) ?? null,
+        comparator: String(ev.model ?? initialState.models.comparator), judge: String(ev.judge_model ?? initialState.models.judge),
+      };
+      return { ...resetFor(mode), run: started, phase: "running", models };
     }
-    case "nav.actions":
-      return { ...state, stage: "navigator" };
+    case "nav.actions": {
+      const actions = (ev.actions as string[] | undefined) ?? [];
+      return { ...state, stage: "navigator", timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "actions", label: `computer: ${actions.join(", ") || "no actions"}`, at: ev.at }] };
+    }
+    case "nav.blocked":
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "blocked", label: `blocked: ${String(ev.reason ?? "")}`, at: ev.at }] };
+    case "agent.tool_call": {
+      const args = (ev.args as Record<string, unknown> | undefined) ?? {};
+      const reason = typeof args.reason === "string" ? args.reason : typeof args.summary === "string" ? args.summary : "";
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "tool_call", label: `${String(ev.tool)}${reason ? `: ${reason}` : ""}`, at: ev.at }] };
+    }
+    case "agent.refused":
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "refused", label: `${String(ev.tool)} refused: ${String(ev.feedback ?? "")}`, at: ev.at }] };
     case "step.captured": {
       if (!run) return state;
       const index = Number(ev.index ?? 0);

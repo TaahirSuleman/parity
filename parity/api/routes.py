@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from parity import replay
 from parity.api.sse import sse_response
 from parity.flows import FLOWS
-from parity.pipeline.runner import run_single_page
+from parity.pipeline.runner import run_flow
 from parity.store.models import RunMode
 
 log = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ async def start_run(req: RunRequest, request: Request) -> dict:
 async def _live(st, flow, run_id: str, ip_hash: str) -> None:
     async with st.live_lock:
         try:
-            await run_single_page(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=st.self_base_url, run_id=run_id, client_ip_hash=ip_hash)
+            await run_flow(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=st.self_base_url, run_id=run_id, client_ip_hash=ip_hash)
         except Exception:  # run_single_page records failures itself; this guards the task
             log.exception("live run %s crashed outside the runner", run_id)
 

@@ -158,3 +158,36 @@ async def test_comparator_retry_does_not_count_repeats_as_rejected(tmp_path, ser
         await index.close()
     assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
     assert run.findings_verified == 1 and run.findings_rejected == 1  # the ghost once, never the hero twice
+
+
+async def test_judge_calls_run_concurrently(tmp_path, server_url, page):
+    """Judging is per finding and independent: six findings must not take six judge latencies."""
+    import asyncio as aio
+    import time as _time
+
+    from parity.meta.fake import FakeMetaClient
+
+    class SlowJudge(FakeMetaClient):
+        async def responses(self, body, *, stage, run_id, step_index=None):
+            if stage == "judge":
+                await aio.sleep(0.4)
+            return await super().responses(body, stage=stage, run_id=run_id, step_index=step_index)
+
+    async def factory():
+        return page
+
+    client = SlowJudge(META, stage_defaults=stage_defaults())
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data")})
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        t0 = _time.perf_counter()
+        run = await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url,
+                                    page_factory=factory, ablation=__import__("parity.pipeline.audit", fromlist=["Ablation"]).Ablation(run_fixes=False))
+        elapsed = _time.perf_counter() - t0
+        judged = len([f for f in (await bundle.load(run.id)).findings if f.judgement])
+    finally:
+        await index.close()
+    assert judged >= 4, judged
+    assert elapsed < 0.4 * judged * 0.75, f"{judged} judge calls took {elapsed:.1f}s: sequential"

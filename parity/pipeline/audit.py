@@ -6,6 +6,7 @@ persisted only here. The P1 runner calls it directly; in P2 it becomes the agent
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from typing import Any
@@ -24,6 +25,7 @@ from parity.store.models import Capture, Event, Finding, FindingStatus, Judgemen
 
 log = logging.getLogger(__name__)
 MAX_COMPARATOR_ATTEMPTS = 2
+JUDGE_CONCURRENCY = 4
 
 
 @dataclass(frozen=True)
@@ -176,9 +178,12 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
             break
         feedback = list(dict.fromkeys(failures))
 
-    for finding in new_findings:
+    gate = asyncio.Semaphore(JUDGE_CONCURRENCY)
+
+    async def judge_one(finding: Finding) -> None:
         try:
-            judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))
+            async with gate:
+                judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))
         except Exception as exc:  # the judge is advisory: a failure sends the finding to the human, it never hides it
             log.exception("judge failed for %s", finding.id)
             judgement = Judgement(is_barrier=None, severity=Severity.needs_review, model_meta={"error": f"{type(exc).__name__}: {exc}"})
@@ -186,6 +191,8 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
         finding.status = FindingStatus.judged
         await ctx.save_finding(finding)
         await ctx.emit("judge.result", {"finding_id": finding.id, "judgement": judgement.model_dump(mode="json")})
+
+    await asyncio.gather(*(judge_one(f) for f in new_findings))  # findings are judged independently: no reason to wait in line
 
     run.findings_verified = len(ctx.findings)
     run.findings_rejected = len(ctx.rejected)

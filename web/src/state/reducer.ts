@@ -1,0 +1,103 @@
+import type { CallEvent, Finding, ParityEvent, Rejected, Run, RunMode, RunState, Step } from "./types";
+
+export const initialState: RunState = {
+  run: null, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null,
+};
+
+export function resetFor(mode: RunMode): RunState {
+  return { ...initialState, mode };
+}
+
+export function select(state: RunState, id: string | null): RunState {
+  return { ...state, selectedFindingId: id };
+}
+
+function patchFinding(state: RunState, id: string, patch: Partial<Finding>): RunState {
+  return { ...state, findings: state.findings.map((f) => (f.id === id ? { ...f, ...patch } : f)) };
+}
+
+/** Pure: one SSE event in, the next RunState out. Unknown event types leave the state unchanged. */
+export function reduce(state: RunState, ev: ParityEvent): RunState {
+  const run = state.run;
+  switch (ev.type) {
+    case "run.started": {
+      const mode = (ev.mode as RunMode) ?? state.mode;
+      const started: Run = {
+        id: ev.run_id, mode, flow_id: String(ev.flow_id ?? ""), goal: String(ev.goal ?? ""), target_url: String(ev.target_url ?? ""),
+        status: "running", started_at: ev.at, finished_at: null, axe_violations: 0, findings_verified: 0, findings_rejected: 0,
+        tokens: 0, cost_usd: 0, duration_ms: 0, error: null, replay_of: (ev.replay_of as string | undefined) ?? null,
+      };
+      return { ...resetFor(mode), run: started, phase: "running" };
+    }
+    case "nav.actions":
+      return { ...state, stage: "navigator" };
+    case "step.captured": {
+      if (!run) return state;
+      const index = Number(ev.index ?? 0);
+      const step: Step = {
+        run_id: ev.run_id, index, url: String(ev.url ?? ""), screenshot: `steps/${index}/screenshot.png`, ax_tree: `steps/${index}/ax.json`,
+        axe: `steps/${index}/axe.json`, viewport: [1280, 720], axe_violations: Number(ev.axe_violations ?? 0), ax_nodes: Number(ev.ax_nodes ?? 0), captured_at: ev.at,
+      };
+      return { ...state, steps: [...state.steps.filter((s) => s.index !== index), step].sort((a, b) => a.index - b.index), percepts: [], run: { ...run, axe_violations: run.axe_violations + step.axe_violations } };
+    }
+    case "seer.done":
+      return { ...state, stage: "seer", percepts: (ev.percepts as RunState["percepts"] | undefined) ?? [] };
+    case "comparator.candidates":
+      return { ...state, stage: "comparator" };
+    case "verifier.result": {
+      if (!run) return state;
+      if (ev.passed === true && ev.finding) {
+        const finding = ev.finding as Finding;
+        const findings = [...state.findings.filter((f) => f.id !== finding.id), finding];
+        return {
+          ...state, findings, stage: "verifier", run: { ...run, findings_verified: findings.length },
+          selectedFindingId: state.selectedFindingId ?? finding.id,
+        };
+      }
+      const rejected: Rejected = {
+        id: String(ev.rejected_id ?? `${ev.run_id}-r${state.rejected.length + 1}`), run_id: ev.run_id, step_index: Number(ev.index ?? 0),
+        candidate: ev.candidate as Rejected["candidate"],
+        verifier: { passed: false, checks: (ev.checks as Rejected["verifier"]["checks"]) ?? {}, feedback: (ev.feedback as string | null) ?? null },
+      };
+      const all = [...state.rejected.filter((r) => r.id !== rejected.id), rejected];
+      return { ...state, rejected: all, stage: "verifier", run: { ...run, findings_rejected: all.length } };
+    }
+    case "judge.result":
+      return { ...patchFinding(state, String(ev.finding_id), { judgement: ev.judgement as Finding["judgement"], status: "judged" }), stage: "judge" };
+    case "fixer.proposed":
+      return { ...patchFinding(state, String(ev.finding_id), { fix: ev.fix as Finding["fix"], status: "fix_proposed" }), stage: "fixer" };
+    case "reaudit.result":
+      return { ...patchFinding(state, String(ev.finding_id), { reaudit: ev.reaudit as Finding["reaudit"], status: "reaudited" }), stage: "reaudit" };
+    case "decision.recorded": {
+      const decision = ev.decision as Finding["decision"];
+      return patchFinding(state, String(ev.finding_id), { decision, status: decision?.decision === "approve" ? "approved" : "rejected" });
+    }
+    case "model.call": {
+      const call: CallEvent = {
+        stage: String(ev.stage ?? ""), model: String(ev.model ?? ""), request_id: String(ev.request_id ?? ""), tokens: Number(ev.tokens ?? 0),
+        latency_ms: Number(ev.latency_ms ?? 0), cost_usd: Number(ev.cost_usd ?? 0), cache_hit: Boolean(ev.cache_hit), attempt: Number(ev.attempt ?? 1),
+        http_status: (ev.http_status as number | null | undefined) ?? null, error: (ev.error as string | null | undefined) ?? null, at: ev.at,
+      };
+      return {
+        ...state, calls: [...state.calls, call], stage: call.stage,
+        run: run ? { ...run, tokens: run.tokens + call.tokens, cost_usd: run.cost_usd + call.cost_usd } : run,
+      };
+    }
+    case "run.finished": {
+      if (!run) return state;
+      const duration = Math.max(0, new Date(ev.at).getTime() - new Date(run.started_at).getTime());
+      return {
+        ...state, phase: "finished", stage: null,
+        run: {
+          ...run, status: (ev.status as Run["status"]) ?? "done", finished_at: ev.at, duration_ms: duration,
+          findings_verified: Number(ev.findings_verified ?? run.findings_verified), findings_rejected: Number(ev.findings_rejected ?? run.findings_rejected),
+          axe_violations: Number(ev.axe_violations ?? run.axe_violations), tokens: Number(ev.tokens ?? run.tokens), cost_usd: Number(ev.cost_usd ?? run.cost_usd),
+        },
+      };
+    }
+    case "run.failed":
+      return { ...state, phase: "failed", stage: null, error: String(ev.error ?? "run failed"), run: run ? { ...run, status: "failed", finished_at: ev.at, error: String(ev.error ?? "") } : run };
+    default:
+      return state;
+  }
+}

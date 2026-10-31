@@ -1,3 +1,4 @@
+import asyncio
 import socket
 import threading
 import time
@@ -6,6 +7,8 @@ import pytest
 import pytest_asyncio
 import uvicorn
 from playwright.async_api import async_playwright
+
+from tests.helpers import make_replay_bundle
 
 
 def _free_port() -> int:
@@ -21,6 +24,7 @@ def server_url(tmp_path_factory):
     from parity.config import load_settings
 
     root = tmp_path_factory.mktemp("parity-data")
+    asyncio.run(make_replay_bundle(root / "replay"))  # a recorded run, so Replay works in tests
     settings = load_settings(
         env={
             "PARITY_DATA_DIR": str(root / "data"),

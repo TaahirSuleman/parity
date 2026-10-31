@@ -14,7 +14,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "26"
-      - run: mkdir -p parity/vendor && npm i --no-save --prefix /tmp/axe axe-core@4.14.0 && cp /tmp/axe/node_modules/axe-core/axe.min.js parity/vendor/axe.min.js
+      - run: cd web && npm ci && npm run build
+      - run: mkdir -p parity/vendor && cp web/node_modules/axe-core/axe.min.js parity/vendor/axe.min.js
       - run: .venv/bin/python -m pytest -q
   web:
     runs-on: ubuntu-latest

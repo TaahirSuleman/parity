@@ -6,7 +6,8 @@ import pytest
 from parity.store.blob import LocalBlobStore
 from parity.store.bundle import RunBundle, keys
 from parity.store.models import (
-    BBox, Candidate, Capture, Check, Element, Event, Finding, ModelCall, Rejected, Run, RunMode, RunStatus, Step, VerifierResult,
+    BBox, Candidate, Capture, Check, Element, Event, Finding, FindingStatus, Judgement, ModelCall, Rejected, Run, RunMode, RunStatus, Severity, Step,
+    VerifierResult, WcagRef,
 )
 
 FIXTURE = Path(__file__).parent / "fixtures" / "capture_checkout.json"
@@ -17,10 +18,13 @@ def sample_run(run_id="run1", status=RunStatus.running) -> Run:
 
 
 def sample_finding(run_id="run1", fid="f-1") -> Finding:
-    el = Element(backend_id=1, css_path="button#f5", dom_id="f5")
-    vr = VerifierResult(passed=True, checks={"located": Check(passed=True)}, element=el)
-    return Finding(id=fid, run_id=run_id, step_index=0, sighted_text="Pay R1,249", sr_role="button", sr_name="Submit",
-                   bbox=BBox(x_min=1, y_min=1, x_max=2, y_max=2), element=el, verifier=vr)
+    el = Element(backend_id=1, css_path="button#f5", dom_id="f5", outer_html='<button id="f5" aria-label="Submit">')
+    checks = {k: Check(passed=True, detail="ok") for k in ("located", "sr_quote_exact", "diverges", "not_axe", "unique")}
+    vr = VerifierResult(passed=True, checks=checks, element=el)
+    judgement = Judgement(is_barrier=True, severity=Severity.serious, wcag=[WcagRef(sc="2.5.3", name="Label in Name")],
+                          impact="A blind shopper cannot tell what the button will charge.", model_meta={"model": "muse-spark-1.3", "fallback": False})
+    return Finding(id=fid, run_id=run_id, step_index=0, status=FindingStatus.judged, sighted_text="Pay R1,249", sr_role="button", sr_name="Submit",
+                   why_it_matters="The price is only in pixels.", bbox=BBox(x_min=526, y_min=500, x_max=646, y_max=567), element=el, verifier=vr, judgement=judgement)
 
 
 @pytest.fixture

@@ -34,7 +34,7 @@ export const decide = (runId: string, findingId: string, decision: "approve" | "
 export const screenshotUrl = (runId: string, index: number) => `/api/runs/${runId}/steps/${index}/screenshot.png`;
 
 export const EVENT_TYPES = [
-  "run.started", "nav.actions", "nav.blocked", "nav.safety_check", "agent.tool_call", "agent.refused", "agent.tool_error", "step.captured", "seer.done", "comparator.candidates",
+  "run.started", "nav.actions", "nav.blocked", "nav.safety_check", "agent.tool_call", "agent.refused", "agent.tool_error", "step.captured", "seer.done", "comparator.candidates", "comparator.unparseable",
   "verifier.result", "judge.result", "fixer.proposed", "fixer.rejected", "reaudit.result", "reaudit.failed", "model.call", "decision.recorded", "voice.transcribed", "run.finished", "run.failed",
 ];
 

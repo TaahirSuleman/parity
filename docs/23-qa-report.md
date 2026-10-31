@@ -81,28 +81,9 @@ Three fresh-context reviewers (backend, workbench + API, rules audit). Severity 
 | Replay default, Live limited | **Partial** | Replay default, no key needed; one Live run at a time; 403/503 never fall back silently. Per-IP and global limits and `X-Forwarded-For` are Task 21 — **must land before a key goes on a host**. |
 | Engineering standards (Art. IX) | **Mostly met** | Contracts (`extra="forbid"`, parsers fail closed), oracles (verifier, `gap_closed`, human gate), observability (trace, events, replay), guardrails (allow-listed executor, gated tools, snippet validator, sandboxed re-audit), per-role effort, reproducibility (one command, `.env.example`, seed store). Gaps: eval gate (P4), no lint/type step in CI, no Python lockfile, prompts do not delimit page text as untrusted data. |
 
-## 5. Decisions only you can make
+## 5. Decisions (taken 31 Oct)
 
-1. **Five early commits carry `Co-Authored-By: Claude` trailers** (`be0dfe2`, `37b4b02`, `11bb9ed`, `40f2674`, `50610d7`). They contradict the solo declaration. Removing them means rewriting history and force-pushing `main`; I will not do that without your say-so.
-2. **Third-party material in the public repo**: `docs/hackathon/01–03` (participant guide, kickoff transcript, Meta docs dump) and `docs/learnings/11, 12a, 13` (workshop transcripts). Remove before the final push, or declare them in `HACKATHON_SCOPE.md`.
-3. **Disclosing AI coding assistance** in `HACKATHON_SCOPE.md` (the constitution asks that original contributions be clearly identified). Your call on wording.
-4. **Per-run cap**: the spec says 10 minutes; a live purchase run now takes ~9.5 minutes. Enforce 10, or raise to 15 with Replay as the judges' default.
-
-## 4. When your voice is needed
-
-Two different things need your voice, at two different times:
-
-1. **The demo video's voice-over (narration).** Needed only once the picture is final: after the hosted deploy
-   (Task 22) and the UI polish (Task 24), i.e. at the **P5 close, Mon 2 Nov evening**, with the script written
-   against the final workbench. The storyboard (doc 18 §9, constitution Art. V) is demo-first and 2:55 max; the
-   feature freeze is **Tue 3 Nov 12:00 ET** and the video is cut Tue afternoon with a reshoot buffer. Plan for a
-   first read Mon night and a final take Tue after the cold review, from a scripted text with timings; the
-   scope line ("built this week on Meta's Muse Spark; Playwright and axe-core are pre-existing open source") is
-   the first sentence. I will hand you the script, the shot list and the run links.
-2. **The screen-reader recordings for Phase 6 (Task 26, the "recording kit").** This is VoiceOver's voice, not
-   yours: 3–4 short recordings of VoiceOver reading the store pages (and one of the workbench), captured on your
-   Mac, which Voice Transcribe then aligns against the accessibility tree. Needed at the **start of P6, Mon 2 Nov
-   night**, before Tasks 27–28; a 20-minute job with a kit I will prepare (what to open, what to press, where to
-   save). The manual VoiceOver pass of the workbench (Task 25) can happen in the same sitting.
-
-Nothing in Phase 4 needs your voice.
+1. **`Co-Authored-By: Claude` trailers on five early commits** (`be0dfe2`, `37b4b02`, `11bb9ed`, `40f2674`, `50610d7`) — **open item, revisit at the P5 close** (Task 25). Could judges tell if we rewrote history? From the repository itself, no: a rebase that strips the trailers produces a normal linear history with new SHAs and the same author dates; nothing in `git log` marks a rewrite. Where a trace could remain: GitHub's repository **Activity** view and events API record force-pushes (with the old SHAs) for a while; anyone who cloned or forked earlier keeps the old SHAs; tags `p1`–`p3` would have to be moved. If it is done, do it once, early on the final day, re-tag, and note nothing — the content is identical either way. Leaving them is also defensible: AI assistance is not prohibited, and the scope file states who built what.
+2. **Third-party documents in the public repo** — **must be removed before submission.** Recorded as a hard rule in `CLAUDE.md`, as the first item of Task 25, and in the cold-review checklist (`git ls-files docs/hackathon docs/learnings`).
+3. **Disclosing AI coding assistance in `HACKATHON_SCOPE.md`** — **open question, return to it at the end.** Not required by the rules as read: Art. II.3 asks that the hackathon-built, original contribution be clearly identifiable, which the scope file does; it does not ask for tooling disclosure. A one-line disclosure is harmless and honest; the choice is yours at close.
+4. **Per-run cap** — **10–15 minutes accepted; 15 kept** (`PARITY_RUN_TIMEOUT_S=900`), spec §15 updated.

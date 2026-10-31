@@ -204,7 +204,7 @@ ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.
 
 ## 15. Security and limits
 - The key is read from env only; logs redact `Authorization`. `.env` is git-ignored; the deny list in `.claude/settings.json` blocks reading it.
-- Live runs: allowed origins, 12 navigator turns, 60 s per model call, 10 min per run, one concurrent Live run per server (a queue of 1; others get 429).
+- Live runs: allowed origins, 12 navigator turns, 60 s per model call, 10–15 min per run (`PARITY_RUN_TIMEOUT_S`, default 900 s; a live purchase run measures 8–9.5 min), one concurrent Live run per server (a queue of 1; others get 429).
 - No "compliance" wording anywhere in the UI or docs; findings are evidence and every fix waits for a human.
 
 ## 18. Orchestration and the workshop comparison [D9, D10]

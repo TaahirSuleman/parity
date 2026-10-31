@@ -27,6 +27,7 @@
 - **Secrets:** never print or commit `MODEL_API_KEY`. It is loaded from `.env`, which is git-ignored.
 - **Logging:** log the model, request ID, tokens, latency and cost for every call. Cache responses on disk; never pay twice in dev.
 - **Third-party sites:** read-only and within their terms. The hero and eval run on our own demo store.
+- **Before submission (Task 25):** delete the third-party documents we do not hold rights to publish: `docs/hackathon/01-*`, `02-*`, `03-*` and `docs/learnings/11*`, `12a*`, `13*` (participant guide, transcripts, docs dumps). Decided 31 Oct; the full pre-submission list is in doc 20 Task 25.
 
 ## Decided architecture defaults (confirm or adjust in brainstorming; don't re-research)
 - **Backend:** Python 3.12, FastAPI, async Playwright (Chromium). Pipeline stages are plain modules: navigator → capture → seer → comparator → verifier → judge → fixer → re-audit → human gate.

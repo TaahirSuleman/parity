@@ -66,6 +66,7 @@ No Gemini 3 winner showed a test suite. Meta's Technical Depth (20%) and Agents 
   - the golden-case button runs to completion (live or labelled replay);
   - no mock data is shown unlabelled.
 - **Repo:**
+  - the third-party documents are gone (`git ls-files docs/hackathon docs/learnings` lists none of `01-*`, `02-*`, `03-*`, `11*`, `12a*`, `13*`);
   - every file the README links to exists;
   - the README states what is deterministic;
   - the architecture diagram is an image;

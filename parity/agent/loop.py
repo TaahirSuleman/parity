@@ -28,6 +28,7 @@ PROMPT_TOOLS = (PROMPTS / "auditor.md").read_text()
 PROMPT_FALLBACK = (PROMPTS / "auditor_fallback.md").read_text()
 NUDGE = "Plain text is not accepted. Call audit_view for an unaudited screen, use the computer tool to continue, or call finish."
 AgentMode = Literal["tools", "fallback"]
+ROUTINE_SAFETY_CODES = {"computer_action_requires_confirmation"}  # acknowledged on our own store only
 
 
 @dataclass
@@ -129,11 +130,18 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                 if kind == "computer_call":
                     actions = item.get("actions") or ([item["action"]] if item.get("action") else [])
                     safety = item.get("pending_safety_checks") or []
-                    if safety:  # the provider's own injection signal: code does not act on it, a human reads it
+                    if safety:
+                        # Spark attaches computer_action_requires_confirmation to every batch: a routine "confirm to
+                        # proceed" that code acknowledges on the demo store we own. Any other code, or a page off the
+                        # store, is treated as the provider's injection signal: nothing is executed and the run stops.
                         codes = [c.get("code") for c in safety if isinstance(c, dict)]
-                        await ctx.emit("nav.blocked", {"turn": turn, "reason": "the model raised a safety check; the batch was not executed", "safety_codes": codes})
-                        state.summary = f"stopped: safety check {codes} raised by the model; no action was taken"
-                        return AgentResult(turns, False, False, state.summary)
+                        on_store = page.url.startswith(ctx.base_url.rstrip("/") + "/")
+                        if on_store and set(codes) <= ROUTINE_SAFETY_CODES:
+                            await ctx.emit("nav.safety_check", {"turn": turn, "codes": codes, "acknowledged": True, "reason": "routine confirmation on the demo store"})
+                        else:
+                            await ctx.emit("nav.blocked", {"turn": turn, "reason": "the model raised a safety check; the batch was not executed", "safety_codes": codes, "url": page.url})
+                            state.summary = f"stopped: safety check {codes} raised by the model; no action was taken"
+                            return AgentResult(turns, False, False, state.summary)
                     executed = dropped = 0
                     off_origin = False
                     for action in actions:

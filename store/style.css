@@ -38,3 +38,5 @@ s { color: var(--muted); font-weight: 400; margin-right: 8px; }
 input.qty { width: 54px; display: inline-block; padding: 6px; }
 input.short { width: 90px; display: inline-block; }
 textarea { width: 100%; border: 1px solid #b7bbc6; border-radius: 6px; padding: 8px; font-size: 14px; font-family: inherit; }
+.stars { display: inline-block; letter-spacing: 2px; color: #f5a623; font-size: 16px; line-height: 1; }
+.stars.four::before { content: "\\2605\\2605\\2605\\2605\\2606"; }

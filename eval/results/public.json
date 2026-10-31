@@ -1,0 +1,20 @@
+[
+ {
+  "name": "Site A",
+  "run_id": "public-a",
+  "pages": 2,
+  "verified": 1,
+  "rejected": 5,
+  "status": "done",
+  "note": ""
+ },
+ {
+  "name": "Site B",
+  "run_id": "public-b",
+  "pages": 7,
+  "verified": 0,
+  "rejected": 9,
+  "status": "failed",
+  "note": "the model API returned 400 on turn 8; the walk's screens and verifier rows are kept"
+ }
+]

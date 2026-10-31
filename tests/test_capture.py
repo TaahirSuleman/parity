@@ -83,3 +83,14 @@ async def test_text_node_dom_id_is_the_containing_elements_id(page, store_url):
     cap = await capture(page, 0)
     was = [n for n in cap.ax_nodes if n.role == "text" and n.name.strip() == "R1,599.00"]
     assert was and was[0].dom_id == "was-price"
+
+
+async def test_css_drawn_content_without_text_is_a_silent_node(page, store_url):
+    """A star rating drawn by ::before (icon fonts, background images) renders pixels but reaches no screen reader:
+    it must be in silent_nodes so the comparator's box can be located and the gap verified."""
+    from parity.pipeline.capture import capture
+
+    await page.goto(store_url + "product.html")
+    cap = await capture(page, 0)
+    assert "rating-css" in {n.dom_id for n in cap.silent_nodes}
+    assert "rating-css" not in {n.dom_id for n in cap.ax_nodes}

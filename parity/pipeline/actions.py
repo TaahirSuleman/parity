@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from urllib.parse import urlsplit
 
 from playwright.async_api import Error as PlaywrightError
@@ -24,9 +25,22 @@ KEY_MAP = {
 SETTLE_MS = 300
 
 
+def _key_name(key: str) -> str:
+    """Page_Down, page down, ARROW_LEFT -> PageDown, ArrowLeft; single characters and mapped modifiers pass through."""
+    raw = str(key)
+    if raw.upper() in KEY_MAP:
+        return KEY_MAP[raw.upper()]
+    parts = [p for p in re.split(r"[\s_]+", raw) if p]
+    if len(parts) > 1 or (len(raw) > 1 and raw.islower() and raw.isalpha() and raw not in ("enter", "tab", "escape", "space", "backspace", "delete", "home", "end")):
+        return "".join(p[:1].upper() + p[1:] for p in parts)
+    if len(raw) > 1 and raw.isalpha() and raw.islower():
+        return raw[:1].upper() + raw[1:]
+    return raw
+
+
 def chord(keys: list[str]) -> str:
     """Spark sends a chord as a list (["ctrl", "a"]); Playwright wants "Control+a"."""
-    return "+".join(KEY_MAP.get(str(k).upper(), str(k)) for k in keys)
+    return "+".join(_key_name(k) for k in keys)
 
 
 def _origin(url: str) -> str:

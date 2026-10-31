@@ -15,6 +15,13 @@
  },
  {
   "page": "product.html",
+  "id": "rating-css",
+  "kind": "pixel-only",
+  "description": "Four-star rating drawn with CSS ::before; no text, no role, nothing announced",
+  "clean": false
+ },
+ {
+  "page": "product.html",
   "id": "gallery-1",
   "kind": "meaningless-alt",
   "description": "Product photo thumbnail has alt 'photo 1'",

@@ -123,7 +123,25 @@ _SILENT_JS = """
     const parent = pathOf(node.parentElement);
     return (parent ? parent + " > " : "") + t + ":nth-of-type(" + i + ")";
   }
-  return Array.from(document.querySelectorAll(%s)).map(el => {
+  // Pixels with no words: CSS-drawn content (icon fonts, ::before glyphs, background images) on elements with no text and no
+  // role reaches no screen reader. Such an element, or a wrapper whose children are all like it, is silent too.
+  const CSS_TAGS = new Set(["span", "i", "b", "em", "strong", "div", "p", "a", "li", "td", "th", "label", "small", "sup", "sub"]);
+  function pixelOnly(el, depth) {
+    if (!el || el.nodeType !== 1 || depth > 3 || !CSS_TAGS.has(el.tagName.toLowerCase())) return false;
+    if ((el.textContent || "").trim() !== "" || el.getAttribute("role") || el.getAttribute("aria-label")) return false;
+    const cs = getComputedStyle(el);
+    if (cs.backgroundImage && cs.backgroundImage !== "none") return true;
+    for (const pseudo of ["::before", "::after"]) {
+      const content = getComputedStyle(el, pseudo).content;
+      if (content && content !== "none" && content !== "normal" && content !== '""' && content !== "''") return true;
+    }
+    const kids = Array.from(el.children);
+    return kids.length > 0 && kids.every(k => pixelOnly(k, depth + 1));
+  }
+  const cssDrawn = Array.from(document.querySelectorAll("span, i, b, em, strong, div, p, a, li, td, th, label, small, sup, sub"))
+    .filter(el => pixelOnly(el, 0) && !(el.parentElement && pixelOnly(el.parentElement, 0)));  // keep the outermost silent wrapper
+  const selected = Array.from(document.querySelectorAll(%s));
+  return Array.from(new Set([...selected, ...cssDrawn])).map(el => {
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2 || r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh) return null;
     const cs = getComputedStyle(el);

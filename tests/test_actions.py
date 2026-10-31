@@ -40,3 +40,13 @@ async def test_execute_click_type_and_chord_on_real_page(page, store_url):
     assert await page.input_value("#card") == "4111 1111 1111 1111"
     assert await execute(page, {"type": "wait"}) is True
     assert await execute(page, {"type": "screenshot"}) is True
+
+
+def test_key_names_with_underscores_or_spaces_are_normalised():
+    """Spark writes Page_Down / Arrow Down; Playwright wants PageDown / ArrowDown."""
+    from parity.pipeline.actions import chord
+
+    assert chord(["Page_Down"]) == "PageDown"
+    assert chord(["page_up"]) == "PageUp"
+    assert chord(["Arrow Down"]) == "ArrowDown"
+    assert chord(["CTRL", "a"]) == "ControlOrMeta+a"

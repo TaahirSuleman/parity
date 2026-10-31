@@ -123,54 +123,55 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
         outputs: list[dict[str, Any]] = []
         text_reply = text_of(resp.raw).strip()
         paused: str | None = None
-        for item in items:
-            kind = item.get("type")
-            if kind == "computer_call":
-                actions = item.get("actions") or ([item["action"]] if item.get("action") else [])
-                safety = item.get("pending_safety_checks") or []
-                executed = dropped = 0
-                off_origin = False
-                for action in actions:
-                    if await execute(page, action):
-                        executed += 1
+        try:  # whatever happens below, the turn is recorded: the conversation is the debugging trail
+            for item in items:
+                kind = item.get("type")
+                if kind == "computer_call":
+                    actions = item.get("actions") or ([item["action"]] if item.get("action") else [])
+                    safety = item.get("pending_safety_checks") or []
+                    executed = dropped = 0
+                    off_origin = False
+                    for action in actions:
+                        if await execute(page, action):
+                            executed += 1
+                        else:
+                            dropped += 1
+                            await ctx.emit("nav.blocked", {"turn": turn, "action": action.get("type"), "detail": {k: v for k, v in action.items() if k != "type"}, "reason": "action refused by the allow-listed executor"})
+                        if not is_allowed_target(page.url, settings, ctx.base_url):
+                            off_origin = True
+                            break  # the rest of the batch (typing, clicks) must not land on an external page
+                    await settle(page)
+                    await ctx.emit("nav.actions", {"turn": turn, "actions": [a.get("type") for a in actions], "n": len(actions), "executed": executed, "dropped": dropped,
+                                                   "safety_checks": len(safety), "safety_codes": [c.get("code") for c in safety if isinstance(c, dict)]})
+                    if off_origin or not is_allowed_target(page.url, settings, ctx.base_url):
+                        await ctx.emit("nav.blocked", {"turn": turn, "url": page.url, "reason": "navigated outside the allowed origins"})
+                        state.summary = f"stopped: the page navigated to {page.url}, outside the allowed origins"
+                        return AgentResult(turns, False, False, state.summary)  # recorded by the finally below
+                    outputs.append({
+                        "type": "computer_call_output", "call_id": item.get("call_id"),
+                        "acknowledged_safety_checks": item.get("pending_safety_checks", []),
+                        "output": {"type": "computer_screenshot", "image_url": png_to_data_url(await page.screenshot())},
+                    })
+                    if mode == "fallback":
+                        await _audit_if_new(ctx, state, page, f"screen changed after turn {turn}")
+                elif kind == "function_call":
+                    result = await dispatch(ctx, item)
+                    args = item.get("arguments")
+                    try:
+                        args = json.loads(args) if isinstance(args, str) else args
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+                    if "error" in result and result.get("kind") == "tool_error":
+                        await ctx.emit("agent.tool_error", {"turn": turn, "tool": item.get("name"), "args": args, "error": result["error"]})
+                    elif "error" in result:
+                        await ctx.emit("agent.refused", {"turn": turn, "tool": item.get("name"), "args": args, "feedback": result.get("feedback") or result["error"]})
                     else:
-                        dropped += 1
-                        await ctx.emit("nav.blocked", {"turn": turn, "action": action.get("type"), "detail": {k: v for k, v in action.items() if k != "type"}, "reason": "action refused by the allow-listed executor"})
-                    if not is_allowed_target(page.url, settings, ctx.base_url):
-                        off_origin = True
-                        break  # the rest of the batch (typing, clicks) must not land on an external page
-                await settle(page)
-                await ctx.emit("nav.actions", {"turn": turn, "actions": [a.get("type") for a in actions], "n": len(actions), "executed": executed, "dropped": dropped,
-                                               "safety_checks": len(safety), "safety_codes": [c.get("code") for c in safety if isinstance(c, dict)]})
-                if off_origin or not is_allowed_target(page.url, settings, ctx.base_url):
-                    await ctx.emit("nav.blocked", {"turn": turn, "url": page.url, "reason": "navigated outside the allowed origins"})
-                    state.summary = f"stopped: the page navigated to {page.url}, outside the allowed origins"
-                    await conversation.record(turn, resp.request_id, resp.response_id, input_items, items, [t.get("name", t["type"]) for t in tools])
-                    return AgentResult(turns, False, False, state.summary)
-                outputs.append({
-                    "type": "computer_call_output", "call_id": item.get("call_id"),
-                    "acknowledged_safety_checks": item.get("pending_safety_checks", []),
-                    "output": {"type": "computer_screenshot", "image_url": png_to_data_url(await page.screenshot())},
-                })
-                if mode == "fallback":
-                    await _audit_if_new(ctx, state, page, f"screen changed after turn {turn}")
-            elif kind == "function_call":
-                result = await dispatch(ctx, item)
-                args = item.get("arguments")
-                try:
-                    args = json.loads(args) if isinstance(args, str) else args
-                except (json.JSONDecodeError, TypeError):
-                    pass
-                if "error" in result and result.get("kind") == "tool_error":
-                    await ctx.emit("agent.tool_error", {"turn": turn, "tool": item.get("name"), "args": args, "error": result["error"]})
-                elif "error" in result:
-                    await ctx.emit("agent.refused", {"turn": turn, "tool": item.get("name"), "args": args, "feedback": result.get("feedback") or result["error"]})
-                else:
-                    await ctx.emit("agent.tool_call", {"turn": turn, "tool": item.get("name"), "args": args, "result": result})
-                outputs.append({"type": "function_call_output", "call_id": item.get("call_id"), "output": json.dumps(result)})
-                if result.get("status") == "paused":
-                    paused = result["error"]
-        await conversation.record(turn, resp.request_id, resp.response_id, input_items, items, [t.get("name", t["type"]) for t in tools])
+                        await ctx.emit("agent.tool_call", {"turn": turn, "tool": item.get("name"), "args": args, "result": result})
+                    outputs.append({"type": "function_call_output", "call_id": item.get("call_id"), "output": json.dumps(result)})
+                    if result.get("status") == "paused":
+                        paused = result["error"]
+        finally:
+            await conversation.record(turn, resp.request_id, resp.response_id, input_items, items, [t.get("name", t["type"]) for t in tools])
         if paused:
             raise RuntimeError(f"paused: {paused}")
         if state.finished:

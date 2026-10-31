@@ -58,11 +58,21 @@ async def start_run(req: RunRequest, request: Request) -> dict:
     if st.client is None:
         raise HTTPException(503, "Live mode needs MODEL_API_KEY on the server; use Replay")
     if st.live_lock.locked():
-        raise HTTPException(429, "a Live run is already in progress; try again shortly or use Replay", headers={"Retry-After": "60"})
-    await st.live_lock.acquire()  # the slot is taken here, synchronously, so a double click cannot queue two runs
+        # A holder that has already published its terminal event is only mid-teardown: wait for the
+        # slot instead of refusing, so "Run" works the moment a viewer sees the previous run end.
+        finishing = st.last_live_run is not None and st.bus.is_finished(st.last_live_run)
+        if not finishing:
+            raise HTTPException(429, "a Live run is already in progress; try again shortly or use Replay", headers={"Retry-After": "60"})
+        try:
+            await asyncio.wait_for(st.live_lock.acquire(), timeout=2)
+        except TimeoutError:
+            raise HTTPException(429, "a Live run is already in progress; try again shortly or use Replay", headers={"Retry-After": "60"}) from None
+    else:
+        await st.live_lock.acquire()  # the slot is taken here, synchronously, so a double click cannot queue two runs
     ip = request.client.host if request.client else ""
     ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16] if ip else ""
     run_id = replay.new_run_id()
+    st.last_live_run = run_id
     st.bus.open(run_id)  # subscribers that connect before run.started attach live instead of reading an empty log
     asyncio.create_task(_live(st, flow, run_id, ip_hash), name=f"live-{run_id}")
     return {"run_id": run_id, "mode": "live"}

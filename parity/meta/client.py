@@ -2,7 +2,7 @@
 
 Every call is cached on disk by the SHA-256 of its canonical body and traced as a
 ``ModelCall`` (model, request ID, tokens, latency, cost). 5xx and transport errors
-retry three times with backoff; 4xx raise at once. The key is only ever placed in
+retry with backoff on 5xx and 429; other 4xx raise at once. The key is only ever placed in
 the Authorization header and never logged.
 """
 
@@ -29,8 +29,8 @@ from parity.store.models import ModelCall
 
 log = logging.getLogger(__name__)
 
-RETRY_SLEEPS = (1, 3, 9)
-MAX_ATTEMPTS = 3
+RETRY_SLEEPS = (1, 3, 9, 20)
+MAX_ATTEMPTS = 5  # live 5xx bursts last several seconds; a run should outlive them
 CALL_TIMEOUT_S = 300
 
 
@@ -204,7 +204,7 @@ class MetaClient:
 
             log.warning("meta %s attempt %d failed: status=%s request_id=%s", stage, attempt, status, request_id)
             last_error = MetaError(error or "unknown error", status=status, request_id=request_id, attempts=attempt)
-            retryable = status is None or status >= 500
+            retryable = status is None or status >= 500 or status == 429
             if not retryable or attempt == MAX_ATTEMPTS:
                 raise last_error
             await self._sleep(RETRY_SLEEPS[attempt - 1])

@@ -35,10 +35,19 @@ async def new_page() -> Page:
 
 
 async def shutdown() -> None:
-    global _playwright, _browser
+    """Close the shared browser. One owned by another loop (a server thread) is closed over there,
+    best effort, never awaited here: awaiting another loop's browser deadlocks this one."""
+    global _playwright, _browser, _loop, _lock
+    if _loop is not None and _loop is not asyncio.get_running_loop():
+        browser, owner = _browser, _loop
+        _playwright, _browser, _loop, _lock = None, None, None, None
+        if browser is not None and not owner.is_closed():
+            asyncio.run_coroutine_threadsafe(browser.close(), owner)
+        return
     if _browser is not None:
         await _browser.close()
         _browser = None
     if _playwright is not None:
         await _playwright.stop()
         _playwright = None
+    _loop, _lock = None, None

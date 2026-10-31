@@ -1,37 +1,10 @@
 import json
+
 import httpx
 import pytest
 import pytest_asyncio
 
-from parity.app import create_app
-from parity.config import load_settings
-from tests.helpers import SRC, make_replay_bundle
-
-@pytest_asyncio.fixture
-async def api(tmp_path):
-    await make_replay_bundle(tmp_path / "replay")
-    settings = load_settings(env={
-        "PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_CACHE_DIR": str(tmp_path / "cache"),
-        "PARITY_INDEX_PATH": str(tmp_path / "index.db"), "PARITY_REPLAY_DIR": str(tmp_path / "replay"),
-    })
-    app = create_app(settings)
-    async with app.router.lifespan_context(app):
-        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-            yield client, app
-
-
-def parse_sse(body: str) -> list[tuple[str, dict]]:
-    events = []
-    for block in body.replace("\r\n", "\n").strip().split("\n\n"):
-        etype, data = None, None
-        for line in block.splitlines():
-            if line.startswith("event:"):
-                etype = line[6:].strip()
-            elif line.startswith("data:"):
-                data = json.loads(line[5:].strip())
-        if etype:
-            events.append((etype, data))
-    return events
+from tests.helpers import SRC, parse_sse
 
 
 async def test_health_reports_storage_and_index(api):

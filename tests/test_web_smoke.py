@@ -32,3 +32,33 @@ async def test_workbench_itself_is_axe_clean(page, server_url, state):
     await page.add_script_tag(path=str(AXE))
     result = await page.evaluate("axe.run(document, {resultTypes: ['violations']})")
     assert [(v["id"], [n["target"] for n in v["nodes"]]) for v in result["violations"]] == []
+
+
+async def test_workbench_is_keyboard_reachable_with_visible_focus(page, server_url):
+    """Every stop in the tab ring is a real control and shows a visible focus indicator."""
+    await page.goto(server_url + "/?mock=hero")
+    await page.get_by_role("heading", name="Parity").wait_for()
+    await page.wait_for_timeout(400)
+    ring = []
+    for _ in range(40):
+        await page.keyboard.press("Tab")
+        info = await page.evaluate(
+            """() => {
+                const el = document.activeElement;
+                if (!el || el === document.body) return null;
+                const s = getComputedStyle(el);
+                const visible = (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== 'none';
+                return {tag: el.tagName, text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 40), visible};
+            }"""
+        )
+        if info is None:
+            break  # wrapped past the last control
+        ring.append(info)
+    assert ring, "nothing on the workbench is focusable"
+    bad_tags = [r for r in ring if r["tag"] not in {"BUTTON", "SELECT", "A", "INPUT", "SUMMARY", "TEXTAREA"}]
+    assert not bad_tags, bad_tags
+    invisible = [r for r in ring if not r["visible"]]
+    assert not invisible, f"focus is invisible on: {invisible}"
+    texts = " | ".join(r["text"] for r in ring)
+    for control in ("Replay", "Live", "Run the audit", "Pay R1,249"):
+        assert control in texts, f"{control!r} is not reachable by keyboard: {texts}"

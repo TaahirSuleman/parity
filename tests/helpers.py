@@ -1,5 +1,6 @@
 """Shared test helpers."""
 
+import json
 from pathlib import Path
 
 from parity.store.blob import LocalBlobStore
@@ -35,3 +36,18 @@ async def make_replay_bundle(root: Path) -> None:
     await bundle.flush(SRC)
 
 
+
+
+def parse_sse(body: str) -> list[tuple[str, dict]]:
+    """SSE body -> [(event type, data)], tolerant of \r\n and comment pings."""
+    events = []
+    for block in body.replace("\r\n", "\n").strip().split("\n\n"):
+        etype, data = None, None
+        for line in block.splitlines():
+            if line.startswith("event:"):
+                etype = line[6:].strip()
+            elif line.startswith("data:"):
+                data = json.loads(line[5:].strip())
+        if etype:
+            events.append((etype, data))
+    return events

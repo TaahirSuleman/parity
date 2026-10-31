@@ -75,6 +75,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.trace = TraceRouter()
     st.client = MetaClient(settings, cache_dir=settings.cache_dir, trace=st.trace) if settings.has_key else None
     st.live_lock = asyncio.Lock()
+    st.last_live_run = None  # the newest Live run id, for the finishing-run grace in POST /runs
     st.self_base_url = f"http://127.0.0.1:{settings.port}"
     st.replay_for_flow = {}
     st.replay_ids = []

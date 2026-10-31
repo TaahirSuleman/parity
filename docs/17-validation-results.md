@@ -24,3 +24,24 @@
 
 ## Procedure Proof
 Not testable under the "no filming" constraint. Meta's API has no video generation model, and generated footage would undercut a product that claims to verify reality.
+
+## Run-to-run variance (post-P2 hardening, 31 Oct)
+
+Three live purchase-flow runs through the agent, each with a fresh cache (no replayed responses),
+via `scripts/variance_runs.py`; full data in `docs/variance.json`.
+
+| Run | Status | Verified | Rejected | Cost | Duration |
+|---|---|---|---|---|---|
+| 1 | **failed** — Meta API 500 burst, 3 retries in ~6 s exhausted | 4 (partial) | 0 | $0.038 | 84 s |
+| 2 | done | 13 | 6 | $0.143 | 365 s |
+| 3 | done | 12 | 3 | $0.133 | 368 s |
+
+- **Keyed on the verifier-grounded element, the two completed runs found the same 12 barriers**
+  (stability 92%); the one flaky extra was a weak confirm-page text finding seen once. Wording of
+  `sighted_text` paraphrases freely between runs (expected: it is model prose), which is why the
+  element, not the text, is the identity.
+- The failure was the API, not the agent: three 500s in a row (request_id c13f5568…), the same
+  outage class seen while recording the hero bundle. **Hardened in response:** the client now
+  retries 5 times over ~33 s (was 3 over ~4 s) and treats 429 as retryable.
+- Judged against the 12-finding hero bundle, run-to-run recall on seeded barriers is stable;
+  per-barrier recall/precision vs labels is Phase 4 (Task 19).

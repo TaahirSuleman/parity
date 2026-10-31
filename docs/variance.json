@@ -1,0 +1,178 @@
+{
+ "flow": "purchase",
+ "runs": 3,
+ "recorded_at": "2026-10-31 19:04",
+ "verified_counts": [
+  4,
+  13,
+  12
+ ],
+ "cost_usd": [
+  0.0384,
+  0.1428,
+  0.1329
+ ],
+ "duration_s": [
+  84.2,
+  364.8,
+  368.1
+ ],
+ "stable_findings": [
+  "product.html | SALE -20% | image, \"badge\"",
+  "product.html | heart icon | button, \"Close\""
+ ],
+ "flaky_findings": [
+  "cart.html | Free | , \"\"",
+  "cart.html | trash icon meaning remove Noise-cancelling headphones from cart | button, \"Close\"",
+  "cart.html | trash icon | button, \"Close\"",
+  "checkout.html | 50% OFF TODAY | image, \"image\"",
+  "checkout.html | Pay R1,249 | button, \"Submit\"",
+  "checkout.html | R1,249.00 | , \"\"",
+  "checkout.html | Terms | link, \"Click here\"",
+  "checkout.html | red border error indication on Card number field | textbox, \"Card number\"",
+  "checkout.html | red border indicating error on card number field | textbox, \"Card number\"",
+  "checkout.html | trash icon | button, \"Close\"",
+  "confirm.html | SR-10428 as inline part of 'Order SR-10428. Noise-cancelling headphones \u00d7 1, R1,249.00 charged to the card ending 1111.' | text, \"SR-10428\"",
+  "product.html | R1,599.00 (crossed-out original price) | text, \"R1,599.00\"",
+  "product.html | R1,599.00 crossed-out as original price | text, \"R1,599.00\"",
+  "product.html | R1,599.00 crossed-out original price | text, \"R1,599.00\"",
+  "product.html | \u2605\u2605\u2605\u2605\u2606 4.3 (212 reviews) | image, \"rating\"",
+  "product.html | \u2605\u2605\u2605\u2605\u2606 4.3 | image, \"rating\""
+ ],
+ "stability": 0.111,
+ "results": [
+  {
+   "run_id": "20261031-165021-5a03",
+   "status": "failed",
+   "error": "Meta API error 500: HTTP 500: {\"error\":{\"code\":null,\"message\":\"internal server error\",\"param\":null,\"type\":\"server_error\"}} (request_id c13f5568-32e0-4b0d-a841-b98972e81ffe, attempts 3)",
+   "verified": 4,
+   "rejected": 0,
+   "axe": 0,
+   "tokens": 28024,
+   "cost_usd": 0.03843725,
+   "duration_s": 84.2,
+   "findings": [
+    "product.html | R1,599.00 (crossed-out original price) | text, \"R1,599.00\"",
+    "product.html | SALE -20% | image, \"badge\"",
+    "product.html | heart icon | button, \"Close\"",
+    "product.html | \u2605\u2605\u2605\u2605\u2606 4.3 (212 reviews) | image, \"rating\""
+   ]
+  },
+  {
+   "run_id": "20261031-165146-a83e",
+   "status": "done",
+   "error": null,
+   "verified": 13,
+   "rejected": 6,
+   "axe": 0,
+   "tokens": 159165,
+   "cost_usd": 0.14280136,
+   "duration_s": 364.8,
+   "findings": [
+    "cart.html | Free | , \"\"",
+    "cart.html | trash icon meaning remove Noise-cancelling headphones from cart | button, \"Close\"",
+    "checkout.html | 50% OFF TODAY | image, \"image\"",
+    "checkout.html | Pay R1,249 | button, \"Submit\"",
+    "checkout.html | R1,249.00 | , \"\"",
+    "checkout.html | Terms | link, \"Click here\"",
+    "checkout.html | red border error indication on Card number field | textbox, \"Card number\"",
+    "checkout.html | trash icon | button, \"Close\"",
+    "confirm.html | SR-10428 as inline part of 'Order SR-10428. Noise-cancelling headphones \u00d7 1, R1,249.00 charged to the card ending 1111.' | text, \"SR-10428\"",
+    "product.html | R1,599.00 crossed-out original price | text, \"R1,599.00\"",
+    "product.html | SALE -20% | image, \"badge\"",
+    "product.html | heart icon | button, \"Close\"",
+    "product.html | \u2605\u2605\u2605\u2605\u2606 4.3 (212 reviews) | image, \"rating\""
+   ]
+  },
+  {
+   "run_id": "20261031-165751-d85c",
+   "status": "done",
+   "error": null,
+   "verified": 12,
+   "rejected": 3,
+   "axe": 0,
+   "tokens": 152693,
+   "cost_usd": 0.13290084,
+   "duration_s": 368.1,
+   "findings": [
+    "cart.html | Free | , \"\"",
+    "cart.html | trash icon | button, \"Close\"",
+    "checkout.html | 50% OFF TODAY | image, \"image\"",
+    "checkout.html | Pay R1,249 | button, \"Submit\"",
+    "checkout.html | R1,249.00 | , \"\"",
+    "checkout.html | Terms | link, \"Click here\"",
+    "checkout.html | red border indicating error on card number field | textbox, \"Card number\"",
+    "checkout.html | trash icon | button, \"Close\"",
+    "product.html | R1,599.00 crossed-out as original price | text, \"R1,599.00\"",
+    "product.html | SALE -20% | image, \"badge\"",
+    "product.html | heart icon | button, \"Close\"",
+    "product.html | \u2605\u2605\u2605\u2605\u2606 4.3 | image, \"rating\""
+   ]
+  }
+ ],
+ "by_element": {
+  "note": "keyed on the verifier-grounded element (dom_id), which removes paraphrase variance in sighted_text",
+  "completed_runs": [
+   "20261031-165146-a83e",
+   "20261031-165751-d85c"
+  ],
+  "failed_runs": [
+   "20261031-165021-5a03"
+  ],
+  "per_run": {
+   "20261031-165021-5a03": [
+    "#? | text, \"R1,599.00\"",
+    "#p1 | image, \"badge\"",
+    "#p2 | image, \"rating\"",
+    "#p5 | button, \"Close\""
+   ],
+   "20261031-165146-a83e": [
+    "#? | , \"\"",
+    "#? | text, \"R1,599.00\"",
+    "#? | text, \"SR-10428\"",
+    "#card | textbox, \"Card number\"",
+    "#f1 | image, \"image\"",
+    "#f2 | , \"\"",
+    "#f4 | link, \"Click here\"",
+    "#f5 | button, \"Submit\"",
+    "#f6 | button, \"Close\"",
+    "#k3 | button, \"Close\"",
+    "#p1 | image, \"badge\"",
+    "#p2 | image, \"rating\"",
+    "#p5 | button, \"Close\""
+   ],
+   "20261031-165751-d85c": [
+    "#? | , \"\"",
+    "#? | text, \"R1,599.00\"",
+    "#card | textbox, \"Card number\"",
+    "#f1 | image, \"image\"",
+    "#f2 | , \"\"",
+    "#f4 | link, \"Click here\"",
+    "#f5 | button, \"Submit\"",
+    "#f6 | button, \"Close\"",
+    "#k3 | button, \"Close\"",
+    "#p1 | image, \"badge\"",
+    "#p2 | image, \"rating\"",
+    "#p5 | button, \"Close\""
+   ]
+  },
+  "stable": [
+   "#? | , \"\"",
+   "#? | text, \"R1,599.00\"",
+   "#card | textbox, \"Card number\"",
+   "#f1 | image, \"image\"",
+   "#f2 | , \"\"",
+   "#f4 | link, \"Click here\"",
+   "#f5 | button, \"Submit\"",
+   "#f6 | button, \"Close\"",
+   "#k3 | button, \"Close\"",
+   "#p1 | image, \"badge\"",
+   "#p2 | image, \"rating\"",
+   "#p5 | button, \"Close\""
+  ],
+  "flaky": [
+   "#? | text, \"SR-10428\""
+  ],
+  "stability": 0.923
+ }
+}

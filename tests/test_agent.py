@@ -265,3 +265,42 @@ async def test_dropped_and_bad_actions_do_not_crash_the_run(tmp_path, server_url
     assert nav.data["executed"] == 1 and nav.data["dropped"] == 2 and nav.data["safety_checks"] == 0
     finished = next(e for e in loaded.events if e.type == "run.finished")
     assert finished.data["agent"]["finished"] is True
+
+
+async def test_conversation_is_recorded_when_a_tool_raises(tmp_path, server_url, page):
+    """A crash mid-turn must not lose the conversation: the recorded turns are the debugging trail."""
+    from parity.meta.client import MetaError
+
+    script = [turn(function_call("audit_view", {"reason": "product"}, "c1"))]
+
+    async def factory():
+        return page
+
+    err = MetaError("server_error", status=503, request_id="req-503", attempts=3)
+    async with harness(tmp_path, script, errors={"comparator": err}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+    assert run.status == RunStatus.failed
+    conv = json.loads((tmp_path / "data" / "runs" / run.id / "agent" / "conversation.json").read_text())
+    assert [t["turn"] for t in conv["turns"]] == [1]
+    assert conv["turns"][0]["output"][0]["name"] == "audit_view"
+
+
+async def test_incomplete_empty_turn_is_nudged_not_fatal(tmp_path, server_url, page):
+    """A turn that exhausted its output tokens (status incomplete, no output) gets the nudge and the run goes on."""
+    from parity.agent.loop import NUDGE
+
+    empty = {"id": "r0", "_request_id": "req-r0", "status": "incomplete", "output": [],
+             "usage": {"input_tokens": 10, "output_tokens": 0, "total_tokens": 10}}
+    script = [empty,
+              turn(function_call("audit_view", {"reason": "product"}, "c1"), rid="r1"),
+              turn(function_call("finish", {"summary": "audited the product page"}, "c2"), rid="r2")]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+    assert run.status == RunStatus.done, run.error
+    calls = auditor_calls(client)
+    assert len(calls) == 3
+    assert NUDGE in json.dumps(calls[1]["input"])

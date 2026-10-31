@@ -19,6 +19,7 @@
 - No "compliance" wording anywhere. Replay is the default mode. Labels in `eval/` are never imported by `parity/`.
 - Tests never call the live API; model-facing code is tested with `FakeMetaClient` over `tests/fixtures/meta/`.
 - Each phase ends demoable, committed and pushed to `origin/main`.
+- **Integration tests, TDD, every phase** (added in the post-P2 hardening pass): each phase's user-visible behaviour gets a test in `tests/test_integration.py` through the served app (uvicorn + real Chromium + `FakeMetaClient`), written before the feature. P3: approve/reject through the decision route changes the bundle and the SSE stream; patch export round-trips. P4: the eval harness scores a store-v2 run end to end. P5: rate limiting over HTTP; a container smoke test (build the image, hit `/api/health` and one Replay run). P6: a voice run with fixture audio. Run-to-run model variance is measured with `scripts/variance_runs.py` (live, fresh cache), not in CI.
 
 ## Review Focus
 1. A comparator candidate with a missing or out-of-range `bbox` must be rejected by `located`, never crash the run (test in Task 6).

@@ -66,16 +66,28 @@ async def test_retries_on_500_then_succeeds(tmp_path):
     assert sleeps == [1, 3]
 
 
-async def test_gives_up_after_three_server_errors(tmp_path):
+async def test_gives_up_after_five_server_errors(tmp_path):
+    """Five attempts over ~30 s: an outage burst (seen live, 3x500 in 6 s) should not kill a run."""
     def broken(request, n):
         return httpx.Response(503, json={}, headers={"x-request-id": f"req-{n}"})
 
     client, calls, trace, sleeps = make_client(tmp_path, broken)
     with pytest.raises(MetaError) as info:
         await client.responses(BODY, stage="seer", run_id="r1")
-    assert len(calls) == 3
-    assert info.value.status == 503 and info.value.attempts == 3 and info.value.request_id == "req-3"
-    assert sleeps == [1, 3]
+    assert len(calls) == 5
+    assert info.value.status == 503 and info.value.attempts == 5 and info.value.request_id == "req-5"
+    assert sleeps == [1, 3, 9, 20]
+
+
+async def test_429_is_retried_then_succeeds(tmp_path):
+    def throttled(request, n):
+        if n == 1:
+            return httpx.Response(429, json={}, headers={"x-request-id": f"req-{n}"})
+        return ok(request, n)
+
+    client, calls, trace, sleeps = make_client(tmp_path, throttled)
+    resp = await client.responses(BODY, stage="seer", run_id="r1")
+    assert resp.text == "hi there" and len(calls) == 2 and sleeps == [1]
 
 
 async def test_4xx_raises_without_retry(tmp_path):

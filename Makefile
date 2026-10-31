@@ -12,6 +12,7 @@ venv:
 	@test -d .venv || uv venv --python 3.12 .venv
 	uv pip install --python $(PY) -e ".[dev]" --config-settings editable_mode=compat
 	$(PY) -m playwright install chromium
+	@chflags nohidden .venv/lib/python*/site-packages/*.pth 2>/dev/null || true  # macOS may flag the editable .pth hidden; CPython 3.12.16 then skips it
 
 web:
 	@command -v npm >/dev/null || brew install node

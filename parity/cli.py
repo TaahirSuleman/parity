@@ -53,7 +53,6 @@ async def _audit(args) -> int:
     from urllib.parse import urlsplit
 
     from parity.api.events import EventBus
-    from parity.config import load_settings
     from parity.flows import Flow
     from parity.meta.client import MetaClient, TraceRouter
     from parity.pipeline.runner import run_flow
@@ -61,8 +60,7 @@ async def _audit(args) -> int:
     from parity.store.bundle import RunBundle
     from parity.store.index import RunIndex
 
-    env = {"PARITY_DATA_DIR": args.data_dir} if args.data_dir else {}
-    settings = load_settings(env={**_os_env(), **env}) if env else load_settings()
+    settings = audit_settings(args.data_dir)
     if not settings.has_key:
         print("MODEL_API_KEY missing (expected in .env); a public audit calls the model and needs it")
         return 1
@@ -94,10 +92,18 @@ async def _audit(args) -> int:
     return 0 if run.status != "failed" else 1
 
 
-def _os_env() -> dict[str, str]:
-    import os
+def audit_settings(data_dir: str | None):
+    """Settings from .env / the environment as usual; --data-dir only moves the bundle and its index."""
+    import dataclasses
+    from pathlib import Path
 
-    return dict(os.environ)
+    from parity.config import load_settings
+
+    settings = load_settings()
+    if data_dir:
+        root = Path(data_dir)
+        settings = dataclasses.replace(settings, data_dir=root, index_path=root / "index.db")
+    return settings
 
 
 def main(argv: list[str] | None = None) -> int:

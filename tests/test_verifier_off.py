@@ -86,3 +86,13 @@ def test_cli_audit_is_public_only_and_needs_a_key(tmp_path, monkeypatch):
 
     with _pytest.raises(SystemExit):  # --public is required: there is no non-guarded mode for sites we do not own
         main(["audit", "--url", "https://shop.example/p/1", "--goal", "browse"])
+
+
+def test_audit_settings_keep_the_key_when_a_data_dir_is_given(tmp_path, monkeypatch):
+    """--data-dir must only move the bundle; the key still comes from the environment / .env."""
+    from parity.cli import audit_settings
+
+    monkeypatch.setenv("MODEL_API_KEY", "test-key-not-real")
+    s = audit_settings(str(tmp_path / "runs"))
+    assert s.has_key and s.data_dir == tmp_path / "runs" and s.index_path == tmp_path / "runs" / "index.db"
+    assert audit_settings(None).has_key

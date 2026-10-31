@@ -1,4 +1,4 @@
-import type { CallEvent, Finding, ParityEvent, Rejected, Run, RunMode, RunState, Step } from "./types";
+import type { CallEvent, Finding, ParityEvent, Rejected, Run, RunMode, RunState, Step, TimelineRow } from "./types";
 
 export const initialState: RunState = {
   run: null, timeline: [], agent: null, models: { navigator: null, comparator: "muse-spark-1.3-contributor", judge: "muse-spark-1.3" }, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null,
@@ -49,6 +49,11 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     case "nav.actions": {
       const actions = (ev.actions as string[] | undefined) ?? [];
       return { ...state, stage: "navigator", timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "actions", label: `computer: ${actions.join(", ") || "no actions"}`, at: ev.at }] };
+    }
+    case "nav.safety_check": {
+      const codes = (ev.codes as string[] | undefined) ?? [];
+      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged on the store: ${codes.join(", ")}` };
+      return { ...state, timeline: [...state.timeline, row] };
     }
     case "nav.blocked":
       return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "blocked", label: `blocked: ${String(ev.reason ?? "")}`, at: ev.at }] };

@@ -129,3 +129,11 @@ describe("pre-P4 QA: what the header and the selection show", () => {
     expect(shouldReset({ ...initialState, mode: "replay", phase: "finished" }, "live")).toBe(true);
   });
 });
+
+
+describe("safety checks on the timeline", () => {
+  it("records an acknowledged routine check as a timeline row", () => {
+    const s = reduce(play(events.filter((e) => e.type === "run.started")), { type: "nav.safety_check", run_id: "r", at: "2026-10-31T00:00:00Z", turn: 2, codes: ["computer_action_requires_confirmation"], acknowledged: true });
+    expect(s.timeline.at(-1)?.label).toMatch(/safety check acknowledged.*computer_action_requires_confirmation/);
+  });
+});

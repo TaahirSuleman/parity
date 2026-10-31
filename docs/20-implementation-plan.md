@@ -269,11 +269,15 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Routes `POST /runs/{id}/findings/{fid}/decision`, `GET /runs/{id}/patch`; runner sets `awaiting_review` when any finding has a fix; `fix.patch` concatenates approved diffs. UI: diff view and before/after on the card, Approve/Reject with a reason, `decision.recorded` flips the card and the header count. Tests: `test_decision_requires_reason`, `test_patch_contains_only_approved`, Playwright smoke clicks Approve in Replay. Commit; push; re-record `fixtures/replay/hero-checkout` with fix + re-audit; tag `p3`.
 
 ---
+- Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
+  - P2-14 agent test gaps, in `tests/test_agent.py` before Task 15 starts: off-origin navigation stops the run with `nav.blocked`; two function calls in one turn are both dispatched in order; `audit_view` on an already-audited screen returns the cached summary without new model calls; a non-empty `pending_safety_checks` is echoed back as `acknowledged_safety_checks`. (The plain-text nudge is covered since the hardening pass.)
 
 # Phase 4: Demo store v2, eval harness, ablations (Mon 2 Nov morning)
 
 ### Task 18: Store v2 with labels **[subagent-ok]**
 - Extend the three pages to ~30 seeded axe-passing faults and ~10 clean controls, each with a stable `id` and a `data-parity-kind` free of hints. Kinds: wrong-name, meaningless-alt, pixel-only (canvas/colour), icon-named-wrong, error-visual-only, link-text-mismatch, state-visual-only, hidden-price, placeholder-as-label, decorative-named. Create `eval/labels.json` (`[{page, id, kind, description, clean}]`). Tests: every page 0 axe violations; every label id exists on its page; `test_parity_never_imports_eval` (grep the package).
+- Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
+  - Screen identity: `screen_key` hashes URL + a digest of the accessibility tree, so a same-URL state change (the checkout error state) is audited as a new screen. Test: submitting an invalid card on `checkout.html` yields two audited screens.
 
 ### Task 19: Eval harness and ablations
 - Create `eval/harness.py`, `eval/ablations.py`, `eval/report.py`; results to `eval/results/<ts>.json` and `eval/results/latest.md`.
@@ -286,6 +290,8 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Produces: `guard_action(action: dict, target: AxNode | None, field_type: str | None) -> Allowed | Blocked(reason)` with the irreversible-name pattern `IRREVERSIBLE = r"\b(pay|buy|place order|submit|sign ?up|subscribe|confirm|delete|checkout now)\b"` (case-insensitive) and blocked field types `password, cc-number, cc-csc, email, tel`; any `submit` event blocked. `robots_allows(url) -> bool`. `anonymise(bundle, letter)` replaces host, URLs and title with "Site <letter>" and drops screenshots of steps without verified findings.
 - Tests: `test_blocks_pay_click`, `test_blocks_password_typing`, `test_allows_add_to_cart_click`, `test_blocks_form_submit`, `test_robots_disallow_stops_run`, `test_anonymise_removes_host` (no original host string anywhere in the output bundle).
 - Run 2–3 public flows locally (product → cart, stopping before checkout). Commit only anonymised bundles under `fixtures/replay/public-<letter>/`; keep raw bundles out of git. Record verified-finding counts in `eval/results/public.json`.
+- Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
+  - Capture batching: one CDP round trip per page for the AX tree and box lookups, not three per node (public pages have thousands of nodes). Test: node count and output unchanged on `checkout.html`; CDP call count bounded.
 
 ### Task 20: Eval in the product
 - Route `GET /api/eval` reads `eval/results/latest.json` and `public.json`; UI **Eval** tab: table (Parity vs axe-core: recall, precision, n), ablation strip (screenshot-only / tree-only / no grounding / full), judge comparison row, cost and time per page, and a "Real-world sample" list of anonymised public runs opening in Replay. Header numbers come from the same file. Commit; push; tag `p4`.
@@ -296,17 +302,28 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 
 ### Task 21: Rate limiting and Live guards
 - Create `parity/ratelimit.py` (`RateLimiter(per_ip_per_hour, global_per_day, clock)`; `check(ip) -> Allowed | Denied(retry_after_s)`), one-Live-run-at-a-time lock in the runner, 429 responses with JSON `{error, retry_after_s, suggestion: "replay"}`. Tests: `test_per_ip_limit`, `test_global_limit`, `test_second_concurrent_live_429`, `test_replay_unlimited`.
+- Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
+  - Model client timeout 300 s → 60 s per spec (retries are now 5× with 429 retryable, done in the hardening pass).
+  - The per-IP hash reads the first `X-Forwarded-For` hop behind Cloud Run, falling back to `request.client.host`. Test with a spoofed header from a non-proxy client.
+  - Evict a finished run's in-memory event and trace buffers once flushed (history is served from the bundle). Test: buffer empty after `run.finished`; a late SSE subscriber still gets full history.
+  - Flush the bundle after each stage, not each screen, so a crash mid-screen keeps the seer and comparator output.
 
 ### Task 22: Dockerfile and Cloud Run
 - Create `Dockerfile` (two stages per spec §12), `deploy/cloudrun.sh` (idempotent: enable APIs, create bucket, service account with `storage.objectAdmin` on that bucket and `secretAccessor` on the key secret, build, deploy with `PARITY_GCS_BUCKET` and no volume mount), `deploy/README.md` (first deploy, redeploy, teardown). Docker is not needed locally: Cloud Build builds the image.
 - App boot: `make_blob_store`, `recover_interrupted`, `index.rebuild`, then serve. `/api/health` adds `storage: "gcs" | "local"` and `runs_indexed`.
 - Verify: first deploy; `/api/health` returns `models_ok: true` and `storage: "gcs"`; run one Live audit; redeploy; the run and its decision are still listed and its screenshots load; Replay works from a private window on a phone.
+- Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
+  - SPA deep-link fallback: any non-`/api`, non-`/store` path that is not a file serves `index.html`, so a shared run link opens the workbench. Test: `GET /runs/<id>` returns the SPA; `/api/nope` still 404s.
 
 ### Task 23: README and submission text
 - `README.md`: one line pre-existing vs built this week; the hero; architecture diagram image (`docs/img/architecture.png`, exported from a Mermaid or Excalidraw source in `docs/img/`); "How it acts" (the model decides; allow-listed code acts); what is deterministic; run locally (`cp .env.example .env`, `make setup`, `make demo`); eval numbers from `eval/results/latest.md`; limits and honesty (no compliance claims). Form essays drafted in `docs/21-submission-text.md`.
 
 ### Task 24: UI polish for judges
 - Replay selected by default with a visible label; a "Live (rate-limited)" toggle; friendly 429; a ≤10 s architecture card in the Eval tab; keyboard focus order and visible focus rings in the workbench itself (it must pass axe too: add `test_workbench_axe_clean`).
+- Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
+  - Already done in the hardening pass: workbench axe-clean in all three states; keyboard tab ring and visible focus rings (`test_workbench_is_keyboard_reachable_with_visible_focus`).
+  - Finding card: one button for selection, not a button wrapping the whole card (invalid content model, very long accessible name). Test: the card's button name is the sighted text only.
+  - Below 1280 px the three columns stack (sighted, screen reader, findings). Test: smoke test at 768 px with no horizontal scroll.
 
 ### Task 25: P5 close
 - Redeploy; commit; push; tag `p5`. The cold-review checklist (`docs/submission-checklist.md`) runs against the hosted URL after P6, Tue 3 Nov 11:00–12:00 ET, then feature freeze at 12:00 ET. If P6 is not done by 11:00, ship without Voice and say so in the README.
@@ -314,6 +331,8 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 ---
 
 ---
+- Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
+  - Manual VoiceOver pass by the builder (Cmd+F5, tab through a Replay run, open a finding) before the cold review; note the result in `docs/submission-checklist.md`.
 
 # Phase 6: Voice, real screen-reader audio (Mon 2 Nov night to Tue 3 Nov 11:00, before the freeze)
 

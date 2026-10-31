@@ -6,7 +6,7 @@
  "sighted_text": "Terms",
  "sr_role": "link",
  "sr_name": "Click here",
- "why_it_matters": "Blind user hears a generic link name with no indication it leads to the Terms.",
+ "why_it_matters": "Blind user hears a generic link name and does not know it leads to the Terms.",
  "voice": null,
  "bbox": {
   "x_min": 649,
@@ -66,19 +66,23 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "2.4.4",
     "name": "Link Purpose (In Context)"
+   },
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
    }
   ],
-  "impact": "When navigating by links the user hears only generic 'Click here' and cannot tell it is the Terms agreement for the payment.",
+  "impact": "The user hears only \"Click here\" and cannot tell the link leads to the Terms they are agreeing to or activate it by its visible name.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "4fe964e3-d821-4c3f-876d-78a2e17fe83a",
-   "response_id": "resp_6ae6312c33bb0ac0487b457f",
+   "request_id": "d86891ba-93bb-44c6-908d-d790012e8e51",
+   "response_id": "resp_6ae644e90fe7d1b5549d4d07",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -87,11 +91,11 @@
   "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
   "after_html": "<a id=\"f4\" href=\"#terms\"><img alt=\"Terms\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
   "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -26,7 +26,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\"><img alt=\"Terms\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
-  "explanation": "Removed the generic aria-label 'Click here' and set the image alt to 'Terms' so the link's accessible name matches the visible text.",
+  "explanation": "Removed the misleading aria-label \"Click here\" and set the image alt to \"Terms\" so the link's accessible name matches the visible text.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "b6aaf912-713c-4b58-a7da-8fb43629d9e6",
-   "response_id": "resp_6ae631435aea387de65d4581",
+   "request_id": "06116e3f-3a5c-4ccb-ae47-a9731109abb5",
+   "response_id": "resp_6ae644fd7e41ccfa8a644868",
    "status": "completed"
   }
  },

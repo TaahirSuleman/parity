@@ -3,43 +3,43 @@
  "run_id": "hero-checkout",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "R1,249.00",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "Blind user never hears the order total amount that sighted users see.",
+ "sighted_text": "Pay R1,249",
+ "sr_role": "button",
+ "sr_name": "Submit",
+ "why_it_matters": "Blind user does not hear the action and price that sighted users see on the pay button.",
  "voice": null,
  "bbox": {
-  "x_min": 185,
-  "y_min": 419,
-  "x_max": 295,
-  "y_max": 461
+  "x_min": 525,
+  "y_min": 537,
+  "x_max": 646,
+  "y_max": 606
  },
  "element": {
-  "backend_id": 29,
-  "css_path": "canvas#f2",
+  "backend_id": 47,
+  "css_path": "button#f5",
   "box_px": [
-   237,
-   302,
-   377,
-   332
+   673,
+   360,
+   827,
+   408
   ],
-  "outer_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
-  "dom_id": "f2"
+  "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "dom_id": "f5"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:canvas at canvas#f2"
+    "detail": "button at button#f5"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 29,
-   "css_path": "canvas#f2",
+   "backend_id": 47,
+   "css_path": "button#f5",
    "box_px": [
-    237,
-    302,
-    377,
-    332
+    673,
+    360,
+    827,
+    408
    ],
-   "outer_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
-   "dom_id": "f2"
+   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "f5"
   },
   "feedback": null
  },
@@ -69,36 +69,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "2.5.3",
+    "name": "Label in Name"
    }
   ],
-  "impact": "Blind user hears 'Total:' with no amount and cannot verify what they will be charged before paying.",
+  "impact": "User hears only generic Submit at the point of charge and cannot know the button will pay R1,249 or activate it by its visible label.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "ed345e85-a709-4794-8159-1722c1669386",
-   "response_id": "resp_6ae631125aeaf5cee6974808",
+   "request_id": "6daf0ca8-63d5-4c51-bd3a-98d515810004",
+   "response_id": "resp_6ae644db4220d4a092f746c4",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
-  "after_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"R1,249.00\">R1,249.00</canvas>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -18,7 +18,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n-    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n+    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"R1,249.00\">R1,249.00</canvas></p>\n     <p><a id=\"c1\" href=\"#returns\">Returns policy</a></p>\n   </section>\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n",
-  "explanation": "Changed role from presentation to img and added aria-label with fallback text matching the visible total so screen readers announce R1,249.00.",
+  "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
+  "after_html": "<button id=\"f5\" class=\"btn\">Pay R1,249</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -28,7 +28,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n+      <button id=\"f5\" class=\"btn\">Pay R1,249</button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
+  "explanation": "Replaced the wrong aria-label and empty-alt image text with real button text matching the visible label so the accessible name is Pay R1,249.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "03c2cb03-4502-483a-9ff8-57192e126f33",
-   "response_id": "resp_6ae63137e6a728753b1b466e",
+   "request_id": "b0cd9964-0a97-4b48-aaa6-bd75bfc7c4d6",
+   "response_id": "resp_6ae644f5b2a6abbcc547498c",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "R1,249.00",
+  "sr_name_before": "Submit",
+  "sr_name_after": "Pay R1,249",
   "comparator_still_flags": false
  },
  "decision": null

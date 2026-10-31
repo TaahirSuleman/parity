@@ -239,7 +239,7 @@ async def test_committed_replay_bundles_load_and_replay(tmp_path):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             health = (await client.get("/api/health")).json()
             assert health["replay_flows"] == {"checkout": "hero-checkout", "purchase": "hero-purchase"}
-            expected = {"checkout": (6, 6), "purchase": (12, 5)}
+            expected = {"checkout": (6, 1), "purchase": (12, 5)}  # verified, rejected (honest counts: repeats are no longer red rows)
             for flow, (verified, rejected) in expected.items():
                 run_id = (await client.post("/api/runs", json={"flow_id": flow, "mode": "replay", "pace_ms": 0})).json()["run_id"]
                 events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)

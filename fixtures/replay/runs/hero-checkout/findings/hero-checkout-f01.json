@@ -6,12 +6,12 @@
  "sighted_text": "50% OFF TODAY",
  "sr_role": "image",
  "sr_name": "image",
- "why_it_matters": "A blind user hears only a generic image label and misses the promotional information sighted users see.",
+ "why_it_matters": "Blind user misses the promotional information and only hears a generic image label.",
  "voice": null,
  "bbox": {
   "x_min": 146,
-  "y_min": 213,
-  "x_max": 381,
+  "y_min": 211,
+  "x_max": 382,
   "y_max": 340
  },
  "element": {
@@ -66,19 +66,19 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears only \"image\" and cannot know about the 50% OFF TODAY promotion that sighted users see.",
+  "impact": "The screen-reader user hears only \"image\" and cannot perceive the 50% OFF TODAY promotion that sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "a6689c22-8475-45c8-82b2-2ecdd6b45188",
-   "response_id": "resp_6ae630f5975bdbb4dd6847f9",
+   "request_id": "4c71aa68-68e9-4eda-b727-ed706dd72a5f",
+   "response_id": "resp_6ae644bdca429cf7475f43ed",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -87,11 +87,11 @@
   "before_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">",
   "after_html": "<img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">",
   "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -14,8 +14,7 @@\n <main>\n   <section class=\"card\" aria-labelledby=\"order-h\">\n     <h1 id=\"order-h\">Your order</h1>\n-    <img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n+    <img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n     <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n",
-  "explanation": "Changed alt text from \"image\" to \"50% OFF TODAY\" to match the visible promotional text.",
+  "explanation": "Changed alt from \"image\" to \"50% OFF TODAY\" so the screen reader announces the same promotion sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "865c359c-de1f-44bc-b517-5e1ec84a39f0",
-   "response_id": "resp_6ae6313421c64b17de5748d7",
+   "request_id": "a52e8512-6ab9-4feb-b3eb-db340de579c6",
+   "response_id": "resp_6ae644ef697028bbb94b4cf6",
    "status": "completed"
   }
  },

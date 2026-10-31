@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "Total: R1,249.00",
-  "sr_quote": "not announced",
-  "why_it_matters": "A blind user gets no announcement of the order total because it is rendered only in pixels with no accessibility entry.",
+  "sighted_text": "Terms",
+  "sr_quote": "link, \"Click here\"",
+  "why_it_matters": "Blind user hears a generic link name that does not tell them the link goes to the Terms.",
   "bbox": {
-   "x_min": 187,
-   "y_min": 461,
-   "x_max": 266,
-   "y_max": 493
+   "x_min": 648,
+   "y_min": 489,
+   "x_max": 680,
+   "y_max": 511
   },
   "attempt": 1
  },
@@ -19,16 +19,16 @@
   "passed": false,
   "checks": {
    "located": {
-    "passed": false,
-    "detail": "no element at that box"
+    "passed": true,
+    "detail": "button at button#f6"
    },
    "sr_quote_exact": {
     "passed": false,
-    "detail": "an announced element overlaps that box"
+    "detail": "quote differs from the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -39,7 +39,18 @@
     "detail": "first finding on this element"
    }
   },
-  "element": null,
-  "feedback": "the box does not land on an element; tighten it around the exact element you mean; an element inside that box is announced; quote its exact role and accessible name instead of 'not announced'"
+  "element": {
+   "backend_id": 49,
+   "css_path": "button#f6",
+   "box_px": [
+    837,
+    360,
+    883,
+    408
+   ],
+   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "f6"
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
  }
 }

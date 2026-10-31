@@ -1,0 +1,401 @@
+[
+ {
+  "page": "product.html",
+  "id": "p1",
+  "kind": "meaningless-alt",
+  "description": "Sale badge reading 'SALE -20%' has alt 'badge'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "p2",
+  "kind": "meaningless-alt",
+  "description": "Star rating 4.3 of 5 has alt 'rating'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "gallery-1",
+  "kind": "meaningless-alt",
+  "description": "Product photo thumbnail has alt 'photo 1'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "gallery-2",
+  "kind": "meaningless-alt",
+  "description": "Product photo thumbnail has alt 'photo 2'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "divider-1",
+  "kind": "decorative-named",
+  "description": "Decorative flourish announced as 'decorative divider graphic'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "swatch-1",
+  "kind": "state-visual-only",
+  "description": "Selected colour swatch shows selection by a ring only; no pressed/selected state",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "swatch-2",
+  "kind": "wrong-name",
+  "description": "Sand colour swatch is named 'Option 2'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "swatch-3",
+  "kind": "wrong-name",
+  "description": "Navy colour swatch is named 'Option 3'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "size-standard",
+  "kind": "state-visual-only",
+  "description": "Current size shown by colour only; no pressed/selected state",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "stock-dot",
+  "kind": "pixel-only",
+  "description": "Green dot means in stock; the name is 'status'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "was-price",
+  "kind": "pixel-only",
+  "description": "Original price is crossed out visually; the strike-through meaning is not announced",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "instalment-price",
+  "kind": "hidden-price",
+  "description": "'or 4 x R312.25' is an image with empty alt",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "promo-timer",
+  "kind": "pixel-only",
+  "description": "'Offer ends in 02:14:09' is drawn on a canvas",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "p5",
+  "kind": "icon-named-wrong",
+  "description": "Heart (save to wishlist) is named 'Close'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "compare-link",
+  "kind": "link-text-mismatch",
+  "description": "Link showing 'Compare' is named 'More'",
+  "clean": false
+ },
+ {
+  "page": "product.html",
+  "id": "p4",
+  "kind": "clean",
+  "description": "Add to cart button",
+  "clean": true
+ },
+ {
+  "page": "product.html",
+  "id": "p6",
+  "kind": "clean",
+  "description": "Returns policy link",
+  "clean": true
+ },
+ {
+  "page": "product.html",
+  "id": "spec-link",
+  "kind": "clean",
+  "description": "Full specifications link",
+  "clean": true
+ },
+ {
+  "page": "product.html",
+  "id": "share-btn",
+  "kind": "clean",
+  "description": "Share button with a matching name",
+  "clean": true
+ },
+ {
+  "page": "product.html",
+  "id": "size-large",
+  "kind": "clean",
+  "description": "Large size button, not selected, correct name",
+  "clean": true
+ },
+ {
+  "page": "cart.html",
+  "id": "item-thumb",
+  "kind": "meaningless-alt",
+  "description": "Item thumbnail has alt 'image'",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "k3",
+  "kind": "icon-named-wrong",
+  "description": "Trash icon (remove item) is named 'Close'",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "case-qty",
+  "kind": "error-visual-only",
+  "description": "Quantity over the limit shown by a red border only",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "coupon-savings",
+  "kind": "hidden-price",
+  "description": "Coupon saving '\u2212R125.00' is drawn on a canvas",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "k4",
+  "kind": "pixel-only",
+  "description": "Delivery 'Free' is an image with empty alt",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "promo-input",
+  "kind": "placeholder-as-label",
+  "description": "Promo code field has only a placeholder as its label",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "gift-wrap",
+  "kind": "state-visual-only",
+  "description": "Gift wrap switch shows on/off by colour only; no switch state",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "delivery-standard",
+  "kind": "state-visual-only",
+  "description": "Chosen delivery option shown by colour only",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "trust-seal",
+  "kind": "meaningless-alt",
+  "description": "'Secure checkout' seal has alt 'image'",
+  "clean": false
+ },
+ {
+  "page": "cart.html",
+  "id": "k1",
+  "kind": "clean",
+  "description": "Decrease quantity button",
+  "clean": true
+ },
+ {
+  "page": "cart.html",
+  "id": "k2",
+  "kind": "clean",
+  "description": "Increase quantity button",
+  "clean": true
+ },
+ {
+  "page": "cart.html",
+  "id": "k5",
+  "kind": "clean",
+  "description": "Checkout link",
+  "clean": true
+ },
+ {
+  "page": "cart.html",
+  "id": "k6",
+  "kind": "clean",
+  "description": "Continue shopping link",
+  "clean": true
+ },
+ {
+  "page": "cart.html",
+  "id": "case-remove",
+  "kind": "clean",
+  "description": "Remove carry case button, correct name",
+  "clean": true
+ },
+ {
+  "page": "cart.html",
+  "id": "promo-apply",
+  "kind": "clean",
+  "description": "Apply button",
+  "clean": true
+ },
+ {
+  "page": "cart.html",
+  "id": "delivery-express",
+  "kind": "clean",
+  "description": "Express delivery option, not selected, correct name",
+  "clean": true
+ },
+ {
+  "page": "checkout.html",
+  "id": "f1",
+  "kind": "meaningless-alt",
+  "description": "'50% OFF TODAY' banner has alt 'image'",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "f2",
+  "kind": "hidden-price",
+  "description": "Order total is drawn on a canvas",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "f4",
+  "kind": "link-text-mismatch",
+  "description": "Link showing 'Terms' is named 'Click here'",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "f5",
+  "kind": "link-text-mismatch",
+  "description": "Button showing 'Pay R1,249' is named 'Submit' (the hero)",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "f6",
+  "kind": "icon-named-wrong",
+  "description": "Trash icon is named 'Close'",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "card",
+  "kind": "error-visual-only",
+  "description": "Invalid card number shown by a red border only",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "cvv",
+  "kind": "placeholder-as-label",
+  "description": "CVV field has only a placeholder as its label",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "express-pay",
+  "kind": "wrong-name",
+  "description": "'Pay with wallet' button is named 'Button'",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "step-payment",
+  "kind": "state-visual-only",
+  "description": "Current checkout step shown by weight and colour only",
+  "clean": false
+ },
+ {
+  "page": "checkout.html",
+  "id": "returns-link",
+  "kind": "clean",
+  "description": "Returns policy link",
+  "clean": true
+ },
+ {
+  "page": "checkout.html",
+  "id": "save-later",
+  "kind": "clean",
+  "description": "Save for later button",
+  "clean": true
+ },
+ {
+  "page": "checkout.html",
+  "id": "name",
+  "kind": "clean",
+  "description": "Name on card field with a label",
+  "clean": true
+ },
+ {
+  "page": "checkout.html",
+  "id": "exp",
+  "kind": "clean",
+  "description": "Expiry field with a label",
+  "clean": true
+ },
+ {
+  "page": "checkout.html",
+  "id": "order-note",
+  "kind": "clean",
+  "description": "Courier note with a label",
+  "clean": true
+ },
+ {
+  "page": "checkout.html",
+  "id": "help-icon",
+  "kind": "clean",
+  "description": "Help button with a matching name",
+  "clean": true
+ },
+ {
+  "page": "confirm.html",
+  "id": "confetti",
+  "kind": "decorative-named",
+  "description": "Decorative confetti announced as 'celebration graphic'",
+  "clean": false
+ },
+ {
+  "page": "confirm.html",
+  "id": "tracking-canvas",
+  "kind": "pixel-only",
+  "description": "Tracking number is drawn on a canvas",
+  "clean": false
+ },
+ {
+  "page": "confirm.html",
+  "id": "status-packed",
+  "kind": "state-visual-only",
+  "description": "Current delivery stage shown by weight and colour only",
+  "clean": false
+ },
+ {
+  "page": "confirm.html",
+  "id": "invoice-link",
+  "kind": "link-text-mismatch",
+  "description": "Link showing 'Download invoice' is named 'Open'",
+  "clean": false
+ },
+ {
+  "page": "confirm.html",
+  "id": "rate-link",
+  "kind": "clean",
+  "description": "Rate your purchase link",
+  "clean": true
+ },
+ {
+  "page": "confirm.html",
+  "id": "back-link",
+  "kind": "clean",
+  "description": "Back to the shop link",
+  "clean": true
+ }
+]

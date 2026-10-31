@@ -78,7 +78,7 @@ class _Conversation:
 
 
 async def _audit_if_new(ctx: RunContext, state: AgentState, page: Page, reason: str) -> None:
-    key = screen_key(page.url)
+    key = await screen_key(page)
     if key in state.audited:
         return
     summary = await audit_view(ctx, page, state.step_count, reason)

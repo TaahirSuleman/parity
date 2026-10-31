@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 AXE = Path(__file__).resolve().parents[1] / "parity" / "vendor" / "axe.min.js"
-HERO_IDS = ["f1", "f2", "f4", "f5", "f6", "c1", "c2", "card"]
+HERO_IDS = ["f1", "f2", "f4", "f5", "f6", "returns-link", "save-later", "card"]
 
 
 async def test_checkout_has_zero_axe_violations(page, store_url):

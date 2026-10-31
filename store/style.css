@@ -21,3 +21,20 @@ input { padding: 10px; width: 100%; border: 1px solid #b7bbc6; border-radius: 6p
 .small { font-size: 13px; color: var(--muted); }
 a { color: #0b57d0; }
 s { color: var(--muted); font-weight: 400; margin-right: 8px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.thumbs { display: flex; gap: 8px; margin: 6px 0; }
+.swatch { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #b7bbc6; cursor: pointer; padding: 0; }
+.swatch.selected { box-shadow: 0 0 0 2px var(--ink); }
+.tab { background: #fff; border: 1px solid #b7bbc6; border-radius: 6px; padding: 6px 10px; font-size: 14px; cursor: pointer; color: var(--ink); }
+.tab.current { background: var(--ink); color: #fff; border-color: var(--ink); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 10px; }
+.dot.ok { background: var(--brand); }
+.switch { position: relative; width: 44px; height: 24px; border-radius: 12px; border: 1px solid #b7bbc6; background: #dfe3ea; padding: 0; cursor: pointer; }
+.switch .knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.switch.on { background: var(--brand); border-color: var(--brand); }
+.switch.on .knob { left: 22px; }
+.steps { display: flex; gap: 14px; list-style: none; padding: 0; margin: 10px 0; color: var(--muted); font-size: 14px; }
+.steps .current { color: var(--ink); font-weight: 700; }
+input.qty { width: 54px; display: inline-block; padding: 6px; }
+input.short { width: 90px; display: inline-block; }
+textarea { width: 100%; border: 1px solid #b7bbc6; border-radius: 6px; padding: 8px; font-size: 14px; font-family: inherit; }

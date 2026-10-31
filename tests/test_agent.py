@@ -403,3 +403,16 @@ async def test_other_safety_checks_stop_the_batch(tmp_path, server_url, page):
     assert blocked.data["safety_codes"] == ["malicious_instructions"]
     result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
     assert result["finished"] is False and "safety check" in result["summary"]
+
+async def test_same_url_state_change_is_a_new_screen(tmp_path, server_url, page):
+    """Screen identity is the URL plus a digest of what the page says: changing the quantity on the cart is a new screen."""
+    from parity.agent.tools import screen_key
+
+    await page.goto(server_url + "/store/cart.html")
+    before = await screen_key(page)
+    await page.get_by_role("button", name="Increase quantity").click()
+    await page.wait_for_timeout(100)
+    after = await screen_key(page)
+    assert before != after and before.startswith("/store/cart.html") and after.startswith("/store/cart.html")
+    await page.goto(server_url + "/store/cart.html#top")
+    assert (await screen_key(page)).split("#")[0] == before.split("#")[0]  # a fragment alone is not a new screen

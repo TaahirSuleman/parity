@@ -40,10 +40,18 @@ class AgentState:
     turn: int = 0
 
 
-def screen_key(url: str) -> str:
-    """Screen identity for the store's pages: path and query, no fragment or origin."""
-    parts = urlsplit(url)
-    return parts.path + (f"?{parts.query}" if parts.query else "")
+async def screen_key(page) -> str:
+    """Screen identity: the URL's path and query plus a digest of what the page says, so a state change on the
+    same URL (a quantity, an error message) is a new screen and a fragment alone is not."""
+    import hashlib
+
+    parts = urlsplit(page.url)
+    try:
+        text = await page.evaluate("() => (document.body && document.body.innerText) || ''")
+    except Exception:  # a page mid-navigation: fall back to the URL alone
+        text = ""
+    digest = hashlib.sha1(" ".join(text.split()).encode()).hexdigest()[:10]
+    return parts.path + (f"?{parts.query}" if parts.query else "") + "#" + digest
 
 
 def _state(ctx: RunContext) -> AgentState:
@@ -56,7 +64,7 @@ async def _audit_view(ctx: RunContext, args: dict[str, Any]) -> dict[str, Any]:
     state = _state(ctx)
     if ctx.page is None:
         raise RuntimeError("no page attached to this run")
-    key = screen_key(ctx.page.url)
+    key = await screen_key(ctx.page)
     if key in state.audited:
         return {**state.audited[key], "already_audited": True}
     summary = await audit_view(ctx, ctx.page, state.step_count, str(args.get("reason") or "agent request"))
@@ -71,7 +79,7 @@ async def _audit_view(ctx: RunContext, args: dict[str, Any]) -> dict[str, Any]:
 
 async def _finish(ctx: RunContext, args: dict[str, Any]) -> dict[str, Any]:
     state = _state(ctx)
-    key = screen_key(ctx.page.url) if ctx.page is not None else ""
+    key = await screen_key(ctx.page) if ctx.page is not None else ""
     unaudited = key not in state.audited
     if unaudited and state.refusals < MAX_FINISH_REFUSALS:
         state.refusals += 1

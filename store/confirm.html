@@ -13,11 +13,20 @@
 </header>
 <main>
   <section class="card" aria-labelledby="confirm-h">
+    <img id="confetti" alt="celebration graphic" width="120" height="24" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='24'><circle cx='10' cy='12' r='4' fill='%23f5a623'/><circle cx='40' cy='8' r='4' fill='%230a7d3b'/><circle cx='70' cy='14' r='4' fill='%23d0021b'/><circle cx='100' cy='9' r='4' fill='%231f3b73'/></svg>">
     <h1 id="confirm-h">Order confirmed ✓</h1>
     <p>Order <strong>SR-10428</strong>. Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.</p>
     <p>A receipt has been sent to your email. Delivery is expected tomorrow.</p>
-    <p><a href="product.html">Back to the shop</a></p>
+    <p class="row"><span class="small">Tracking</span> <canvas id="tracking-canvas" width="180" height="22" role="presentation"></canvas></p>
+    <ol class="steps" aria-label="Delivery status"><li id="status-packed" class="current">Packed</li><li>Shipped</li><li>Delivered</li></ol>
+    <p class="row"><a id="invoice-link" href="#invoice" aria-label="Open"><img alt="" width="130" height="16" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='130' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Download invoice</text></svg>"></a>
+      <a id="rate-link" href="#rate">Rate your purchase</a></p>
+    <p><a id="back-link" href="product.html">Back to the shop</a></p>
   </section>
 </main>
+<script>
+  var k = document.getElementById("tracking-canvas").getContext("2d");
+  k.font = "bold 15px Arial"; k.fillStyle = "#1b1b1f"; k.fillText("ZA-7781-2201-9", 0, 16);
+</script>
 </body>
 </html>

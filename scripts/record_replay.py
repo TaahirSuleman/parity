@@ -29,6 +29,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", default="hero-checkout")
     ap.add_argument("--flow", default="checkout")
+    ap.add_argument("--min-rejected", type=int, default=1, help="re-run (up to 3 times) until the Verifier rejected at least this many candidates")
     args = ap.parse_args()
     base = load_settings()
     if not base.has_key:
@@ -69,6 +70,9 @@ def main() -> int:
         if not hero:
             print("no hero finding (#f5) in this run; not recording")
             return 1
+        if run["findings_rejected"] < args.min_rejected:
+            print(f"only {run['findings_rejected']} rejected candidates (need {args.min_rejected}): the demo needs a red row; not recording")
+            return 2
     finally:
         server.should_exit = True
         time.sleep(0.5)
@@ -93,4 +97,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    for attempt in range(3):
+        code = main()
+        if code != 2:
+            sys.exit(code)
+        print(f"retrying ({attempt + 2}/3)…")
+    sys.exit(2)

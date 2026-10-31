@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { ApiError, decide, getFlows, getHealth, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
+import { ApiError, decide, getFlows, getHealth, getRun, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
+import { submitDecision } from "./state/decisions";
 import { initialState, reduce, resetFor, select } from "./state/reducer";
 import type { ParityEvent, RunMode, RunState } from "./state/types";
 import { Workbench } from "./Workbench";
@@ -55,12 +56,8 @@ export default function App() {
   }, [flow, state.mode]);
 
   const onDecision = useCallback((id: string, decision: "approve" | "reject", reason: string) => {
-    if (!state.run) return;
-    const runId = state.run.id;
-    decide(runId, id, decision, reason)
-      .then((res) => dispatch({ kind: "event", ev: { type: "decision.recorded", run_id: runId, at: new Date().toISOString(), finding_id: id,
-        decision: res.finding.decision, status: res.finding.status, run_status: res.run.status } }))  // the stream has closed by now
-      .catch((e) => dispatch({ kind: "error", message: e instanceof ApiError ? e.detail : String(e) }));
+    if (!state.run) return Promise.resolve();
+    return submitDecision({ decide, getRun }, state.run.id, id, decision, reason, (ev) => dispatch({ kind: "event", ev }), (message) => dispatch({ kind: "error", message }));
   }, [state.run]);
 
   const lastStep = state.steps[state.steps.length - 1];

@@ -26,6 +26,8 @@ export const startRun = (flowId: string, mode: RunMode) =>
   fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ flow_id: flowId, mode }) }).then((r) =>
     json<{ run_id: string; mode: RunMode; replay_of?: string }>(r),
   );
+export interface RunDetail { run: Run; findings: Finding[]; steps: unknown[]; rejected: unknown[]; trace: unknown[] }
+export const getRun = (runId: string) => fetch(`/api/runs/${runId}`).then((r) => json<RunDetail>(r));
 export const decide = (runId: string, findingId: string, decision: "approve" | "reject", reason: string) =>
   fetch(`/api/runs/${runId}/findings/${findingId}/decision`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, reason }) }).then((r) => json<{ finding: Finding; run: Run }>(r));
 export const screenshotUrl = (runId: string, index: number) => `/api/runs/${runId}/steps/${index}/screenshot.png`;

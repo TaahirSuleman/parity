@@ -61,7 +61,7 @@ describe("FindingCard fix and decision", () => {
 
   it("records a reason with the decision: suggested from the re-audit, editable, required", () => {
     const seen: unknown[] = [];
-    render(<FindingCard finding={fixed} selected={true} onSelect={() => {}} onDecision={(id, d, r) => seen.push([id, d, r])} />);
+    render(<FindingCard finding={fixed} selected={true} onSelect={() => {}} onDecision={(id, d, r) => { seen.push([id, d, r]); }} />);
     const approve = screen.getByRole("button", { name: /approve fix/i });
     const reason = screen.getByLabelText(/reason/i) as HTMLInputElement;
     expect(reason.value).toMatch(/gap closed/i);
@@ -84,5 +84,35 @@ describe("FindingCard fix and decision", () => {
     render(<FindingCard finding={decided} selected={true} onSelect={() => {}} onDecision={() => {}} />);
     expect(screen.getByText(/Approved · ok/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /approve fix/i })).toBeNull();
+  });
+});
+
+describe("FindingCard decisions under failure and in flight", () => {
+  const fixOnly: Finding = {
+    ...finding, status: "fix_proposed", reaudit: null, reaudit_note: "TimeoutError: page closed",
+    fix: { before_html: "<button>", after_html: '<button id="f5">Pay R1,249</button>', diff: "", explanation: "", model_meta: {} },
+  };
+
+  it("lets a human decide a fix whose re-audit did not run, once a reason is typed", () => {
+    const seen: unknown[] = [];
+    render(<FindingCard finding={fixOnly} selected={true} onSelect={() => {}} onDecision={(id, d, r) => { seen.push([id, d, r]); return Promise.resolve(); }} />);
+    expect(screen.getByText(/re-audit did not run/i)).toBeInTheDocument();
+    const approve = screen.getByRole("button", { name: /approve fix/i });
+    expect(approve).toBeDisabled(); // no re-audit, so no suggested reason: the human must say why
+    fireEvent.change(screen.getByLabelText(/reason/i), { target: { value: "The before/after is clear" } });
+    expect(approve).toBeEnabled();
+    fireEvent.click(approve);
+    expect(seen).toEqual([[fixOnly.id, "approve", "The before/after is clear"]]);
+  });
+
+  it("disables both buttons while a decision is in flight, so a double click cannot send twice", async () => {
+    let calls = 0;
+    render(<FindingCard finding={{ ...fixOnly, reaudit: { gap_closed: true, sr_name_before: "Submit", sr_name_after: "Pay R1,249", comparator_still_flags: false } }} selected={true} onSelect={() => {}} onDecision={() => { calls += 1; return new Promise(() => {}); }} />);
+    const approve = screen.getByRole("button", { name: /approve fix/i });
+    fireEvent.click(approve);
+    fireEvent.click(approve);
+    expect(calls).toBe(1);
+    expect(approve).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^reject/i })).toBeDisabled();
   });
 });

@@ -1,0 +1,38 @@
+import { describe, expect, it } from "vitest";
+import { ApiError } from "../api";
+import { submitDecision } from "./decisions";
+import type { Finding, ParityEvent, Run } from "./types";
+
+const run = { id: "r1", status: "awaiting_review" } as Run;
+const decided = { id: "f1", status: "approved", decision: { decision: "approve", reason: "ok", decided_at: "2026-10-31T00:00:00Z" } } as unknown as Finding;
+
+describe("submitDecision", () => {
+  it("applies the route's response as a decision.recorded event (the stream is closed by then)", async () => {
+    const events: ParityEvent[] = [];
+    const errors: string[] = [];
+    await submitDecision({
+      decide: async () => ({ finding: decided, run: { ...run, status: "done" } }), getRun: async () => { throw new Error("not needed"); },
+    }, "r1", "f1", "approve", "ok", (ev) => events.push(ev), (m) => errors.push(m));
+    expect(errors).toEqual([]);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: "decision.recorded", run_id: "r1", finding_id: "f1", status: "approved", run_status: "done" });
+  });
+
+  it("treats 409 (already decided) as a refetch, not a failed run", async () => {
+    const events: ParityEvent[] = [];
+    const errors: string[] = [];
+    await submitDecision({
+      decide: async () => { throw new ApiError(409, "finding f1 was already approved"); },
+      getRun: async () => ({ run: { ...run, status: "done" }, findings: [decided], steps: [], rejected: [], trace: [] }),
+    }, "r1", "f1", "reject", "late", (ev) => events.push(ev), (m) => errors.push(m));
+    expect(errors).toEqual([]);
+    expect(events[0]).toMatchObject({ type: "decision.recorded", finding_id: "f1", status: "approved", run_status: "done" });
+  });
+
+  it("reports other failures as errors", async () => {
+    const errors: string[] = [];
+    await submitDecision({ decide: async () => { throw new ApiError(503, "down"); }, getRun: async () => { throw new Error("x"); } },
+      "r1", "f1", "approve", "ok", () => {}, (m) => errors.push(m));
+    expect(errors).toEqual(["down"]);
+  });
+});

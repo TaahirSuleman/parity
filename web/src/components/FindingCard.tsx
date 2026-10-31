@@ -7,7 +7,7 @@ interface Props {
   finding: Finding;
   selected: boolean;
   onSelect: (id: string) => void;
-  onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void;
+  onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void | Promise<void>;
 }
 
 function suggestedReason(finding: Finding): string {
@@ -21,10 +21,17 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
   const j = finding.judgement;
   const quote = srQuote(finding);
   const [typed, setTyped] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const reason = typed ?? suggestedReason(finding); // suggested from the re-audit, editable, required
-  const canDecide = Boolean(finding.fix && finding.reaudit && !finding.decision && onDecision);
-  const ready = canDecide && reason.trim().length > 0;
+  // Pending means a fix without a decision (same rule as the server): the re-audit is evidence, not a gate.
+  const canDecide = Boolean(finding.fix && !finding.decision && onDecision);
+  const ready = canDecide && reason.trim().length > 0 && !busy;
   const reasonId = `reason-${finding.id}`;
+  const act = (decision: "approve" | "reject") => {
+    if (!onDecision || busy) return;
+    setBusy(true);
+    Promise.resolve(onDecision(finding.id, decision, reason.trim())).finally(() => setBusy(false));
+  };
   return (
     <article>
       <button type="button" className="card" aria-pressed={selected} onClick={() => onSelect(finding.id)}>
@@ -92,10 +99,10 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
         <div className="flex items-center gap-2 px-1 py-2 flex-wrap">
           <label className="sr-only" htmlFor={reasonId}>Reason</label>
           <input id={reasonId} className="btn-quiet fix-reason" value={reason} onChange={(e) => setTyped(e.target.value)} placeholder="Reason for the decision" disabled={!canDecide} />
-          <button type="button" className="btn-quiet" disabled={!ready} onClick={() => onDecision?.(finding.id, "approve", reason.trim())} title={canDecide ? "Approve the proposed fix" : "Approve becomes available once a fix has been proposed and re-audited"}>
+          <button type="button" className="btn-quiet" disabled={!ready} onClick={() => act("approve")} title={canDecide ? "Approve the proposed fix" : "Approve becomes available once a fix has been proposed"}>
             Approve fix
           </button>
-          <button type="button" className="btn-quiet" disabled={!ready} onClick={() => onDecision?.(finding.id, "reject", reason.trim())} title={canDecide ? "Reject the proposed fix" : "Reject becomes available once a fix has been proposed and re-audited"}>
+          <button type="button" className="btn-quiet" disabled={!ready} onClick={() => act("reject")} title={canDecide ? "Reject the proposed fix" : "Reject becomes available once a fix has been proposed"}>
             Reject
           </button>
           {!finding.fix && !finding.fix_note && <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>}

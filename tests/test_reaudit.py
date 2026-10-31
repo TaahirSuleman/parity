@@ -59,3 +59,29 @@ async def test_reaudit_element_gone_from_tree_is_not_closed(hero, page, store_ur
     """A fix that hides the element from the tree is not a fix: no name is worse than a wrong one."""
     result, _, _ = await run(hero, page, store_url, tmp_path, HIDDEN_AFTER, [])
     assert result.gap_closed is False and result.sr_name_after == ""
+
+
+async def test_reaudit_serves_the_patched_page_even_with_a_fragment_url(hero, page, store_url, tmp_path):
+    """The agent clicks in-page anchors; a captured URL with #terms must still get the patched document."""
+    cap, finding = hero
+    url = store_url + "checkout.html#terms"
+    await page.goto(url)
+    html = await page.content()
+    fix = Fix(before_html=finding.element.outer_html or "", after_html=GOOD_AFTER, diff="")
+    fake = FakeMetaClient(tmp_path, stage_defaults={"comparator": comparator_answer([])})
+
+    async def factory():
+        return page
+
+    result = await reaudit(fake, factory, html, url, fix, finding, run_id="r1", model=MODEL)
+    assert result.gap_closed is True and result.sr_name_after == "Pay R1,249"
+
+
+async def test_patched_page_cannot_reach_the_api(page, store_url):
+    """Defence in depth: whatever a snippet smuggles past the validator, the re-audit page cannot call the API."""
+    from parity.pipeline.reaudit import load_patched
+
+    html = "<!doctype html><html><body><p>x</p><script>fetch('/api/health').then(r => { window.__api = r.status }).catch(() => { window.__api = 'blocked' })</script></body></html>"
+    async with load_patched(page, store_url + "checkout.html", html):
+        await page.wait_for_function("() => window.__api !== undefined")
+        assert await page.evaluate("() => window.__api") == "blocked"

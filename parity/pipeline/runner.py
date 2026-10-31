@@ -17,7 +17,7 @@ from parity.flows import Flow
 from parity.meta.client import MetaError, TraceRouter
 from parity.pipeline import browser
 from parity.pipeline.audit import Ablation, RunContext, audit_view
-from parity.pipeline.gate import fix_findings
+from parity.pipeline.gate import fix_findings, is_pending, run_lock
 from parity.store.bundle import RunBundle
 from parity.store.models import Run, RunMode, RunStatus, now
 
@@ -68,12 +68,11 @@ async def run_flow(
             return page
 
         fixes = await fix_findings(ctx, same_page)
-        run.status = RunStatus.awaiting_review if fixes else RunStatus.done  # a human decides every proposed fix
-        await _close(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
+        pending = await _settle(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
         await ctx.emit("run.finished", {
             "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
             "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
-            "fixes_proposed": fixes, "agent": result_dict(agent) if agent else None, "final_url": final_url, "duration_ms": run.duration_ms,
+            "fixes_proposed": fixes, "pending": pending, "agent": result_dict(agent) if agent else None, "final_url": final_url, "duration_ms": run.duration_ms,
         })
     except MetaError as exc:
         run.status = RunStatus.failed
@@ -97,7 +96,10 @@ async def run_flow(
                 await page.context.close()
             except Exception:
                 pass
-        await ctx.save_run()
+        if run.status == RunStatus.failed:
+            await ctx.save_run()
+        else:
+            await _settle(ctx, t0)  # the last word on the status: a decision may have landed since the terminal event
         await bundle.flush(run.id)
     return run
 
@@ -107,6 +109,16 @@ async def _close(ctx: RunContext, t0: float) -> None:
     ctx.run.finished_at = now()
     ctx.run.duration_ms = max(1, int((time.perf_counter() - t0) * 1000))
     await ctx.save_run()
+
+
+async def _settle(ctx: RunContext, t0: float) -> int:
+    """Under the run's lock: pending is read back from the bundle (a human may have decided fixes while the run
+    was still going), the status follows, and the run is written. Returns the number of pending fixes."""
+    async with run_lock(ctx.run.id):
+        pending = [f for f in (await ctx.bundle.load(ctx.run.id)).findings if is_pending(f)]
+        ctx.run.status = RunStatus.awaiting_review if pending else RunStatus.done
+        await _close(ctx, t0)
+    return len(pending)
 
 
 async def run_single_page(settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, **kwargs) -> Run:

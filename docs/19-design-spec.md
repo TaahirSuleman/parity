@@ -91,7 +91,9 @@ Finding    id, run_id, step_index, status(verified|judged|fix_proposed|reaudited
 Rejected   same as Candidate + verifier result (shown as the red row)
 Judgement  is_barrier, severity(critical|serious|moderate|minor), wcag[{sc, name}], impact, model_meta
 Fix        before_html, after_html, diff(unified, git-style a/ b/ paths, computed in code), explanation, model_meta
-           (P3) Capture carries html = page.content() at capture time: the source the fixer patches and the re-audit reloads at the page's real URL
+           (P3) Capture carries html = the document as served (page.request.get), persisted as steps/<n>/source.html: the base the fixer
+           splices into (element located by id) and the base fix.patch is rebuilt from on every decision (one combined diff per file,
+           `git apply --check` clean). The re-audit serves the patched source at the real URL with /api blocked for that page.
 Reaudit    gap_closed(bool), sr_name_before, sr_name_after, comparator_still_flags(bool|null)
 Decision   decision(approve|reject), reason, decided_at
 ModelCall  id, run_id, step_index?, stage, model, request_id, response_id, prompt_sha256, cache_hit,

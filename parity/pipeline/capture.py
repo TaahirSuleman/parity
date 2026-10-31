@@ -9,6 +9,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import logging
+
 from playwright.async_api import CDPSession, Page
 
 from parity.store.models import AxeViolation, AxNode, BBox, Capture
@@ -23,6 +25,7 @@ KEEP_UNNAMED = {
     "button", "link", "textbox", "searchbox", "image", "checkbox", "radio", "combobox", "listbox",
     "option", "menuitem", "slider", "spinbutton", "switch", "tab", "heading", "canvas", "figure", "graphics-document",
 }
+log = logging.getLogger(__name__)
 MAX_OUTER_HTML = 2000
 
 _ELEMENT_INFO_JS = """
@@ -185,11 +188,23 @@ async def _axe(page: Page, cdp: CDPSession) -> list[AxeViolation]:
     return violations
 
 
+async def served_source(page: Page) -> str:
+    """The document as served, byte for byte: the base the fixer's patch applies to. file:// and failures fall back to the DOM."""
+    if page.url.startswith("http"):
+        try:
+            resp = await page.request.get(page.url)
+            if resp.ok:
+                return await resp.text()
+        except Exception as exc:  # the capture must not fail for want of a patch base
+            log.debug("served_source(%s): %s", page.url, exc)
+    return await page.content()
+
+
 async def capture(page: Page, step_index: int) -> Capture:
     size = page.viewport_size or {"width": 1280, "height": 720}
     viewport = (size["width"], size["height"])
     screenshot = await page.screenshot()
-    html = await page.content()
+    html = await served_source(page)
     cdp = await page.context.new_cdp_session(page)
     try:
         await cdp.send("DOM.enable")

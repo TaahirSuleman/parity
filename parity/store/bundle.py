@@ -41,6 +41,9 @@ class keys:
     def axe(run_id: str, n: int) -> str:
         return f"runs/{run_id}/steps/{n}/axe.json"
 
+    def source(run_id: str, n: int) -> str:
+        return f"runs/{run_id}/steps/{n}/source.html"
+
     @staticmethod
     def finding(run_id: str, fid: str) -> str:
         return f"runs/{run_id}/findings/{fid}.json"
@@ -102,6 +105,8 @@ class RunBundle:
         step.captured_at = capture.captured_at
         ax = {"ax_nodes": [n.model_dump(mode="json") for n in capture.ax_nodes], "silent_nodes": [n.model_dump(mode="json") for n in capture.silent_nodes]}
         await self.store.put(keys.screenshot(step.run_id, n), capture.screenshot_png, "image/png")
+        if capture.html:
+            await self.store.put(keys.source(step.run_id, n), capture.html.encode(), "text/html; charset=utf-8")
         await self.store.put(keys.ax(step.run_id, n), json.dumps(ax).encode(), JSON)
         await self.store.put(keys.axe(step.run_id, n), json.dumps([v.model_dump(mode="json") for v in capture.axe_violations]).encode(), JSON)
         await self.store.put(keys.step(step.run_id, n), step.model_dump_json(indent=1).encode(), JSON)
@@ -115,6 +120,13 @@ class RunBundle:
     async def write_patch(self, run_id: str, patch: str) -> None:
         await self.store.put(keys.patch(run_id), patch.encode(), "text/x-diff")
 
+    async def read_source(self, run_id: str, n: int) -> str | None:
+        """The served page source of one step: the base an approved patch is rebuilt from."""
+        key = keys.source(run_id, n)
+        if not await self.store.exists(key):
+            return None
+        return (await self.store.get(key)).decode()
+
     async def read_patch(self, run_id: str) -> str | None:
         key = keys.patch(run_id)
         if not await self.store.exists(key):
@@ -123,10 +135,12 @@ class RunBundle:
 
     async def append_event(self, run_id: str, event: Event) -> None:
         """Persist one event after the run's buffers were flushed (a decision): read, append, write whole."""
-        events = await self.events(run_id)
-        events.append(event)
         if run_id in self._events:
-            self._events[run_id].append(event)
+            self._events[run_id].append(event)  # the buffer itself, so concurrent appends all land
+            events = self._events[run_id]
+        else:
+            events = await self._read_jsonl(keys.events(run_id), Event)
+            events.append(event)
         await self.store.put(keys.events(run_id), _jsonl(events), "application/x-ndjson")
 
     def add_trace(self, run_id: str, call: ModelCall) -> None:

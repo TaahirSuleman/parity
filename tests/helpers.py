@@ -23,6 +23,8 @@ async def make_replay_bundle(root: Path) -> None:
     await bundle.create(run)
     cap = Capture.model_validate_json(FIXTURE.read_text())
     cap.screenshot_png = FIXTURE.with_suffix(".png").read_bytes()
+    cap.html = (Path(__file__).resolve().parents[1] / "store" / "checkout.html").read_text()  # the served source: the patch base
+    cap.url = "http://127.0.0.1:8080/store/checkout.html"
     await bundle.write_step(Step(run_id=SRC, index=0, url=cap.url), cap)
     finding = sample_finding(SRC, f"{SRC}-f01")
     finding.fix = Fix(before_html=finding.element.outer_html or "", after_html='<button id="f5" class="btn">Pay R1,249</button>',

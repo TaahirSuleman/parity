@@ -1,14 +1,18 @@
 """Re-audit: reload the patched page and decide in code whether the gap closed (spec §6, D4).
 
-The hosted store never changes. The patched HTML is served to the browser at the page's real URL
-by route interception, captured again, and the fixed element's new accessible name is compared
-with the sighted text. The comparator runs once more as a second signal only; it does not decide.
+The hosted store never changes. The patched source is served to the browser at the page's real URL
+by route interception (fragment-insensitive, and the page is confirmed served), captured again, and
+the fixed element's new accessible name is compared with the sighted text. While the patched page
+is open it cannot reach the API: whatever a snippet might smuggle past the validator stays inert.
+The comparator runs once more as a second signal only; it does not decide.
 """
 
 from __future__ import annotations
 
+import contextlib
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from urllib.parse import urlparse
 
 from playwright.async_api import Page, Route
 
@@ -40,27 +44,52 @@ def gap_closed(sighted: str, new_name: str) -> bool:
     return bool(n) and (s in n or n == s)
 
 
-async def load_patched(page: Page, url: str, patched_html: str) -> None:
-    """Serve the patched document at its real URL, so relative assets and links keep resolving."""
+def _without_fragment(url: str) -> str:
+    return url.split("#", 1)[0]
+
+
+@contextlib.asynccontextmanager
+async def load_patched(page: Page, url: str, patched_html: str) -> AsyncIterator[Page]:
+    """Serve the patched document at its real URL (relative assets keep resolving) with the API unreachable."""
+    document = _without_fragment(url)
+    served = 0
 
     async def fulfil(route: Route) -> None:
+        nonlocal served
+        served += 1
         await route.fulfill(status=200, content_type="text/html; charset=utf-8", body=patched_html)
 
-    await page.route(url, fulfil)
+    async def block(route: Route) -> None:
+        await route.abort("blockedbyclient")
+
+    def is_document(u: str) -> bool:
+        return _without_fragment(u) == document
+
+    def is_api(u: str) -> bool:
+        return urlparse(u).path.startswith("/api")
+
+    await page.route(is_api, block)
+    await page.route(is_document, fulfil)
     try:
-        await page.goto(url, wait_until="load")
+        if _without_fragment(page.url) == document:
+            await page.goto("about:blank")  # a same-document (fragment) navigation makes no request, so nothing would be served
+        await page.goto(document, wait_until="load")
+        if served == 0:
+            raise RuntimeError(f"the patched page was not served for {url}; the re-audit would have read the live page")
+        yield page
     finally:
-        await page.unroute(url, fulfil)
+        await page.unroute(is_document, fulfil)
+        await page.unroute(is_api, block)
 
 
 async def reaudit(client, page_factory: PageFactory, page_html: str, url: str, fix: Fix, finding: Finding, run_id: str,
-                  *, model: str, effort: str = "medium") -> Reaudit:
+                  *, model: str, effort: str = "low") -> Reaudit:
     patched = apply_fix(page_html, finding.element, fix.after_html)
     page = await page_factory()
-    await load_patched(page, url, patched)
-    cap = await capture(page, finding.step_index)
-    new_name = name_after(cap, finding)
-    candidates = await compare(client, cap, [], run_id, model=model, effort=effort)
+    async with load_patched(page, url, patched):
+        cap = await capture(page, finding.step_index)
+        new_name = name_after(cap, finding)
+        candidates = await compare(client, cap, [], run_id, model=model, effort=effort)
     still_flags = any(
         same_element(locate(c.bbox, cap.ax_nodes), finding) or normalise(c.sighted_text) == normalise(finding.sighted_text)
         for c in candidates

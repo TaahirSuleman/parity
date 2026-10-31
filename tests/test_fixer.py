@@ -93,3 +93,112 @@ async def test_fix_rejected_when_snippet_adds_script_or_is_unparseable(hero, tmp
     fake = FakeMetaClient(tmp_path, default=response_with("not json at all"))
     with pytest.raises(FixRejected):
         await propose_fix(fake, finding, cap, run_id="r1", model=MODEL)
+
+
+# --- review fix pass: the patch applies to the file it names; snippets are parsed, not grepped ---
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE = (ROOT / "store" / "checkout.html").read_text()
+F5 = Element(backend_id=1, css_path="#f5", dom_id="f5")
+F6_AFTER = '<button id="f6" class="icon" aria-label="Delete">🗑️</button>'
+
+
+def git_apply_check(tmp_path, diff: str, rel: str = "store/checkout.html", source: str = SOURCE) -> None:
+    import subprocess
+
+    target = tmp_path / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(source)
+    (tmp_path / "fix.patch").write_text(diff)
+    res = subprocess.run(["git", "apply", "--check", "fix.patch"], cwd=tmp_path, capture_output=True, text=True)
+    assert res.returncode == 0, res.stderr
+
+
+def test_locate_in_source_finds_the_element_by_id():
+    from parity.pipeline.fixer import locate_in_source
+
+    start, end = locate_in_source(SOURCE, F5)
+    assert SOURCE[start:end].startswith('<button id="f5" class="btn" aria-label="Submit">') and SOURCE[start:end].endswith("</button>")
+    s, e = locate_in_source(SOURCE, Element(backend_id=2, css_path="#f1", dom_id="f1"))  # a void element is its start tag
+    assert SOURCE[s:e].startswith('<img id="f1"') and SOURCE[s:e].endswith('">') and SOURCE[s:e].count("<img") == 1 and "<button" not in SOURCE[s:e]
+    nested = '<main><div id="a"><div>inner</div></div><p>tail</p></main>'
+    s, e = locate_in_source(nested, Element(backend_id=3, css_path="#a", dom_id="a"))
+    assert nested[s:e] == '<div id="a"><div>inner</div></div>'
+    assert locate_in_source(SOURCE, Element(backend_id=4, css_path="x", dom_id="nope")) is None
+    assert locate_in_source('<p id="d">1</p><p id="d">2</p>', Element(backend_id=5, css_path="#d", dom_id="d")) is None  # ambiguous
+
+
+def test_apply_fix_splices_into_the_served_source_by_id():
+    """The DOM serialisation (&lt;svg in the attribute) never matches the source text; the id does."""
+    dom = Element(backend_id=1, css_path="#f5", dom_id="f5", outer_html='<button id="f5" class="btn" aria-label="Submit"><img alt="" src="data:image/svg+xml;utf8,&lt;svg&gt;"></button>')
+    out = apply_fix(SOURCE, dom, AFTER)
+    assert AFTER in out and 'aria-label="Submit"><img' not in out and out.count("<button") == SOURCE.count("<button")
+
+
+def test_patch_applies_with_git(tmp_path):
+    """The exported patch must apply to the repo file it names: `git apply --check` is the judge."""
+    git_apply_check(tmp_path, unified_diff(SOURCE, apply_fix(SOURCE, F5, AFTER), "store/checkout.html"))
+
+
+def test_combined_patch_for_adjacent_fixes_applies(tmp_path):
+    """Two approved fixes on adjacent lines (f5, f6) must come out as one diff against one base."""
+    from parity.pipeline.fixer import combine_patch
+
+    diff = combine_patch(SOURCE, [(F5, AFTER), (Element(backend_id=2, css_path="#f6", dom_id="f6"), F6_AFTER)], "store/checkout.html")
+    assert "Pay R1,249" in diff and 'aria-label="Delete"' in diff and diff.count("+++ b/") == 1
+    git_apply_check(tmp_path, diff)
+
+
+def test_unified_diff_keeps_no_newline_at_eof(tmp_path):
+    src = "<p id='a'>a</p>\n<p>b</p>"  # no trailing newline, like many real files
+    diff = unified_diff(src, src.replace("<p>b</p>", "<p>c</p>"), "x.html")
+    assert "\\ No newline at end of file" in diff
+    git_apply_check(tmp_path, diff, "x.html", src)
+
+
+BAD_SNIPPETS = [
+    '<button id="f5"><img src="x"onerror=alert(1)></button>',
+    '<button id="f5"><svg/onload=alert(1)></svg></button>',
+    '<button id="f5"><a href="java&#115;cript:alert(1)">x</a></button>',
+    '<button id="f5"><a href="java\tscript:alert(1)">x</a></button>',
+    '<button id="f5"><iframe srcdoc="&lt;script&gt;alert(1)&lt;/script&gt;"></iframe></button>',
+    '<button id="f5"><object data="data:text/html,x"></object></button>',
+    '<button id="f5" formaction="javascript&colon;alert(1)">x</button>',
+    '<button id="f5"><meta http-equiv="refresh" content="0;url=https://evil"></button>',
+    '<button id="f5"><base href="https://evil/"></button>',
+    '<button id="f5"><style>body{display:none}</style>x</button>',
+    '<button id="f5"><link rel="stylesheet" href="https://evil/x.css">x</button>',
+    '<button id="f5">x</button><img src="x">',
+    'text <button id="f5">x</button>',
+    '<button id="f5">x',
+    '<button id="f5"><span id="f5">x</span></button>',
+]
+
+
+@pytest.mark.parametrize("snippet", BAD_SNIPPETS)
+def test_validator_rejects_smuggled_behaviour(snippet):
+    from parity.pipeline.fixer import validate_snippet
+
+    with pytest.raises(FixRejected):
+        validate_snippet(BEFORE, snippet)
+
+
+def test_validator_accepts_real_fixes_and_kept_handlers():
+    from parity.pipeline.fixer import validate_snippet
+
+    validate_snippet(BEFORE, AFTER)
+    validate_snippet(BEFORE, '<button id="f5" class="btn"><img alt="Pay R1,249" width="118" height="20" src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><text>Pay</text></svg>"></button>')
+    before = '<button id="x" onclick="go()" aria-label="Submit">a</button>'
+    validate_snippet(before, '<button id="x" onclick="go()">Pay R1,249</button>')  # an existing handler, unchanged, is fine
+    with pytest.raises(FixRejected):
+        validate_snippet(before, '<button id="x" onclick="steal()">Pay R1,249</button>')
+
+
+async def test_fix_refused_when_the_element_source_is_too_large(hero, tmp_path):
+    from parity.pipeline.fixer import MAX_FIX_HTML
+
+    cap, finding = hero
+    cap.html = SOURCE.replace('<button id="f5" class="btn" aria-label="Submit">', '<button id="f5" class="btn" aria-label="Submit" data-x="' + "y" * MAX_FIX_HTML + '">')
+    fake = FakeMetaClient(tmp_path, default=response_with({"after_html": AFTER, "explanation": ""}))
+    with pytest.raises(FixRejected):
+        await propose_fix(fake, finding, cap, run_id="r1", model=MODEL)
+    assert not fake.calls  # refused before spending a model call

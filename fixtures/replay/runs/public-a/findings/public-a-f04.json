@@ -1,0 +1,89 @@
+{
+ "id": "public-a-f04",
+ "run_id": "public-a",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "4 out of 5 stars",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user gets no rating information for Sharp Objects that sighted users use to evaluate the product.",
+ "voice": null,
+ "bbox": {
+  "x_min": 812,
+  "y_min": 850,
+  "x_max": 965,
+  "y_max": 878
+ },
+ "element": {
+  "backend_id": 233,
+  "css_path": "body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(4) > article:nth-of-type(1) > p:nth-of-type(1)",
+  "box_px": [
+   1040,
+   612,
+   1235,
+   632
+  ],
+  "outer_html": "<p class=\"star-rating Four\">\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                </p>",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:p at body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(4) > article:nth-of-type(1) > p:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 233,
+   "css_path": "body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(4) > article:nth-of-type(1) > p:nth-of-type(1)",
+   "box_px": [
+    1040,
+    612,
+    1235,
+    632
+   ],
+   "outer_html": "<p class=\"star-rating Four\">\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                </p>",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user gets no rating for Sharp Objects and cannot use the 4-out-of-5 star information sighted users see to evaluate and compare the product.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "01865de2-415e-4e2b-8206-575dde741de5",
+   "response_id": "resp_6ae6713a97c516dc1f2a49f2",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

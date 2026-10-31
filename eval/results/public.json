@@ -3,10 +3,10 @@
   "name": "Site A",
   "run_id": "public-a",
   "pages": 2,
-  "verified": 1,
-  "rejected": 5,
+  "verified": 6,
+  "rejected": 0,
   "status": "done",
-  "note": "one verified gap (a book cover image named by its title, not described); the judge rated it not a barrier"
+  "note": "five star ratings drawn in CSS announce nothing (judged barriers, moderate) and a cover image is named by its title alone (judged not a barrier); axe-core reports none of them"
  },
  {
   "name": "Site B",

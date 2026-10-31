@@ -1,0 +1,89 @@
+{
+ "id": "public-a-f03",
+ "run_id": "public-a",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "1 out of 5 stars",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user gets no rating information for Soumission that sighted users use to evaluate the product.",
+ "voice": null,
+ "bbox": {
+  "x_min": 637,
+  "y_min": 850,
+  "x_max": 789,
+  "y_max": 878
+ },
+ "element": {
+  "backend_id": 214,
+  "css_path": "body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(3) > article:nth-of-type(1) > p:nth-of-type(1)",
+  "box_px": [
+   815,
+   612,
+   1010,
+   632
+  ],
+  "outer_html": "<p class=\"star-rating One\">\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                </p>",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:p at body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(3) > article:nth-of-type(1) > p:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 214,
+   "css_path": "body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(3) > article:nth-of-type(1) > p:nth-of-type(1)",
+   "box_px": [
+    815,
+    612,
+    1010,
+    632
+   ],
+   "outer_html": "<p class=\"star-rating One\">\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                </p>",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user cannot learn that Soumission is rated 1 out of 5 stars that sighted users use to evaluate and compare the product.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "1c9c5694-ca91-4a08-a0b6-b2104c19bb7b",
+   "response_id": "resp_6ae6713ac35ac1b0fdf6437e",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

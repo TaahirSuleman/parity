@@ -1,0 +1,84 @@
+{
+ "id": "public-a-f05",
+ "run_id": "public-a",
+ "step_index": 1,
+ "status": "judged",
+ "sighted_text": "A Light in the Attic poems and drawings by Shel Silverstein",
+ "sr_role": "image",
+ "sr_name": "A Light in the Attic",
+ "why_it_matters": "Blind user misses the author and subtitle information that is visible on the book cover.",
+ "voice": null,
+ "bbox": {
+  "x_min": 138,
+  "y_min": 311,
+  "x_max": 386,
+  "y_max": 860
+ },
+ "element": {
+  "backend_id": 996,
+  "css_path": "div#product_gallery > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > img:nth-of-type(1)",
+  "box_px": [
+   176,
+   224,
+   494,
+   619
+  ],
+  "outer_html": "<img src=\"../../media/cache/fe/72/fe72f0532301ec28892ae79a629a293c.jpg\" alt=\"A Light in the Attic\">",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at div#product_gallery > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 996,
+   "css_path": "div#product_gallery > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > img:nth-of-type(1)",
+   "box_px": [
+    176,
+    224,
+    494,
+    619
+   ],
+   "outer_html": "<img src=\"../../media/cache/fe/72/fe72f0532301ec28892ae79a629a293c.jpg\" alt=\"A Light in the Attic\">",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": false,
+  "severity": "minor",
+  "wcag": [],
+  "impact": "User still gets the title from the heading and the author and poems/drawings information from the product description text.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "85dd0c8c-8fc4-4116-a915-5dc775c5b447",
+   "response_id": "resp_6ae67170911651bb30a7457e",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

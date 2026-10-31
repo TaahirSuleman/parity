@@ -1,0 +1,89 @@
+{
+ "id": "public-a-f02",
+ "run_id": "public-a",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "1 out of 5 stars",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user gets no rating information for Tipping the Velvet that sighted users use to evaluate the product.",
+ "voice": null,
+ "bbox": {
+  "x_min": 461,
+  "y_min": 850,
+  "x_max": 613,
+  "y_max": 878
+ },
+ "element": {
+  "backend_id": 195,
+  "css_path": "body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(2) > article:nth-of-type(1) > p:nth-of-type(1)",
+  "box_px": [
+   590,
+   612,
+   785,
+   632
+  ],
+  "outer_html": "<p class=\"star-rating One\">\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                </p>",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:p at body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(2) > article:nth-of-type(1) > p:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 195,
+   "css_path": "body#default > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2) > ol:nth-of-type(1) > li:nth-of-type(2) > article:nth-of-type(1) > p:nth-of-type(1)",
+   "box_px": [
+    590,
+    612,
+    785,
+    632
+   ],
+   "outer_html": "<p class=\"star-rating One\">\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                    <i class=\"icon-star\"></i>\n                </p>",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user cannot perceive the 1-out-of-5-star rating for Tipping the Velvet that sighted users use to evaluate and compare products.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "8ef85afc-4eda-4169-81c7-2b56c148cc99",
+   "response_id": "resp_6ae6713b7afc3c52cfb249ad",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

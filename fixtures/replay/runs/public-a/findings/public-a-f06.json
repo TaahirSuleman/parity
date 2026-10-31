@@ -1,0 +1,89 @@
+{
+ "id": "public-a-f06",
+ "run_id": "public-a",
+ "step_index": 1,
+ "status": "judged",
+ "sighted_text": "3 out of 5 stars",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user gets no rating information that sighted users get from the star icons.",
+ "voice": null,
+ "bbox": {
+  "x_min": 511,
+  "y_min": 519,
+  "x_max": 572,
+  "y_max": 538
+ },
+ "element": {
+  "backend_id": 1001,
+  "css_path": "div#content_inner > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(3)",
+  "box_px": [
+   655,
+   371,
+   1235,
+   391
+  ],
+  "outer_html": "<p class=\"star-rating Three\">\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n\n        <!-- <small><a href=\"/catalogue/a-light-in-the-attic_1000/reviews/\">\n        \n                \n                    0 customer reviews\n                \n        </a></small>\n         -->&nbsp;\n\n\n<!-- \n    <a id=\"write_review\" href=\"/catalogue/a-light-in-the-attic_1000/reviews/add/#addreview\" class=\"btn btn-success btn-sm\">\n        Write a review\n    </a>\n\n --></p>",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:p at div#content_inner > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(3)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 1001,
+   "css_path": "div#content_inner > article:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(3)",
+   "box_px": [
+    655,
+    371,
+    1235,
+    391
+   ],
+   "outer_html": "<p class=\"star-rating Three\">\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n        <i class=\"icon-star\"></i>\n\n        <!-- <small><a href=\"/catalogue/a-light-in-the-attic_1000/reviews/\">\n        \n                \n                    0 customer reviews\n                \n        </a></small>\n         -->&nbsp;\n\n\n<!-- \n    <a id=\"write_review\" href=\"/catalogue/a-light-in-the-attic_1000/reviews/add/#addreview\" class=\"btn btn-success btn-sm\">\n        Write a review\n    </a>\n\n --></p>",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "The screen-reader user cannot know the product is rated 3 out of 5 stars that sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "c8d8844e-ba54-4261-b473-941e7734db78",
+   "response_id": "resp_6ae671708777096b10ed487f",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

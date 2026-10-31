@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "heart icon",
+ "sighted_text": "heart icon - add to wishlist",
  "sr_role": "button",
  "sr_name": "Close",
- "why_it_matters": "Blind user is told the button closes something and will not know it adds the item to a wishlist.",
+ "why_it_matters": "A blind user is told the button closes something instead of adding the item to the wishlist, so the action is lost and misleading.",
  "voice": null,
  "bbox": {
   "x_min": 242,
@@ -77,12 +77,12 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The user is told the button will close something and cannot know it adds the headphones to a wishlist or use it for that purpose.",
+  "impact": "The screen-reader user is told the button closes something and cannot discover or use it to add the item to the wishlist.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "ebb3e787-8d61-40b9-907e-b2ce2d61dcab",
-   "response_id": "resp_6ae62f796d1439a1bae04c31",
+   "request_id": "a24b7375-b77f-4a04-89ba-169cf2cab69d",
+   "response_id": "resp_6ae6466aa79f41327a6c4648",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -91,11 +91,11 @@
   "before_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
   "after_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>",
   "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -22,7 +22,7 @@\n     <p class=\"total\"><s class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n-      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n+      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>\n     </div>\n   </section>\n   <section class=\"card\" aria-labelledby=\"details-h\">\n",
-  "explanation": "Changed aria-label from \"Close\" to \"Add to wishlist\" so the accessible name matches the heart-icon wishlist action sighted users see.",
+  "explanation": "Changed aria-label from Close to Add to wishlist so the accessible name matches the button's visible purpose.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "d0dd57c9-e67e-4948-aba0-048eb9ea0b0a",
-   "response_id": "resp_6ae630c310d4f1c4923d42a5",
+   "request_id": "3be14490-c4e3-49c1-81f1-275c8424ed0c",
+   "response_id": "resp_6ae647715dcf22fb9b8146b4",
    "status": "completed"
   }
  },

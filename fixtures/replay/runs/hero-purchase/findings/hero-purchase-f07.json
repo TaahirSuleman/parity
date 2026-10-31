@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 2,
  "status": "reaudited",
- "sighted_text": "R1,249.00",
+ "sighted_text": "Total: R1,249.00",
  "sr_role": "",
  "sr_name": "",
- "why_it_matters": "Blind user cannot perceive the order total because it is rendered as a canvas with no accessibility entry.",
+ "why_it_matters": "A blind user gets no announcement of the total amount to be paid because it exists only as pixels.",
  "voice": null,
  "bbox": {
   "x_min": 185,
@@ -73,32 +73,32 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears 'Total:' with no value and cannot confirm the total amount they will be charged before paying.",
+  "impact": "User hears 'Total:' with no value and cannot confirm the amount that will be charged before paying.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "c75538a6-9a08-4495-bdd2-caafaf0de6d6",
-   "response_id": "resp_6ae63005bb24d82669a848ba",
+   "request_id": "e19947b5-b9d1-41c6-ae96-1710bdfcc827",
+   "response_id": "resp_6ae646eefb2c8842fdaf4ded",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
-  "after_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"R1,249.00\">R1,249.00</canvas>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -18,7 +18,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n-    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n+    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"R1,249.00\">R1,249.00</canvas></p>\n     <p><a id=\"c1\" href=\"#returns\">Returns policy</a></p>\n   </section>\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n",
-  "explanation": "Removed role=\"presentation\" and added matching aria-label with fallback text so the canvas total is announced as R1,249.00.",
+  "after_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"Total: R1,249.00\">Total: R1,249.00</canvas>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -18,7 +18,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n-    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n+    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"Total: R1,249.00\">Total: R1,249.00</canvas></p>\n     <p><a id=\"c1\" href=\"#returns\">Returns policy</a></p>\n   </section>\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n",
+  "explanation": "Changed role from presentation to img and added matching aria-label with fallback text so the canvas total is announced to screen-reader users.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "23b72ef4-f622-4c1a-ac55-772914e115a5",
-   "response_id": "resp_6ae630cb4255b351e96a45be",
+   "request_id": "32cdb9d2-505a-47d2-b14b-4dab7b324192",
+   "response_id": "resp_6ae647803a6df1c34e234136",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
   "sr_name_before": "",
-  "sr_name_after": "R1,249.00",
+  "sr_name_after": "Total: R1,249.00",
   "comparator_still_flags": false
  },
  "decision": null

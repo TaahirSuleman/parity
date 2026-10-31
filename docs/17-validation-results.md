@@ -50,8 +50,8 @@ via `scripts/variance_runs.py`; full data in `docs/variance.json`.
 
 | Flow | Verified | Fixes proposed | Gaps closed by re-audit | Cost | Time |
 |---|---|---|---|---|---|
-| Checkout (single page) | 6 (6 rejected) | 6 | 4 | $0.083 | 221 s |
-| Purchase (agent, 4 screens) | 12 (5 rejected) | 11 | 5 | $0.140 | 574 s |
+| Checkout (single page) | 6 (1 rejected) | 6 | 4 | $0.073 | 210 s |
+| Purchase (agent, 4 screens) | 11 (2 rejected) | 11 | 7 | $0.134 | 488 s |
 
 - The hero fix is the one you would write: `<button id="f5" class="btn">Pay R1,249</button>` (or the image
   with `alt="Pay R1,249"`); the re-audit reads the new name "Pay R1,249" from the tree and closes the gap.
@@ -62,3 +62,6 @@ via `scripts/variance_runs.py`; full data in `docs/variance.json`.
   (575 s total, was 772 s). Replay stays the default for judges.
 - After the review fix pass the exported patch is rebuilt from the served source and `git apply --check`
   passes on every file of both recorded runs (an id-less element is located by its css_path).
+- Re-recorded again after the pre-P4 QA pass (docs/23): rejections are now only real refusals (the comparator's
+  own repeats are no longer counted), the `Order SR-10428` text-fragment false positive is gone, and the agent's
+  routine `computer_action_requires_confirmation` checks are acknowledged on our store and shown on the timeline.

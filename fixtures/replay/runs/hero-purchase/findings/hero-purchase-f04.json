@@ -6,11 +6,11 @@
  "sighted_text": "trash icon",
  "sr_role": "button",
  "sr_name": "Close",
- "why_it_matters": "A blind user hears Close and will not know the button deletes the headphones from the cart.",
+ "why_it_matters": "Blind user hears Close and expects a dialog to close rather than the cart item to be removed.",
  "voice": null,
  "bbox": {
-  "x_min": 818,
-  "y_min": 186,
+  "x_min": 819,
+  "y_min": 187,
   "x_max": 854,
   "y_max": 253
  },
@@ -77,32 +77,32 @@
     "name": "Headings and Labels"
    }
   ],
-  "impact": "The user hears Close and cannot know the button removes the headphones from the cart, risking failure to find delete or accidental deletion.",
+  "impact": "User hears \"Close\" instead of remove/delete and cannot know the button removes the headphones from the cart, so they cannot remove the item intentionally and risk deleting it while expecting to close something.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "3075c747-6afa-4843-b85b-675245cc4a82",
-   "response_id": "resp_6ae62fbd78327e86d7a44d94",
+   "request_id": "9d8fead6-2c88-45b2-b095-3942dc437151",
+   "response_id": "resp_6ae646a70d8bfd853b324fe0",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones from cart\">🗑️</button>",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -20,7 +20,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones from cart\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,249.00</span></div>\n",
-  "explanation": "Changed aria-label from Close to Remove Noise-cancelling headphones from cart so the accessible name matches the trash-icon delete action sighted users see.",
+  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -20,7 +20,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,249.00</span></div>\n",
+  "explanation": "Changed aria-label from Close to Remove Noise-cancelling headphones so the name describes the trash-icon delete action.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "155e0713-5266-46d7-8254-6c515c2b87b0",
-   "response_id": "resp_6ae630bf0e9cb576ad314477",
+   "request_id": "c8077926-b0ce-44da-9981-05086f4dab11",
+   "response_id": "resp_6ae6477529f67acf8dcc4489",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
   "sr_name_before": "Close",
-  "sr_name_after": "Remove Noise-cancelling headphones from cart",
+  "sr_name_after": "Remove Noise-cancelling headphones",
   "comparator_still_flags": false
  },
  "decision": null

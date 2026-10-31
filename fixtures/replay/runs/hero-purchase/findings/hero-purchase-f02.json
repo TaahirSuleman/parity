@@ -6,7 +6,7 @@
  "sighted_text": "★★★★☆ 4.3",
  "sr_role": "image",
  "sr_name": "rating",
- "why_it_matters": "Blind user hears only rating with no value and does not know the product is rated 4.3 stars.",
+ "why_it_matters": "A blind user hears only a generic rating without the 4.3 star value sighted users get.",
  "voice": null,
  "bbox": {
   "x_min": 146,
@@ -73,32 +73,32 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "User cannot learn the product is rated 4.3 out of 5 stars that sighted users see.",
+  "impact": "The screen-reader user hears only 'rating' and cannot know the 4.3-star value that sighted users use to judge the product.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "6d0ce2ad-2c5a-4926-b208-da69bdff5a66",
-   "response_id": "resp_6ae62f6d2e273307f0c04a0e",
+   "request_id": "3b4c518d-138d-4a49-976f-87bfda6512e5",
+   "response_id": "resp_6ae64661dc0e158fd0874336",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
-  "after_html": "<img id=\"p2\" alt=\"4.3 out of 5 stars\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -16,8 +16,7 @@\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n+    <p><img id=\"p2\" alt=\"4.3 out of 5 stars\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span></p>\n     <div class=\"actions\">\n",
-  "explanation": "Changed alt from \"rating\" to \"4.3 out of 5 stars\" so the accessible name conveys the same 4.3-star rating sighted users see.",
+  "after_html": "<img id=\"p2\" alt=\"★★★★☆ 4.3\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -16,8 +16,7 @@\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n+    <p><img id=\"p2\" alt=\"★★★★☆ 4.3\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span></p>\n     <div class=\"actions\">\n",
+  "explanation": "Changed alt from 'rating' to '★★★★☆ 4.3' to match the visible rating text for screen-reader users.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "2cbd834d-e35c-492b-8898-a3e61bd39ebd",
-   "response_id": "resp_6ae630c6b61ddcbbc2f5427b",
+   "request_id": "e6948c02-f568-4895-947f-f626cd55a7a4",
+   "response_id": "resp_6ae64772cff8bbd3472546a5",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": false,
+  "gap_closed": true,
   "sr_name_before": "rating",
-  "sr_name_after": "4.3 out of 5 stars",
+  "sr_name_after": "★★★★☆ 4.3",
   "comparator_still_flags": false
  },
  "decision": null

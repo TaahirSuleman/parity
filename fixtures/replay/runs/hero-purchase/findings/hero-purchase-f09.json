@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 2,
  "status": "reaudited",
- "sighted_text": "Pay R1,249",
- "sr_role": "button",
- "sr_name": "Submit",
- "why_it_matters": "Blind user does not hear the action and price that sighted users see and cannot confirm the payment amount.",
+ "sighted_text": "Terms",
+ "sr_role": "link",
+ "sr_name": "Click here",
+ "why_it_matters": "A blind user hears a generic link name that does not match the visible text and does not convey its destination.",
  "voice": null,
  "bbox": {
-  "x_min": 524,
-  "y_min": 499,
-  "x_max": 647,
-  "y_max": 567
+  "x_min": 649,
+  "y_min": 451,
+  "x_max": 678,
+  "y_max": 472
  },
  "element": {
-  "backend_id": 164,
-  "css_path": "button#f5",
+  "backend_id": 161,
+  "css_path": "a#f4",
   "box_px": [
-   673,
-   360,
-   827,
-   408
+   831,
+   327,
+   877,
+   342
   ],
-  "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-  "dom_id": "f5"
+  "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+  "dom_id": "f4"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f5"
+    "detail": "link at a#f4"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,54 +51,58 @@
    }
   },
   "element": {
-   "backend_id": 164,
-   "css_path": "button#f5",
+   "backend_id": 161,
+   "css_path": "a#f4",
    "box_px": [
-    673,
-    360,
-    827,
-    408
+    831,
+    327,
+    877,
+    342
    ],
-   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-   "dom_id": "f5"
+   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "f4"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "moderate",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   },
+   {
+    "sc": "2.4.4",
+    "name": "Link Purpose (In Context)"
    }
   ],
-  "impact": "User hears only generic Submit and cannot know the button initiates payment of R1,249.",
+  "impact": "The user hears only 'Click here' and cannot tell the link leads to the Terms or activate it by its visible name.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "db0a6da9-8b8e-4556-9f7f-dfd7c940c7fb",
-   "response_id": "resp_6ae630162e39ea56af3e45c9",
+   "request_id": "bcef221a-7ae7-4c64-b1e4-7c7e2ad3c75b",
+   "response_id": "resp_6ae64707e37efd38ba72421a",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "after_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Pay R1,249\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -28,7 +28,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n+      <button id=\"f5\" class=\"btn\" aria-label=\"Pay R1,249\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
-  "explanation": "Changed aria-label from Submit to Pay R1,249 to match the visible text so the accessible name announces the action and amount.",
+  "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
+  "after_html": "<a id=\"f4\" href=\"#terms\">Terms</a>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -26,7 +26,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\">Terms</a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
+  "explanation": "Removed the generic aria-label 'Click here' and replaced the image-only content with real text 'Terms' so the accessible name matches the visible link text.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "33b6c5aa-b981-4875-a956-72d410215717",
-   "response_id": "resp_6ae630d5d165a4d7a4e64854",
+   "request_id": "7a5da337-1e1a-450e-9a1b-cd599a19d0b1",
+   "response_id": "resp_6ae6477dfad5a3c8ad9a439b",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "Submit",
-  "sr_name_after": "Pay R1,249",
+  "sr_name_before": "Click here",
+  "sr_name_after": "Terms",
   "comparator_still_flags": false
  },
  "decision": null

@@ -1,56 +1,56 @@
 {
  "id": "hero-purchase-r02",
  "run_id": "hero-purchase",
- "step_index": 0,
+ "step_index": 3,
  "candidate": {
-  "step_index": 0,
-  "sighted_text": "SALE -20%",
-  "sr_quote": "image, \"badge\"",
-  "why_it_matters": "A blind user hears only generic 'badge' and misses the sale and 20% discount information.",
+  "step_index": 3,
+  "sighted_text": "SR-10428",
+  "sr_quote": "text, \"SR-10428\"",
+  "why_it_matters": "The order number is announced out of order detached from its sentence, so a blind user hears 'Order ...' without the identifier in context and may miss their order number.",
   "bbox": {
-   "x_min": 146,
-   "y_min": 125,
-   "x_max": 240,
-   "y_max": 163
+   "x_min": 181,
+   "y_min": 176,
+   "x_max": 238,
+   "y_max": 200
   },
-  "attempt": 2
+  "attempt": 1
  },
  "verifier": {
   "passed": false,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#p1"
+    "detail": "text at "
    },
    "sr_quote_exact": {
     "passed": true,
     "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
-    "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "passed": false,
+    "detail": "visible text equals the accessible name"
    },
    "not_axe": {
     "passed": true,
     "detail": "not an axe-core target"
    },
    "unique": {
-    "passed": false,
-    "detail": "this element already has a finding in this run"
+    "passed": true,
+    "detail": "first finding on this element"
    }
   },
   "element": {
-   "backend_id": 19,
-   "css_path": "img#p1",
+   "backend_id": 222,
+   "css_path": "",
    "box_px": [
-    187,
-    91,
-    307,
-    119
+    232,
+    127,
+    304,
+    144
    ],
-   "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "p1"
+   "outer_html": "",
+   "dom_id": null
   },
-  "feedback": "this element is already reported; do not repeat it"
+  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
  }
 }

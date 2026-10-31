@@ -17,7 +17,7 @@ run through the real UI, the CLI on real bundles, the recorded replay bundles, t
 | Console script `parity` | works in the fresh clone; the local `.venv` had a stale editable install (reinstalled) |
 | Live checkout run through the real UI | 6 verified, fixes and re-audits streamed while auditing, a mid-run approval was counted, run settled to *awaiting review* at 101 s, $0.006 (cache hits labelled in the trace) |
 | Exported patch | `git apply --check` passes on every file of both recorded runs (checkout 6/6; purchase 3/3, 2/2, 6/6) |
-| Recorded replays | hero-checkout: 6 verified / 6 rejected / 6 fixes / 4 closed, $0.083, 221 s · hero-purchase: 12 / 5 / 11 / 5, $0.140, 574 s |
+| Recorded replays (after the pass) | hero-checkout: 6 verified / 1 rejected / 6 fixes / 4 closed, $0.073, 210 s · hero-purchase: 11 / 2 / 11 / 7, $0.134, 488 s; no false positives, patches apply on every file |
 | Variance (3 live purchase runs, fresh cache, earlier today) | same 12 barriers by element in both completed runs; one run died on an API 500 burst → retries now 5× over ~33 s |
 | Workbench accessibility | axe clean in idle / running / hero; keyboard ring complete with visible focus; VoiceOver pass by hand still owed (Task 25) |
 

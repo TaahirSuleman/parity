@@ -48,6 +48,58 @@ async def _index_rebuild(args) -> int:
     return 0
 
 
+async def _audit(args) -> int:
+    """One public-site walk from the command line. Never from the hosted UI."""
+    from urllib.parse import urlsplit
+
+    from parity.api.events import EventBus
+    from parity.config import load_settings
+    from parity.flows import Flow
+    from parity.meta.client import MetaClient, TraceRouter
+    from parity.pipeline.runner import run_flow
+    from parity.store.blob import LocalBlobStore
+    from parity.store.bundle import RunBundle
+    from parity.store.index import RunIndex
+
+    env = {"PARITY_DATA_DIR": args.data_dir} if args.data_dir else {}
+    settings = load_settings(env={**_os_env(), **env}) if env else load_settings()
+    if not settings.has_key:
+        print("MODEL_API_KEY missing (expected in .env); a public audit calls the model and needs it")
+        return 1
+    parts = urlsplit(args.url)
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        print(f"not an http(s) URL: {args.url}")
+        return 2
+    origin = f"{parts.scheme}://{parts.netloc}"
+    start = (parts.path or "/") + (f"?{parts.query}" if parts.query else "")
+    flow = Flow(id=f"public-{parts.netloc}", name=f"Public: {parts.netloc}", start_url=start, goal=args.goal, pages=(start,), single_page=False)
+    bundle = RunBundle(LocalBlobStore(settings.data_dir))
+    index = RunIndex(settings.index_path)
+    await index.init()
+    client = MetaClient(settings, cache_dir=settings.cache_dir, trace=TraceRouter())
+    try:
+        run = await run_flow(settings, client, EventBus(bundle), bundle, index, flow, base_url=origin, max_turns=args.max_turns, public=True)
+    finally:
+        await client.aclose()
+        await index.close()
+    loaded = await bundle.load(run.id)
+    agent = next((e.data.get("agent") for e in loaded.events if e.type == "run.finished"), None) or {}
+    blocked = [e.data.get("reason") for e in loaded.events if e.type == "nav.blocked"]
+    print(f"run {run.id}: status={run.status} screens={len(loaded.steps)} verified={run.findings_verified} rejected={run.findings_rejected} "
+          f"tokens={run.tokens} cost=${run.cost_usd:.4f} {run.duration_ms} ms")
+    print(f"agent: {agent.get('summary', run.error or '')}")
+    for b in blocked:
+        print(f"blocked: {b}")
+    print(f"anonymise before sharing: scripts/anonymise_bundle.py --data-dir {settings.data_dir} --run-id {run.id} --host {parts.netloc} --letter A")
+    return 0 if run.status != "failed" else 1
+
+
+def _os_env() -> dict[str, str]:
+    import os
+
+    return dict(os.environ)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="parity")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -62,6 +114,13 @@ def main(argv: list[str] | None = None) -> int:
     rebuild.add_argument("--data-dir")
     rebuild.add_argument("--index-path")
     rebuild.set_defaults(fn=_index_rebuild)
+    audit = sub.add_parser("audit", help="audit a flow on a site you do not own: read-only, robots.txt honoured, local only (spec §17)")
+    audit.add_argument("--url", required=True, help="the start URL")
+    audit.add_argument("--goal", required=True, help="what a shopper would try to do, e.g. 'add the first product to the cart'")
+    audit.add_argument("--public", action="store_true", required=True, help="required: the read-only guard is always on for sites we do not own")
+    audit.add_argument("--data-dir", help="where the run bundle is written (default: settings)")
+    audit.add_argument("--max-turns", type=int, default=12)
+    audit.set_defaults(fn=_audit)
     args = parser.parse_args(argv)
     if args.cmd == "verify" and not args.off:
         print("only --off is implemented in this phase")

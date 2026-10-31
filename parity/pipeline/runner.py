@@ -19,6 +19,7 @@ from parity.meta.client import MetaError, TraceRouter
 from parity.pipeline import browser
 from parity.pipeline.audit import Ablation, RunContext, audit_view
 from parity.pipeline.gate import fix_findings, is_pending, run_lock
+from parity.pipeline.guard import robots_allows
 from parity.store.bundle import RunBundle
 from parity.store.models import Run, RunMode, RunStatus, now
 
@@ -33,14 +34,14 @@ def new_run_id() -> str:
 async def run_flow(
     settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, *, base_url: str,
     mode: RunMode = RunMode.live, run_id: str | None = None, client_ip_hash: str = "", ablation: Ablation | None = None,
-    page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools",
+    page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False,
 ) -> Run:
     """Own one run end to end: single page → audit_view directly; multi-page → the auditor agent."""
     run = Run(
         id=run_id or new_run_id(), mode=mode, flow_id=flow.id, goal=flow.goal, target_url=base_url.rstrip("/") + flow.start_url,
         status=RunStatus.running, client_ip_hash=client_ip_hash,
     )
-    ctx = RunContext(settings=settings, client=client, bus=bus, bundle=bundle, index=index, run=run, base_url=base_url, ablation=ablation or Ablation())
+    ctx = RunContext(settings=settings, client=client, bus=bus, bundle=bundle, index=index, run=run, base_url=base_url, ablation=ablation or Ablation(), public=public)
     await bundle.create(run)
     await ctx._index_safe("upsert_run", run)
     router = getattr(client, "trace", None)
@@ -57,13 +58,18 @@ async def run_flow(
       async with asyncio.timeout(settings.run_timeout_s):
           page = await page_factory()
           ctx.page = page
-          await page.goto(run.target_url, wait_until="load")
-          if flow.single_page:
-              summary = await audit_view(ctx, page, 0, reason="single-page flow")
-              verified = [b.__dict__ for b in summary.verified]
+          if public and not robots_allows(run.target_url):
+              await ctx.emit("nav.blocked", {"turn": 0, "url": run.target_url, "reason": "robots.txt disallows the start URL; nothing was fetched"})
+              agent = AgentResult(0, False, False, "stopped: robots.txt disallows the start URL")
+              verified = []
           else:
-              agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
-              verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
+            await page.goto(run.target_url, wait_until="load")
+            if flow.single_page:
+                summary = await audit_view(ctx, page, 0, reason="single-page flow")
+                verified = [b.__dict__ for b in summary.verified]
+            else:
+                agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
+                verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
           final_url = page.url  # where the walk ended, before re-audits reuse the page
 
           async def same_page() -> Page:

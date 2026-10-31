@@ -21,6 +21,7 @@ from parity.meta.client import text_of
 from parity.meta.images import png_to_data_url
 from parity.pipeline.actions import execute, is_allowed_target, settle
 from parity.pipeline.audit import RunContext, audit_view
+from parity.pipeline.guard import Blocked, guard_action
 
 log = logging.getLogger(__name__)
 PROMPTS = Path(__file__).resolve().parent.parent / "meta" / "prompts"
@@ -75,6 +76,35 @@ class _Conversation:
         })
         payload = {"run_id": self.ctx.run.id, "mode": self.mode, "turns": self.turns}
         await self.ctx.bundle.store.put(f"runs/{self.ctx.run.id}/agent/conversation.json", json.dumps(payload, indent=1).encode(), "application/json")
+
+
+_TARGET_JS = """([x, y, kind]) => {
+  const el = kind === "click" || kind === "double_click" ? document.elementFromPoint(x, y) : document.activeElement;
+  if (!el || el === document.body) return null;
+  const ctl = el.closest("button, a, input, select, textarea, [role=button], [role=link], summary, label") || el;
+  const img = ctl.querySelector ? ctl.querySelector("img[alt]") : null;
+  const name = (ctl.getAttribute && (ctl.getAttribute("aria-label") || ctl.getAttribute("title"))) || (img && img.alt) || (ctl.innerText || ctl.value || "").trim();
+  const type = (ctl.getAttribute && (ctl.getAttribute("autocomplete") || ctl.getAttribute("type"))) || null;
+  const submits = !!(ctl.form && (ctl.type === "submit" || ctl.tagName === "BUTTON" && !ctl.getAttribute("type")));
+  return { tag: ctl.tagName.toLowerCase(), role: ctl.getAttribute("role") || ctl.tagName.toLowerCase(), name: name.slice(0, 200), type, submits };
+}"""
+
+
+async def inspect_target(page: Page, action: dict[str, Any]):
+    """The element an action would land on, for the public-site guard: (AxNode-ish, field type, submits?)."""
+    from parity.store.models import AxNode
+
+    try:
+        info = await page.evaluate(_TARGET_JS, [action.get("x", 0), action.get("y", 0), str(action.get("type") or "")])
+    except Exception:
+        info = None
+    if not info:
+        return None, None, False
+    field_type = (info.get("type") or "").lower() or None
+    if field_type in ("text", "search", "number"):
+        field_type = field_type
+    node = AxNode(backend_id=0, role=str(info.get("role") or ""), name=str(info.get("name") or ""))
+    return node, field_type, bool(info.get("submits"))
 
 
 async def _audit_if_new(ctx: RunContext, state: AgentState, page: Page, reason: str) -> None:
@@ -145,6 +175,13 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                     executed = dropped = 0
                     off_origin = False
                     for action in actions:
+                        if ctx.public:
+                            target, field_type, submits = await inspect_target(page, action)
+                            verdict = guard_action(action, target, field_type, submits=submits)
+                            if isinstance(verdict, Blocked):
+                                await ctx.emit("nav.blocked", {"turn": turn, "action": action.get("type"), "url": page.url, "reason": f"stopped before irreversible step: {verdict.reason}"})
+                                state.summary = f"stopped before irreversible step: {verdict.reason}"
+                                return AgentResult(turns, False, False, state.summary)
                         if await execute(page, action):
                             executed += 1
                         else:

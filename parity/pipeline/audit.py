@@ -65,6 +65,7 @@ class RunContext:
     rejected: list[Rejected] = field(default_factory=list)
     page: Any = None  # the live Playwright page, set by the runner (tools need it)
     captures: dict[int, Capture] = field(default_factory=dict)  # per step, for the fixer and the re-audit after the walk
+    public: bool = False  # a site we do not own: read-only guard on every action, robots.txt honoured (spec §17)
     agent: Any = None  # AgentState while the auditor agent runs
 
     async def emit(self, type: str, data: dict[str, Any] | None = None) -> Event:

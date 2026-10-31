@@ -416,3 +416,47 @@ async def test_same_url_state_change_is_a_new_screen(tmp_path, server_url, page)
     assert before != after and before.startswith("/store/cart.html") and after.startswith("/store/cart.html")
     await page.goto(server_url + "/store/cart.html#top")
     assert (await screen_key(page)).split("#")[0] == before.split("#")[0]  # a fragment alone is not a new screen
+
+
+async def test_public_mode_stops_before_an_irreversible_click(tmp_path, server_url, page):
+    """On a public site the executor refuses the Pay click: the walk ends done, reason 'stopped before irreversible step'."""
+    pay = await centre(page, server_url + "/store/checkout.html", "#f5")
+    script = [turn(function_call("audit_view", {"reason": "checkout"}, "c1")), turn(computer_call([{"type": "click", **pay}], "c2")),
+              turn(function_call("finish", {"summary": "x"}, "c3"))]
+
+    async def factory():
+        return page
+
+    from parity.flows import Flow
+
+    flow = Flow(id="public-test", name="public", start_url="/store/checkout.html", goal="browse", pages=("checkout.html",), single_page=False)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=factory, public=True)
+        loaded = await bundle.load(run.id)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review) and run.error is None
+    blocked = next(e for e in loaded.events if e.type == "nav.blocked")
+    assert "irreversible" in blocked.data["reason"] and "Submit" in blocked.data["reason"]
+    assert page.url.endswith("checkout.html")  # the click never happened
+    result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
+    assert result["finished"] is False and "stopped before irreversible step" in result["summary"]
+    assert len(auditor_calls(client)) == 2  # no third turn after the stop
+
+
+async def test_public_mode_respects_robots(tmp_path, server_url, page, monkeypatch):
+    import parity.pipeline.runner as runner_mod
+
+    monkeypatch.setattr(runner_mod, "robots_allows", lambda url: False)
+    script = [turn(function_call("finish", {"summary": "x"}, "c1"))]
+
+    async def factory():
+        return page
+
+    from parity.flows import Flow
+
+    flow = Flow(id="public-test", name="public", start_url="/store/product.html", goal="browse", pages=("product.html",), single_page=False)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=factory, public=True)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and run.error is None
+    assert not loaded.steps and not auditor_calls(client)  # nothing captured, no model call
+    assert "robots.txt" in next(e for e in loaded.events if e.type == "nav.blocked").data["reason"]

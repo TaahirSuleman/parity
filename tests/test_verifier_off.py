@@ -74,3 +74,15 @@ def test_cli_index_rebuild(tmp_path, capsys):
     asyncio.run(seed(tmp_path / "data"))
     code = cli_main(["index", "rebuild", "--data-dir", str(tmp_path / "data"), "--index-path", str(tmp_path / "index.db")])
     assert code == 0 and "1 run" in capsys.readouterr().out
+
+
+def test_cli_audit_is_public_only_and_needs_a_key(tmp_path, monkeypatch):
+    from parity.cli import main
+
+    monkeypatch.delenv("MODEL_API_KEY", raising=False)
+    monkeypatch.setattr("parity.config.Path.exists", lambda self: False)  # no .env in sight
+    assert main(["audit", "--url", "https://shop.example/p/1", "--goal", "browse", "--public", "--data-dir", str(tmp_path)]) == 1
+    import pytest as _pytest
+
+    with _pytest.raises(SystemExit):  # --public is required: there is no non-guarded mode for sites we do not own
+        main(["audit", "--url", "https://shop.example/p/1", "--goal", "browse"])

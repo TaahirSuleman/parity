@@ -111,6 +111,12 @@ class RunBundle:
         await self.store.put(keys.axe(step.run_id, n), json.dumps([v.model_dump(mode="json") for v in capture.axe_violations]).encode(), JSON)
         await self.store.put(keys.step(step.run_id, n), step.model_dump_json(indent=1).encode(), JSON)
 
+    async def read_finding(self, run_id: str, finding_id: str) -> Finding | None:
+        key = keys.finding(run_id, finding_id)
+        if not await self.store.exists(key):
+            return None
+        return Finding.model_validate_json((await self.store.get(key)).decode())
+
     async def write_finding(self, finding: Finding) -> None:
         await self.store.put(keys.finding(finding.run_id, finding.id), finding.model_dump_json(indent=1).encode(), JSON)
 

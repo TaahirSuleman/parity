@@ -18,9 +18,9 @@ from parity.pipeline.capture import capture
 from parity.pipeline.comparator import compare
 from parity.pipeline.judge import judge
 from parity.pipeline.seer import see
-from parity.pipeline.verifier import NOT_ANNOUNCED, normalise, verify
+from parity.pipeline.verifier import NOT_ANNOUNCED, locate, normalise, verify
 from parity.store.bundle import RunBundle
-from parity.store.models import Capture, Event, Finding, FindingStatus, ModelCall, Rejected, Run, Step
+from parity.store.models import Capture, Event, Finding, FindingStatus, Judgement, ModelCall, Rejected, Run, Severity, Step
 
 log = logging.getLogger(__name__)
 MAX_COMPARATOR_ATTEMPTS = 2
@@ -127,6 +127,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     new_findings: list[Finding] = []
     rejected_here = 0
     feedback: list[str] | None = None
+    seen: set[tuple[str, str | None]] = set()
     for attempt in range(1, MAX_COMPARATOR_ATTEMPTS + 1):
         candidates = await compare(
             ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"),
@@ -134,7 +135,16 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
         )
         await ctx.emit("comparator.candidates", {"index": step_index, "n": len(candidates), "attempt": attempt})
         failures: list[str] = []
+        retry_worthy = False
+        verified_ids = {f.element.backend_id for f in ctx.findings}
         for cand in candidates:
+            signature = (normalise(cand.sighted_text), cand.bbox.model_dump_json() if cand.bbox else None)
+            if attempt > 1:
+                pool = cap.silent_nodes if normalise(cand.sr_quote) == NOT_ANNOUNCED else cap.ax_nodes
+                repeat = locate(cand.bbox, pool)
+                if (repeat is not None and repeat.backend_id in verified_ids) or signature in seen:
+                    continue  # the model re-listed something it already proposed: not a new candidate, not a second red row
+            seen.add(signature)
             result = verify(cand, cap, ctx.findings)
             if result.passed and result.element is not None:
                 role, name = _sr_role_name(result.element, cap, cand.sr_quote)
@@ -158,12 +168,18 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
                                                    "feedback": result.feedback})
                 if result.feedback:
                     failures.append(result.feedback)
-        if not failures:
+                if not result.checks["located"].passed or not result.checks["sr_quote_exact"].passed:
+                    retry_worthy = True  # the model can fix a box or a quote; it cannot fix "already verified" or "axe reports it"
+        if not failures or not retry_worthy:
             break
         feedback = list(dict.fromkeys(failures))
 
     for finding in new_findings:
-        judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))
+        try:
+            judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))
+        except Exception as exc:  # the judge is advisory: a failure sends the finding to the human, it never hides it
+            log.exception("judge failed for %s", finding.id)
+            judgement = Judgement(is_barrier=None, severity=Severity.needs_review, model_meta={"error": f"{type(exc).__name__}: {exc}"})
         finding.judgement = judgement
         finding.status = FindingStatus.judged
         await ctx.save_finding(finding)

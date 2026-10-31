@@ -17,10 +17,13 @@ interface Props {
 }
 
 export function fmtCost(usd: number): string {
-  return usd < 0.01 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;
+  return usd < 0.1 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;
 }
 export function fmtDuration(ms: number): string {
-  return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)} s`;
+  if (ms < 1000) return `${ms} ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)} s`;
+  const m = Math.floor(ms / 60000);
+  return `${m} m ${Math.round((ms - m * 60000) / 1000)} s`;
 }
 
 export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, onModeChange, onRun, approved = 0, pending = 0 }: Props) {
@@ -55,7 +58,7 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
             <strong style={{ color: "var(--bad)" }}>{run?.findings_rejected ?? 0}</strong> <span className="muted">rejected</span>
           </span>
           <span className="counter mono muted" title="Model cost and wall time for this run">
-            {fmtCost(run?.cost_usd ?? 0)} · {fmtDuration(run?.duration_ms ?? 0)}
+            {fmtCost(run?.cost_usd ?? 0)} · {run?.mode === "replay" && run.duration_ms > 0 ? `recorded ${fmtDuration(run.duration_ms)}` : fmtDuration(run?.duration_ms ?? 0)}
           </span>
           {run?.mode === "replay" && <span className="badge" title={`Replay of recorded run ${run.replay_of ?? ""}`}>replay</span>}
           {run?.status === "awaiting_review" && <span className="badge warn" title="Proposed fixes wait for a human decision">awaiting review</span>}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CHECK_LABELS, type Finding } from "../state/types";
 import { CodeBadge, MetaBadge } from "./MetaBadge";
 import { srQuote } from "./ScreenReaderPanel";
@@ -24,21 +24,30 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
   const [busy, setBusy] = useState(false);
   const reason = typed ?? suggestedReason(finding); // suggested from the re-audit, editable, required
   // Pending means a fix without a decision (same rule as the server): the re-audit is evidence, not a gate.
-  const canDecide = Boolean(finding.fix && !finding.decision && onDecision);
-  const ready = canDecide && reason.trim().length > 0 && !busy;
+  const canApprove = Boolean(finding.fix && !finding.decision && onDecision);
+  const canReject = Boolean(!finding.decision && onDecision); // a verified finding with no fix can still be dismissed by a human
+  const canDecide = canApprove || canReject;
+  const hasReason = reason.trim().length > 0 && !busy;
   const reasonId = `reason-${finding.id}`;
+  const headingId = `finding-${finding.id}`;
+  const selectRef = useRef<HTMLButtonElement>(null);
   const act = (decision: "approve" | "reject") => {
     if (!onDecision || busy) return;
     setBusy(true);
-    Promise.resolve(onDecision(finding.id, decision, reason.trim())).finally(() => setBusy(false));
+    Promise.resolve(onDecision(finding.id, decision, reason.trim())).finally(() => {
+      setBusy(false);
+      selectRef.current?.focus(); // the decision controls go away; keep focus on this finding
+    });
   };
   return (
-    <article>
-      <button type="button" className="card" aria-pressed={selected} onClick={() => onSelect(finding.id)}>
+    <article className="card" data-selected={selected} aria-labelledby={headingId} onClick={() => onSelect(finding.id)}>
+      <div>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-wider muted">Sighted user sees</div>
-            <div className="font-semibold" style={{ fontSize: 16 }}>{finding.sighted_text}</div>
+            <h3 id={headingId} className="font-semibold m-0" style={{ fontSize: 16 }}>
+              <button ref={selectRef} type="button" className="card-select" aria-pressed={selected} onClick={(e) => { e.stopPropagation(); onSelect(finding.id); }}>{finding.sighted_text}</button>
+            </h3>
           </div>
           {j && (j.is_barrier === false
             ? <span className="sev sev-needs_review" title="The judge did not consider this a barrier. The evidence is still verified; a human decides.">not a barrier · review</span>
@@ -70,8 +79,18 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
           <div className="mt-2 text-sm">
             <span className="text-xs uppercase tracking-wider muted mr-2">Re-audit</span>
             <span className="mono">"{finding.reaudit.sr_name_before}" → "{finding.reaudit.sr_name_after}"</span>
-            <span className="ml-2" style={{ color: finding.reaudit.gap_closed ? "var(--ok)" : "var(--bad)" }}>{finding.reaudit.gap_closed ? "gap closed" : "gap still open"}</span>
+            {finding.reaudit.gap_closed
+              ? <span className="ml-2" style={{ color: "var(--ok)" }}>gap closed</span>
+              : <span className="ml-2" style={{ color: "var(--bad)" }}>name rule: still open</span>}
             <span className="ml-2"><CodeBadge what="code · re-audit" /></span>
+            {finding.reaudit.comparator_still_flags !== null && (
+              <span className="ml-2 inline-flex items-center gap-2">
+                <span style={{ color: finding.reaudit.comparator_still_flags ? "var(--bad)" : "var(--ok)" }}>
+                  {finding.reaudit.comparator_still_flags ? "comparator: still flags it" : "comparator: no longer flags it"}
+                </span>
+                <MetaBadge model={String(finding.fix?.model_meta?.model ?? "muse-spark-1.3-contributor")} capability="comparison" />
+              </span>
+            )}
           </div>
         )}
         {finding.decision && (
@@ -79,9 +98,9 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
             {finding.decision.decision === "approve" ? "Approved" : "Rejected"} · {finding.decision.reason}
           </div>
         )}
-      </button>
+      </div>
       {finding.fix && (
-        <section className="px-1 pt-2 text-sm" aria-label="Proposed fix">
+        <div className="px-1 pt-2 text-sm">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs uppercase tracking-wider muted">Proposed fix</span>
             <MetaBadge model={String(finding.fix.model_meta?.model ?? "muse-spark-1.3")} capability="fixer" />
@@ -89,9 +108,13 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
           {finding.fix.explanation && <p className="m-0 mt-1">{finding.fix.explanation}</p>}
           <details className="mt-1">
             <summary className="cursor-pointer muted">Diff</summary>
-            <pre className="diff mono">{finding.fix.diff}</pre>
+            <pre className="diff mono" tabIndex={0} aria-label={`Unified diff for ${finding.sighted_text}`}>
+              {finding.fix.diff.split("\n").map((line, i) => (
+                <span key={i} className={line.startsWith("+") && !line.startsWith("+++") ? "diff-add" : line.startsWith("-") && !line.startsWith("---") ? "diff-del" : undefined}>{line}{"\n"}</span>
+              ))}
+            </pre>
           </details>
-        </section>
+        </div>
       )}
       {!finding.fix && finding.fix_note && <p className="muted text-xs px-1 pt-2 m-0">No fix proposed: {finding.fix_note}</p>}
       {finding.fix && !finding.reaudit && finding.reaudit_note && <p className="muted text-xs px-1 pt-1 m-0">Re-audit did not run: {finding.reaudit_note}</p>}
@@ -99,10 +122,10 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
         <div className="flex items-center gap-2 px-1 py-2 flex-wrap">
           <label className="sr-only" htmlFor={reasonId}>Reason</label>
           <input id={reasonId} className="btn-quiet fix-reason" value={reason} onChange={(e) => setTyped(e.target.value)} placeholder="Reason for the decision" disabled={!canDecide} />
-          <button type="button" className="btn-quiet" disabled={!ready} onClick={() => act("approve")} title={canDecide ? "Approve the proposed fix" : "Approve becomes available once a fix has been proposed"}>
+          <button type="button" className="btn-quiet" disabled={!(canApprove && hasReason)} onClick={() => act("approve")} title={canApprove ? "Approve the proposed fix" : "Approve needs a proposed fix"}>
             Approve fix
           </button>
-          <button type="button" className="btn-quiet" disabled={!ready} onClick={() => act("reject")} title={canDecide ? "Reject the proposed fix" : "Reject becomes available once a fix has been proposed"}>
+          <button type="button" className="btn-quiet" disabled={!(canReject && hasReason)} onClick={() => act("reject")} title={finding.fix ? "Reject the proposed fix" : "Dismiss this finding (no fix was proposed)"}>
             Reject
           </button>
           {!finding.fix && !finding.fix_note && <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>}

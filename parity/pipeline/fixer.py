@@ -268,6 +268,8 @@ def validate_snippet(before_html: str, after_html: str) -> None:
     """The snippet must be one balanced element of the same tag and id, with no behaviour smuggled in."""
     if not after_html.strip():
         raise FixRejected("empty snippet")
+    if "<!" in after_html or "<?" in after_html:  # comments, CDATA, doctypes, PIs: browsers and HTMLParser disagree on them
+        raise FixRejected("snippet contains a markup declaration or comment")
     before, after = parse_snippet(before_html), parse_snippet(after_html)
     if after.problems:
         raise FixRejected(f"snippet is not one element: {after.problems[0]}")

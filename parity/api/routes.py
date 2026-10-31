@@ -7,7 +7,9 @@ import hashlib
 import logging
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from urllib.parse import urlparse
+
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from parity import replay
@@ -94,9 +96,16 @@ async def _live(st, flow, run_id: str, ip_hash: str) -> None:
         st.live_lock.release()
 
 
+def public_run(run) -> dict:
+    """What anyone may see about a run: no visitor hash, no internal host."""
+    data = run.model_dump(mode="json", exclude={"client_ip_hash"})
+    data["target_url"] = urlparse(run.target_url).path or run.target_url
+    return data
+
+
 @router.get("/runs")
-async def list_runs(request: Request, limit: int = 50) -> list[dict]:
-    return [r.model_dump(mode="json") for r in await request.app.state.index.list_runs(limit)]
+async def list_runs(request: Request, limit: int = Query(default=50, ge=1, le=500)) -> list[dict]:
+    return [public_run(r) for r in await request.app.state.index.list_runs(limit)]
 
 
 @router.get("/runs/{run_id}")
@@ -106,7 +115,7 @@ async def run_detail(run_id: str, request: Request) -> dict:
     except KeyError:
         raise HTTPException(404, "unknown run") from None
     return {
-        "run": loaded.run.model_dump(mode="json"), "steps": [s.model_dump(mode="json") for s in loaded.steps],
+        "run": public_run(loaded.run), "steps": [s.model_dump(mode="json") for s in loaded.steps],
         "findings": [f.model_dump(mode="json") for f in loaded.findings], "rejected": [r.model_dump(mode="json") for r in loaded.rejected],
         "trace": [c.model_dump(mode="json") for c in loaded.trace],
     }
@@ -151,7 +160,7 @@ async def record_decision(run_id: str, finding_id: str, req: DecisionRequest, re
         raise HTTPException(422, str(exc)) from None
     except ConflictError as exc:
         raise HTTPException(409, str(exc)) from None
-    return {"finding": finding.model_dump(mode="json"), "run": run.model_dump(mode="json")}
+    return {"finding": finding.model_dump(mode="json"), "run": public_run(run)}
 
 
 @router.get("/runs/{run_id}/patch")

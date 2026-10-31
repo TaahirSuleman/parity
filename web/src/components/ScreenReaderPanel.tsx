@@ -16,7 +16,7 @@ export function ScreenReaderPanel({ finding }: { finding: Finding | null }) {
       </div>
       <div className="p-4 flex flex-col gap-4">
         {!finding ? (
-          <p className="muted m-0">Select a finding to hear what a screen reader announces for it.</p>
+          <p className="muted m-0">Select a finding to see what a screen reader announces for it.</p>
         ) : (
           <>
             <div>

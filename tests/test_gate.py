@@ -222,3 +222,65 @@ async def test_patch_excludes_a_fix_it_cannot_place_and_still_applies(tmp_path):
         assert events[-1].data["patch_excluded"] == [ghost.id]
     finally:
         await index.close()
+
+
+async def test_decision_made_before_the_reaudit_is_not_overwritten(tmp_path, server_url, page):
+    """A human may click Approve between fixer.proposed and reaudit.result; the re-audit must merge, not clobber."""
+
+    async def factory():
+        return page
+
+    run_id = "early-decision"
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        bus.open(run_id)
+        task = asyncio.create_task(run_flow(settings, client, bus, bundle, index, FLOWS["checkout"], base_url=server_url, page_factory=factory, run_id=run_id))
+        decided = []
+        async for ev in bus.subscribe(run_id):
+            if ev.type == "fixer.proposed" and not decided:
+                decided.append((await decide(bundle, index, bus, run_id, ev.data["finding_id"], "approve", "early"))[0].id)
+            if ev.type in ("run.finished", "run.failed"):
+                break
+        run = await task
+        loaded = await bundle.load(run.id)
+    assert decided
+    f = next(f for f in loaded.findings if f.id == decided[0])
+    assert f.decision is not None and f.decision.reason == "early" and f.status == FindingStatus.approved
+    assert f.reaudit is not None  # the re-audit still landed on the decided finding
+    assert loaded.run.status in (RunStatus.done, RunStatus.awaiting_review)
+
+
+async def test_run_deadline_fails_the_run_cleanly(tmp_path, server_url, page, monkeypatch):
+    """A stalled model call must not hold the Live slot for ever: the run ends failed at the deadline."""
+    import asyncio as aio
+
+    from parity.meta.fake import FakeMetaClient
+    from tests.test_runner import stage_defaults
+
+    class Stalling(FakeMetaClient):
+        async def responses(self, body, *, stage, run_id, step_index=None):
+            if stage == "seer":
+                await aio.sleep(30)
+            return await super().responses(body, stage=stage, run_id=run_id, step_index=step_index)
+
+    async def factory():
+        return page
+
+    from parity.api.events import EventBus
+    from parity.config import load_settings
+    from parity.store.blob import LocalBlobStore
+    from parity.store.bundle import RunBundle
+    from parity.store.index import RunIndex
+    from tests.test_runner import META
+
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_RUN_TIMEOUT_S": "2"})
+    client = Stalling(META, stage_defaults=stage_defaults())
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        run = await run_flow(settings, client, EventBus(bundle), bundle, index, FLOWS["checkout"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    finally:
+        await index.close()
+    assert run.status == RunStatus.failed and "deadline" in (run.error or "").lower()
+    assert loaded.events[-1].type == "run.failed"

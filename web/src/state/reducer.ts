@@ -12,6 +12,19 @@ export function select(state: RunState, id: string | null): RunState {
   return { ...state, selectedFindingId: id };
 }
 
+const SEVERITY_RANK: Record<string, number> = { critical: 4, serious: 3, moderate: 2, minor: 1, needs_review: 0 };
+
+/** The finding to open on: the strongest barrier whose fix the re-audit closed, else the strongest barrier. */
+export function pickHero(findings: Finding[]): Finding | undefined {
+  const score = (f: Finding) => (f.reaudit?.gap_closed ? 10 : 0) + (f.judgement?.is_barrier === false ? -5 : 0) + (SEVERITY_RANK[f.judgement?.severity ?? ""] ?? 0);
+  return [...findings].sort((a, b) => score(b) - score(a))[0];
+}
+
+/** Switching mode resets the workbench, except when the pressed mode is clicked again or a run is going. */
+export function shouldReset(state: RunState, mode: RunMode): boolean {
+  return mode !== state.mode && state.phase !== "running";
+}
+
 function patchFinding(state: RunState, id: string, patch: Partial<Finding>): RunState {
   return { ...state, findings: state.findings.map((f) => (f.id === id ? { ...f, ...patch } : f)) };
 }
@@ -108,13 +121,14 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     }
     case "run.finished": {
       if (!run) return state;
-      const duration = Math.max(0, new Date(ev.at).getTime() - new Date(run.started_at).getTime());
+      const duration = Number(ev.duration_ms ?? Math.max(0, new Date(ev.at).getTime() - new Date(run.started_at).getTime()));  // the recorded run's time, not the replay's
       const agent = (ev.agent as RunState["agent"] | undefined) ?? null;
       const outcome = agent
         ? [{ turn: agent.turns, kind: "outcome" as const, at: ev.at, label: agent.finished ? (agent.finish_forced ? `finished (forced after refusals): ${agent.summary}` : `finished: ${agent.summary}`) : `did not finish within ${agent.turns} turns: ${agent.summary || "no summary"}` }]
         : [];
       return {
         ...state, phase: "finished", stage: null, agent, timeline: [...state.timeline, ...outcome],
+        selectedFindingId: pickHero(state.findings)?.id ?? state.selectedFindingId,
         run: {
           ...run, status: (ev.status as Run["status"]) ?? "done", finished_at: ev.at, duration_ms: duration,
           findings_verified: Number(ev.findings_verified ?? run.findings_verified), findings_rejected: Number(ev.findings_rejected ?? run.findings_rejected),

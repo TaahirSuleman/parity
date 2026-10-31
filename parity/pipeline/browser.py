@@ -30,7 +30,7 @@ async def get_browser() -> Browser:
 
 async def new_page() -> Page:
     browser = await get_browser()
-    context = await browser.new_context(viewport=VIEWPORT)
+    context = await browser.new_context(viewport=VIEWPORT, bypass_csp=True)  # axe is injected into any page
     return await context.new_page()
 
 

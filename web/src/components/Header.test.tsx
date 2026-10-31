@@ -44,3 +44,16 @@ describe("Header patch export", () => {
     expect(screen.queryByRole("link", { name: /download fix\.patch/i })).toBeNull();
   });
 });
+
+describe("Header durations", () => {
+  it("formats minutes and marks a replay's time as recorded", async () => {
+    const { fmtDuration } = await import("./Header");
+    expect(fmtDuration(574713)).toBe("9 m 35 s");
+    expect(fmtDuration(101000)).toBe("1 m 41 s");
+    expect(fmtDuration(32000)).toBe("32 s");
+    const run = { id: "r1", mode: "replay" as const, flow_id: "purchase", goal: "", target_url: "", status: "awaiting_review" as const, started_at: "2026-10-31T00:00:00Z",
+      axe_violations: 0, findings_verified: 12, findings_rejected: 5, tokens: 0, cost_usd: 0.14, duration_ms: 574713 };
+    render(<Header flows={[{ id: "purchase", name: "Purchase", single_page: false }]} flowId="purchase" onFlowChange={() => {}} run={run} mode="replay" canLive={false} running={false} onModeChange={() => {}} onRun={() => {}} />);
+    expect(screen.getByText(/recorded 9 m 35 s/)).toBeInTheDocument();
+  });
+});

@@ -85,3 +85,46 @@ async def test_patched_page_cannot_reach_the_api(page, store_url):
     async with load_patched(page, store_url + "checkout.html", html):
         await page.wait_for_function("() => window.__api !== undefined")
         assert await page.evaluate("() => window.__api") == "blocked"
+
+
+def test_sandbox_request_policy_allows_only_store_assets():
+    """The patched page may fetch only GET /store/* on its own origin; encoded or odd paths do not slip through."""
+    from parity.pipeline.reaudit import request_allowed
+
+    origin = "http://127.0.0.1:8080"
+    assert request_allowed(origin + "/store/style.css", "GET", origin)
+    assert request_allowed(origin + "/store/checkout.html", "GET", origin)
+    for url in ("/api/health", "/%61pi/health", "/store/../api/health", "//api/health", "/store//../api/runs", "/API/runs"):
+        assert not request_allowed(origin + url if url.startswith("/") and not url.startswith("//") else ("http:" + url if url.startswith("//") else url), "GET", origin), url
+    assert not request_allowed(origin + "/store/checkout.html", "POST", origin)
+    assert not request_allowed("https://evil.example/x.js", "GET", origin)
+
+
+async def test_patched_page_cannot_reach_the_api_by_encoded_paths_or_forms(page, store_url):
+    from urllib.parse import urlparse
+
+    from parity.pipeline.reaudit import load_patched
+
+    origin = f"{urlparse(store_url).scheme}://{urlparse(store_url).netloc}"
+    html = ("<!doctype html><html><body><p>x</p><form id=f method=post action='/api/runs/x/findings/y/decision'><input name=decision value=approve></form>"
+            "<script>window.__r = {};"
+            "const tries = {enc: '/%61pi/health', dbl: '//" + urlparse(store_url).netloc + "/api/health', up: '/store/../api/health'};"
+            "Promise.all(Object.entries(tries).map(([k, u]) => fetch(u).then(r => { window.__r[k] = r.status }).catch(() => { window.__r[k] = 'blocked' })))"
+            ".then(() => { window.__done = true });</script></body></html>")
+    async with load_patched(page, store_url + "checkout.html", html):
+        await page.wait_for_function("() => window.__done === true")
+        results = await page.evaluate("() => window.__r")
+        assert results == {"enc": "blocked", "dbl": "blocked", "up": "blocked"}, results
+        headers = await page.evaluate("() => document.contentType")  # the page is served as html with a CSP (checked below)
+        assert headers == "text/html"
+    assert origin  # the page never navigated away
+
+
+async def test_patched_page_is_served_with_a_csp_that_forbids_connections(page, store_url):
+    from parity.pipeline.reaudit import SANDBOX_CSP, load_patched
+
+    assert "connect-src 'none'" in SANDBOX_CSP and "form-action 'none'" in SANDBOX_CSP and "frame-src 'none'" in SANDBOX_CSP
+    html = "<!doctype html><html><body><p>x</p><script>fetch('/store/style.css').then(r => { window.__css = r.status }).catch(() => { window.__css = 'blocked' })</script></body></html>"
+    async with load_patched(page, store_url + "checkout.html", html):
+        await page.wait_for_function("() => window.__css !== undefined")
+        assert await page.evaluate("() => window.__css") == "blocked"  # even same-origin fetches are refused by the CSP

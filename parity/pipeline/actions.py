@@ -46,6 +46,9 @@ def is_allowed_target(url: str, settings: Settings, base_url: str) -> bool:
 
 async def execute(page: Page, action: dict) -> bool:
     """Run one action. Returns False (and logs) for anything outside the allow-list or malformed."""
+    if not isinstance(action, dict):
+        log.warning("agent sent a malformed action %r; dropped", type(action).__name__)
+        return False
     kind = action.get("type")
     if kind not in ALLOWED:
         log.warning("agent asked for a disallowed action %r; dropped", kind)

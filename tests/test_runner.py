@@ -126,3 +126,35 @@ async def test_final_run_state_is_written_before_the_terminal_event(tmp_path, se
         run = await run_single_page(settings, client, bus, bundle, index, FLOWS["checkout"], base_url=server_url, page_factory=page_factory, run_id="fixed-id")
         await asyncio.wait_for(watcher, 10)
     assert run.status == RunStatus.awaiting_review and seen == ["awaiting_review"]
+
+
+async def test_comparator_retry_does_not_count_repeats_as_rejected(tmp_path, server_url, page):
+    """Attempt 2 re-proposing an element already verified in attempt 1 is dropped silently, not shown as a red row."""
+    import json as _json
+
+    from parity.meta.fake import FakeMetaClient
+    from parity.store.models import Capture
+
+    cap = Capture.model_validate_json(Path(__file__).parent.joinpath("fixtures", "capture_checkout.json").read_text())
+    f5 = next(n for n in cap.ax_nodes if n.dom_id == "f5")
+    hero = {"what_sighted_user_sees": "Pay R1,249", "screen_reader_role": "button", "screen_reader_name": "Submit", "why_it_matters": "price hidden", "bbox": f5.bbox.model_dump()}
+    nowhere = {"what_sighted_user_sees": "ghost", "screen_reader_role": "button", "screen_reader_name": "x", "why_it_matters": "x", "bbox": {"x_min": 1, "y_min": 1, "x_max": 2, "y_max": 2}}
+
+    def answer(findings):
+        return {"id": "r", "_request_id": "req", "status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": _json.dumps({"findings": findings})}]}], "usage": {"input_tokens": 1, "output_tokens": 1}}
+
+    async def factory():
+        return page
+
+    defaults = stage_defaults()
+    client = FakeMetaClient(META, stage_defaults=defaults, script={"comparator": [answer([hero, nowhere]), answer([hero, nowhere])]})
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data")})
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        run = await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory)
+    finally:
+        await index.close()
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    assert run.findings_verified == 1 and run.findings_rejected == 1  # the ghost once, never the hero twice

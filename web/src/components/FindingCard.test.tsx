@@ -116,3 +116,39 @@ describe("FindingCard decisions under failure and in flight", () => {
     expect(screen.getByRole("button", { name: /^reject/i })).toBeDisabled();
   });
 });
+
+describe("pre-P4 QA: re-audit signals and dismissing without a fix", () => {
+  const fixed: Finding = { ...finding, status: "reaudited",
+    fix: { before_html: "<b>", after_html: '<button id="f6" aria-label="Delete">🗑️</button>', diff: "", explanation: "", model_meta: { model: "muse-spark-1.3-contributor" } },
+    reaudit: { gap_closed: false, sr_name_before: "Close", sr_name_after: "Delete", comparator_still_flags: false } };
+
+  it("shows both re-audit signals when the strict name rule stays open but the comparator no longer flags it", () => {
+    render(<FindingCard finding={fixed} selected={false} onSelect={() => {}} />);
+    expect(screen.getByText(/name rule: still open/i)).toBeInTheDocument();
+    expect(screen.getByText(/comparator: no longer flags it/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/comparison/i).length).toBeGreaterThan(0); // the second signal carries its Meta badge
+  });
+
+  it("lets a human reject a verified finding that has no fix (a false positive), but not approve it", () => {
+    const seen: unknown[] = [];
+    render(<FindingCard finding={{ ...finding, fix: null, reaudit: null }} selected={true} onSelect={() => {}} onDecision={(id, d, r) => { seen.push([id, d, r]); }} />);
+    fireEvent.change(screen.getByLabelText(/reason/i), { target: { value: "Read in full as a sentence" } });
+    expect(screen.getByRole("button", { name: /approve fix/i })).toBeDisabled();
+    const reject = screen.getByRole("button", { name: /^reject/i });
+    expect(reject).toBeEnabled();
+    fireEvent.click(reject);
+    expect(seen).toEqual([[finding.id, "reject", "Read in full as a sentence"]]);
+  });
+});
+
+describe("pre-P4 QA: the card as a screen-reader user meets it", () => {
+  it("is an article named by its heading, with a short select button and no controls nested inside a button", () => {
+    render(<FindingCard finding={finding} selected={false} onSelect={() => {}} />);
+    const article = screen.getByRole("article", { name: /Pay R1,249/ });
+    expect(article).toBeInTheDocument();
+    const select = screen.getByRole("button", { name: "Pay R1,249" });
+    expect(select.textContent!.length).toBeLessThan(40);
+    expect(select).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("list", { name: /verifier checks/i }).closest("button")).toBeNull();
+  });
+});

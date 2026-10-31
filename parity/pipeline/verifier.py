@@ -22,6 +22,16 @@ def normalise(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "")).strip().casefold()
 
 
+def _letters(s: str) -> str:
+    return re.sub(r"[^0-9a-z]+", "", (s or "").casefold())
+
+
+def announced_in_full(sighted: str, capture: Capture) -> bool:
+    """True when the tree's text, read in order, contains everything the sighted text says (a fragment was flagged)."""
+    whole = _letters(" ".join(n.name for n in capture.ax_nodes if n.name))
+    return bool(_letters(sighted)) and _letters(sighted) in whole
+
+
 def iou(a: BBox, b: BBox) -> float:
     ix = max(0, min(a.x_max, b.x_max) - max(a.x_min, b.x_min))
     iy = max(0, min(a.y_max, b.y_max) - max(a.y_min, b.y_min))
@@ -103,6 +113,9 @@ def verify(candidate: Candidate, capture: Capture, prior: list[Finding]) -> Veri
         if node is not None and normalise(candidate.sighted_text) == normalise(node.name):
             checks["diverges"] = Check(passed=False, detail="visible text equals the accessible name")
             feedback.append("the visible text and the accessible name are the same; this is not a divergence, drop it")
+        elif node is not None and normalise(node.role) == "text" and normalise(node.name) in normalise(candidate.sighted_text) and announced_in_full(candidate.sighted_text, capture):
+            checks["diverges"] = Check(passed=False, detail="the visible text is announced in full by the surrounding text; this node is a fragment of it")
+            feedback.append("the screen reader reads that sentence in full; a text fragment inside it is not a divergence, drop it")
         else:
             checks["diverges"] = Check(passed=True, detail="visible text differs from the accessible name")
 

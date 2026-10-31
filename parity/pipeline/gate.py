@@ -44,6 +44,15 @@ def run_lock(run_id: str) -> asyncio.Lock:
     return _locks[key]
 
 
+async def save_merged(ctx, finding: Finding) -> None:
+    """Write the finding without clobbering a decision a human recorded while this stage was running."""
+    async with run_lock(ctx.run.id):
+        current = await ctx.bundle.read_finding(ctx.run.id, finding.id)
+        if current is not None and current.decision is not None:
+            finding.decision, finding.status = current.decision, current.status
+        await ctx.save_finding(finding)
+
+
 async def fix_findings(ctx, page_factory: PageFactory) -> int:
     """fixer (concurrently) then re-audit (one page, in order) for each barrier. Returns how many fixes
     were proposed. Never fails the run: the walk's evidence stands even if this stage cannot run for one finding."""
@@ -75,7 +84,7 @@ async def fix_findings(ctx, page_factory: PageFactory) -> int:
             continue
         finding.fix = fix
         finding.status = FindingStatus.fix_proposed
-        await ctx.save_finding(finding)
+        await save_merged(ctx, finding)
         await ctx.emit("fixer.proposed", {"finding_id": finding.id, "diff": fix.diff, "fix": fix.model_dump(mode="json")})
         proposed += 1
         cap = ctx.captures[finding.step_index]
@@ -87,7 +96,7 @@ async def fix_findings(ctx, page_factory: PageFactory) -> int:
             continue
         finding.reaudit = result
         finding.status = FindingStatus.reaudited
-        await ctx.save_finding(finding)
+        await save_merged(ctx, finding)
         await ctx.emit("reaudit.result", {"finding_id": finding.id, "gap_closed": result.gap_closed, "before": result.sr_name_before,
                                           "after": result.sr_name_after, "reaudit": result.model_dump(mode="json")})
     return proposed

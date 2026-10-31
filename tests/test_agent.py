@@ -365,11 +365,12 @@ async def test_audit_view_on_an_audited_screen_makes_no_new_model_calls(tmp_path
     assert tool_calls[1].data["result"]["already_audited"] is True and "already_audited" not in tool_calls[0].data["result"]
 
 
-async def test_safety_checks_are_acknowledged_in_the_next_request(tmp_path, server_url, page):
+async def test_pending_safety_checks_stop_the_batch(tmp_path, server_url, page):
+    """The provider's safety check is a prompt-injection signal: code does not act on the batch, the run stops and says why."""
     checks = [{"id": "sc1", "code": "irreversible_action", "message": "This may place an order"}]
     item = computer_call([{"type": "wait", "ms": 10}], "c1")
     item["pending_safety_checks"] = checks
-    script = [turn(item), turn(function_call("audit_view", {"reason": "p"}, "c2"), function_call("finish", {"summary": "done"}, "c3"))]
+    script = [turn(item), turn(function_call("finish", {"summary": "done"}, "c2"))]
 
     async def factory():
         return page
@@ -377,8 +378,8 @@ async def test_safety_checks_are_acknowledged_in_the_next_request(tmp_path, serv
     async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
         run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
         loaded = await bundle.load(run.id)
-    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
-    second = auditor_calls(client)[1]["input"][0]
-    assert second["type"] == "computer_call_output" and second["acknowledged_safety_checks"] == checks
-    nav = next(e for e in loaded.events if e.type == "nav.actions")
-    assert nav.data["safety_checks"] == 1 and nav.data["safety_codes"] == ["irreversible_action"]
+    assert len(auditor_calls(client)) == 1  # nothing is acknowledged back to the model
+    blocked = next(e for e in loaded.events if e.type == "nav.blocked")
+    assert blocked.data["safety_codes"] == ["irreversible_action"]
+    result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
+    assert result["finished"] is False and "safety check" in result["summary"]

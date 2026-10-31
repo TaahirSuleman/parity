@@ -95,3 +95,33 @@ def test_helpers():
     assert normalise('  Button,  "SUBMIT" ') == 'button, "submit"'
     assert iou(BBox(x_min=0, y_min=0, x_max=10, y_max=10), BBox(x_min=5, y_min=0, x_max=15, y_max=10)) == pytest.approx(1 / 3)
     assert iou(BBox(x_min=0, y_min=0, x_max=10, y_max=10), BBox(x_min=20, y_min=20, x_max=30, y_max=30)) == 0.0
+
+
+def test_text_fragment_announced_in_full_does_not_diverge():
+    """'Order SR-10428. …' read as one paragraph: flagging the <strong> fragment is a false positive."""
+    from parity.pipeline.verifier import verify
+    from parity.store.models import AxNode, BBox, Candidate, Capture
+
+    nodes = [
+        AxNode(backend_id=1, role="text", name="Order ", bbox=BBox(x_min=100, y_min=100, x_max=140, y_max=120)),
+        AxNode(backend_id=2, role="text", name="SR-10428", bbox=BBox(x_min=140, y_min=100, x_max=200, y_max=120)),
+        AxNode(backend_id=3, role="text", name=". Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.", bbox=BBox(x_min=200, y_min=100, x_max=700, y_max=120)),
+        AxNode(backend_id=4, role="text", name="R1,599.00", bbox=BBox(x_min=100, y_min=200, x_max=180, y_max=220)),
+    ]
+    cap = Capture(step_index=0, url="http://x/store/confirm.html", ax_nodes=nodes)
+    fragment = Candidate(step_index=0, sighted_text="Order SR-10428. Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.",
+                         sr_quote='text, "SR-10428"', why_it_matters="x", bbox=BBox(x_min=140, y_min=100, x_max=200, y_max=120))
+    r = verify(fragment, cap, [])
+    assert r.passed is False and r.checks["diverges"].passed is False and "announced in full" in r.checks["diverges"].detail
+    strike = Candidate(step_index=0, sighted_text="R1,599.00 crossed-out original price", sr_quote='text, "R1,599.00"', why_it_matters="x",
+                       bbox=BBox(x_min=100, y_min=200, x_max=180, y_max=220))
+    assert verify(strike, cap, []).checks["diverges"].passed is True  # the strike-through meaning is not announced anywhere
+
+
+def test_locate_ignores_zero_area_offscreen_nodes():
+    from parity.pipeline.verifier import locate
+    from parity.store.models import AxNode, BBox
+
+    visible = AxNode(backend_id=1, role="button", name="Place order", bbox=BBox(x_min=400, y_min=960, x_max=600, y_max=1000))
+    offscreen = AxNode(backend_id=2, role="link", name="Privacy", bbox=BBox(x_min=400, y_min=1000, x_max=600, y_max=1000))  # clamped to a line
+    assert locate(BBox(x_min=410, y_min=965, x_max=590, y_max=999), [offscreen, visible]) is visible

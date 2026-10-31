@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import hero from "../fixtures/hero.json";
-import { initialState, reduce, select } from "./reducer";
+import { initialState, pickHero, reduce, select, shouldReset } from "./reducer";
 import type { ParityEvent, RunState } from "./types";
 
 const events = hero.events as unknown as ParityEvent[];
@@ -103,5 +103,29 @@ describe("the human gate", () => {
     expect(s.findings[0].status).toBe("approved");
     expect(s.findings[0].decision?.reason).toBe("ok");
     expect(s.run?.status).toBe("done");
+  });
+});
+
+describe("pre-P4 QA: what the header and the selection show", () => {
+  const finished = play(events);
+
+  it("uses the recorded run time on run.finished, not the replay's wall clock", () => {
+    const ev = events.find((e) => e.type === "run.finished")!;
+    expect(ev.duration_ms).toBeGreaterThan(0);
+    expect(finished.run?.duration_ms).toBe(ev.duration_ms);
+  });
+
+  it("selects the hero on finish: the strongest finding whose fix closed the gap", () => {
+    const f = (id: string, severity: string, closed: boolean | null) => ({ id, judgement: { is_barrier: true, severity, wcag: [], impact: "", model_meta: {} },
+      reaudit: closed === null ? null : { gap_closed: closed, sr_name_before: "", sr_name_after: "", comparator_still_flags: false } }) as unknown as import("./types").Finding;
+    expect(pickHero([f("a", "moderate", true), f("b", "critical", false), f("c", "serious", true)])?.id).toBe("c");
+    expect(pickHero([f("a", "moderate", null), f("b", "critical", null)])?.id).toBe("b");
+    expect(finished.selectedFindingId).toBe(pickHero(finished.findings)?.id);
+  });
+
+  it("does not reset the workbench when the pressed mode is clicked again or a run is going", () => {
+    expect(shouldReset({ ...initialState, mode: "replay", phase: "idle" }, "replay")).toBe(false);
+    expect(shouldReset({ ...initialState, mode: "replay", phase: "running" }, "live")).toBe(false);
+    expect(shouldReset({ ...initialState, mode: "replay", phase: "finished" }, "live")).toBe(true);
   });
 });

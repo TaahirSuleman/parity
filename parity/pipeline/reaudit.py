@@ -12,7 +12,8 @@ from __future__ import annotations
 import contextlib
 import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
-from urllib.parse import urlparse
+import posixpath
+from urllib.parse import unquote, urlparse
 
 from playwright.async_api import Page, Route
 
@@ -48,6 +49,28 @@ def _without_fragment(url: str) -> str:
     return url.split("#", 1)[0]
 
 
+SANDBOX_CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+               "font-src 'self' data:; connect-src 'none'; form-action 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'")
+
+
+def request_allowed(url: str, method: str, origin: str) -> bool:
+    """The patched page may load only GET /store/* from its own origin: decoded, normalised, case-sensitive."""
+    parsed, home = urlparse(url), urlparse(origin)
+    if method.upper() != "GET" or (parsed.scheme, parsed.netloc) != (home.scheme, home.netloc):
+        return False
+    raw = parsed.path
+    if "//" in raw or ".." in raw:
+        return False
+    path = raw
+    for _ in range(3):  # decode until stable: /%2561pi -> /%61pi -> /api
+        decoded = unquote(path)
+        if decoded == path:
+            break
+        path = decoded
+    path = posixpath.normpath(path)
+    return path.startswith("/store/") and ".." not in path and path == raw
+
+
 @contextlib.asynccontextmanager
 async def load_patched(page: Page, url: str, patched_html: str) -> AsyncIterator[Page]:
     """Serve the patched document at its real URL (relative assets keep resolving) with the API unreachable."""
@@ -57,19 +80,20 @@ async def load_patched(page: Page, url: str, patched_html: str) -> AsyncIterator
     async def fulfil(route: Route) -> None:
         nonlocal served
         served += 1
-        await route.fulfill(status=200, content_type="text/html; charset=utf-8", body=patched_html)
+        await route.fulfill(status=200, content_type="text/html; charset=utf-8", body=patched_html, headers={"Content-Security-Policy": SANDBOX_CSP})
 
-    async def block(route: Route) -> None:
-        await route.abort("blockedbyclient")
+    origin = f"{urlparse(document).scheme}://{urlparse(document).netloc}"
 
-    def is_document(u: str) -> bool:
-        return _without_fragment(u) == document
+    async def police(route: Route) -> None:
+        req = route.request
+        if _without_fragment(req.url) == document and req.method.upper() == "GET":
+            await fulfil(route)
+        elif request_allowed(req.url, req.method, origin):
+            await route.continue_()
+        else:
+            await route.abort("blockedbyclient")
 
-    def is_api(u: str) -> bool:
-        return urlparse(u).path.startswith("/api")
-
-    await page.route(is_api, block)
-    await page.route(is_document, fulfil)
+    await page.route("**/*", police)
     try:
         if _without_fragment(page.url) == document:
             await page.goto("about:blank")  # a same-document (fragment) navigation makes no request, so nothing would be served
@@ -78,8 +102,7 @@ async def load_patched(page: Page, url: str, patched_html: str) -> AsyncIterator
             raise RuntimeError(f"the patched page was not served for {url}; the re-audit would have read the live page")
         yield page
     finally:
-        await page.unroute(is_document, fulfil)
-        await page.unroute(is_api, block)
+        await page.unroute("**/*", police)
 
 
 async def reaudit(client, page_factory: PageFactory, page_html: str, url: str, fix: Fix, finding: Finding, run_id: str,

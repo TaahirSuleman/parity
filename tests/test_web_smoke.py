@@ -89,7 +89,7 @@ async def test_trace_drawer_is_not_painted_over_by_panel_content(page, server_ur
     await page.goto(server_url + "/?mock=hero")
     await page.get_by_role("heading", name="Parity").wait_for()
     await page.get_by_role("button", name="Pay R1,249").first.click()  # the screen-reader panel fills with the judge's text
-    await page.get_by_role("button", name=re.compile(r"^Trace")).click()
+    await page.locator('button[aria-controls="trace-table"]').click()
     await page.locator("#trace-table tbody tr").first.wait_for()
     intruders = await page.evaluate(
         """() => {
@@ -106,3 +106,51 @@ async def test_trace_drawer_is_not_painted_over_by_panel_content(page, server_ur
         }"""
     )
     assert intruders == [], intruders
+
+
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+async def test_finished_replay_is_axe_clean(page, server_url, scheme):
+    """The brief says zero violations: that must hold after a run, with the diff, timeline and trace on screen."""
+    from tests.test_store_pages import AXE
+
+    await page.emulate_media(color_scheme=scheme)
+    await page.goto(server_url + "/")
+    await page.get_by_role("button", name="Replay").click()
+    await page.get_by_role("button", name="Run the audit").click()
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=60000)
+    await page.get_by_role("button", name="Pay R1,249").first.click()
+    await page.locator('button[aria-controls="trace-table"]').click()
+    await page.wait_for_timeout(400)
+    await page.add_script_tag(path=str(AXE))
+    result = await page.evaluate("axe.run(document, {resultTypes: ['violations']})")
+    assert [(v["id"], [n["target"] for n in v["nodes"]]) for v in result["violations"]] == []
+
+
+@pytest.mark.parametrize("width", [768, 390])
+async def test_workbench_has_no_horizontal_scroll_on_narrow_screens(page, server_url, width):
+    await page.set_viewport_size({"width": width, "height": 900})
+    await page.goto(server_url + "/?mock=hero")
+    await page.get_by_role("heading", name="Parity").wait_for()
+    wide = await page.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
+    assert wide <= 0, f"page scrolls sideways by {wide}px at {width}"
+
+
+async def test_columns_stack_below_1280(page, server_url):
+    """Below the desktop width the three panels stack instead of squeezing into unreadable columns."""
+    await page.set_viewport_size({"width": 1024, "height": 900})
+    await page.goto(server_url + "/?mock=hero")
+    await page.get_by_role("heading", name="Parity").wait_for()
+    tops = await page.evaluate("() => [...document.querySelectorAll('main > section')].map(s => Math.round(s.getBoundingClientRect().top))")
+    assert len(tops) == 3 and len(set(tops)) >= 2, tops  # not all three side by side
+
+
+async def test_run_link_reloads_the_run(page, server_url):
+    """A finished run has a URL: reloading it brings the findings and decisions back."""
+    await page.goto(server_url + "/")
+    await page.get_by_role("button", name="Replay").click()
+    await page.get_by_role("button", name="Run the audit").click()
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=60000)
+    assert "run=" in page.url
+    await page.reload()
+    await page.get_by_role("button", name="Pay R1,249").first.wait_for(timeout=30000)
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=30000)

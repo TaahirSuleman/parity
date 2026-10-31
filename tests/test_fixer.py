@@ -224,3 +224,17 @@ def test_apply_fix_for_an_id_less_element_applies_with_git(tmp_path):
     after = cart[s:e].replace('alt=""', 'alt="Free delivery"', 1) if 'alt=""' in cart[s:e] else cart[s:e].replace("<img", '<img alt="Free delivery"', 1)
     diff = unified_diff(cart, apply_fix(cart, el, after), "store/cart.html")
     git_apply_check(tmp_path, diff, "store/cart.html", cart)
+
+
+# --- pre-P4 QA: parser differentials (what Chromium runs that HTMLParser does not see) ---
+@pytest.mark.parametrize("snippet", [
+    '<button id="f5"><![CDATA[><img src=x onerror=alert(1)>]]></button>',
+    '<button id="f5"><!--><img src=x onerror=alert(1)>--></button>',
+    '<button id="f5"><!---><img src=x onerror=alert(1)>--></button>',
+    '<button id="f5"><?xml ?><img src=x onerror=alert(1)></button>',
+])
+def test_validator_rejects_markup_declarations_and_comments(snippet):
+    from parity.pipeline.fixer import validate_snippet
+
+    with pytest.raises(FixRejected):
+        validate_snippet(BEFORE, snippet)

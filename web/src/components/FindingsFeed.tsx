@@ -7,13 +7,14 @@ interface Props {
   findings: Finding[];
   rejected: Rejected[];
   selectedId: string | null;
+  flowName?: string;
   phase: RunState["phase"];
   error: string | null;
   onSelect: (id: string) => void;
   onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void;
 }
 
-export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision }: Props) {
+export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow" }: Props) {
   const [verifierOff, setVerifierOff] = useState(false);
   const items: ({ kind: "f"; v: Finding } | { kind: "r"; v: Rejected })[] = [
     ...findings.map((v) => ({ kind: "f" as const, v })),
@@ -49,13 +50,13 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
       )}
       {items.length === 0 && (
         <p className="muted m-0 p-5" role="status">
-          {phase === "idle" && "No findings yet. Run the audit to walk the checkout."}
+          {phase === "idle" && `Parity walks the ${flowName} as a sighted shopper and as a screen-reader user, then shows where the two differ. Run the audit to start.`}
           {phase === "running" && "Capturing the page and comparing what is seen with what is announced…"}
           {phase === "finished" && "No divergences passed the verifier on this run."}
           {phase === "failed" && (error ?? "The run failed.")}
         </p>
       )}
-      <div className="flex flex-col gap-2 p-3 overflow-y-auto" role="list" aria-live="polite" aria-relevant="additions" hidden={items.length === 0}>
+      <div className="flex flex-col gap-2 p-3 overflow-y-auto" role="list" hidden={items.length === 0}>
         {items.map((it) =>
           it.kind === "f" ? (
             <div key={it.v.id} role="listitem">

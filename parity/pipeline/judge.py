@@ -50,7 +50,8 @@ def parse_judgement(text: str) -> Judgement:
     if severity not in VALID_SEVERITIES:
         return needs_review
     wcag: list[WcagRef] = []
-    for item in data.get("wcag") or []:
+    items = data.get("wcag")
+    for item in items if isinstance(items, list) else []:
         if isinstance(item, dict) and item.get("sc"):
             wcag.append(WcagRef(sc=str(item["sc"]).strip(), name=str(item.get("name") or "").strip()))
     return Judgement(is_barrier=data["is_barrier"], severity=Severity(severity), wcag=wcag, impact=str(data.get("impact") or "").strip())

@@ -79,3 +79,10 @@ async def test_judge_sees_the_accessibility_tree(hero, tmp_path):
     await judge(fake, finding, cap, run_id="r1", model="muse-spark-1.3")
     text = fake.calls[0]["input"][0]["content"][0]["text"]
     assert "ACCESSIBILITY TREE" in text and '"Card number"' in text and '"Save for later"' in text
+
+
+async def test_malformed_wcag_fails_closed(hero, tmp_path):
+    cap, finding = hero
+    fake = FakeMetaClient(tmp_path, default=response_with({"is_barrier": True, "severity": "serious", "wcag": 5, "impact": "x"}))
+    j = await judge(fake, finding, cap, run_id="r1", model="muse-spark-1.3")
+    assert j.severity == Severity.needs_review or j.wcag == []

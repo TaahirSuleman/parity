@@ -73,9 +73,16 @@ async def start(
 
 async def _publish(run: Run, final_status: RunStatus, events: list[Event], bus: EventBus, bundle: RunBundle, index, pace_ms: int) -> None:
     async def finalize() -> None:
-        run.status = final_status if final_status in (RunStatus.done, RunStatus.awaiting_review, RunStatus.failed) else RunStatus.done
-        run.finished_at = now()
-        await bundle.write_run(run)
+        from parity.pipeline.gate import is_pending, run_lock  # local import: gate imports the pipeline
+
+        async with run_lock(run.id):
+            if final_status == RunStatus.failed:
+                run.status = RunStatus.failed
+            else:  # judges may decide while the replay is still pacing out events
+                pending = [f for f in (await bundle.load(run.id)).findings if is_pending(f)]
+                run.status = RunStatus.awaiting_review if pending else RunStatus.done
+            run.finished_at = now()
+            await bundle.write_run(run)
         try:
             await index.upsert_run(run)
         except Exception as exc:

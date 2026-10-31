@@ -129,6 +129,11 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                 if kind == "computer_call":
                     actions = item.get("actions") or ([item["action"]] if item.get("action") else [])
                     safety = item.get("pending_safety_checks") or []
+                    if safety:  # the provider's own injection signal: code does not act on it, a human reads it
+                        codes = [c.get("code") for c in safety if isinstance(c, dict)]
+                        await ctx.emit("nav.blocked", {"turn": turn, "reason": "the model raised a safety check; the batch was not executed", "safety_codes": codes})
+                        state.summary = f"stopped: safety check {codes} raised by the model; no action was taken"
+                        return AgentResult(turns, False, False, state.summary)
                     executed = dropped = 0
                     off_origin = False
                     for action in actions:

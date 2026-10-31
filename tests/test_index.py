@@ -57,3 +57,25 @@ async def test_recover_interrupted_marks_failed(store):
     assert stuck.status == RunStatus.failed and stuck.error == "interrupted by restart" and stuck.finished_at is not None
     assert (await bundle.load("fine")).run.status == RunStatus.done
     assert {r.id: r.status for r in await index.list_runs()}["stuck"] == RunStatus.failed
+
+
+async def test_recovery_skips_an_unreadable_bundle(tmp_path):
+    """One corrupt run.json must not stop the server from booting."""
+    from parity.store.blob import LocalBlobStore
+    from parity.store.bundle import RunBundle
+    from parity.store.index import RunIndex
+    from parity.store.models import RunStatus
+    from tests.test_bundle import sample_run
+
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    await bundle.create(sample_run("good-run", RunStatus.running))
+    (tmp_path / "data" / "runs" / "bad-run").mkdir(parents=True)
+    (tmp_path / "data" / "runs" / "bad-run" / "run.json").write_text("{not json")
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        recovered = await index.recover_interrupted(bundle)
+        assert recovered == ["good-run"]
+        assert await index.rebuild(bundle) >= 1
+    finally:
+        await index.close()

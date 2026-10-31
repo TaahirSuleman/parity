@@ -167,3 +167,26 @@ async def test_rejected_fix_leaves_no_patch(api):
     r = await client.post(f"/api/runs/{run_id}/findings/{run_id}-f01/decision", json={"decision": "reject", "reason": "Not a barrier in context"})
     assert r.status_code == 200 and r.json()["finding"]["status"] == "rejected" and r.json()["run"]["status"] == "done"
     assert (await client.get(f"/api/runs/{run_id}/patch")).status_code == 404
+
+
+async def test_decisions_during_replay_playback_settle_the_run(api):
+    """Judges approve while the replay is still pacing out events; the run must end done, not stuck awaiting review."""
+    client, _ = api
+    run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 150})).json()["run_id"]
+    r = await client.post(f"/api/runs/{run_id}/findings/{run_id}-f01/decision", json={"decision": "approve", "reason": "during playback"})
+    assert r.status_code == 200, r.text
+    events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
+    assert events[-1][0] in ("run.finished", "decision.recorded")
+    detail = (await client.get(f"/api/runs/{run_id}")).json()
+    assert detail["run"]["status"] == "done" and detail["findings"][0]["status"] == "approved"
+
+
+async def test_public_run_responses_carry_no_ip_hash_or_internal_url(api):
+    client, _ = api
+    run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+    await client.get(f"/api/runs/{run_id}/events")
+    listed = (await client.get("/api/runs")).json()[0]
+    detail = (await client.get(f"/api/runs/{run_id}")).json()["run"]
+    for body in (listed, detail):
+        assert "client_ip_hash" not in body and "127.0.0.1" not in str(body.get("target_url", ""))
+    assert (await client.get("/api/runs?limit=-1")).status_code == 422

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 import time
@@ -53,27 +54,34 @@ async def run_flow(
     page: Page | None = None
     agent: AgentResult | None = None
     try:
-        page = await page_factory()
-        ctx.page = page
-        await page.goto(run.target_url, wait_until="load")
-        if flow.single_page:
-            summary = await audit_view(ctx, page, 0, reason="single-page flow")
-            verified = [b.__dict__ for b in summary.verified]
-        else:
-            agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
-            verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
-        final_url = page.url  # where the walk ended, before re-audits reuse the page
+      async with asyncio.timeout(settings.run_timeout_s):
+          page = await page_factory()
+          ctx.page = page
+          await page.goto(run.target_url, wait_until="load")
+          if flow.single_page:
+              summary = await audit_view(ctx, page, 0, reason="single-page flow")
+              verified = [b.__dict__ for b in summary.verified]
+          else:
+              agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
+              verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
+          final_url = page.url  # where the walk ended, before re-audits reuse the page
 
-        async def same_page() -> Page:
-            return page
+          async def same_page() -> Page:
+              return page
 
-        fixes = await fix_findings(ctx, same_page)
-        pending = await _settle(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
-        await ctx.emit("run.finished", {
-            "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
-            "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
-            "fixes_proposed": fixes, "pending": pending, "agent": result_dict(agent) if agent else None, "final_url": final_url, "duration_ms": run.duration_ms,
-        })
+          fixes = await fix_findings(ctx, same_page)
+          pending = await _settle(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
+          await ctx.emit("run.finished", {
+              "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
+              "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
+              "fixes_proposed": fixes, "pending": pending, "agent": result_dict(agent) if agent else None, "final_url": final_url, "duration_ms": run.duration_ms,
+          })
+    except TimeoutError:
+        run.status = RunStatus.failed
+        run.error = f"run deadline of {settings.run_timeout_s} s exceeded"
+        log.error("run %s failed: %s", run.id, run.error)
+        await _close(ctx, t0)
+        await ctx.emit("run.failed", {"error": run.error})
     except MetaError as exc:
         run.status = RunStatus.failed
         run.error = f"Meta API error {exc.status}: {exc} (request_id {exc.request_id}, attempts {exc.attempts})"

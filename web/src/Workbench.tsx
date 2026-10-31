@@ -18,11 +18,13 @@ interface Props {
   onModeChange: (mode: RunMode) => void;
   onRun: () => void;
   onSelect: (id: string) => void;
-  onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void;
+  onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void | Promise<void>;
+  stepIndex?: number | null;
+  onStepChange?: (index: number) => void;
 }
 
 /** The whole workbench from props: the mock and the live app render this same component. */
-export function Workbench({ state, flows, flowId, onFlowChange, canLive, screenshotUrl, model, onModeChange, onRun, onSelect, onDecision }: Props) {
+export function Workbench({ state, flows, flowId, onFlowChange, canLive, screenshotUrl, model, onModeChange, onRun, onSelect, onDecision, stepIndex = null, onStepChange }: Props) {
   const approved = state.findings.filter((f) => f.status === "approved").length;
   const pending = state.findings.filter((f) => f.fix && !f.decision).length;
   const [traceOpen, setTraceOpen] = useState(false);
@@ -30,9 +32,11 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
   return (
     <div className="flex flex-col" style={{ height: "100vh" }}>
       <Header approved={approved} pending={pending} flows={flows} flowId={flowId} onFlowChange={onFlowChange} run={state.run} mode={state.mode} canLive={canLive} running={state.phase === "running"} onModeChange={onModeChange} onRun={onRun} />
-      <main className="flex-1 grid gap-3 p-3 min-h-0" style={{ gridTemplateColumns: "minmax(0, 5fr) minmax(0, 4fr) minmax(0, 3fr)" }}>
-        <SightedPanel screenshotUrl={screenshotUrl} findings={state.findings} percepts={state.percepts} selectedId={state.selectedFindingId} stage={state.stage} model={state.models.navigator ?? model} timeline={state.timeline} onSelect={onSelect} />
-        <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision} />
+      <main className="flex-1 workbench-grid">
+        <SightedPanel screenshotUrl={screenshotUrl} findings={state.findings} percepts={state.percepts} selectedId={state.selectedFindingId} stage={state.stage} model={state.models.navigator ?? model} timeline={state.timeline}
+          steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} />
+        <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
+          flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} />
         <ScreenReaderPanel finding={selected} />
         <p className="sr-only" aria-live="polite">{state.phase === "finished" ? `Audit finished: ${state.run?.findings_verified ?? 0} verified findings.` : ""}</p>
       </main>

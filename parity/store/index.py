@@ -121,7 +121,11 @@ class RunIndex:
         """Runs still marked running/queued after a restart are failed, bundle first, then index."""
         recovered: list[str] = []
         for run_id in await bundle.list_run_ids():
-            run = (await bundle.load(run_id)).run
+            try:
+                run = (await bundle.load(run_id)).run
+            except Exception as exc:  # one corrupt bundle must not stop the server from booting
+                log.warning("recovery skips unreadable bundle %s: %s", run_id, exc)
+                continue
             if run.status in (RunStatus.running, RunStatus.queued):
                 run.status = RunStatus.failed
                 run.error = "interrupted by restart"

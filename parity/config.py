@@ -31,6 +31,7 @@ class Settings:
     eval_model: str = CONTRIBUTOR_SPARK
     voice_model: str = "muse-voice-transcribe-1.0"
     private: bool = False
+    run_timeout_s: int = 900  # a run that outlives this is failed; spec §15 says 10 min, a live purchase run takes ~9.5
     data_dir: Path = Path("./data")
     gcs_bucket: str = ""
     index_path: Path = Path("./data/index.db")
@@ -88,6 +89,7 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         eval_model=get("PARITY_EVAL_MODEL", Settings.eval_model),
         voice_model=get("PARITY_VOICE_MODEL", Settings.voice_model),
         private=_bool(get("PARITY_PRIVATE", "false")),
+        run_timeout_s=int(get("PARITY_RUN_TIMEOUT_S", str(Settings.run_timeout_s))),
         data_dir=Path(get("PARITY_DATA_DIR", str(Settings.data_dir))),
         gcs_bucket=get("PARITY_GCS_BUCKET", ""),
         index_path=Path(get("PARITY_INDEX_PATH", str(Settings.index_path))),

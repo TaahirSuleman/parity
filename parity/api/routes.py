@@ -14,6 +14,7 @@ from parity.api.sse import sse_response
 from parity.flows import FLOWS
 from parity.pipeline.runner import run_flow
 from parity.store.models import RunMode
+from parity.verifier_off import verifier_off
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -106,3 +107,13 @@ async def screenshot(run_id: str, n: int, request: Request) -> Response:
     except FileNotFoundError:
         raise HTTPException(404, "no screenshot") from None
     return Response(content=png, media_type="image/png", headers={"Cache-Control": "public, max-age=31536000, immutable"})
+
+
+@router.get("/runs/{run_id}/verifier-off")
+async def run_verifier_off(run_id: str, request: Request) -> dict:
+    """What this run would have reported with the Verifier bypassed. Post hoc, no model calls."""
+    try:
+        report = await verifier_off(request.app.state.bundle, run_id)
+    except KeyError:
+        raise HTTPException(404, "unknown run") from None
+    return report.model_dump(mode="json")

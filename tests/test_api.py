@@ -105,3 +105,14 @@ async def test_post_live_without_key_503(api):
     client, _ = api
     r = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"})
     assert r.status_code == 503 and "MODEL_API_KEY" in r.json()["detail"]
+
+
+async def test_verifier_off_route(api):
+    client, _ = api
+    run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+    await client.get(f"/api/runs/{run_id}/events")
+    r = await client.get(f"/api/runs/{run_id}/verifier-off")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["run_id"] == run_id and body["reported"] == 1 and body["verified"] == 1 and body["rejected_by_verifier"] == 0
+    assert (await client.get("/api/runs/nope/verifier-off")).status_code == 404

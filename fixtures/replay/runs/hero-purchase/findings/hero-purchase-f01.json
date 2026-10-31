@@ -2,36 +2,36 @@
  "id": "hero-purchase-f01",
  "run_id": "hero-purchase",
  "step_index": 0,
- "status": "judged",
- "sighted_text": "SALE -20%",
+ "status": "reaudited",
+ "sighted_text": "★★★★☆ 4.3 (212 reviews)",
  "sr_role": "image",
- "sr_name": "badge",
- "why_it_matters": "Blind user hears only generic badge and misses that the item is on 20% sale.",
+ "sr_name": "rating",
+ "why_it_matters": "Blind user gets only generic rating with no star count or 4.3 value and cannot assess product rating.",
  "voice": null,
  "bbox": {
   "x_min": 146,
-  "y_min": 126,
-  "x_max": 240,
-  "y_max": 165
+  "y_min": 219,
+  "x_max": 232,
+  "y_max": 247
  },
  "element": {
-  "backend_id": 19,
-  "css_path": "img#p1",
+  "backend_id": 22,
+  "css_path": "img#p2",
   "box_px": [
    187,
-   91,
-   307,
-   119
+   158,
+   297,
+   178
   ],
-  "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": "p1"
+  "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "p2"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#p1"
+    "detail": "image at img#p2"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,39 +51,55 @@
    }
   },
   "element": {
-   "backend_id": 19,
-   "css_path": "img#p1",
+   "backend_id": 22,
+   "css_path": "img#p2",
    "box_px": [
     187,
-    91,
-    307,
-    119
+    158,
+    297,
+    178
    ],
-   "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "p1"
+   "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "p2"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears only generic 'badge' and misses that the item is advertised as SALE -20%.",
+  "impact": "User hears only generic 'rating' and cannot learn the product is rated 4.3 stars to assess its quality.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "ea952321-8929-456b-a733-9717992a6749",
-   "response_id": "resp_6ae5391ad368bc2030364e33",
+   "request_id": "ebfe6804-ce72-4423-a3de-8a0d08b32ec4",
+   "response_id": "resp_6ae6284d9520f73f703845b5",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+  "after_html": "<img id=\"p2\" alt=\"★★★★☆ 4.3 (212 reviews)\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -13,7 +13,7 @@\n   <section class=\"card\" aria-labelledby=\"product-h\">\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\"> <span class=\"small\">(212 reviews)</span></p>\n+    <p><img id=\"p2\" alt=\"★★★★☆ 4.3 (212 reviews)\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\"> <span class=\"small\">(212 reviews)</span></p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span></p>\n     <div class=\"actions\">\n",
+  "explanation": "Changed alt from generic 'rating' to the visible text '★★★★☆ 4.3 (212 reviews)' so the screen reader announces the same rating value sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "e4f9b889-ecad-4e68-9e42-83579ad9a786",
+   "response_id": "resp_6ae629b0494e5e0d70c946f4",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "rating",
+  "sr_name_after": "★★★★☆ 4.3 (212 reviews)",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

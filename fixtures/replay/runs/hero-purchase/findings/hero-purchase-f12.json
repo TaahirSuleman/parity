@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f12",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 3,
  "status": "judged",
- "sighted_text": "red border around Card number field indicating error",
- "sr_role": "textbox",
- "sr_name": "Card number",
- "why_it_matters": "A blind user receives no error indication and does not know the card number field is invalid.",
+ "sighted_text": "Order SR-10428. Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.",
+ "sr_role": "text",
+ "sr_name": ". Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.",
+ "why_it_matters": "The order number SR-10428 is omitted from the announced sentence and only appears later out of context, so a blind user cannot associate the confirmation with the correct order.",
  "voice": null,
  "bbox": {
-  "x_min": 526,
-  "y_min": 288,
-  "x_max": 854,
-  "y_max": 344
+  "x_min": 238,
+  "y_min": 176,
+  "x_max": 679,
+  "y_max": 201
  },
  "element": {
-  "backend_id": 155,
-  "css_path": "input#card",
+  "backend_id": 223,
+  "css_path": "",
   "box_px": [
-   673,
-   207,
-   1093,
-   248
+   304,
+   127,
+   869,
+   145
   ],
-  "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
-  "dom_id": "card"
+  "outer_html": "",
+  "dom_id": null
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "textbox at input#card"
+    "detail": "text at "
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,38 +51,34 @@
    }
   },
   "element": {
-   "backend_id": 155,
-   "css_path": "input#card",
+   "backend_id": 223,
+   "css_path": "",
    "box_px": [
-    673,
-    207,
-    1093,
-    248
+    304,
+    127,
+    869,
+    145
    ],
-   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
-   "dom_id": "card"
+   "outer_html": "",
+   "dom_id": null
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "moderate",
   "wcag": [
    {
-    "sc": "3.3.1",
-    "name": "Error Identification"
-   },
-   {
-    "sc": "1.4.1",
-    "name": "Use of Color"
+    "sc": "1.3.2",
+    "name": "Meaningful Sequence"
    }
   ],
-  "impact": "The user cannot know the card number field is flagged as invalid and cannot identify or correct the error to complete payment.",
+  "impact": "The user hears the confirmation as 'Order' without its number and only encounters SR-10428 later out of context, making it hard to associate the charge with the correct order.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "8d50077d-18e9-409c-aa66-b2b1f3997e46",
-   "response_id": "resp_6ae53a1c20d78890a3a9455e",
+   "request_id": "1beaa4f5-4d3c-4b7c-89af-29fd8ff28d41",
+   "response_id": "resp_6ae6299a30df05318de44afe",
    "status": "completed",
    "incomplete_reason": null
   }

@@ -1,56 +1,56 @@
 {
  "id": "hero-purchase-r05",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 1,
  "candidate": {
-  "step_index": 2,
-  "sighted_text": "trash icon",
-  "sr_quote": "button, \"Close\"",
-  "why_it_matters": "A blind user hears Close and will misunderstand a delete action as closing the dialog.",
+  "step_index": 1,
+  "sighted_text": "Checkout",
+  "sr_quote": "link, \"Checkout\"",
+  "why_it_matters": "A blind user hears a link while a sighted user sees a button, creating mismatched expectations about whether it performs an action or navigates.",
   "bbox": {
-   "x_min": 654,
-   "y_min": 500,
-   "x_max": 690,
-   "y_max": 567
+   "x_min": 146,
+   "y_min": 433,
+   "x_max": 228,
+   "y_max": 493
   },
-  "attempt": 2
+  "attempt": 1
  },
  "verifier": {
   "passed": false,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f6"
+    "detail": "link at a#k5"
    },
    "sr_quote_exact": {
     "passed": true,
     "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
-    "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "passed": false,
+    "detail": "visible text equals the accessible name"
    },
    "not_axe": {
     "passed": true,
     "detail": "not an axe-core target"
    },
    "unique": {
-    "passed": false,
-    "detail": "this element already has a finding in this run"
+    "passed": true,
+    "detail": "first finding on this element"
    }
   },
   "element": {
-   "backend_id": 166,
-   "css_path": "button#f6",
+   "backend_id": 98,
+   "css_path": "a#k5",
    "box_px": [
-    837,
-    360,
-    883,
-    408
+    187,
+    313,
+    291,
+    355
    ],
-   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "f6"
+   "outer_html": "<a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>",
+   "dom_id": "k5"
   },
-  "feedback": "this element is already reported; do not repeat it"
+  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
  }
 }

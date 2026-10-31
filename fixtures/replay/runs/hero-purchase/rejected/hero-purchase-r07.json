@@ -1,0 +1,56 @@
+{
+ "id": "hero-purchase-r07",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "candidate": {
+  "step_index": 1,
+  "sighted_text": "Free",
+  "sr_quote": "not announced",
+  "why_it_matters": "Blind user misses that delivery is free and may overestimate the total cost or abandon checkout.",
+  "bbox": {
+   "x_min": 823,
+   "y_min": 325,
+   "x_max": 854,
+   "y_max": 350
+  },
+  "attempt": 2
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:img at span#k4 > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": false,
+    "detail": "this element already has a finding in this run"
+   }
+  },
+  "element": {
+   "backend_id": 95,
+   "css_path": "span#k4 > img:nth-of-type(1)",
+   "box_px": [
+    1053,
+    234,
+    1093,
+    252
+   ],
+   "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": null
+  },
+  "feedback": "this element is already reported; do not repeat it"
+ }
+}

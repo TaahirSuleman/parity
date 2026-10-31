@@ -2,44 +2,44 @@
  "id": "hero-purchase-f05",
  "run_id": "hero-purchase",
  "step_index": 1,
- "status": "judged",
- "sighted_text": "trash icon",
- "sr_role": "button",
- "sr_name": "Close",
- "why_it_matters": "A blind user hears Close and will not know the button removes the headphones from the cart.",
+ "status": "reaudited",
+ "sighted_text": "Free",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "A blind user gets no delivery cost information and will not know delivery is free.",
  "voice": null,
  "bbox": {
-  "x_min": 819,
-  "y_min": 187,
+  "x_min": 823,
+  "y_min": 325,
   "x_max": 854,
-  "y_max": 254
+  "y_max": 350
  },
  "element": {
-  "backend_id": 88,
-  "css_path": "button#k3",
+  "backend_id": 95,
+  "css_path": "span#k4 > img:nth-of-type(1)",
   "box_px": [
-   1047,
-   134,
+   1053,
+   234,
    1093,
-   182
+   252
   ],
-  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-  "dom_id": "k3"
+  "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": null
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#k3"
+    "detail": "silent:img at span#k4 > img:nth-of-type(1)"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "quote equals the accessibility tree entry"
+    "detail": "no accessibility node with a name at that box"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "detail": "visible content has no announcement"
    },
    "not_axe": {
     "passed": true,
@@ -51,43 +51,55 @@
    }
   },
   "element": {
-   "backend_id": 88,
-   "css_path": "button#k3",
+   "backend_id": 95,
+   "css_path": "span#k4 > img:nth-of-type(1)",
    "box_px": [
-    1047,
-    134,
+    1053,
+    234,
     1093,
-    182
+    252
    ],
-   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "k3"
+   "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": null
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "moderate",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
-   },
-   {
-    "sc": "2.4.6",
-    "name": "Headings and Labels"
    }
   ],
-  "impact": "The user cannot know the button removes the headphones from the cart and will expect it to close something instead.",
+  "impact": "The user hears 'Delivery' with no value and cannot know delivery is free without inferring it from the totals.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "4e54ac43-ea1f-4cf6-ba15-a0cd7430716e",
-   "response_id": "resp_6ae53978a296f66e3fce49b9",
+   "request_id": "3ac0fac0-28a4-48b3-969b-6737cbba406d",
+   "response_id": "resp_6ae628baec77c8b5e31d472f",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+  "after_html": "<img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -22,7 +22,7 @@\n       </span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,249.00</span></div>\n-    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\"></span></div>\n+    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\"></span></div>\n     <p class=\"total\">Total: R1,249.00</p>\n     <div class=\"actions\">\n       <a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>\n",
+  "explanation": "Changed empty alt to \"Free\" so screen readers announce the visible delivery cost.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "cda5ac5a-8929-4f50-aa4e-f17b6a1c9794",
+   "response_id": "resp_6ae62a11efdfdf82848c412f",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "",
+  "sr_name_after": "Free",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

@@ -1,17 +1,17 @@
 {
  "id": "hero-purchase-r01",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 0,
  "candidate": {
-  "step_index": 2,
-  "sighted_text": "red border around Card number field indicating error",
-  "sr_quote": "not announced",
-  "why_it_matters": "Blind user receives no error announcement and does not know the card number is invalid.",
+  "step_index": 0,
+  "sighted_text": "SALE -20%",
+  "sr_quote": "image, \"badge\"",
+  "why_it_matters": "Blind user hears only generic badge and misses that the item is on 20% sale.",
   "bbox": {
-   "x_min": 524,
-   "y_min": 286,
-   "x_max": 855,
-   "y_max": 346
+   "x_min": 145,
+   "y_min": 163,
+   "x_max": 240,
+   "y_max": 200
   },
   "attempt": 1
  },
@@ -19,16 +19,16 @@
   "passed": false,
   "checks": {
    "located": {
-    "passed": false,
-    "detail": "no element at that box"
+    "passed": true,
+    "detail": "text at "
    },
    "sr_quote_exact": {
     "passed": false,
-    "detail": "an announced element overlaps that box"
+    "detail": "quote differs from the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -39,7 +39,18 @@
     "detail": "first finding on this element"
    }
   },
-  "element": null,
-  "feedback": "the box does not land on an element; tighten it around the exact element you mean; an element inside that box is announced; quote its exact role and accessible name instead of 'not announced'"
+  "element": {
+   "backend_id": 48,
+   "css_path": "",
+   "box_px": [
+    187,
+    123,
+    470,
+    146
+   ],
+   "outer_html": "",
+   "dom_id": null
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
  }
 }

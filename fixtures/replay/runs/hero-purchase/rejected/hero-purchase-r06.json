@@ -1,17 +1,17 @@
 {
  "id": "hero-purchase-r06",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 1,
  "candidate": {
-  "step_index": 2,
-  "sighted_text": "Terms",
-  "sr_quote": "link, \"Click here\"",
-  "why_it_matters": "A blind user hears only generic Click here and misses the link destination.",
+  "step_index": 1,
+  "sighted_text": "trash icon",
+  "sr_quote": "button, \"Close\"",
+  "why_it_matters": "Blind user hears Close and will expect the cart or dialog to close rather than the item to be removed from the cart.",
   "bbox": {
-   "x_min": 649,
-   "y_min": 454,
-   "x_max": 685,
-   "y_max": 475
+   "x_min": 818,
+   "y_min": 186,
+   "x_max": 854,
+   "y_max": 253
   },
   "attempt": 2
  },
@@ -20,7 +20,7 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#f4"
+    "detail": "button at button#k3"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -40,16 +40,16 @@
    }
   },
   "element": {
-   "backend_id": 161,
-   "css_path": "a#f4",
+   "backend_id": 88,
+   "css_path": "button#k3",
    "box_px": [
-    831,
-    327,
-    877,
-    342
+    1047,
+    134,
+    1093,
+    182
    ],
-   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
-   "dom_id": "f4"
+   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "k3"
   },
   "feedback": "this element is already reported; do not repeat it"
  }

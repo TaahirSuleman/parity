@@ -2,36 +2,36 @@
  "id": "hero-purchase-f03",
  "run_id": "hero-purchase",
  "step_index": 0,
- "status": "judged",
- "sighted_text": "★★★★☆ 4.3",
+ "status": "reaudited",
+ "sighted_text": "SALE -20%",
  "sr_role": "image",
- "sr_name": "rating",
- "why_it_matters": "Blind user hears only generic rating and misses the 4.3 out of 5 stars value sighted users get.",
+ "sr_name": "badge",
+ "why_it_matters": "Blind user hears only generic badge and misses that the item is 20% off on sale.",
  "voice": null,
  "bbox": {
   "x_min": 146,
-  "y_min": 219,
-  "x_max": 232,
-  "y_max": 247
+  "y_min": 126,
+  "x_max": 240,
+  "y_max": 165
  },
  "element": {
-  "backend_id": 22,
-  "css_path": "img#p2",
+  "backend_id": 19,
+  "css_path": "img#p1",
   "box_px": [
    187,
-   158,
-   297,
-   178
+   91,
+   307,
+   119
   ],
-  "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": "p2"
+  "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "p1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#p2"
+    "detail": "image at img#p1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,39 +51,55 @@
    }
   },
   "element": {
-   "backend_id": 22,
-   "css_path": "img#p2",
+   "backend_id": 19,
+   "css_path": "img#p1",
    "box_px": [
     187,
-    158,
-    297,
-    178
+    91,
+    307,
+    119
    ],
-   "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "p2"
+   "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "p1"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "minor",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears only \"rating\" and cannot learn the product is rated 4.3 out of 5 stars.",
+  "impact": "User hears only generic 'badge' and cannot know the item is advertised as SALE -20% off.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "95312eff-9653-429f-a830-2fb931bbc5d1",
-   "response_id": "resp_6ae5393041a86ad71f2d4047",
+   "request_id": "30aed93c-4d19-44ad-8a6a-b79532f58b29",
+   "response_id": "resp_6ae628622ae7515b95ca40ed",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
+  "after_html": "<img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -11,7 +11,7 @@\n </header>\n <main>\n   <section class=\"card\" aria-labelledby=\"product-h\">\n-    <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">\n+    <img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\"> <span class=\"small\">(212 reviews)</span></p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n",
+  "explanation": "Changed alt from 'badge' to 'SALE -20%' so the accessible name matches the visible text.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "85a30288-f8f5-44a6-a5f5-d9a6463d1f4e",
+   "response_id": "resp_6ae629e2b26ab9c76e7d461b",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "badge",
+  "sr_name_after": "SALE -20%",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

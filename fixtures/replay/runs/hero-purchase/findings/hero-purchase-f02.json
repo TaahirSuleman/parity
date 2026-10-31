@@ -2,11 +2,11 @@
  "id": "hero-purchase-f02",
  "run_id": "hero-purchase",
  "step_index": 0,
- "status": "judged",
- "sighted_text": "wishlist heart icon",
+ "status": "reaudited",
+ "sighted_text": "heart icon (wishlist)",
  "sr_role": "button",
  "sr_name": "Close",
- "why_it_matters": "Blind user is told the button closes something when it actually adds to wishlist, so they will not use it correctly.",
+ "why_it_matters": "Blind user is told the button closes something instead of adding to wishlist and will miss or misuse the wishlist action.",
  "voice": null,
  "bbox": {
   "x_min": 242,
@@ -69,21 +69,37 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "The user hears Close instead of wishlist and cannot discover or correctly use the add-to-wishlist function.",
+  "impact": "User cannot discover or correctly use the wishlist button because it is announced as Close.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "8c217085-f0ea-492b-bbe3-36b16aeb2781",
-   "response_id": "resp_6ae539262608f6b6f43f48e0",
+   "request_id": "7f3cd4e0-ccba-4ea8-863c-eb3fc30e3388",
+   "response_id": "resp_6ae628568e62e4fd0a004e22",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
+  "after_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -18,7 +18,7 @@\n     <p class=\"total\"><s class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n-      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n+      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>\n     </div>\n   </section>\n   <section class=\"card\" aria-labelledby=\"details-h\">\n",
+  "explanation": "Changed aria-label from Close to Add to wishlist so the screen reader announces the wishlist function shown by the heart icon.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "f9052faf-47c2-462f-9e3c-a396f103cf28",
+   "response_id": "resp_6ae629cb53696d9f36ef4fe4",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Add to wishlist",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

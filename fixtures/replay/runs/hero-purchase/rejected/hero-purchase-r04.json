@@ -1,17 +1,17 @@
 {
  "id": "hero-purchase-r04",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 0,
  "candidate": {
-  "step_index": 2,
-  "sighted_text": "Pay R1,249",
-  "sr_quote": "button, \"Submit\"",
-  "why_it_matters": "A blind user hears a generic Submit label and misses the action and price information.",
+  "step_index": 0,
+  "sighted_text": "★★★★☆ 4.3",
+  "sr_quote": "image, \"rating\"",
+  "why_it_matters": "Blind user hears only generic rating and misses the 4.3 out of 5 star value sighted users see.",
   "bbox": {
-   "x_min": 526,
-   "y_min": 500,
-   "x_max": 646,
-   "y_max": 567
+   "x_min": 146,
+   "y_min": 219,
+   "x_max": 232,
+   "y_max": 247
   },
   "attempt": 2
  },
@@ -20,7 +20,7 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f5"
+    "detail": "image at img#p2"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -40,16 +40,16 @@
    }
   },
   "element": {
-   "backend_id": 164,
-   "css_path": "button#f5",
+   "backend_id": 22,
+   "css_path": "img#p2",
    "box_px": [
-    673,
-    360,
-    827,
-    408
+    187,
+    158,
+    297,
+    178
    ],
-   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-   "dom_id": "f5"
+   "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "p2"
   },
   "feedback": "this element is already reported; do not repeat it"
  }

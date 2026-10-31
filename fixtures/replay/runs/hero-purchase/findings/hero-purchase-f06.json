@@ -1,45 +1,45 @@
 {
  "id": "hero-purchase-f06",
  "run_id": "hero-purchase",
- "step_index": 1,
- "status": "judged",
- "sighted_text": "Free",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "A blind user gets no announcement that delivery costs Free and may be unsure about delivery charges.",
+ "step_index": 2,
+ "status": "reaudited",
+ "sighted_text": "50% OFF TODAY",
+ "sr_role": "image",
+ "sr_name": "image",
+ "why_it_matters": "A blind user hears only generic 'image' and misses the promotional information sighted users see.",
  "voice": null,
  "bbox": {
-  "x_min": 823,
-  "y_min": 325,
-  "x_max": 854,
-  "y_max": 350
+  "x_min": 146,
+  "y_min": 175,
+  "x_max": 380,
+  "y_max": 300
  },
  "element": {
-  "backend_id": 95,
-  "css_path": "span#k4 > img:nth-of-type(1)",
+  "backend_id": 138,
+  "css_path": "img#f1",
   "box_px": [
-   1053,
-   234,
-   1093,
-   252
+   187,
+   126,
+   487,
+   216
   ],
-  "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": null
+  "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "f1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:img at span#k4 > img:nth-of-type(1)"
+    "detail": "image at img#f1"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 95,
-   "css_path": "span#k4 > img:nth-of-type(1)",
+   "backend_id": 138,
+   "css_path": "img#f1",
    "box_px": [
-    1053,
-    234,
-    1093,
-    252
+    187,
+    126,
+    487,
+    216
    ],
-   "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": null
+   "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "f1"
   },
   "feedback": null
  },
@@ -73,17 +73,33 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The user hears 'Delivery' with no value and cannot know delivery is free or whether an extra charge applies.",
+  "impact": "Screen-reader user hears only 'image' and cannot know about the 50% OFF TODAY promotion seen by sighted users.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "f10385ab-0246-4ef1-a803-3a243c3550e8",
-   "response_id": "resp_6ae539808ed953ac451842ef",
+   "request_id": "62561a57-c3c2-43b2-b4ff-f41fba933e27",
+   "response_id": "resp_6ae629032d21de50dcee42bb",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+  "after_html": "<img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -12,7 +12,7 @@\n <main>\n   <section class=\"card\" aria-labelledby=\"order-h\">\n     <h1 id=\"order-h\">Your order</h1>\n-    <img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">\n+    <img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n     <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n",
+  "explanation": "Changed alt from generic 'image' to '50% OFF TODAY' so the accessible name matches the visible promotional text.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "027ac7c3-80e0-463f-ac58-6db89615562b",
+   "response_id": "resp_6ae62a250005bad00da64ad6",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "image",
+  "sr_name_after": "50% OFF TODAY",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

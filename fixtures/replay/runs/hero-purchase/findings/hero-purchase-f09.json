@@ -2,11 +2,11 @@
  "id": "hero-purchase-f09",
  "run_id": "hero-purchase",
  "step_index": 2,
- "status": "judged",
+ "status": "reaudited",
  "sighted_text": "Terms",
  "sr_role": "link",
  "sr_name": "Click here",
- "why_it_matters": "Blind user hears a generic link name and does not know it leads to Terms.",
+ "why_it_matters": "A blind user hears a generic link name with no destination and cannot tell it leads to Terms.",
  "voice": null,
  "bbox": {
   "x_min": 649,
@@ -66,7 +66,7 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "2.4.4",
@@ -77,17 +77,33 @@
     "name": "Label in Name"
    }
   ],
-  "impact": "The user hears only generic 'Click here' and cannot know the link leads to the Terms they agree to by paying.",
+  "impact": "Screen-reader user hears only generic 'Click here' and cannot know the link leads to the Terms they must agree to before paying.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "0097dee6-d56b-42df-8098-ad76f864f250",
-   "response_id": "resp_6ae539fcf27bf6b6502740f8",
+   "request_id": "0ce81186-fcd1-4b7a-83e2-6f24be6b4123",
+   "response_id": "resp_6ae6291df0060075acde4336",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+  "after_html": "<a id=\"f4\" href=\"#terms\">Terms</a>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -23,7 +23,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\" style=\"\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\">Terms</a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
+  "explanation": "Removed the generic aria-label 'Click here' and empty-alt image-of-text and replaced it with real text 'Terms' so the accessible name matches the visible link.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "9f025c84-de12-4528-9e77-35e6fc32529a",
+   "response_id": "resp_6ae62ab2a7ad174e5733483e",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "Click here",
+  "sr_name_after": "Terms",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

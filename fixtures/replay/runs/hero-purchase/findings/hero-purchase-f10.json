@@ -2,11 +2,11 @@
  "id": "hero-purchase-f10",
  "run_id": "hero-purchase",
  "step_index": 2,
- "status": "judged",
+ "status": "reaudited",
  "sighted_text": "Pay R1,249",
  "sr_role": "button",
  "sr_name": "Submit",
- "why_it_matters": "Blind user hears a generic Submit without the price and action that sighted users see.",
+ "why_it_matters": "A blind user hears a generic label that contradicts the visible label and misses the payment amount.",
  "voice": null,
  "bbox": {
   "x_min": 526,
@@ -73,17 +73,33 @@
     "name": "Label in Name"
    }
   ],
-  "impact": "The user hears only generic Submit and cannot confirm at the point of action that the button will pay R1,249.",
+  "impact": "User hears only generic Submit and cannot know the button pays R1,249 or activate it by its visible label.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "13da02ad-be58-430c-8fda-6e6abe036755",
-   "response_id": "resp_6ae53a0950c786a27f9d47ab",
+   "request_id": "d375a06c-15de-4a02-95c5-12738c441141",
+   "response_id": "resp_6ae629231cf2ab25bd1045e1",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "after_html": "<button id=\"f5\" class=\"btn\">Pay R1,249</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -25,7 +25,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n+      <button id=\"f5\" class=\"btn\">Pay R1,249</button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
+  "explanation": "Replaced the wrong aria-label and image-only text with real text Pay R1,249 so the accessible name matches the visible label.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "4af0c907-1686-47e9-8993-f8bafec40c04",
+   "response_id": "resp_6ae62ae16ced1caa04044963",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "Submit",
+  "sr_name_after": "Pay R1,249",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

@@ -2,11 +2,11 @@
  "id": "hero-purchase-f11",
  "run_id": "hero-purchase",
  "step_index": 2,
- "status": "judged",
+ "status": "reaudited",
  "sighted_text": "trash icon",
  "sr_role": "button",
  "sr_name": "Close",
- "why_it_matters": "Blind user is told Close instead of delete and will misunderstand what the button does.",
+ "why_it_matters": "A blind user hears 'Close' which misrepresents the visible delete trash action.",
  "voice": null,
  "bbox": {
   "x_min": 654,
@@ -73,17 +73,33 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears Close instead of delete and cannot know the button's true destructive purpose or use it safely.",
+  "impact": "Blind user hears 'Close' and cannot know the button performs the visible trash/delete action and may use it with the wrong expectation.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "103024fb-5298-46fd-b327-b7f9520fec2d",
-   "response_id": "resp_6ae53a125a98267bf3ce40a2",
+   "request_id": "bfbd6492-2806-4a43-a85c-b5db91502a89",
+   "response_id": "resp_6ae6292b66a9a153063042a1",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
+  "after_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -26,7 +26,7 @@\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n-      <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n+      <button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n   </section>\n",
+  "explanation": "Changed aria-label from Close to Delete so the name matches the visible trash/delete action.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "04011559-49c7-4f03-9ff8-a4453f1b985f",
+   "response_id": "resp_6ae62afe6ee069df9aba45d5",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Delete",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

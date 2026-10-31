@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f04",
  "run_id": "hero-purchase",
- "step_index": 0,
- "status": "judged",
- "sighted_text": "R1,599.00 struck-through as original price",
- "sr_role": "text",
- "sr_name": "R1,599.00",
- "why_it_matters": "Blind user hears two prices with no distinction and cannot tell that R1,599.00 is the crossed-out original price and not the current price.",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "trash icon",
+ "sr_role": "button",
+ "sr_name": "Close",
+ "why_it_matters": "A blind user hears Close and will expect the cart or dialog to close, not for the headphone item to be removed from the cart.",
  "voice": null,
  "bbox": {
-  "x_min": 146,
-  "y_min": 308,
-  "x_max": 193,
-  "y_max": 328
+  "x_min": 818,
+  "y_min": 186,
+  "x_max": 854,
+  "y_max": 253
  },
  "element": {
-  "backend_id": 52,
-  "css_path": "",
+  "backend_id": 88,
+  "css_path": "button#k3",
   "box_px": [
-   187,
-   222,
-   247,
-   236
+   1047,
+   134,
+   1093,
+   182
   ],
-  "outer_html": "",
-  "dom_id": null
+  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "dom_id": "k3"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "text at "
+    "detail": "button at button#k3"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 52,
-   "css_path": "",
+   "backend_id": 88,
+   "css_path": "button#k3",
    "box_px": [
-    187,
-    222,
-    247,
-    236
+    1047,
+    134,
+    1093,
+    182
    ],
-   "outer_html": "",
-   "dom_id": null
+   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "k3"
   },
   "feedback": null
  },
@@ -69,21 +69,37 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.3.1",
-    "name": "Info and Relationships"
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "User hears two prices with no distinction and cannot tell R1,599.00 is the struck-through original price and R1,249.00 is the current sale price.",
+  "impact": "The user cannot know the button removes the headphones and will expect it to close the cart, risking accidental deletion of the item.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "262b6c65-5c61-4784-a72c-ac280baf610c",
-   "response_id": "resp_6ae5393833d89b26828e4ff2",
+   "request_id": "e276f107-51a7-46d3-84a6-3ff8fc5d1620",
+   "response_id": "resp_6ae628b55e3d364005884be7",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones from cart\">🗑️</button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -18,7 +18,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones from cart\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,249.00</span></div>\n",
+  "explanation": "Changed aria-label from \"Close\" to \"Remove Noise-cancelling headphones from cart\" so the accessible name matches the trash icon's visible remove function.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "d1e43320-cbaf-4830-bb50-0af18e13bd32",
+   "response_id": "resp_6ae62a00ffbb41cf574e40c8",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Remove Noise-cancelling headphones from cart",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

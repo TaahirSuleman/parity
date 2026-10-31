@@ -18,7 +18,7 @@ from collections.abc import Awaitable, Callable
 from playwright.async_api import Page
 
 from parity.meta.client import MetaError
-from parity.pipeline.fixer import FixNotApplied, FixRejected, combine_patch, patch_path, propose_fix
+from parity.pipeline.fixer import FixNotApplied, FixRejected, combine_patch, locate_in_source, patch_path, propose_fix
 from parity.pipeline.reaudit import reaudit
 from parity.store.models import Decision, Event, Finding, FindingStatus, Run, RunStatus, Step
 
@@ -93,24 +93,41 @@ async def fix_findings(ctx, page_factory: PageFactory) -> int:
     return proposed
 
 
-async def build_patch(bundle, run_id: str, findings: list[Finding], steps: list[Step]) -> str:
-    """One combined diff per file from the served source, so the approved fixes apply together."""
+async def build_patch(bundle, run_id: str, findings: list[Finding], steps: list[Step]) -> tuple[str, list[str]]:
+    """One combined diff per file from the served source, so the approved fixes apply together. A fix that cannot
+    be placed in the source (or has no source) is left out, and named, rather than making the patch unusable."""
     approved = [f for f in findings if f.status == FindingStatus.approved and f.fix is not None]
     url_of = {s.index: s.url for s in steps}
     by_path: dict[str, list[Finding]] = defaultdict(list)
     for f in approved:
         by_path[patch_path(url_of.get(f.step_index, ""))].append(f)
     parts: list[str] = []
+    excluded: list[str] = []
     for path, group in by_path.items():
         base = await bundle.read_source(run_id, group[0].step_index)
-        if base:
-            try:
-                parts.append(combine_patch(base, [(f.element, f.fix.after_html) for f in group], path))
-                continue
-            except FixNotApplied as exc:
-                log.warning("patch for %s falls back to per-fix diffs: %s", path, exc)
-        parts.extend(f.fix.diff for f in group)
-    return "".join(parts)
+        if not base:
+            excluded.extend(f.id for f in group)
+            continue
+        placeable = [f for f in group if locate_in_source(base, f.element) is not None]
+        excluded.extend(f.id for f in group if f not in placeable)
+        if not placeable:
+            continue
+        try:
+            parts.append(combine_patch(base, [(f.element, f.fix.after_html) for f in placeable], path))
+        except FixNotApplied as exc:  # overlapping fixes: keep the first, drop the rest of the overlap
+            log.warning("patch for %s: %s; exporting the fixes one by one", path, exc)
+            kept: list[Finding] = []
+            for f in placeable:
+                try:
+                    combine_patch(base, [(x.element, x.fix.after_html) for x in [*kept, f]], path)
+                    kept.append(f)
+                except FixNotApplied:
+                    excluded.append(f.id)
+            if kept:
+                parts.append(combine_patch(base, [(f.element, f.fix.after_html) for f in kept], path))
+    if excluded:
+        log.warning("fix.patch for %s leaves out %s: not placeable in the served source", run_id, excluded)
+    return "".join(parts), excluded
 
 
 async def decide(bundle, index, bus, run_id: str, finding_id: str, decision: str, reason: str) -> tuple[Finding, Run]:
@@ -136,7 +153,7 @@ async def decide(bundle, index, bus, run_id: str, finding_id: str, decision: str
         await bundle.write_finding(finding)
         findings = [finding if f.id == finding.id else f for f in loaded.findings]
         approved = [f for f in findings if f.status == FindingStatus.approved and f.fix is not None]
-        patch = await build_patch(bundle, run_id, findings, loaded.steps)
+        patch, excluded = await build_patch(bundle, run_id, findings, loaded.steps)
         if patch:
             await bundle.write_patch(run_id, patch)
         run = loaded.run
@@ -152,7 +169,7 @@ async def decide(bundle, index, bus, run_id: str, finding_id: str, decision: str
                 log.exception("index update failed for decision on %s", finding_id)
         event = Event(type="decision.recorded", run_id=run_id, data={
             "finding_id": finding.id, "decision": finding.decision.model_dump(mode="json"), "status": finding.status,
-            "run_status": run.status, "approved": len(approved), "pending": len(pending),
+            "run_status": run.status, "approved": len(approved), "pending": len(pending), "patch_excluded": excluded,
         })
         await bundle.append_event(run_id, event)
         if bus is not None and bus.knows(run_id):  # a run this process streamed: live viewers and in-memory history get it too

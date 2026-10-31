@@ -203,3 +203,22 @@ async def test_run_status_counts_decisions_made_during_the_run(tmp_path, server_
     assert loaded.run.status == RunStatus.done, loaded.run.error
     assert indexed.status == RunStatus.done
     assert all(f.decision is not None for f in loaded.findings if f.fix is not None)
+
+
+async def test_patch_excludes_a_fix_it_cannot_place_and_still_applies(tmp_path):
+    """One unplaceable fix must not cost the file its combined patch; the patch stays applicable."""
+    bundle, index, bus = await gate(tmp_path)
+    try:
+        first = (await bundle.load(SRC)).findings[0]
+        ghost = first.model_copy(update={"id": f"{SRC}-f02", "element": Element(backend_id=3, css_path="div#nope > p:nth-of-type(1)", outer_html="<p>x</p>"),
+                                         "fix": first.fix.model_copy(update={"after_html": "<p>y</p>"})})
+        await bundle.write_finding(ghost)
+        await decide(bundle, index, bus, SRC, first.id, "approve", "a")
+        _, run = await decide(bundle, index, bus, SRC, ghost.id, "approve", "b")
+        patch = await bundle.read_patch(SRC)
+        assert "Pay R1,249" in patch and "<p>y</p>" not in patch and patch.count("+++ b/") == 1
+        _apply_check(tmp_path, patch)
+        events = await bundle.events(SRC)
+        assert events[-1].data["patch_excluded"] == [ghost.id]
+    finally:
+        await index.close()

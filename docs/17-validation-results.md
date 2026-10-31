@@ -50,12 +50,15 @@ via `scripts/variance_runs.py`; full data in `docs/variance.json`.
 
 | Flow | Verified | Fixes proposed | Gaps closed by re-audit | Cost | Time |
 |---|---|---|---|---|---|
-| Checkout (single page) | 6 | 6 | 4 (f6 "Delete" and the card error stay open for the human) | $0.082 | 356 s |
-| Purchase (agent, 4 screens) | 12 | 11 (1 snippet refused) | 7 | $0.139 | 772 s |
+| Checkout (single page) | 6 (6 rejected) | 6 | 4 | $0.083 | 221 s |
+| Purchase (agent, 4 screens) | 12 (5 rejected) | 11 | 5 | $0.140 | 574 s |
 
 - The hero fix is the one you would write: `<button id="f5" class="btn">Pay R1,249</button>` (or the image
   with `alt="Pay R1,249"`); the re-audit reads the new name "Pay R1,249" from the tree and closes the gap.
 - `gap_closed` is strict by design (name must equal or contain the sighted text): a trash icon renamed
   "Delete" is a good fix but stays "open", so the human sees the before/after and decides.
-- Cost of the fix stage is small (fixer ≈ $0.0004 per finding at contributor rates); time is not: two
-  model calls per barrier add ~6 min to a live purchase run. Replay stays the default for judges.
+- Cost of the fix stage is small (fixer ≈ $0.0004 per finding at contributor rates). Time: with fixer calls
+  4-wide and the second-signal comparator at effort low, the fix stage adds ~2.5 min to a live purchase run
+  (575 s total, was 772 s). Replay stays the default for judges.
+- After the review fix pass the exported patch is rebuilt from the served source and `git apply --check`
+  passes on every file of both recorded runs (an id-less element is located by its css_path).

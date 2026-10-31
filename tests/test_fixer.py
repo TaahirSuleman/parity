@@ -202,3 +202,25 @@ async def test_fix_refused_when_the_element_source_is_too_large(hero, tmp_path):
     with pytest.raises(FixRejected):
         await propose_fix(fake, finding, cap, run_id="r1", model=MODEL)
     assert not fake.calls  # refused before spending a model call
+
+
+def test_locate_in_source_resolves_a_css_path_without_id():
+    """Capture names id-less elements by path from their nearest id'd ancestor (span#k4 > img:nth-of-type(1))."""
+    from parity.pipeline.fixer import locate_in_source
+
+    cart = (ROOT / "store" / "cart.html").read_text()
+    s, e = locate_in_source(cart, Element(backend_id=9, css_path="span#k4 > img:nth-of-type(1)"))
+    assert cart[s:e].startswith("<img") and 'id="k4"' in cart[: s] and cart.count("<img", s, e) == 1
+    k4_start, k4_end = locate_in_source(cart, Element(backend_id=8, css_path="span#k4", dom_id="k4"))
+    assert k4_start < s < e <= k4_end  # inside its ancestor
+    assert locate_in_source(cart, Element(backend_id=10, css_path="span#k4 > img:nth-of-type(7)")) is None
+    assert locate_in_source(cart, Element(backend_id=11, css_path="main > div:nth-of-type(1)")) is None  # no id'd anchor: not placeable
+
+
+def test_apply_fix_for_an_id_less_element_applies_with_git(tmp_path):
+    cart = (ROOT / "store" / "cart.html").read_text()
+    el = Element(backend_id=9, css_path="span#k4 > img:nth-of-type(1)")
+    s, e = __import__("parity.pipeline.fixer", fromlist=["locate_in_source"]).locate_in_source(cart, el)
+    after = cart[s:e].replace('alt=""', 'alt="Free delivery"', 1) if 'alt=""' in cart[s:e] else cart[s:e].replace("<img", '<img alt="Free delivery"', 1)
+    diff = unified_diff(cart, apply_fix(cart, el, after), "store/cart.html")
+    git_apply_check(tmp_path, diff, "store/cart.html", cart)

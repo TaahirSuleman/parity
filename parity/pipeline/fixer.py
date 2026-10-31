@@ -53,18 +53,23 @@ class _Index(HTMLParser):
         self.spans: dict[int, int] = {}
         self.ids: dict[str, list[int]] = {}
         self.tags: dict[int, str] = {}
+        self.children: dict[int, list[int]] = {}  # parent start offset (-1 for the document) -> child start offsets, in order
         self._open: list[tuple[int, str]] = []
 
     def _offset(self) -> int:
         line, col = self.getpos()
         return self.line_starts[line - 1] + col
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        start = self._offset()
+    def _register(self, start: int, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         self.tags[start] = tag
+        self.children.setdefault(self._open[-1][0] if self._open else -1, []).append(start)
         for name, value in attrs:
             if name == "id" and value:
                 self.ids.setdefault(value, []).append(start)
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        start = self._offset()
+        self._register(start, tag, attrs)
         if tag in VOID:
             self.spans[start] = start + len(self.get_starttag_text() or "")
         else:
@@ -72,10 +77,7 @@ class _Index(HTMLParser):
 
     def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         start = self._offset()
-        self.tags[start] = tag
-        for name, value in attrs:
-            if name == "id" and value:
-                self.ids.setdefault(value, []).append(start)
+        self._register(start, tag, attrs)
         self.spans[start] = start + len(self.get_starttag_text() or "")
 
     def handle_endtag(self, tag: str) -> None:
@@ -104,14 +106,47 @@ def index_source(source: str) -> _Index:
     return idx
 
 
-def locate_in_source(source: str, element: Element) -> tuple[int, int] | None:
-    """(start, end) of the element in the served source: by id when it is unique, else by exact serialised HTML."""
-    if element.dom_id:
-        idx = index_source(source)
-        starts = idx.ids.get(element.dom_id, [])
-        if len(starts) != 1 or starts[0] not in idx.spans:
+_SEGMENT = re.compile(r"^([a-zA-Z][\w-]*)(?:#([^\s>]+)|:nth-of-type\((\d+)\))?$")
+
+
+def _resolve_path(idx: _Index, css_path: str) -> int | None:
+    """Start offset for a capture css_path: the last id'd segment anchors, the rest walk nth-of-type children."""
+    segments = [seg.strip() for seg in css_path.split(">")]
+    anchor = max((i for i, seg in enumerate(segments) if "#" in seg), default=None)
+    if anchor is None:
+        return None
+    m = _SEGMENT.match(segments[anchor])
+    if not m or not m.group(2):
+        return None
+    starts = idx.ids.get(m.group(2), [])
+    if len(starts) != 1:
+        return None
+    current = starts[0]
+    for seg in segments[anchor + 1:]:
+        m = _SEGMENT.match(seg)
+        if not m:
             return None
-        return starts[0], idx.spans[starts[0]]
+        tag, n = m.group(1).lower(), int(m.group(3) or 1)
+        same = [c for c in idx.children.get(current, []) if idx.tags.get(c) == tag]
+        if len(same) < n:
+            return None
+        current = same[n - 1]
+    return current
+
+
+def locate_in_source(source: str, element: Element) -> tuple[int, int] | None:
+    """(start, end) of the element in the served source: by unique id, else by css_path from an id'd ancestor,
+    else by exact serialised HTML occurring once."""
+    if element.dom_id or "#" in (element.css_path or ""):
+        idx = index_source(source)
+        if element.dom_id:
+            starts = idx.ids.get(element.dom_id, [])
+            start = starts[0] if len(starts) == 1 else None
+        else:
+            start = _resolve_path(idx, element.css_path)
+        if start is None or start not in idx.spans:
+            return None
+        return start, idx.spans[start]
     if element.outer_html and source.count(element.outer_html) == 1:
         start = source.index(element.outer_html)
         return start, start + len(element.outer_html)

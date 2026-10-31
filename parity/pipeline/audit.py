@@ -163,7 +163,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
         feedback = list(dict.fromkeys(failures))
 
     for finding in new_findings:
-        judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"))
+        judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))
         finding.judgement = judgement
         finding.status = FindingStatus.judged
         await ctx.save_finding(finding)

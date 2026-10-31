@@ -221,3 +221,35 @@ async def test_decision_on_a_replay_run_through_the_served_app(live_server):
         history = await _drain_sse(client, f"/api/runs/{run_id}/events")
         assert history[-1][0] == "decision.recorded" and history[-1][1]["finding_id"] == f"{run_id}-f01"
         assert (await client.get(f"/api/runs/{run_id}/patch")).status_code == 200
+
+
+async def test_committed_replay_bundles_load_and_replay(tmp_path):
+    """The judges' primary path: the bundles committed under fixtures/replay are discovered at boot and replay cleanly."""
+    from pathlib import Path
+
+    from parity.app import create_app
+    from parity.config import load_settings
+
+    settings = load_settings(env={
+        "PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_CACHE_DIR": str(tmp_path / "cache"), "PARITY_INDEX_PATH": str(tmp_path / "index.db"),
+        "PARITY_REPLAY_DIR": str(Path(__file__).resolve().parents[1] / "fixtures" / "replay"),
+    })
+    app = create_app(settings)
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            health = (await client.get("/api/health")).json()
+            assert health["replay_flows"] == {"checkout": "hero-checkout", "purchase": "hero-purchase"}
+            expected = {"checkout": (6, 6), "purchase": (12, 5)}
+            for flow, (verified, rejected) in expected.items():
+                run_id = (await client.post("/api/runs", json={"flow_id": flow, "mode": "replay", "pace_ms": 0})).json()["run_id"]
+                events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
+                assert events[0][0] == "run.started" and events[-1][0] == "run.finished", flow
+                assert events[-1][1]["status"] == "awaiting_review" and events[-1][1]["findings_verified"] == verified
+                detail = (await client.get(f"/api/runs/{run_id}")).json()
+                assert len(detail["findings"]) == verified and len(detail["rejected"]) == rejected and detail["steps"]
+                assert all(f["fix"] is None or f["fix"]["diff"].startswith("--- a/store/") for f in detail["findings"])
+                hero = next((f for f in detail["findings"] if f["element"]["dom_id"] == "f5"), None)
+                assert hero and hero["fix"] and hero["reaudit"]["gap_closed"] is True, flow
+                assert (await client.get(f"/api/runs/{run_id}/steps/0/screenshot.png")).status_code == 200
+                # a completed agent turn is not an error: the trace must only carry real failures (HTTP status / transport)
+                assert all(c["error"] is None or c["http_status"] is None or c["http_status"] >= 400 for c in detail["trace"]), flow

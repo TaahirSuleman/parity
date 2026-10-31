@@ -27,6 +27,7 @@ class Settings:
     meta_api_base: str = "https://api.meta.ai/v1"
     model: str = CONTRIBUTOR_SPARK
     judge_model: str = STANDARD_SPARK
+    judge_fallback_model: str = STANDARD_SPARK  # used when the judge model errors (D6: any Wonder error falls back to Spark)
     eval_model: str = CONTRIBUTOR_SPARK
     voice_model: str = "muse-voice-transcribe-1.0"
     private: bool = False
@@ -49,6 +50,8 @@ class Settings:
             return self.voice_model
         if stage == "judge":
             chosen = self.judge_model
+        elif stage == "judge_fallback":
+            chosen = self.judge_fallback_model
         else:
             chosen = self.model
         if self.private and chosen.endswith("-contributor"):
@@ -81,6 +84,7 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         meta_api_base=get("META_API_BASE", Settings.meta_api_base),
         model=get("PARITY_MODEL", Settings.model),
         judge_model=get("PARITY_JUDGE_MODEL", Settings.judge_model),
+        judge_fallback_model=get("PARITY_JUDGE_FALLBACK_MODEL", Settings.judge_fallback_model),
         eval_model=get("PARITY_EVAL_MODEL", Settings.eval_model),
         voice_model=get("PARITY_VOICE_MODEL", Settings.voice_model),
         private=_bool(get("PARITY_PRIVATE", "false")),

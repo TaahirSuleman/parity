@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from parity.config import STANDARD_SPARK
 from parity.meta.client import MetaError
 from parity.meta.images import png_to_data_url
 from parity.pipeline.comparator import tree_block
@@ -18,7 +19,6 @@ from parity.store.models import Capture, Finding, Judgement, Severity, WcagRef
 
 log = logging.getLogger(__name__)
 PROMPT = (Path(__file__).resolve().parent.parent / "meta" / "prompts" / "judge.txt").read_text()
-FALLBACK_MODEL = "muse-spark-1.3"
 # Reasoning tokens count against this budget; 1500 was exhausted by reasoning alone with no answer left.
 MAX_OUTPUT_TOKENS = 6000
 VALID_SEVERITIES = {s.value for s in Severity} - {Severity.needs_review.value}
@@ -56,7 +56,9 @@ def parse_judgement(text: str) -> Judgement:
     return Judgement(is_barrier=data["is_barrier"], severity=Severity(severity), wcag=wcag, impact=str(data.get("impact") or "").strip())
 
 
-async def judge(client, finding: Finding, capture: Capture, run_id: str, *, model: str, effort: str = "medium") -> Judgement:
+async def judge(client, finding: Finding, capture: Capture, run_id: str, *, model: str, fallback_model: str | None = None, effort: str = "medium") -> Judgement:
+    """``fallback_model`` (settings.model_for("judge_fallback"), standard Spark by default) is tried once if ``model`` errors (D6)."""
+    fallback_model = fallback_model or STANDARD_SPARK
     text = (PROMPT + "\n\nEVIDENCE:\n" + evidence_block(finding)
             + "\n\nACCESSIBILITY TREE of the whole screen (role, name, box on the 0-1000 grid), so you can judge what else a screen-reader user gets:\n"
             + tree_block(capture))
@@ -74,11 +76,11 @@ async def judge(client, finding: Finding, capture: Capture, run_id: str, *, mode
         resp = await call(model)
         used = model
     except MetaError as exc:
-        if model == FALLBACK_MODEL:
+        if model == fallback_model:
             raise
-        log.warning("judge model %s failed (request %s); falling back to %s", model, exc.request_id, FALLBACK_MODEL)
-        resp = await call(FALLBACK_MODEL)
-        used, fallback = FALLBACK_MODEL, True
+        log.warning("judge model %s failed (request %s); falling back to %s", model, exc.request_id, fallback_model)
+        resp = await call(fallback_model)
+        used, fallback = fallback_model, True
     judgement = parse_judgement(resp.text)
     if judgement.severity == Severity.needs_review:
         log.warning("judge answer unparseable or unsure for finding %s; needs human review", finding.id)

@@ -54,7 +54,7 @@ async def main() -> None:
     judgements = {}
     try:
         for f in verified:
-            judgements[f.id] = await judge(client, f, cap, run_id="fixture", model=settings.model_for("judge"))
+            judgements[f.id] = await judge(client, f, cap, run_id="fixture", model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))
     finally:
         await client.aclose()
     hero = next((f for f in verified if f.element.dom_id == "f5"), None)

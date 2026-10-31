@@ -23,7 +23,7 @@ from typing import Any, Protocol
 
 import httpx
 
-from parity.config import Settings, load_settings
+from parity.config import STANDARD_SPARK, Settings, load_settings
 from parity.meta.pricing import cost_usd
 from parity.store.models import ModelCall
 
@@ -137,6 +137,11 @@ class MetaClient:
         self._sleep = sleep
         self._base = settings.meta_api_base.rstrip("/")
 
+    def _scrub(self, text: str) -> str:
+        """The key never travels in an error string, whatever the API echoed back."""
+        key = self.settings.model_api_key
+        return text.replace(key, "***") if key else text
+
     def _headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self.settings.model_api_key}", "Content-Type": "application/json"}
 
@@ -177,11 +182,11 @@ class MetaClient:
                 status = r.status_code
                 request_id = r.headers.get("x-request-id", "")
                 if status >= 400:
-                    error = f"HTTP {status}: {r.text[:500]}"
+                    error = self._scrub(f"HTTP {status}: {r.text[:500]}")
                 else:
                     raw = r.json()
             except httpx.HTTPError as exc:
-                error = f"transport: {type(exc).__name__}: {exc}"
+                error = self._scrub(f"transport: {type(exc).__name__}: {exc}")
             latency_ms = max(1, math.ceil((time.perf_counter() - t0) * 1000))
             usage = Usage.from_raw(raw.get("usage") if raw else None)
             call = ModelCall(
@@ -192,14 +197,19 @@ class MetaClient:
                 cost_usd=cost_usd(model, usage.input_tokens, usage.cached_tokens, usage.output_tokens) if raw else 0.0,
                 http_status=status, error=error, attempt=attempt,
             )
-            await self.trace.record(call)
             if raw is not None:
                 raw["_request_id"] = request_id
-                if str(raw.get("status") or "completed") == "completed" and not chained:
+                completed = str(raw.get("status") or "completed") == "completed"
+                if completed and not chained:
                     self._write_cache(key, raw)
-                else:  # a truncated answer must not be replayed from cache forever
+                elif not completed:  # a truncated answer must not be replayed from cache forever
                     call.error = f"response status {raw.get('status')}: {(raw.get('incomplete_details') or {}).get('reason')}"
                     log.warning("meta %s returned %s (request %s); not cached", stage, raw.get("status"), request_id)
+            await self.trace.record(call)
+            log.info("meta %s model=%s request_id=%s status=%s tokens=%d (in %d, cached %d, out %d) latency=%dms cost=$%.4f%s%s",
+                     stage, model, request_id or "-", status, usage.total_tokens, usage.input_tokens, usage.cached_tokens, usage.output_tokens,
+                     latency_ms, call.cost_usd, " chained" if chained else "", f" error={call.error}" if call.error else "")
+            if raw is not None:
                 return MetaResponse(raw, text_of(raw), call.response_id, request_id, usage, False, latency_ms)
 
             log.warning("meta %s attempt %d failed: status=%s request_id=%s", stage, attempt, status, request_id)
@@ -240,7 +250,7 @@ async def _check() -> int:
     finally:
         await client.aclose()
     print("\n".join(ids))
-    return 0 if "muse-spark-1.3" in ids else 1
+    return 0 if STANDARD_SPARK in ids else 1
 
 
 if __name__ == "__main__":

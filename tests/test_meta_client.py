@@ -172,3 +172,36 @@ async def test_auditor_turns_bypass_the_cache(tmp_path):
     await client.responses(chained, stage="auditor", run_id="r1")
     assert len(calls) == 2 and all(c.cache_hit is False for c in trace.calls)
     assert not list((tmp_path / "cache").glob("*.json"))
+
+
+# --- pre-P4 QA pass -------------------------------------------------------------------------------
+
+async def test_successful_chained_turn_has_no_error(tmp_path):
+    """An agent turn (previous_response_id) that completes is not an error, and is traced as such."""
+    client, calls, trace, _ = make_client(tmp_path, ok)
+    resp = await client.responses({**BODY, "previous_response_id": "resp_0"}, stage="auditor", run_id="r1")
+    assert resp.text == "hi there" and resp.cache_hit is False
+    assert trace.calls[-1].error is None and trace.calls[-1].http_status == 200
+
+
+async def test_key_never_appears_in_error_strings(tmp_path):
+    """If the API ever echoes the key in an error body, it must not reach the trace, the run or the stream."""
+    def leaky(request, n):
+        return httpx.Response(401, json={"error": {"message": f"invalid key {KEY} rejected"}}, headers={"x-request-id": "req-leak"})
+
+    client, calls, trace, _ = make_client(tmp_path, leaky)
+    with pytest.raises(MetaError) as info:
+        await client.responses(BODY, stage="seer", run_id="r1")
+    assert KEY not in str(info.value) and KEY not in (trace.calls[-1].error or "")
+    assert "invalid key" in str(info.value)  # the rest of the message survives
+
+
+async def test_every_call_is_logged(tmp_path, caplog):
+    import logging
+
+    client, calls, trace, _ = make_client(tmp_path, ok)
+    with caplog.at_level(logging.INFO, logger="parity.meta.client"):
+        await client.responses(BODY, stage="comparator", run_id="r1")
+    line = next((r.getMessage() for r in caplog.records if "comparator" in r.getMessage()), "")
+    assert "muse-spark-1.3" in line and "req-1" in line and "tokens" in line and "ms" in line and "$" in line
+    assert KEY not in line

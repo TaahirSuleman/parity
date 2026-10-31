@@ -1,0 +1,93 @@
+{
+ "id": "hero-checkout-f05",
+ "run_id": "hero-checkout",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "Terms",
+ "sr_role": "link",
+ "sr_name": "Click here",
+ "why_it_matters": "A blind user hears only generic Click here and does not know the link is to the Terms.",
+ "voice": null,
+ "bbox": {
+  "x_min": 649,
+  "y_min": 454,
+  "x_max": 685,
+  "y_max": 475
+ },
+ "element": {
+  "backend_id": 44,
+  "css_path": "a#f4",
+  "box_px": [
+   831,
+   327,
+   877,
+   342
+  ],
+  "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+  "dom_id": "f4"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at a#f4"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 44,
+   "css_path": "a#f4",
+   "box_px": [
+    831,
+    327,
+    877,
+    342
+   ],
+   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "f4"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "2.4.4",
+    "name": "Link Purpose (In Context)"
+   },
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   }
+  ],
+  "impact": "The user hears only 'Click here' and cannot tell the link leads to the Terms without activating it, especially when navigating by links list.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "d84c3525-5dbc-42a0-8d97-5b96736e5823",
+   "response_id": "resp_6ae528ccfa955e2a985c41ed",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

@@ -1,0 +1,89 @@
+{
+ "id": "hero-checkout-f06",
+ "run_id": "hero-checkout",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "red border indicating error on Card number field",
+ "sr_role": "textbox",
+ "sr_name": "Card number",
+ "why_it_matters": "A blind user gets no error or invalid state announced and does not know the card number is rejected.",
+ "voice": null,
+ "bbox": {
+  "x_min": 526,
+  "y_min": 288,
+  "x_max": 854,
+  "y_max": 344
+ },
+ "element": {
+  "backend_id": 38,
+  "css_path": "input#card",
+  "box_px": [
+   673,
+   207,
+   1093,
+   248
+  ],
+  "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+  "dom_id": "card"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "textbox at input#card"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 38,
+   "css_path": "input#card",
+   "box_px": [
+    673,
+    207,
+    1093,
+    248
+   ],
+   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "card"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "critical",
+  "wcag": [
+   {
+    "sc": "3.3.1",
+    "name": "Error Identification"
+   }
+  ],
+  "impact": "The screen-reader user is not told the card number is in error and cannot identify or correct it to complete payment.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "e49fbd9f-15a6-498b-ad05-35ce14c5204d",
+   "response_id": "resp_6ae528e615f8f55530684fe0",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

@@ -1,0 +1,19 @@
+{
+ "id": "hero-checkout",
+ "mode": "live",
+ "flow_id": "checkout",
+ "goal": "Pay for the order",
+ "target_url": "http://127.0.0.1:51519/store/checkout.html",
+ "status": "done",
+ "started_at": "2026-10-31T00:01:24.987311Z",
+ "finished_at": "2026-10-31T00:01:26.626787Z",
+ "axe_violations": 0,
+ "findings_verified": 6,
+ "findings_rejected": 0,
+ "tokens": 34459,
+ "cost_usd": 0.0,
+ "duration_ms": 1636,
+ "client_ip_hash": "12ca17b49af22894",
+ "error": null,
+ "replay_of": null
+}

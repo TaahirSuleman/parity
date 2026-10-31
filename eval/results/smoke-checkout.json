@@ -1,0 +1,112 @@
+{
+ "generated_at": "2026-10-31T21:30:57+00:00",
+ "model": "muse-spark-1.3-contributor",
+ "judge_model": "muse-spark-1.3",
+ "effort": "medium",
+ "runs": 1,
+ "pages": [
+  "checkout.html"
+ ],
+ "labels": "eval/labels.json",
+ "n_faults": 9,
+ "n_clean": 6,
+ "configs": {
+  "full": {
+   "per_page": {
+    "checkout.html": {
+     "recall": 0.8888888888888888,
+     "precision": 1.0,
+     "fp_on_clean": 0.0,
+     "n": 8.0,
+     "n_labels": 9,
+     "hits": [
+      "card",
+      "express-pay",
+      "f1",
+      "f2",
+      "f4",
+      "f5",
+      "f6",
+      "step-payment"
+     ],
+     "hits_every_run": [
+      "card",
+      "express-pay",
+      "f1",
+      "f2",
+      "f4",
+      "f5",
+      "f6",
+      "step-payment"
+     ],
+     "tokens": 47881.0,
+     "cost_usd": 0.08481695,
+     "seconds": 119.04149691702332,
+     "runs": [
+      {
+       "recall": 0.8888888888888888,
+       "precision": 1.0,
+       "fp_on_clean": 0,
+       "n": 8,
+       "n_labels": 9,
+       "hits": [
+        "card",
+        "express-pay",
+        "f1",
+        "f2",
+        "f4",
+        "f5",
+        "f6",
+        "step-payment"
+       ],
+       "missed": [
+        "cvv"
+       ],
+       "fp_ids": [],
+       "unlabelled": 0,
+       "tokens": 47881,
+       "cost_usd": 0.08481695,
+       "seconds": 119.04149691702332,
+       "run_id": "20261031-213058-c0f3",
+       "status": "done",
+       "error": null,
+       "judge_cost_usd": 0.08285524999999999
+      }
+     ]
+    }
+   },
+   "total": {
+    "recall": 0.8888888888888888,
+    "precision": 1.0,
+    "fp_on_clean": 0.0,
+    "n": 8.0,
+    "n_labels": 9,
+    "tokens": 47881.0,
+    "cost_usd": 0.08481695,
+    "seconds": 119.04149691702332
+   }
+  }
+ },
+ "axe": {
+  "per_page": {
+   "checkout.html": {
+    "recall": 0.0,
+    "violations": 0,
+    "hits": []
+   }
+  },
+  "recall": 0.0,
+  "violations": 0,
+  "hits": []
+ },
+ "judge": {
+  "muse-spark-1.3": {
+   "agreement": 1.0,
+   "needs_review_rate": 0.0,
+   "cost_per_finding": 0.010356906249999999,
+   "n": 8,
+   "decided": 8,
+   "cost_usd": 0.08285524999999999
+  }
+ }
+}

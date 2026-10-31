@@ -138,7 +138,12 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
             ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
             use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree,
         )
-        await ctx.emit("comparator.candidates", {"index": step_index, "n": len(candidates), "attempt": attempt})
+        await ctx.emit("comparator.candidates", {"index": step_index, "n": len(candidates), "attempt": attempt, "parse_ok": getattr(candidates, "parse_ok", True)})
+        if not getattr(candidates, "parse_ok", True):
+            await ctx.emit("comparator.unparseable", {"index": step_index, "attempt": attempt})
+            if attempt < MAX_COMPARATOR_ATTEMPTS:
+                feedback = None  # ask again, plainly: the answer was not JSON
+                continue
         failures: list[str] = []
         retry_worthy = False
         verified_ids = {f.element.backend_id for f in ctx.findings}

@@ -383,9 +383,9 @@ def main(argv: list[str] | None = None) -> int:
             def make_settings(extra: dict[str, str] | None = None) -> Settings:
                 return load_settings(env={**env, **(extra or {}), "PARITY_DATA_DIR": str(work / "data")})
 
-            def factory_for(settings: Settings):
-                def client_factory(run_index: int, trace=None):  # a fresh cache per run: variance is measured, not replayed
-                    return MetaClient(settings, cache_dir=work / f"cache-{run_index}", trace=trace or TraceRouter())
+            def factory_for(settings: Settings, tag: str = "main"):
+                def client_factory(run_index: int, trace=None):  # a fresh cache per invocation and run: variance is measured, not replayed
+                    return MetaClient(settings, cache_dir=work / f"cache-{tag}-{run_index}", trace=trace or TraceRouter())
                 return client_factory
 
             settings = make_settings()
@@ -395,14 +395,17 @@ def main(argv: list[str] | None = None) -> int:
             if args.effort_sweep:
                 results["effort_sweep"] = {}
                 for eff in ("low", "medium", "high"):
+                    if eff == args.effort:  # the main run already measured this effort
+                        results["effort_sweep"][eff] = {**results["configs"]["full"]["total"], "note": "the main run"}
+                        continue
                     print(f"effort sweep: {eff}")
-                    r = await run_eval(client_factory=factory_for(settings), base_url=base_url, pages=pages, runs=1, configs=["full"],
+                    r = await run_eval(client_factory=factory_for(settings, f"effort-{eff}"), base_url=base_url, pages=pages, runs=1, configs=["full"],
                                        data_dir=work / f"data-{eff}", settings=settings, effort=eff, judge_models=[])
                     results["effort_sweep"][eff] = r["configs"]["full"]["total"]
             if args.standard_check:
                 std = make_settings({"PARITY_MODEL": "muse-spark-1.3"})
                 print("standard-tier check")
-                r = await run_eval(client_factory=factory_for(std), base_url=base_url, pages=pages, runs=1, configs=["full"],
+                r = await run_eval(client_factory=factory_for(std, "standard"), base_url=base_url, pages=pages, runs=1, configs=["full"],
                                    data_dir=work / "data-standard", settings=std, judge_models=[])
                 results["standard_tier_check"] = {"model": "muse-spark-1.3", **r["configs"]["full"]["total"]}
             path = write_results(results, name=args.name)

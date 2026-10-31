@@ -191,3 +191,35 @@ async def test_judge_calls_run_concurrently(tmp_path, server_url, page):
         await index.close()
     assert judged >= 4, judged
     assert elapsed < 0.4 * judged * 0.75, f"{judged} judge calls took {elapsed:.1f}s: sequential"
+
+
+async def test_unparseable_comparator_answer_is_retried_once(tmp_path, server_url, page):
+    """An answer that is not JSON is not 'no findings': the comparator is asked again and the event says so."""
+    import json as _json
+
+    from parity.meta.fake import FakeMetaClient
+    from parity.store.models import Capture
+
+    cap = Capture.model_validate_json(Path(__file__).parent.joinpath("fixtures", "capture_checkout.json").read_text())
+    f5 = next(n for n in cap.ax_nodes if n.dom_id == "f5")
+    hero = {"what_sighted_user_sees": "Pay R1,249", "screen_reader_role": "button", "screen_reader_name": "Submit", "why_it_matters": "price hidden", "bbox": f5.bbox.model_dump()}
+
+    def answer(text):
+        return {"id": "r", "_request_id": "req", "status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": text}]}], "usage": {"input_tokens": 1, "output_tokens": 1}}
+
+    async def factory():
+        return page
+
+    client = FakeMetaClient(META, stage_defaults=stage_defaults(), script={"comparator": [answer("I ran out of tokens while thinking"), answer(_json.dumps({"findings": [hero]}))]})
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data")})
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        run = await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    finally:
+        await index.close()
+    assert run.findings_verified == 1, run.error
+    types = [e.type for e in loaded.events]
+    assert "comparator.unparseable" in types and types.count("comparator.candidates") == 2

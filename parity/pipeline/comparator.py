@@ -66,15 +66,23 @@ def build_prompt(capture: Capture, percepts: list[Percept], feedback: list[str] 
     return "\n\n".join(parts)
 
 
-def parse_candidates(text: str, step_index: int, attempt: int = 1) -> list[Candidate]:
+class CandidateList(list):
+    """The comparator's candidates, plus whether its answer parsed at all (an empty answer is not 'no findings')."""
+
+    parse_ok: bool = True
+
+
+def parse_candidates(text: str, step_index: int, attempt: int = 1) -> CandidateList:
+    out = CandidateList()
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
-        return []
+        out.parse_ok = False
+        return out
     items = data.get("findings") if isinstance(data, dict) else None
     if not isinstance(items, list):
-        return []
-    out: list[Candidate] = []
+        out.parse_ok = False
+        return out
     for item in items:
         if not isinstance(item, dict):
             continue

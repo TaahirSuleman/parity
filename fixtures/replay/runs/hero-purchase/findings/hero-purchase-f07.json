@@ -6,7 +6,7 @@
  "sighted_text": "R1,249.00",
  "sr_role": "",
  "sr_name": "",
- "why_it_matters": "A blind user gets no total amount and cannot confirm what they will pay.",
+ "why_it_matters": "Blind user cannot perceive the order total because it is rendered as a canvas with no accessibility entry.",
  "voice": null,
  "bbox": {
   "x_min": 185,
@@ -66,19 +66,19 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "critical",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "User hears 'Total:' with no amount and cannot verify what they will be charged before paying.",
+  "impact": "The screen-reader user hears 'Total:' with no value and cannot confirm the total amount they will be charged before paying.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "79d9d72b-0377-4af9-8842-36833fe1bc56",
-   "response_id": "resp_6ae6290c536cefbe551a40d6",
+   "request_id": "c75538a6-9a08-4495-bdd2-caafaf0de6d6",
+   "response_id": "resp_6ae63005bb24d82669a848ba",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -86,12 +86,12 @@
  "fix": {
   "before_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
   "after_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"R1,249.00\">R1,249.00</canvas>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -15,7 +15,7 @@\n     <img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n-    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n+    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"R1,249.00\">R1,249.00</canvas></p>\n     <p><a id=\"c1\" href=\"#returns\">Returns policy</a></p>\n   </section>\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n",
-  "explanation": "Replaced presentational role with img role plus matching aria-label and fallback text so the canvas total is announced as R1,249.00.",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -18,7 +18,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n-    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n+    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"R1,249.00\">R1,249.00</canvas></p>\n     <p><a id=\"c1\" href=\"#returns\">Returns policy</a></p>\n   </section>\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n",
+  "explanation": "Removed role=\"presentation\" and added matching aria-label with fallback text so the canvas total is announced as R1,249.00.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "d2b95c7b-4783-4f0c-b499-be8dae28f38d",
-   "response_id": "resp_6ae62a4f46120312abfd43b6",
+   "request_id": "23b72ef4-f622-4c1a-ac55-772914e115a5",
+   "response_id": "resp_6ae630cb4255b351e96a45be",
    "status": "completed"
   }
  },

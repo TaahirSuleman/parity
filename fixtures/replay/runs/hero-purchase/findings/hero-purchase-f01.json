@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "★★★★☆ 4.3 (212 reviews)",
+ "sighted_text": "SALE -20%",
  "sr_role": "image",
- "sr_name": "rating",
- "why_it_matters": "Blind user gets only generic rating with no star count or 4.3 value and cannot assess product rating.",
+ "sr_name": "badge",
+ "why_it_matters": "Blind user hears only generic badge and misses that the item is discounted by 20%.",
  "voice": null,
  "bbox": {
   "x_min": 146,
-  "y_min": 219,
-  "x_max": 232,
-  "y_max": 247
+  "y_min": 126,
+  "x_max": 240,
+  "y_max": 165
  },
  "element": {
-  "backend_id": 22,
-  "css_path": "img#p2",
+  "backend_id": 19,
+  "css_path": "img#p1",
   "box_px": [
    187,
-   158,
-   297,
-   178
+   91,
+   307,
+   119
   ],
-  "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": "p2"
+  "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "p1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#p2"
+    "detail": "image at img#p1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,54 +51,54 @@
    }
   },
   "element": {
-   "backend_id": 22,
-   "css_path": "img#p2",
+   "backend_id": 19,
+   "css_path": "img#p1",
    "box_px": [
     187,
-    158,
-    297,
-    178
+    91,
+    307,
+    119
    ],
-   "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "p2"
+   "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "p1"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "minor",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "User hears only generic 'rating' and cannot learn the product is rated 4.3 stars to assess its quality.",
+  "impact": "The user cannot know the product is advertised as SALE -20% off and only hears generic badge.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "ebfe6804-ce72-4423-a3de-8a0d08b32ec4",
-   "response_id": "resp_6ae6284d9520f73f703845b5",
+   "request_id": "fe913a74-e385-4f38-b7a6-391ff96ba2ea",
+   "response_id": "resp_6ae62f6856a363c02024428c",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-  "after_html": "<img id=\"p2\" alt=\"★★★★☆ 4.3 (212 reviews)\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -13,7 +13,7 @@\n   <section class=\"card\" aria-labelledby=\"product-h\">\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\"> <span class=\"small\">(212 reviews)</span></p>\n+    <p><img id=\"p2\" alt=\"★★★★☆ 4.3 (212 reviews)\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\"> <span class=\"small\">(212 reviews)</span></p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span></p>\n     <div class=\"actions\">\n",
-  "explanation": "Changed alt from generic 'rating' to the visible text '★★★★☆ 4.3 (212 reviews)' so the screen reader announces the same rating value sighted users see.",
+  "before_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">",
+  "after_html": "<img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -13,8 +13,7 @@\n </header>\n <main>\n   <section class=\"card\" aria-labelledby=\"product-h\">\n-    <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n+    <img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n",
+  "explanation": "Changed alt text from \"badge\" to \"SALE -20%\" so the accessible name matches the visible badge text.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "e4f9b889-ecad-4e68-9e42-83579ad9a786",
-   "response_id": "resp_6ae629b0494e5e0d70c946f4",
+   "request_id": "bf9aa3b4-8fbd-4939-8c96-0559d4e07e51",
+   "response_id": "resp_6ae630bbc50f91f100954642",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "rating",
-  "sr_name_after": "★★★★☆ 4.3 (212 reviews)",
+  "sr_name_before": "badge",
+  "sr_name_after": "SALE -20%",
   "comparator_still_flags": false
  },
  "decision": null

@@ -2,17 +2,17 @@
  "id": "hero-purchase-f05",
  "run_id": "hero-purchase",
  "step_index": 1,
- "status": "reaudited",
+ "status": "fix_proposed",
  "sighted_text": "Free",
  "sr_role": "",
  "sr_name": "",
  "why_it_matters": "A blind user gets no delivery cost information and will not know delivery is free.",
  "voice": null,
  "bbox": {
-  "x_min": 823,
-  "y_min": 325,
-  "x_max": 854,
-  "y_max": 350
+  "x_min": 822,
+  "y_min": 327,
+  "x_max": 847,
+  "y_max": 347
  },
  "element": {
   "backend_id": 95,
@@ -66,19 +66,19 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "The user hears 'Delivery' with no value and cannot know delivery is free without inferring it from the totals.",
+  "impact": "User hears 'Delivery' with no value and cannot know delivery is free.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "3ac0fac0-28a4-48b3-969b-6737cbba406d",
-   "response_id": "resp_6ae628baec77c8b5e31d472f",
+   "request_id": "2e9431e6-64e0-4111-8771-8a5a352ba959",
+   "response_id": "resp_6ae62fc207bacb36eb714794",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -86,20 +86,15 @@
  "fix": {
   "before_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
   "after_html": "<img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -22,7 +22,7 @@\n       </span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,249.00</span></div>\n-    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\"></span></div>\n+    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\"></span></div>\n     <p class=\"total\">Total: R1,249.00</p>\n     <div class=\"actions\">\n       <a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>\n",
-  "explanation": "Changed empty alt to \"Free\" so screen readers announce the visible delivery cost.",
+  "diff": "--- a/store/cart.html (element span#k4 > img:nth-of-type(1) only; page source unavailable)\n+++ b/store/cart.html (element span#k4 > img:nth-of-type(1) only; page source unavailable)\n@@ -1 +1 @@\n-<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">\n\\ No newline at end of file\n+<img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">\n\\ No newline at end of file\n",
+  "explanation": "Changed empty alt to alt=\"Free\" so the screen reader announces the same delivery cost sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "cda5ac5a-8929-4f50-aa4e-f17b6a1c9794",
-   "response_id": "resp_6ae62a11efdfdf82848c412f",
+   "request_id": "531e9f49-c23d-4859-a182-49df13e48eb8",
+   "response_id": "resp_6ae630c0451a9b1cdc84447e",
    "status": "completed"
   }
  },
- "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "Free",
-  "comparator_still_flags": false
- },
+ "reaudit": null,
  "decision": null
 }

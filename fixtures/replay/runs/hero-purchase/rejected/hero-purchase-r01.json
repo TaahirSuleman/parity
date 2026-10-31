@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "SALE -20%",
-  "sr_quote": "image, \"badge\"",
-  "why_it_matters": "Blind user hears only generic badge and misses that the item is on 20% sale.",
+  "sighted_text": "R1,599.00",
+  "sr_quote": "text, \"R1,599.00\"",
+  "why_it_matters": "Blind user hears two prices with no indication that this price is crossed out as the old original price.",
   "bbox": {
-   "x_min": 145,
-   "y_min": 163,
-   "x_max": 240,
-   "y_max": 200
+   "x_min": 146,
+   "y_min": 308,
+   "x_max": 193,
+   "y_max": 328
   },
   "attempt": 1
  },
@@ -23,12 +23,12 @@
     "detail": "text at "
    },
    "sr_quote_exact": {
-    "passed": false,
-    "detail": "quote differs from the accessibility tree entry"
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
-    "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "passed": false,
+    "detail": "visible text equals the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -40,17 +40,17 @@
    }
   },
   "element": {
-   "backend_id": 48,
+   "backend_id": 52,
    "css_path": "",
    "box_px": [
     187,
-    123,
-    470,
-    146
+    222,
+    247,
+    236
    ],
    "outer_html": "",
    "dom_id": null
   },
-  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
  }
 }

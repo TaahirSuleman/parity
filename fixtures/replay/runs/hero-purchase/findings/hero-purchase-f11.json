@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 2,
  "status": "reaudited",
- "sighted_text": "trash icon",
- "sr_role": "button",
- "sr_name": "Close",
- "why_it_matters": "A blind user hears 'Close' which misrepresents the visible delete trash action.",
+ "sighted_text": "Terms",
+ "sr_role": "link",
+ "sr_name": "Click here",
+ "why_it_matters": "Blind user hears only a generic link name and does not know it leads to the Terms.",
  "voice": null,
  "bbox": {
-  "x_min": 654,
-  "y_min": 500,
-  "x_max": 690,
-  "y_max": 567
+  "x_min": 649,
+  "y_min": 454,
+  "x_max": 685,
+  "y_max": 475
  },
  "element": {
-  "backend_id": 166,
-  "css_path": "button#f6",
+  "backend_id": 161,
+  "css_path": "a#f4",
   "box_px": [
-   837,
-   360,
-   883,
-   408
+   831,
+   327,
+   877,
+   342
   ],
-  "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-  "dom_id": "f6"
+  "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+  "dom_id": "f4"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f6"
+    "detail": "link at a#f4"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 166,
-   "css_path": "button#f6",
+   "backend_id": 161,
+   "css_path": "a#f4",
    "box_px": [
-    837,
-    360,
-    883,
-    408
+    831,
+    327,
+    877,
+    342
    ],
-   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "f6"
+   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "f4"
   },
   "feedback": null
  },
@@ -69,36 +69,40 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   },
+   {
+    "sc": "2.4.4",
+    "name": "Link Purpose (In Context)"
    }
   ],
-  "impact": "Blind user hears 'Close' and cannot know the button performs the visible trash/delete action and may use it with the wrong expectation.",
+  "impact": "The user hears only a generic 'Click here' in the agreement sentence and cannot know the link leads to the Terms or find it by its visible name.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "bfbd6492-2806-4a43-a85c-b5db91502a89",
-   "response_id": "resp_6ae6292b66a9a153063042a1",
+   "request_id": "6a84e020-bda1-4761-b6d7-ea7eb402c76b",
+   "response_id": "resp_6ae63027efeb66bb89fd4066",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-  "after_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -26,7 +26,7 @@\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n-      <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n+      <button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n   </section>\n",
-  "explanation": "Changed aria-label from Close to Delete so the name matches the visible trash/delete action.",
+  "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
+  "after_html": "<a id=\"f4\" href=\"#terms\">Terms</a>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -26,7 +26,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\">Terms</a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
+  "explanation": "Removed the generic 'Click here' aria-label and image-of-text and gave the link real text 'Terms' so its accessible name matches what sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "04011559-49c7-4f03-9ff8-a4453f1b985f",
-   "response_id": "resp_6ae62afe6ee069df9aba45d5",
+   "request_id": "ef1907ea-98bc-4bd3-851e-7fadfa302b15",
+   "response_id": "resp_6ae630d478866e1d578d4aaa",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": false,
-  "sr_name_before": "Close",
-  "sr_name_after": "Delete",
+  "gap_closed": true,
+  "sr_name_before": "Click here",
+  "sr_name_after": "Terms",
   "comparator_still_flags": false
  },
  "decision": null

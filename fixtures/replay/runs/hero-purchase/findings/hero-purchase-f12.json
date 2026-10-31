@@ -5,23 +5,23 @@
  "status": "judged",
  "sighted_text": "Order SR-10428. Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.",
  "sr_role": "text",
- "sr_name": ". Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.",
- "why_it_matters": "The order number SR-10428 is omitted from the announced sentence and only appears later out of context, so a blind user cannot associate the confirmation with the correct order.",
+ "sr_name": "SR-10428",
+ "why_it_matters": "A blind user hears the order number announced after the Back to the shop link, detached from its sentence, so the confirmation cannot be reliably associated with the correct order.",
  "voice": null,
  "bbox": {
-  "x_min": 238,
+  "x_min": 181,
   "y_min": 176,
-  "x_max": 679,
-  "y_max": 201
+  "x_max": 238,
+  "y_max": 200
  },
  "element": {
-  "backend_id": 223,
+  "backend_id": 222,
   "css_path": "",
   "box_px": [
-   304,
+   232,
    127,
-   869,
-   145
+   304,
+   144
   ],
   "outer_html": "",
   "dom_id": null
@@ -51,13 +51,13 @@
    }
   },
   "element": {
-   "backend_id": 223,
+   "backend_id": 222,
    "css_path": "",
    "box_px": [
-    304,
+    232,
     127,
-    869,
-    145
+    304,
+    144
    ],
    "outer_html": "",
    "dom_id": null
@@ -66,19 +66,19 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.3.2",
     "name": "Meaningful Sequence"
    }
   ],
-  "impact": "The user hears the confirmation as 'Order' without its number and only encounters SR-10428 later out of context, making it hard to associate the charge with the correct order.",
+  "impact": "User hears the order number isolated after the navigation link and cannot reliably connect SR-10428 to the confirmed headphones purchase.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "1beaa4f5-4d3c-4b7c-89af-29fd8ff28d41",
-   "response_id": "resp_6ae6299a30df05318de44afe",
+   "request_id": "f4d4393d-2784-4ff2-be12-25fa81e4544d",
+   "response_id": "resp_6ae630a1e1816fb9bde44795",
    "status": "completed",
    "incomplete_reason": null
   }

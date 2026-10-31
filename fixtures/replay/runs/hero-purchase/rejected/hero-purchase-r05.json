@@ -1,17 +1,17 @@
 {
  "id": "hero-purchase-r05",
  "run_id": "hero-purchase",
- "step_index": 1,
+ "step_index": 3,
  "candidate": {
-  "step_index": 1,
-  "sighted_text": "Checkout",
-  "sr_quote": "link, \"Checkout\"",
-  "why_it_matters": "A blind user hears a link while a sighted user sees a button, creating mismatched expectations about whether it performs an action or navigates.",
+  "step_index": 3,
+  "sighted_text": "SR-10428",
+  "sr_quote": "text, \"SR-10428\"",
+  "why_it_matters": "The order number is visually in the middle of the sentence Order SR-10428 but in the accessibility tree it is announced after Back to the shop, so a blind user hears a broken Order ... sentence and hears the number detached from its context.",
   "bbox": {
-   "x_min": 146,
-   "y_min": 433,
-   "x_max": 228,
-   "y_max": 493
+   "x_min": 181,
+   "y_min": 176,
+   "x_max": 238,
+   "y_max": 200
   },
   "attempt": 1
  },
@@ -20,7 +20,7 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#k5"
+    "detail": "text at "
    },
    "sr_quote_exact": {
     "passed": true,
@@ -40,16 +40,16 @@
    }
   },
   "element": {
-   "backend_id": 98,
-   "css_path": "a#k5",
+   "backend_id": 222,
+   "css_path": "",
    "box_px": [
-    187,
-    313,
-    291,
-    355
+    232,
+    127,
+    304,
+    144
    ],
-   "outer_html": "<a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>",
-   "dom_id": "k5"
+   "outer_html": "",
+   "dom_id": null
   },
   "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
  }

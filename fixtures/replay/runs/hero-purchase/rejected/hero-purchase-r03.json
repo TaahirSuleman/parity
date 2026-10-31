@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "heart icon (wishlist)",
-  "sr_quote": "button, \"Close\"",
-  "why_it_matters": "Blind user is told the button closes something and cannot discover or activate the wishlist action.",
+  "sighted_text": "★★★★☆ 4.3",
+  "sr_quote": "image, \"rating\"",
+  "why_it_matters": "A blind user hears only 'rating' without the 4.3 star value that sighted users see.",
   "bbox": {
-   "x_min": 242,
-   "y_min": 356,
-   "x_max": 275,
-   "y_max": 419
+   "x_min": 146,
+   "y_min": 219,
+   "x_max": 232,
+   "y_max": 247
   },
   "attempt": 2
  },
@@ -20,7 +20,7 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#p5"
+    "detail": "image at img#p2"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -40,16 +40,16 @@
    }
   },
   "element": {
-   "backend_id": 30,
-   "css_path": "button#p5",
+   "backend_id": 22,
+   "css_path": "img#p2",
    "box_px": [
-    310,
-    256,
-    352,
-    302
+    187,
+    158,
+    297,
+    178
    ],
-   "outer_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
-   "dom_id": "p5"
+   "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "p2"
   },
   "feedback": "this element is already reported; do not repeat it"
  }

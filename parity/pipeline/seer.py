@@ -54,7 +54,7 @@ async def see(client, capture: Capture, run_id: str, *, model: str, effort: str 
         "model": model,
         "reasoning": {"effort": effort},
         "text": {"format": {"type": "json_object"}},
-        "max_output_tokens": 6000,
+        "max_output_tokens": 8000,
         "input": [{"role": "user", "content": [
             {"type": "input_text", "text": PROMPT},
             {"type": "input_image", "image_url": png_to_data_url(capture.screenshot_png)},

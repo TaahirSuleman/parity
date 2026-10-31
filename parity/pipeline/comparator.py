@@ -109,7 +109,7 @@ async def compare(
         content.append({"type": "input_image", "image_url": png_to_data_url(capture.screenshot_png)})
     body = {
         "model": model, "reasoning": {"effort": effort}, "text": {"format": {"type": "json_object"}},
-        "max_output_tokens": 6000, "input": [{"role": "user", "content": content}],
+        "max_output_tokens": 12000, "input": [{"role": "user", "content": content}],  # reasoning counts against this; 6000 came back incomplete on heavier pages
     }
     resp = await client.responses(body, stage="comparator", run_id=run_id, step_index=capture.step_index)
     candidates = parse_candidates(resp.text, capture.step_index, attempt)

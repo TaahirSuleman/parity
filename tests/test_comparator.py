@@ -91,3 +91,17 @@ def test_parse_bbox_rejects_non_finite_numbers():
     assert parse_bbox({"x_min": float("inf"), "y_min": 0, "x_max": 10, "y_max": 10}) is None
     assert parse_bbox({"x_min": float("nan"), "y_min": 0, "x_max": 10, "y_max": 10}) is None
     assert parse_candidates('{"findings":[{"what_sighted_user_sees":"x","screen_reader_role":"button","screen_reader_name":"y","bbox":{"x_min":Infinity,"y_min":0,"x_max":1,"y_max":1}}]}', step_index=0)[0].bbox is None
+
+
+async def test_comparator_output_budget_leaves_room_for_reasoning(tmp_path):
+    """Reasoning counts against max_output_tokens; at 6000 the heavier store pages came back incomplete (0 findings)."""
+    from pathlib import Path
+
+    from parity.meta.fake import FakeMetaClient
+    from parity.pipeline.comparator import compare
+    from parity.store.models import Capture
+
+    cap = Capture.model_validate_json((Path(__file__).parent / "fixtures" / "capture_checkout.json").read_text())
+    fake = FakeMetaClient(tmp_path, default={"id": "r", "_request_id": "q", "status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": '{"findings": []}'}]}], "usage": {}})
+    await compare(fake, cap, [], "r1", model="muse-spark-1.3-contributor")
+    assert fake.calls[-1]["max_output_tokens"] >= 12000

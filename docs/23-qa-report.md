@@ -1,6 +1,6 @@
 # 23 — Pre-Phase-4 QA report (31 Oct 2026)
 
-**Scope:** everything built in Phases 1–3 (commits through `979ef4e`), checked against the hard rules in
+**Scope:** everything built in Phases 1–3 (commits through `8f14c4d`), checked against the hard rules in
 `CLAUDE.md`, the constitution (Articles II, V, IX), doc 18 (§3 product, §7 day plan, §9 video), the
 submission checklist and the spec (doc 19). Phases 4–6 are scheduled, not missing.
 
@@ -83,7 +83,7 @@ Three fresh-context reviewers (backend, workbench + API, rules audit). Severity 
 
 ## 5. Decisions (taken 31 Oct)
 
-1. **`Co-Authored-By: Claude` trailers on five early commits** (`be0dfe2`, `37b4b02`, `11bb9ed`, `40f2674`, `50610d7`) — **open item, revisit at the P5 close** (Task 25). Could judges tell if we rewrote history? From the repository itself, no: a rebase that strips the trailers produces a normal linear history with new SHAs and the same author dates; nothing in `git log` marks a rewrite. Where a trace could remain: GitHub's repository **Activity** view and events API record force-pushes (with the old SHAs) for a while; anyone who cloned or forked earlier keeps the old SHAs; tags `p1`–`p3` would have to be moved. If it is done, do it once, early on the final day, re-tag, and note nothing — the content is identical either way. Leaving them is also defensible: AI assistance is not prohibited, and the scope file states who built what.
+1. **Co-author trailers on five early commits** — **done 31 Oct.** Removed by a message-only rewrite: every commit's tree, author, committer and dates verified identical, tags p1–p3 kept their tagger and message; `main` and the tags were force-pushed with leases. Judges cannot tell from the repository; GitHub's Activity view records the force-push for a while.
 2. **Third-party documents in the public repo** — **must be removed before submission.** Recorded as a hard rule in `CLAUDE.md`, as the first item of Task 25, and in the cold-review checklist (`git ls-files docs/hackathon docs/learnings`).
 3. **Disclosing AI coding assistance in `HACKATHON_SCOPE.md`** — **open question, return to it at the end.** Not required by the rules as read: Art. II.3 asks that the hackathon-built, original contribution be clearly identifiable, which the scope file does; it does not ask for tooling disclosure. A one-line disclosure is harmless and honest; the choice is yours at close.
 4. **Per-run cap** — **10–15 minutes accepted; 15 kept** (`PARITY_RUN_TIMEOUT_S=900`), spec §15 updated.

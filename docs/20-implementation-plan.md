@@ -328,7 +328,7 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 ### Task 25: P5 close
 - **Pre-submission checklist (decided 31 Oct after the QA pass, docs/23 §5):**
   - **Remove** the third-party documents before the final push: `docs/hackathon/01-*`, `02-*`, `03-*`, `docs/learnings/11*`, `12a*`, `13*`. Keep local copies outside the repo. Verify with `git ls-files docs/hackathon docs/learnings`.
-  - **Revisit** the five early commits with `Co-Authored-By: Claude` trailers (`be0dfe2`, `37b4b02`, `11bb9ed`, `40f2674`, `50610d7`). Open item: leave them, or rewrite history and force-push (re-tag p1–p3). The user is not fazed; decide at close.
+  - **Done 31 Oct:** co-author trailers removed from five early commit messages (message-only rewrite; every tree, author, committer and date unchanged; `main` and tags p1–p3 re-pushed).
   - **Decide** whether `HACKATHON_SCOPE.md` carries a line disclosing AI coding assistance. Open question; not required by the rules as read (Art. II.3 asks that original contributions be identifiable, which the scope file does).
   - Per-run cap: **15 min** (`PARITY_RUN_TIMEOUT_S=900`, spec §15 updated); the user accepted 10–15.
 - Redeploy; commit; push; tag `p5`. The cold-review checklist (`docs/submission-checklist.md`) runs against the hosted URL after P6, Tue 3 Nov 11:00–12:00 ET, then feature freeze at 12:00 ET. If P6 is not done by 11:00, ship without Voice and say so in the README.

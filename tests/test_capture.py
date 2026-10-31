@@ -74,3 +74,12 @@ async def test_capture_html_is_the_served_source(checkout):
     from pathlib import Path
 
     assert checkout.html == (Path(__file__).resolve().parents[1] / "store" / "checkout.html").read_text()
+
+
+async def test_text_node_dom_id_is_the_containing_elements_id(page, store_url):
+    from parity.pipeline.capture import capture
+
+    await page.goto(store_url + "product.html")
+    cap = await capture(page, 0)
+    was = [n for n in cap.ax_nodes if n.role == "text" and n.name.strip() == "R1,599.00"]
+    assert was and was[0].dom_id == "was-price"

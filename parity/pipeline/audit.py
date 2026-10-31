@@ -31,6 +31,8 @@ class Ablation:
     use_screenshot: bool = True
     use_tree: bool = True
     use_grounding: bool = True  # False: skip the Seer (no percept list)
+    effort: str = "medium"  # reasoning effort for the seer and the comparator (the eval's effort sweep)
+    run_fixes: bool = True  # False: stop after the judge (the eval measures detection, not repair)
 
 
 @dataclass
@@ -121,7 +123,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
 
     percepts = []
     if ctx.ablation.use_grounding and ctx.ablation.use_screenshot:
-        percepts = await see(ctx.client, cap, run.id, model=settings.model_for("seer"))
+        percepts = await see(ctx.client, cap, run.id, model=settings.model_for("seer"), effort=ctx.ablation.effort)
     await ctx.emit("seer.done", {"index": step_index, "percepts": [p.model_dump(mode="json") for p in percepts]})
 
     new_findings: list[Finding] = []
@@ -130,7 +132,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     seen: set[tuple[str, str | None]] = set()
     for attempt in range(1, MAX_COMPARATOR_ATTEMPTS + 1):
         candidates = await compare(
-            ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"),
+            ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
             use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree,
         )
         await ctx.emit("comparator.candidates", {"index": step_index, "n": len(candidates), "attempt": attempt})

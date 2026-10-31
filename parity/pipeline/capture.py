@@ -30,7 +30,8 @@ MAX_OUTER_HTML = 2000
 
 _ELEMENT_INFO_JS = """
 function () {
-  const el = this;
+  // A text run has no id or HTML of its own: it reports its containing element, so labels match it and a fix targets that element.
+  const el = this.nodeType === 3 && this.parentElement ? this.parentElement : this;
   const tag = el.tagName ? el.tagName.toLowerCase() : "";
   function pathOf(node) {
     if (!node || node.nodeType !== 1) return "";

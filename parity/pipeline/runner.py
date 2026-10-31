@@ -69,7 +69,7 @@ async def run_flow(
           async def same_page() -> Page:
               return page
 
-          fixes = await fix_findings(ctx, same_page)
+          fixes = await fix_findings(ctx, same_page) if ctx.ablation.run_fixes else 0
           pending = await _settle(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
           await ctx.emit("run.finished", {
               "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,

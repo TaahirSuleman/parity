@@ -122,6 +122,6 @@ def anonymise(src: Path, dest: Path, *, letter: str, host: str) -> Path:
     if run_path.exists():
         run = json.loads(run_path.read_text())
         run["goal"] = f"Site {letter.upper()}: {run.get('goal', '')}".strip()
-        run["flow_id"] = run.get("flow_id") or "public"
+        run["flow_id"] = "public"  # every public sample shares one flow id; the Eval tab opens them by run id
         run_path.write_text(json.dumps(run, indent=1) + "\n")
     return dest

@@ -78,3 +78,4 @@ async def test_anonymise_removes_host(tmp_path):
     assert "steps/0/screenshot.png" in texts and "steps/1/screenshot.png" not in texts  # kept only where a finding was verified
     run = json.loads(texts["run.json"])
     assert run["id"] == "public-a" and run["target_url"].startswith("https://site-a.invalid/") and "Site A" in json.dumps(run)
+    assert run["flow_id"] == "public"  # one flow id for every sample: Replay opens them by run id

@@ -238,7 +238,8 @@ async def test_committed_replay_bundles_load_and_replay(tmp_path):
     async with app.router.lifespan_context(app):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             health = (await client.get("/api/health")).json()
-            assert health["replay_flows"] == {"checkout": "hero-checkout", "purchase": "hero-purchase"}
+            assert health["replay_flows"]["checkout"] == "hero-checkout" and health["replay_flows"]["purchase"] == "hero-purchase"
+            assert {"hero-checkout", "hero-purchase", "public-a", "public-b"} <= set(health["replay_runs"])  # public samples open by id
             expected = {"checkout": (6, 1), "purchase": (11, 2)}  # verified, rejected (honest counts: repeats are no longer red rows)
             for flow, (verified, rejected) in expected.items():
                 run_id = (await client.post("/api/runs", json={"flow_id": flow, "mode": "replay", "pace_ms": 0})).json()["run_id"]

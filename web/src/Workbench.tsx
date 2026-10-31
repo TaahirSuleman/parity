@@ -28,7 +28,7 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
   const [traceOpen, setTraceOpen] = useState(false);
   const selected = state.findings.find((f) => f.id === state.selectedFindingId) ?? null;
   return (
-    <div className="h-full flex flex-col" style={{ minHeight: "100vh" }}>
+    <div className="flex flex-col" style={{ height: "100vh" }}>
       <Header approved={approved} pending={pending} flows={flows} flowId={flowId} onFlowChange={onFlowChange} run={state.run} mode={state.mode} canLive={canLive} running={state.phase === "running"} onModeChange={onModeChange} onRun={onRun} />
       <main className="flex-1 grid gap-3 p-3 min-h-0" style={{ gridTemplateColumns: "minmax(0, 5fr) minmax(0, 4fr) minmax(0, 3fr)" }}>
         <SightedPanel screenshotUrl={screenshotUrl} findings={state.findings} percepts={state.percepts} selectedId={state.selectedFindingId} stage={state.stage} model={state.models.navigator ?? model} timeline={state.timeline} onSelect={onSelect} />

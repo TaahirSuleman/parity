@@ -31,7 +31,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
   const dupCount = rejected.filter((r) => kindOf(r) === "duplicate").length;
   const axeCount = rejected.filter((r) => kindOf(r) === "already_in_axe").length;
   return (
-    <section className="surface flex flex-col min-h-0" aria-labelledby="findings-h">
+    <section className="surface flex flex-col min-h-0 overflow-auto" aria-labelledby="findings-h">
       <div className="flex items-center justify-between gap-2 px-3 py-2 border-b hairline flex-wrap">
         <h2 id="findings-h" className="text-xs uppercase tracking-wider muted font-medium m-0">Findings</h2>
         <span className="mono text-xs muted">{findings.length} verified · {rejected.length} rejected</span>

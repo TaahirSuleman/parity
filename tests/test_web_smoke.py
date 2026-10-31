@@ -1,5 +1,6 @@
 """Browser smoke test: the built SPA, served by FastAPI, replays the hero run end to end."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -80,3 +81,28 @@ async def test_replay_approve_records_the_decision(page, server_url):
     await page.get_by_text("Approved ·").wait_for(timeout=10000)
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('1 approved')", timeout=10000)
     assert "awaiting review" not in (await page.locator("header").inner_text()).lower()
+
+
+async def test_trace_drawer_is_not_painted_over_by_panel_content(page, server_url):
+    """At a short viewport the right panel's content must not bleed through the open trace drawer."""
+    await page.set_viewport_size({"width": 1024, "height": 700})
+    await page.goto(server_url + "/?mock=hero")
+    await page.get_by_role("heading", name="Parity").wait_for()
+    await page.get_by_role("button", name="Pay R1,249").first.click()  # the screen-reader panel fills with the judge's text
+    await page.get_by_role("button", name=re.compile(r"^Trace")).click()
+    await page.locator("#trace-table tbody tr").first.wait_for()
+    intruders = await page.evaluate(
+        """() => {
+            const rows = [...document.querySelectorAll('#trace-table tbody tr')].slice(0, 4);
+            const bad = [];
+            for (const tr of rows) {
+              const r = tr.getBoundingClientRect(); const y = r.top + r.height / 2;
+              for (let x = 60; x < innerWidth - 20; x += 40) {
+                const e = document.elementsFromPoint(x, y)[0];
+                if (e && !e.closest('#trace-table')) bad.push(`${x},${Math.round(y)}: ${e.tagName} ${(e.textContent || '').trim().slice(0, 24)}`);
+              }
+            }
+            return bad;
+        }"""
+    )
+    assert intruders == [], intruders

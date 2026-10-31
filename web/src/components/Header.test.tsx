@@ -27,3 +27,20 @@ describe("Header review state", () => {
     expect(screen.getByText(/1 approved · 2 to review/)).toBeInTheDocument();
   });
 });
+
+describe("Header patch export", () => {
+  const run = { id: "r7", mode: "replay" as const, flow_id: "checkout", goal: "", target_url: "", status: "done" as const, started_at: "2026-10-31T00:00:00Z",
+    axe_violations: 0, findings_verified: 3, findings_rejected: 1, tokens: 0, cost_usd: 0, duration_ms: 0 };
+  const props = { flows: [{ id: "checkout", name: "Checkout", single_page: true }], flowId: "checkout", onFlowChange: () => {}, mode: "replay" as const, canLive: false, running: false, onModeChange: () => {}, onRun: () => {} };
+
+  it("offers the fix.patch download once a fix is approved", () => {
+    render(<Header {...props} run={run} approved={1} pending={0} />);
+    const link = screen.getByRole("link", { name: /download fix\.patch/i });
+    expect(link).toHaveAttribute("href", "/api/runs/r7/patch");
+  });
+
+  it("offers no download before any approval", () => {
+    render(<Header {...props} run={run} approved={0} pending={2} />);
+    expect(screen.queryByRole("link", { name: /download fix\.patch/i })).toBeNull();
+  });
+});

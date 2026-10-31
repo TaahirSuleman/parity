@@ -9,7 +9,7 @@ export function srQuote(f: Pick<Finding, "sr_role" | "sr_name">): string | null 
 export function ScreenReaderPanel({ finding }: { finding: Finding | null }) {
   const quote = finding ? srQuote(finding) : null;
   return (
-    <section className="surface flex flex-col" aria-labelledby="sr-h">
+    <section className="surface flex flex-col min-h-0 overflow-auto" aria-labelledby="sr-h">
       <div className="flex items-center justify-between px-3 py-2 border-b hairline">
         <h2 id="sr-h" className="text-xs uppercase tracking-wider muted font-medium m-0">Screen reader</h2>
         <CodeBadge what="AX tree · deterministic" />

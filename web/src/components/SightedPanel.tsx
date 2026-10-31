@@ -25,7 +25,7 @@ export function stageBadge(stage: string | null, model: string) {
 
 export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, onSelect }: Props) {
   return (
-    <section className="surface flex flex-col min-h-0" aria-labelledby="sighted-h">
+    <section className="surface flex flex-col min-h-0 overflow-auto" aria-labelledby="sighted-h">
       <div className="flex items-center justify-between px-3 py-2 border-b hairline">
         <h2 id="sighted-h" className="text-xs uppercase tracking-wider muted font-medium m-0">Sighted</h2>
         {stageBadge(stage, model)}

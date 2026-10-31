@@ -12,3 +12,4 @@ parity/vendor/
 .superpowers/
 .DS_Store
 __pycache__/
+parity.egg-info/

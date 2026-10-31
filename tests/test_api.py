@@ -44,7 +44,8 @@ async def test_health_reports_storage_and_index(api):
 async def test_flows_lists_checkout(api):
     client, _ = api
     flows = (await client.get("/api/flows")).json()
-    assert [f["id"] for f in flows] == ["checkout"] and flows[0]["start_url"] == "/store/checkout.html"
+    assert [f["id"] for f in flows] == ["checkout", "purchase"] and flows[0]["start_url"] == "/store/checkout.html"
+    assert flows[1]["single_page"] is False and len(flows[1]["pages"]) == 4
 
 
 async def test_post_replay_run_streams_hero(api):

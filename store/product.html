@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Noise-cancelling headphones · ShopRight</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site">
+  <span class="brand">ShopRight</span>
+  <nav aria-label="Primary"><a href="product.html">Shop</a><a href="cart.html">Cart</a></nav>
+</header>
+<main>
+  <section class="card" aria-labelledby="product-h">
+    <img id="p1" alt="badge" width="120" height="28"
+         src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>">
+    <h1 id="product-h">Noise-cancelling headphones</h1>
+    <p><img id="p2" alt="rating" width="110" height="20"
+         src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>"> <span class="small">(212 reviews)</span></p>
+    <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>
+    <p class="total"><s class="small">R1,599.00</s> <span id="p3">R1,249.00</span></p>
+    <div class="actions">
+      <button id="p4" class="btn" type="button">Add to cart</button>
+      <button id="p5" class="icon" type="button" aria-label="Close">♡</button>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="details-h">
+    <h2 id="details-h">Details</h2>
+    <div class="line"><span>Colour</span><span>Graphite</span></div>
+    <div class="line"><span>Warranty</span><span>2 years</span></div>
+    <div class="line"><span>Delivery</span><span>Free</span></div>
+    <p><a id="p6" href="#returns">Returns policy</a></p>
+  </section>
+</main>
+<script>
+  document.getElementById("p4").addEventListener("click", function () { location.href = "cart.html"; });
+</script>
+</body>
+</html>

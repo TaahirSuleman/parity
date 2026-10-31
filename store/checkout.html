@@ -32,13 +32,17 @@
       <button id="f6" class="icon" aria-label="Close">🗑️</button>
       <button id="c2" class="ghost">Save for later</button>
     </div>
-    <div id="done" role="status">Order confirmed ✓</div>
   </section>
 </main>
 <script>
+  // Seeded fault "card": an invalid card number only gets a red border; nothing is announced and pay does nothing.
   document.getElementById("f5").addEventListener("click", function () {
-    if (document.getElementById("exp").value.trim() === "10/28") {
-      document.getElementById("done").style.display = "block";
+    var card = document.getElementById("card");
+    var digits = card.value.replace(/\D/g, "");
+    if (digits.length === 16) {
+      location.href = "confirm.html";
+    } else {
+      card.classList.add("err");
     }
   });
   var ctx = document.getElementById("f2").getContext("2d");

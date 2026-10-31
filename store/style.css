@@ -20,4 +20,4 @@ input { padding: 10px; width: 100%; border: 1px solid #b7bbc6; border-radius: 6p
 .ghost { background: #fff; border: 1px solid #b7bbc6; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 15px; }
 .small { font-size: 13px; color: var(--muted); }
 a { color: #0b57d0; }
-#done { display: none; margin-top: 16px; padding: 12px; border-radius: 6px; background: #e6f4ea; color: #0a5c2b; font-size: 18px; }
+s { color: var(--muted); font-weight: 400; margin-right: 8px; }

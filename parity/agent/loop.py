@@ -106,6 +106,10 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
         state.turn = turn
         last = turn == max_turns
         tools = tool_definitions(["finish"]) if (last and mode == "tools") else full_tools
+        if last and mode == "tools":
+            # Only finish is offered now; its precondition must be satisfiable, so code audits the current screen.
+            await _audit_if_new(ctx, state, page, "last turn: audited by code before finish")
+            input_items = [*input_items, {"role": "user", "content": [{"type": "input_text", "text": "This is your last turn. Call finish with a one-sentence summary of where the flow stands."}]}]
         body: dict[str, Any] = {
             "model": model, "tools": tools, "reasoning": {"effort": "low"}, "truncation": "auto", "parallel_tool_calls": False,
             "instructions": PROMPT_TOOLS if mode == "tools" else PROMPT_FALLBACK, "input": input_items,
@@ -123,11 +127,22 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
             kind = item.get("type")
             if kind == "computer_call":
                 actions = item.get("actions") or ([item["action"]] if item.get("action") else [])
-                await ctx.emit("nav.actions", {"turn": turn, "actions": [a.get("type") for a in actions], "n": len(actions)})
+                safety = item.get("pending_safety_checks") or []
+                executed = dropped = 0
+                off_origin = False
                 for action in actions:
-                    await execute(page, action)
+                    if await execute(page, action):
+                        executed += 1
+                    else:
+                        dropped += 1
+                        await ctx.emit("nav.blocked", {"turn": turn, "action": action.get("type"), "detail": {k: v for k, v in action.items() if k != "type"}, "reason": "action refused by the allow-listed executor"})
+                    if not is_allowed_target(page.url, settings, ctx.base_url):
+                        off_origin = True
+                        break  # the rest of the batch (typing, clicks) must not land on an external page
                 await settle(page)
-                if not is_allowed_target(page.url, settings, ctx.base_url):
+                await ctx.emit("nav.actions", {"turn": turn, "actions": [a.get("type") for a in actions], "n": len(actions), "executed": executed, "dropped": dropped,
+                                               "safety_checks": len(safety), "safety_codes": [c.get("code") for c in safety if isinstance(c, dict)]})
+                if off_origin or not is_allowed_target(page.url, settings, ctx.base_url):
                     await ctx.emit("nav.blocked", {"turn": turn, "url": page.url, "reason": "navigated outside the allowed origins"})
                     state.summary = f"stopped: the page navigated to {page.url}, outside the allowed origins"
                     await conversation.record(turn, resp.request_id, resp.response_id, input_items, items, [t.get("name", t["type"]) for t in tools])
@@ -146,7 +161,9 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                     args = json.loads(args) if isinstance(args, str) else args
                 except (json.JSONDecodeError, TypeError):
                     pass
-                if "error" in result:
+                if "error" in result and result.get("kind") == "tool_error":
+                    await ctx.emit("agent.tool_error", {"turn": turn, "tool": item.get("name"), "args": args, "error": result["error"]})
+                elif "error" in result:
                     await ctx.emit("agent.refused", {"turn": turn, "tool": item.get("name"), "args": args, "feedback": result.get("feedback") or result["error"]})
                 else:
                     await ctx.emit("agent.tool_call", {"turn": turn, "tool": item.get("name"), "args": args, "result": result})

@@ -23,3 +23,19 @@ describe("FindingCard", () => {
     expect(screen.getByRole("button", { name: /Pay R1,249/ })).toHaveAttribute("aria-pressed", "true");
   });
 });
+
+describe("FindingCard verdicts and badges", () => {
+  it("surfaces a 'not a barrier' verdict for human review instead of hiding it as minor", () => {
+    const dismissed = { ...finding, judgement: { ...finding.judgement!, is_barrier: false, severity: "minor" as const, wcag: [] } };
+    render(<FindingCard finding={dismissed} selected={false} onSelect={() => {}} />);
+    expect(screen.getByText("not a barrier · review")).toBeInTheDocument();
+    expect(screen.getByText(/Judge: not a barrier in context/)).toBeInTheDocument();
+    expect(screen.queryByText("minor")).not.toBeInTheDocument();
+  });
+
+  it("shows the model tier in the badge", () => {
+    const contributor = { ...finding, judgement: { ...finding.judgement!, model_meta: { model: "muse-spark-1.3-contributor" } } };
+    render(<FindingCard finding={contributor} selected={false} onSelect={() => {}} />);
+    expect(screen.getByText(/CONTRIBUTOR/)).toBeInTheDocument();
+  });
+});

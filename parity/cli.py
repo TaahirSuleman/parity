@@ -27,9 +27,10 @@ async def _verify(args) -> int:
         print(f"unknown run {args.run_id}")
         return 1
     print(f"run {report.run_id}: without the Verifier it would have reported {report.reported} findings; "
-          f"{report.rejected_by_verifier} would be false (verifier on: {report.verified} verified)")
+          f"{report.false_reports} would be false, {report.duplicates} duplicate, {report.already_in_axe} already in axe "
+          f"(verifier on: {report.verified} verified)")
     for c in report.candidates:
-        mark = "ok  " if c.verifier_passed else "FALSE"
+        mark = "ok  " if c.verifier_passed else c.kind.upper()[:5]
         print(f"  [{mark}] step {c.step_index} {c.sighted_text[:40]!r} -> {c.sr_quote[:30]!r}" + (f"  failed: {', '.join(c.checks_failed)}" if c.checks_failed else ""))
     return 0
 

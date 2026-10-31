@@ -148,7 +148,10 @@ class MetaClient:
     async def responses(self, body: dict[str, Any], *, stage: str, run_id: str, step_index: int | None = None) -> MetaResponse:
         key = cache_key(body)
         model = str(body.get("model", ""))
-        cached = self._read_cache(key)
+        # Agent turns chain on previous_response_id: serving one from cache would chain a live call to a stale
+        # server-side response. Those turns are never read from or written to the cache.
+        chained = stage == "auditor" or "previous_response_id" in body
+        cached = None if chained else self._read_cache(key)
         if cached is not None:
             usage = Usage.from_raw(cached.get("usage"))
             call = ModelCall(
@@ -192,7 +195,11 @@ class MetaClient:
             await self.trace.record(call)
             if raw is not None:
                 raw["_request_id"] = request_id
-                self._write_cache(key, raw)
+                if str(raw.get("status") or "completed") == "completed" and not chained:
+                    self._write_cache(key, raw)
+                else:  # a truncated answer must not be replayed from cache forever
+                    call.error = f"response status {raw.get('status')}: {(raw.get('incomplete_details') or {}).get('reason')}"
+                    log.warning("meta %s returned %s (request %s); not cached", stage, raw.get("status"), request_id)
                 return MetaResponse(raw, text_of(raw), call.response_id, request_id, usage, False, latency_ms)
 
             log.warning("meta %s attempt %d failed: status=%s request_id=%s", stage, attempt, status, request_id)

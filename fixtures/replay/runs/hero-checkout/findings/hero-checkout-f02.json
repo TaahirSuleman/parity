@@ -6,7 +6,7 @@
  "sighted_text": "Total: R1,249.00",
  "sr_role": "",
  "sr_name": "",
- "why_it_matters": "A blind user gets no total price announced and cannot confirm what will be charged.",
+ "why_it_matters": "Blind user cannot verify the total amount to be paid because the total price exists only as pixels with no accessible name.",
  "voice": null,
  "bbox": {
   "x_min": 185,
@@ -65,15 +65,20 @@
   "feedback": null
  },
  "judgement": {
-  "is_barrier": false,
-  "severity": "minor",
-  "wcag": [],
-  "impact": "The user can still learn the R1,249 charge from the accessible Pay button and item price.",
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "User hears \"Total:\" with no amount and cannot verify the total charge before paying.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "4a6cae14-c7dd-4f39-91f3-695b10b0f5ff",
-   "response_id": "resp_6ae5289e84ce9a5572e14eb3",
+   "request_id": "637581f4-829b-4dcb-8adf-bb374dc39dbb",
+   "response_id": "resp_6ae53c262912d37576ce4a67",
    "status": "completed",
    "incomplete_reason": null
   }

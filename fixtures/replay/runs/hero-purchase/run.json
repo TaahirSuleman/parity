@@ -1,0 +1,19 @@
+{
+ "id": "hero-purchase",
+ "mode": "live",
+ "flow_id": "purchase",
+ "goal": "Buy the noise-cancelling headphones and pay with card 4111 1111 1111 1111, expiry 10/28. Stop when the order is confirmed.",
+ "target_url": "http://127.0.0.1:52172/store/product.html",
+ "status": "done",
+ "started_at": "2026-10-31T00:39:59.076571Z",
+ "finished_at": "2026-10-31T00:46:59.007705Z",
+ "axe_violations": 0,
+ "findings_verified": 12,
+ "findings_rejected": 6,
+ "tokens": 154198,
+ "cost_usd": 0.13517819,
+ "duration_ms": 419941,
+ "client_ip_hash": "12ca17b49af22894",
+ "error": null,
+ "replay_of": null
+}

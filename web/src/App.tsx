@@ -24,14 +24,19 @@ export default function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [flows, setFlows] = useState<FlowInfo[]>([]);
   const closeRef = useRef<(() => void) | null>(null);
-  const flow = flows[0];
+  const [flowId, setFlowId] = useState<string>("");
+  const flow = flows.find((f) => f.id === flowId) ?? flows[0];
 
   useEffect(() => {
-    getHealth().then((h) => {
+    Promise.all([getHealth().catch(() => null), getFlows().catch(() => [] as FlowInfo[])]).then(([h, fl]) => {
       setHealth(h);
-      dispatch({ kind: "reset", mode: h.has_key && h.live_enabled && h.mode_default === "live" ? "live" : "replay" });
-    }).catch(() => setHealth(null));
-    getFlows().then(setFlows).catch(() => setFlows([]));
+      setFlows(fl);
+      if (h) dispatch({ kind: "reset", mode: h.has_key && h.live_enabled && h.mode_default === "live" ? "live" : "replay" });
+      // Default to the multi-page agent flow when a recorded replay exists for it; else the first flow with a replay.
+      const replayable = fl.filter((f) => h?.replay_flows?.[f.id]);
+      const preferred = replayable.find((f) => !f.single_page) ?? replayable[0] ?? fl[0];
+      if (preferred) setFlowId(preferred.id);
+    });
     return () => closeRef.current?.();
   }, []);
 
@@ -59,7 +64,7 @@ export default function App() {
   const canLive = Boolean(health?.has_key && health?.live_enabled);
   return (
     <Workbench
-      state={state} flowName={flow?.name ?? "Checkout"} canLive={canLive} screenshotUrl={shot} model="muse-spark-1.3-contributor"
+      state={state} flows={flows} flowId={flow?.id ?? ""} onFlowChange={setFlowId} canLive={canLive} screenshotUrl={shot} model="muse-spark-1.3-contributor"
       onModeChange={(mode) => dispatch({ kind: "reset", mode })} onRun={onRun} onSelect={(id) => dispatch({ kind: "select", id })} onDecision={onDecision}
     />
   );

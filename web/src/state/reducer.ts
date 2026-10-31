@@ -1,7 +1,7 @@
 import type { CallEvent, Finding, ParityEvent, Rejected, Run, RunMode, RunState, Step } from "./types";
 
 export const initialState: RunState = {
-  run: null, timeline: [], models: { navigator: null, comparator: "muse-spark-1.3-contributor", judge: "muse-spark-1.3" }, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null,
+  run: null, timeline: [], agent: null, models: { navigator: null, comparator: "muse-spark-1.3-contributor", judge: "muse-spark-1.3" }, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null,
 };
 
 export function resetFor(mode: RunMode): RunState {
@@ -46,6 +46,8 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     }
     case "agent.refused":
       return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "refused", label: `${String(ev.tool)} refused: ${String(ev.feedback ?? "")}`, at: ev.at }] };
+    case "agent.tool_error":
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "error", label: `${String(ev.tool)} error: ${String(ev.error ?? "")}`, at: ev.at }] };
     case "step.captured": {
       if (!run) return state;
       const index = Number(ev.index ?? 0);
@@ -101,8 +103,12 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     case "run.finished": {
       if (!run) return state;
       const duration = Math.max(0, new Date(ev.at).getTime() - new Date(run.started_at).getTime());
+      const agent = (ev.agent as RunState["agent"] | undefined) ?? null;
+      const outcome = agent
+        ? [{ turn: agent.turns, kind: "outcome" as const, at: ev.at, label: agent.finished ? (agent.finish_forced ? `finished (forced after refusals): ${agent.summary}` : `finished: ${agent.summary}`) : `did not finish within ${agent.turns} turns: ${agent.summary || "no summary"}` }]
+        : [];
       return {
-        ...state, phase: "finished", stage: null,
+        ...state, phase: "finished", stage: null, agent, timeline: [...state.timeline, ...outcome],
         run: {
           ...run, status: (ev.status as Run["status"]) ?? "done", finished_at: ev.at, duration_ms: duration,
           findings_verified: Number(ev.findings_verified ?? run.findings_verified), findings_rejected: Number(ev.findings_rejected ?? run.findings_rejected),

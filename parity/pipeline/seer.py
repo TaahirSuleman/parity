@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from pathlib import Path
 from typing import Any
 
@@ -19,8 +20,11 @@ def parse_bbox(raw: Any) -> BBox | None:
     if not isinstance(raw, dict):
         return None
     try:
-        return BBox(**{k: int(raw[k]) for k in ("x_min", "y_min", "x_max", "y_max")})
-    except (KeyError, TypeError, ValueError):
+        values = {k: float(raw[k]) for k in ("x_min", "y_min", "x_max", "y_max")}
+        if not all(math.isfinite(v) for v in values.values()):
+            return None
+        return BBox(**{k: int(v) for k, v in values.items()})
+    except (KeyError, TypeError, ValueError, OverflowError):
         return None
 
 

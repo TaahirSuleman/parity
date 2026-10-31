@@ -62,24 +62,27 @@ async def run_flow(
             agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
             verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
         run.status = RunStatus.done
+        await _close(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see "done"
         await ctx.emit("run.finished", {
             "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
             "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
-            "agent": result_dict(agent) if agent else None, "final_url": page.url,
+            "agent": result_dict(agent) if agent else None, "final_url": page.url, "duration_ms": run.duration_ms,
         })
     except MetaError as exc:
         run.status = RunStatus.failed
         run.error = f"Meta API error {exc.status}: {exc} (request_id {exc.request_id}, attempts {exc.attempts})"
         log.error("run %s failed: %s", run.id, run.error)
+        await _close(ctx, t0)
         await ctx.emit("run.failed", {"error": run.error})
     except Exception as exc:  # the bundle must still be written and the stream must end
         run.status = RunStatus.failed
         run.error = f"{type(exc).__name__}: {exc}"
         log.exception("run %s failed", run.id)
+        await _close(ctx, t0)
         await ctx.emit("run.failed", {"error": run.error})
     finally:
-        run.finished_at = now()
-        run.duration_ms = max(1, int((time.perf_counter() - t0) * 1000))
+        if run.finished_at is None:
+            await _close(ctx, t0)
         if isinstance(router, TraceRouter):
             router.unbind(run.id)
         if page is not None:
@@ -90,6 +93,13 @@ async def run_flow(
         await ctx.save_run()
         await bundle.flush(run.id)
     return run
+
+
+async def _close(ctx: RunContext, t0: float) -> None:
+    """Stamp the end of the run and write it, bundle first then index."""
+    ctx.run.finished_at = now()
+    ctx.run.duration_ms = max(1, int((time.perf_counter() - t0) * 1000))
+    await ctx.save_run()
 
 
 async def run_single_page(settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, **kwargs) -> Run:

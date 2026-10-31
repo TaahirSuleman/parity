@@ -1,0 +1,93 @@
+{
+ "id": "hero-purchase-f05",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "judged",
+ "sighted_text": "trash icon",
+ "sr_role": "button",
+ "sr_name": "Close",
+ "why_it_matters": "A blind user hears Close and will not know the button removes the headphones from the cart.",
+ "voice": null,
+ "bbox": {
+  "x_min": 819,
+  "y_min": 187,
+  "x_max": 854,
+  "y_max": 254
+ },
+ "element": {
+  "backend_id": 88,
+  "css_path": "button#k3",
+  "box_px": [
+   1047,
+   134,
+   1093,
+   182
+  ],
+  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "dom_id": "k3"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#k3"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 88,
+   "css_path": "button#k3",
+   "box_px": [
+    1047,
+    134,
+    1093,
+    182
+   ],
+   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "k3"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   },
+   {
+    "sc": "2.4.6",
+    "name": "Headings and Labels"
+   }
+  ],
+  "impact": "The user cannot know the button removes the headphones from the cart and will expect it to close something instead.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "4e54ac43-ea1f-4cf6-ba15-a0cd7430716e",
+   "response_id": "resp_6ae53978a296f66e3fce49b9",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

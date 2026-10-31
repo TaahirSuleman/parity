@@ -50,6 +50,12 @@ async def start(
         await bundle.write_rejected(Rejected.model_validate_json(_rewrite(rejected.model_dump_json(), source_id, new_id)))
     for call in loaded.trace:
         bundle.add_trace(new_id, ModelCall.model_validate_json(_rewrite(call.model_dump_json(), source_id, new_id)))
+    for key in await source.store.list(f"runs/{source_id}/agent/"):
+        data = await source.store.get(key)
+        rel = key[len(f"runs/{source_id}/"):]
+        if rel.endswith(".json"):
+            data = _rewrite(data.decode(), source_id, new_id).encode()
+        await bundle.store.put(f"runs/{new_id}/{rel}", data, "application/json" if rel.endswith(".json") else "image/png")
     if await source.store.exists(keys.patch(source_id)):
         await bundle.store.put(keys.patch(new_id), await source.store.get(keys.patch(source_id)), "text/x-diff")
     await bundle.flush(new_id)
@@ -59,26 +65,35 @@ async def start(
         log.warning("index upsert failed for replay %s: %s", new_id, exc)
 
     events = [Event.model_validate_json(_rewrite(e.model_dump_json(), source_id, new_id)) for e in loaded.events]
+    bus.open(new_id)  # subscribers that connect before the first replayed event attach live
     asyncio.create_task(_publish(run, final_status, events, bus, bundle, index, pace_ms), name=f"replay-{new_id}")
     return run
 
 
 async def _publish(run: Run, final_status: RunStatus, events: list[Event], bus: EventBus, bundle: RunBundle, index, pace_ms: int) -> None:
+    async def finalize() -> None:
+        run.status = final_status if final_status in (RunStatus.done, RunStatus.awaiting_review, RunStatus.failed) else RunStatus.done
+        run.finished_at = now()
+        await bundle.write_run(run)
+        try:
+            await index.upsert_run(run)
+        except Exception as exc:
+            log.warning("index upsert failed for replay %s: %s", run.id, exc)
+
+    finalized = False
     try:
         for i, event in enumerate(events):
             event.run_id = run.id
             event.at = now()
             event.data = {**event.data, "run_id": run.id, "mode": "replay"}
             bundle.add_event(run.id, event)
+            if event.type in ("run.finished", "run.failed") and not finalized:
+                await finalize()  # final state on disk before the terminal event reaches subscribers
+                finalized = True
             bus.publish(run.id, event)
             if pace_ms and i < len(events) - 1:
                 await asyncio.sleep(pace_ms / 1000)
     finally:
-        run.status = final_status if final_status in (RunStatus.done, RunStatus.awaiting_review, RunStatus.failed) else RunStatus.done
-        run.finished_at = now()
-        await bundle.write_run(run)
+        if not finalized:
+            await finalize()
         await bundle.flush(run.id)
-        try:
-            await index.upsert_run(run)
-        except Exception as exc:
-            log.warning("index upsert failed for replay %s: %s", run.id, exc)

@@ -41,7 +41,7 @@ export default function MockApp() {
         ))}
       </nav>
       <Workbench
-        state={state} flowName="Checkout page" canLive={true} screenshotUrl={state.steps.length ? checkout : null} model="muse-spark-1.3-contributor"
+        state={state} flows={[{ id: "checkout", name: "Checkout page", single_page: true }, { id: "purchase", name: "Purchase flow", single_page: false }]} flowId="checkout" onFlowChange={() => {}} canLive={true} screenshotUrl={state.steps.length ? checkout : null} model="muse-spark-1.3-contributor"
         onModeChange={(mode) => setState((s) => ({ ...s, mode }))} onRun={() => switchTo("running")} onSelect={(id) => setState((s) => select(s, id))}
       />
     </>

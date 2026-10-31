@@ -89,3 +89,12 @@ async def test_judge_incomplete_response_needs_review_and_records_status(hero, t
     assert j.is_barrier is None and j.severity == Severity.needs_review
     assert j.model_meta["status"] == "incomplete" and j.model_meta["incomplete_reason"] == "max_output_tokens"
     assert fake.calls[0]["max_output_tokens"] >= 4000
+
+
+async def test_judge_sees_the_accessibility_tree(hero, tmp_path):
+    """The judge must weigh the finding against the whole screen's announcements, not the screenshot alone."""
+    cap, finding = hero
+    fake = FakeMetaClient(tmp_path, default=response_with(GOOD))
+    await judge(fake, finding, cap, run_id="r1", model="muse-spark-1.3")
+    text = fake.calls[0]["input"][0]["content"][0]["text"]
+    assert "ACCESSIBILITY TREE" in text and '"Card number"' in text and '"Save for later"' in text

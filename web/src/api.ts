@@ -1,6 +1,6 @@
 import type { ParityEvent, RunMode } from "./state/types";
 
-export interface Health { ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; replay_runs: string[]; version: string }
+export interface Health { ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; replay_runs: string[]; replay_flows: Record<string, string>; version: string }
 export interface FlowInfo { id: string; name: string; start_url: string; goal: string; pages: string[]; single_page: boolean }
 
 export class ApiError extends Error {
@@ -38,16 +38,20 @@ export const EVENT_TYPES = [
 /** Subscribe to a run's SSE stream. Returns a function that closes it. */
 export function streamRun(runId: string, onEvent: (ev: ParityEvent) => void, onError: (message: string) => void): () => void {
   const source = new EventSource(`/api/runs/${runId}/events`);
+  let seen = 0;
   for (const type of EVENT_TYPES) {
     source.addEventListener(type, (msg) => {
+      seen += 1;
       const ev = JSON.parse((msg as MessageEvent).data) as ParityEvent;
       onEvent(ev);
       if (ev.type === "run.finished" || ev.type === "run.failed") source.close();
     });
   }
   source.onerror = () => {
-    if (source.readyState === EventSource.CLOSED) return;
-    onError("The event stream was interrupted; the run continues on the server.");
+    // EventSource reconnects on its own. A drop before the first event is the run still starting; only a
+    // drop after events have flowed is worth telling the user about, and even then the run continues.
+    if (source.readyState === EventSource.CLOSED || seen === 0) return;
+    onError("The event stream was interrupted; reconnecting. The run continues on the server.");
   };
   return () => source.close();
 }

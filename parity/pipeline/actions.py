@@ -6,6 +6,7 @@ import asyncio
 import logging
 from urllib.parse import urlsplit
 
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
 from parity.config import Settings
@@ -70,6 +71,11 @@ async def execute(page: Page, action: dict) -> bool:
         return True
     except (KeyError, TypeError, ValueError) as exc:
         log.warning("malformed %s action %r: %s", kind, action, exc)
+        return False
+    except PlaywrightError as exc:
+        if page.is_closed() or "closed" in str(exc).lower():
+            raise
+        log.warning("%s action %r rejected by the browser: %s", kind, action, str(exc).splitlines()[0])
         return False
 
 

@@ -1,18 +1,18 @@
 {
- "id": "hero-checkout-f06",
+ "id": "hero-checkout-f03",
  "run_id": "hero-checkout",
  "step_index": 0,
  "status": "judged",
- "sighted_text": "red border indicating error on Card number field",
+ "sighted_text": "red border error on Card number field",
  "sr_role": "textbox",
  "sr_name": "Card number",
- "why_it_matters": "A blind user gets no error or invalid state announced and does not know the card number is rejected.",
+ "why_it_matters": "Blind user will not know the card number is invalid because no error state or message is announced.",
  "voice": null,
  "bbox": {
-  "x_min": 526,
-  "y_min": 288,
-  "x_max": 854,
-  "y_max": 344
+  "x_min": 525,
+  "y_min": 325,
+  "x_max": 855,
+  "y_max": 383
  },
  "element": {
   "backend_id": 38,
@@ -66,19 +66,19 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "critical",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "3.3.1",
     "name": "Error Identification"
    }
   ],
-  "impact": "The screen-reader user is not told the card number is in error and cannot identify or correct it to complete payment.",
+  "impact": "The screen-reader user cannot know the card number is flagged as invalid and will attempt to pay with an incorrect number.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "e49fbd9f-15a6-498b-ad05-35ce14c5204d",
-   "response_id": "resp_6ae528e615f8f55530684fe0",
+   "request_id": "4479e47d-463f-486d-81c3-6954ceb786c0",
+   "response_id": "resp_6ae53c3432670e10f2544439",
    "status": "completed",
    "incomplete_reason": null
   }

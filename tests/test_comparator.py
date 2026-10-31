@@ -83,3 +83,11 @@ async def test_seer_percepts_clamped(cap, tmp_path):
     assert percepts[0].bbox.x_max == 1000 and percepts[1].kind == "other"
     assert fake.calls[0]["input"][0]["content"][1]["type"] == "input_image"
     assert "object grounding expert" in fake.calls[0]["input"][0]["content"][0]["text"]
+
+
+def test_parse_bbox_rejects_non_finite_numbers():
+    from parity.pipeline.seer import parse_bbox
+
+    assert parse_bbox({"x_min": float("inf"), "y_min": 0, "x_max": 10, "y_max": 10}) is None
+    assert parse_bbox({"x_min": float("nan"), "y_min": 0, "x_max": 10, "y_max": 10}) is None
+    assert parse_candidates('{"findings":[{"what_sighted_user_sees":"x","screen_reader_role":"button","screen_reader_name":"y","bbox":{"x_min":Infinity,"y_min":0,"x_max":1,"y_max":1}}]}', step_index=0)[0].bbox is None

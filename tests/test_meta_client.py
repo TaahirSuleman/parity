@@ -136,3 +136,27 @@ async def test_fake_client_serves_fixture_and_records_body(tmp_path):
     resp = await fake.responses(BODY, stage="comparator", run_id="r1")
     assert resp.text == "hi there" and resp.cache_hit is True
     assert fake.calls == [BODY]
+
+
+async def test_incomplete_response_is_not_cached(tmp_path):
+    incomplete = {**OK_RESPONSE, "status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"}, "output": [{"type": "reasoning", "content": []}]}
+
+    def handler(request, n):
+        return httpx.Response(200, json=incomplete if n == 1 else {**OK_RESPONSE, "status": "completed"}, headers={"x-request-id": f"req-{n}"})
+
+    client, calls, trace, _ = make_client(tmp_path, handler)
+    first = await client.responses(BODY, stage="judge", run_id="r1")
+    second = await client.responses(BODY, stage="judge", run_id="r1")
+    assert first.text == "" and second.text == "hi there"
+    assert len(calls) == 2 and second.cache_hit is False
+    assert trace.calls[0].error and "incomplete" in trace.calls[0].error
+
+
+async def test_auditor_turns_bypass_the_cache(tmp_path):
+    """Agent turns chain on previous_response_id; a cached turn would chain a live call to a stale server response."""
+    client, calls, trace, _ = make_client(tmp_path, ok)
+    chained = {**BODY, "previous_response_id": "resp_0"}
+    await client.responses(chained, stage="auditor", run_id="r1")
+    await client.responses(chained, stage="auditor", run_id="r1")
+    assert len(calls) == 2 and all(c.cache_hit is False for c in trace.calls)
+    assert not list((tmp_path / "cache").glob("*.json"))

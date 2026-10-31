@@ -39,6 +39,7 @@ async def test_health_reports_storage_and_index(api):
     body = (await client.get("/api/health")).json()
     assert body["ok"] is True and body["storage"] == "local" and body["runs_indexed"] == 0
     assert body["mode_default"] == "replay" and body["has_key"] is False
+    assert body["replay_flows"] == {"checkout": "hero-src"}
 
 
 async def test_flows_lists_checkout(api):
@@ -116,3 +117,35 @@ async def test_verifier_off_route(api):
     body = r.json()
     assert body["run_id"] == run_id and body["reported"] == 1 and body["verified"] == 1 and body["rejected_by_verifier"] == 0
     assert (await client.get("/api/runs/nope/verifier-off")).status_code == 404
+
+
+async def test_second_live_post_gets_429_while_first_runs(api, tmp_path):
+    """The Live slot is taken in the handler, not later in the task, so a double click cannot queue two runs."""
+    from parity.meta.fake import FakeMetaClient
+
+    client, app = api
+    app.state.client = FakeMetaClient(tmp_path / "none")  # a live run will fail fast (no fixtures), which is fine here
+    first = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"})
+    second = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"})
+    assert first.status_code == 202 and second.status_code == 429 and "Retry-After" in second.headers
+    run_id = first.json()["run_id"]
+    stream = await client.get(f"/api/runs/{run_id}/events")  # connected right after the POST: must not 404 and must not be empty
+    events = parse_sse(stream.text)
+    assert events and events[0][0] == "run.started" and events[-1][0] in ("run.finished", "run.failed")
+    app.state.client = None
+
+
+async def test_replay_writes_final_state_before_terminal_event(api):
+    import asyncio
+
+    client, app = api
+    st = app.state
+    from parity import replay as replay_mod
+
+    run = await replay_mod.start(SRC, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=0)
+    seen = []
+    async for ev in st.bus.subscribe(run.id):
+        if ev.type == "run.finished":
+            seen.append((await st.bundle.load(run.id)).run.status)
+    await asyncio.sleep(0)
+    assert seen == ["done"]

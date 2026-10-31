@@ -22,11 +22,12 @@ async def test_replay_shows_hero_card(page, server_url):
     assert "verified" in header and "replay" in header.lower()
 
 
-async def test_workbench_itself_is_axe_clean(page, server_url):
+@pytest.mark.parametrize("state", ["idle", "running", "hero"])
+async def test_workbench_itself_is_axe_clean(page, server_url, state):
     from tests.test_store_pages import AXE
 
-    await page.goto(server_url + "/?mock=hero")
-    await page.get_by_role("button", name="Pay R1,249").first.wait_for()
+    await page.goto(server_url + f"/?mock={state}")
+    await page.get_by_role("heading", name="Parity").wait_for()
     await page.wait_for_timeout(400)  # let the 150 ms card fade-in finish; axe reads computed colours mid-animation otherwise
     await page.add_script_tag(path=str(AXE))
     result = await page.evaluate("axe.run(document, {resultTypes: ['violations']})")

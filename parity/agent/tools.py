@@ -14,6 +14,9 @@ from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlsplit
 
+from playwright.async_api import Error as PlaywrightError
+
+from parity.meta.client import MetaError
 from parity.pipeline.audit import RunContext, audit_view
 
 log = logging.getLogger(__name__)
@@ -124,6 +127,8 @@ async def dispatch(ctx: RunContext, call: dict[str, Any]) -> dict[str, Any]:
         return await tool.run(ctx, args)
     except NotImplementedError as exc:
         return {"error": f"{name} is not implemented: {exc}", "status": "paused"}
-    except Exception as exc:  # observation, not a crash
+    except (MetaError, PlaywrightError):
+        raise  # an API outage or a dead page is the run's failure, never a "refusal" the model should work around
+    except Exception as exc:  # a tool-logic problem is an observation the model can act on
         log.exception("tool %s failed", name)
-        return {"error": f"{type(exc).__name__}: {exc}"}
+        return {"error": f"{type(exc).__name__}: {exc}", "kind": "tool_error"}

@@ -1,0 +1,89 @@
+{
+ "id": "hero-purchase-f06",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "judged",
+ "sighted_text": "Free",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "A blind user gets no announcement that delivery costs Free and may be unsure about delivery charges.",
+ "voice": null,
+ "bbox": {
+  "x_min": 823,
+  "y_min": 325,
+  "x_max": 854,
+  "y_max": 350
+ },
+ "element": {
+  "backend_id": 95,
+  "css_path": "span#k4 > img:nth-of-type(1)",
+  "box_px": [
+   1053,
+   234,
+   1093,
+   252
+  ],
+  "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:img at span#k4 > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 95,
+   "css_path": "span#k4 > img:nth-of-type(1)",
+   "box_px": [
+    1053,
+    234,
+    1093,
+    252
+   ],
+   "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "The user hears 'Delivery' with no value and cannot know delivery is free or whether an extra charge applies.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "f10385ab-0246-4ef1-a803-3a243c3550e8",
+   "response_id": "resp_6ae539808ed953ac451842ef",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

@@ -103,3 +103,25 @@ async def test_index_failure_does_not_fail_write(tmp_path):
 async def test_unknown_flow_raises():
     with pytest.raises(KeyError):
         FLOWS["nope"]
+
+
+async def test_final_run_state_is_written_before_the_terminal_event(tmp_path, server_url, page):
+    """A reader that reacts to run.finished (the recorder, the UI's detail fetch) must see the final run.json."""
+    async def page_factory():
+        return page
+
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        seen: list[str] = []
+
+        async def watch(run_id: str):
+            async for ev in bus.subscribe(run_id):
+                if ev.type in ("run.finished", "run.failed"):
+                    seen.append((await bundle.load(run_id)).run.status)
+
+        import asyncio
+
+        bus.open("fixed-id")
+        watcher = asyncio.create_task(watch("fixed-id"))
+        run = await run_single_page(settings, client, bus, bundle, index, FLOWS["checkout"], base_url=server_url, page_factory=page_factory, run_id="fixed-id")
+        await asyncio.wait_for(watcher, 10)
+    assert run.status == RunStatus.done and seen == ["done"]

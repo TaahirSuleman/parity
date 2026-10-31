@@ -32,7 +32,7 @@ async def health(request: Request) -> dict:
     return {
         "ok": True, "mode_default": st.settings.default_mode, "live_enabled": st.settings.live_enabled,
         "storage": "gcs" if st.settings.gcs_bucket else "local", "runs_indexed": await st.index.count_runs(),
-        "has_key": st.settings.has_key, "replay_runs": st.replay_ids, "version": request.app.version,
+        "has_key": st.settings.has_key, "replay_runs": st.replay_ids, "replay_flows": st.replay_for_flow, "version": request.app.version,
     }
 
 
@@ -59,19 +59,22 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         raise HTTPException(503, "Live mode needs MODEL_API_KEY on the server; use Replay")
     if st.live_lock.locked():
         raise HTTPException(429, "a Live run is already in progress; try again shortly or use Replay", headers={"Retry-After": "60"})
+    await st.live_lock.acquire()  # the slot is taken here, synchronously, so a double click cannot queue two runs
     ip = request.client.host if request.client else ""
     ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16] if ip else ""
     run_id = replay.new_run_id()
+    st.bus.open(run_id)  # subscribers that connect before run.started attach live instead of reading an empty log
     asyncio.create_task(_live(st, flow, run_id, ip_hash), name=f"live-{run_id}")
     return {"run_id": run_id, "mode": "live"}
 
 
 async def _live(st, flow, run_id: str, ip_hash: str) -> None:
-    async with st.live_lock:
-        try:
-            await run_flow(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=st.self_base_url, run_id=run_id, client_ip_hash=ip_hash)
-        except Exception:  # run_single_page records failures itself; this guards the task
-            log.exception("live run %s crashed outside the runner", run_id)
+    try:
+        await run_flow(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=st.self_base_url, run_id=run_id, client_ip_hash=ip_hash)
+    except Exception:  # run_flow records failures itself; this guards the task
+        log.exception("live run %s crashed outside the runner", run_id)
+    finally:
+        st.live_lock.release()
 
 
 @router.get("/runs")
@@ -95,7 +98,7 @@ async def run_detail(run_id: str, request: Request) -> dict:
 @router.get("/runs/{run_id}/events")
 async def run_events(run_id: str, request: Request):
     st = request.app.state
-    if run_id not in st.bus._history and not await st.bundle.exists(run_id):
+    if not st.bus.knows(run_id) and not await st.bundle.exists(run_id):
         raise HTTPException(404, "unknown run")
     return sse_response(st.bus, run_id)
 

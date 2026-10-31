@@ -40,7 +40,8 @@ def main() -> int:
         port = s.getsockname()[1]
     settings = load_settings(env={
         "MODEL_API_KEY": base.model_api_key, "PARITY_DATA_DIR": str(tmp / "data"), "PARITY_INDEX_PATH": str(tmp / "index.db"),
-        "PARITY_CACHE_DIR": str(base.cache_dir), "PARITY_REPLAY_DIR": str(tmp / "replay"), "PORT": str(port), "PARITY_DEFAULT_MODE": "live",
+        # a fresh cache: the committed bundle must show real latency and cost, not cache hits
+        "PARITY_CACHE_DIR": str(tmp / "cache"), "PARITY_REPLAY_DIR": str(tmp / "replay"), "PORT": str(port), "PARITY_DEFAULT_MODE": "live",
     })
     server = uvicorn.Server(uvicorn.Config(create_app(settings), host="127.0.0.1", port=port, log_level="warning"))
     threading.Thread(target=server.run, daemon=True).start()
@@ -80,7 +81,7 @@ def main() -> int:
     for path in src.rglob("*"):
         if not path.is_file():
             continue
-        target = dest / path.relative_to(src)
+        target = dest / Path(str(path.relative_to(src)).replace(run_id, args.name))
         target.parent.mkdir(parents=True, exist_ok=True)
         if path.suffix in (".json", ".jsonl", ".patch"):
             target.write_text(path.read_text().replace(run_id, args.name))

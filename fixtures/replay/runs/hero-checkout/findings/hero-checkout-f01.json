@@ -6,13 +6,13 @@
  "sighted_text": "50% OFF TODAY",
  "sr_role": "image",
  "sr_name": "image",
- "why_it_matters": "A blind user hears only a generic image label and misses the promotional discount information.",
+ "why_it_matters": "Blind user misses the promotional offer because the banner is announced only as a generic image.",
  "voice": null,
  "bbox": {
   "x_min": 146,
   "y_min": 212,
-  "x_max": 381,
-  "y_max": 339
+  "x_max": 382,
+  "y_max": 300
  },
  "element": {
   "backend_id": 21,
@@ -73,12 +73,12 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The blind user cannot learn of the 50% OFF TODAY promotion that sighted users see.",
+  "impact": "The screen-reader user hears only \"image\" and cannot learn that a 50% OFF TODAY promotion is advertised to sighted users.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "f40f6132-04c9-47c6-959c-1f97d85cdc40",
-   "response_id": "resp_6ae528940abc683a07804302",
+   "request_id": "e32b7147-0503-4f92-aa93-e33fccb158d8",
+   "response_id": "resp_6ae53c1883110dc0dff943e3",
    "status": "completed",
    "incomplete_reason": null
   }

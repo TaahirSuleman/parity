@@ -1,0 +1,56 @@
+{
+ "id": "hero-purchase-r06",
+ "run_id": "hero-purchase",
+ "step_index": 2,
+ "candidate": {
+  "step_index": 2,
+  "sighted_text": "Terms",
+  "sr_quote": "link, \"Click here\"",
+  "why_it_matters": "A blind user hears only generic Click here and misses the link destination.",
+  "bbox": {
+   "x_min": 649,
+   "y_min": 454,
+   "x_max": 685,
+   "y_max": 475
+  },
+  "attempt": 2
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at a#f4"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": false,
+    "detail": "this element already has a finding in this run"
+   }
+  },
+  "element": {
+   "backend_id": 161,
+   "css_path": "a#f4",
+   "box_px": [
+    831,
+    327,
+    877,
+    342
+   ],
+   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "f4"
+  },
+  "feedback": "this element is already reported; do not repeat it"
+ }
+}

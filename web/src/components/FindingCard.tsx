@@ -21,7 +21,9 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
             <div className="text-xs uppercase tracking-wider muted">Sighted user sees</div>
             <div className="font-semibold" style={{ fontSize: 16 }}>{finding.sighted_text}</div>
           </div>
-          {j && <span className={`sev sev-${j.severity}`}>{j.severity.replace("_", " ")}</span>}
+          {j && (j.is_barrier === false
+            ? <span className="sev sev-needs_review" title="The judge did not consider this a barrier. The evidence is still verified; a human decides.">not a barrier · review</span>
+            : <span className={`sev sev-${j.severity}`}>{j.severity.replace("_", " ")}</span>)}
         </div>
         <div className="mt-2">
           <div className="text-xs uppercase tracking-wider muted">Screen reader gets</div>
@@ -40,7 +42,7 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
             {j.wcag.length > 0 ? (
               <span>{j.wcag.map((w) => `WCAG ${w.sc}${w.name ? ` ${w.name}` : ""}`).join(" · ")}</span>
             ) : (
-              <span className="muted">{j.is_barrier === null ? "Judge could not decide: needs human review" : "No WCAG criterion cited"}</span>
+              <span className="muted">{j.is_barrier === null ? "Judge could not decide: needs human review" : j.is_barrier === false ? "Judge: not a barrier in context. Review the evidence and decide." : "No WCAG criterion cited"}</span>
             )}
             <MetaBadge model={String(j.model_meta?.model ?? "muse-spark-1.3")} capability="judge" />
           </div>

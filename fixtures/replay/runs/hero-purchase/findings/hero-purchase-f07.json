@@ -1,0 +1,89 @@
+{
+ "id": "hero-purchase-f07",
+ "run_id": "hero-purchase",
+ "step_index": 2,
+ "status": "judged",
+ "sighted_text": "50% OFF TODAY",
+ "sr_role": "image",
+ "sr_name": "image",
+ "why_it_matters": "Blind user hears only generic image and misses the promotional information.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 175,
+  "x_max": 380,
+  "y_max": 300
+ },
+ "element": {
+  "backend_id": 138,
+  "css_path": "img#f1",
+  "box_px": [
+   187,
+   126,
+   487,
+   216
+  ],
+  "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "f1"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at img#f1"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 138,
+   "css_path": "img#f1",
+   "box_px": [
+    187,
+    126,
+    487,
+    216
+   ],
+   "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "f1"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user hears only generic image and cannot know about the 50% OFF TODAY promotion.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "848c232c-1302-4424-a945-9bdbe50e13f1",
+   "response_id": "resp_6ae539ddf09f3c08cb524d49",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

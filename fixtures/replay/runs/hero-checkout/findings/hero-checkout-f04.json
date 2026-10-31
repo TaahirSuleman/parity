@@ -1,0 +1,93 @@
+{
+ "id": "hero-checkout-f04",
+ "run_id": "hero-checkout",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "Pay R1,249",
+ "sr_role": "button",
+ "sr_name": "Submit",
+ "why_it_matters": "Blind user hears a generic Submit with no price and cannot confirm what action and amount they are agreeing to.",
+ "voice": null,
+ "bbox": {
+  "x_min": 525,
+  "y_min": 538,
+  "x_max": 646,
+  "y_max": 605
+ },
+ "element": {
+  "backend_id": 47,
+  "css_path": "button#f5",
+  "box_px": [
+   673,
+   360,
+   827,
+   408
+  ],
+  "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "dom_id": "f5"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#f5"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 47,
+   "css_path": "button#f5",
+   "box_px": [
+    673,
+    360,
+    827,
+    408
+   ],
+   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "f5"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   },
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Blind user hears only generic Submit on the payment control and cannot confirm from the button itself that it will pay R1,249.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "4feb9bb1-e41c-497d-a0a5-945a08c57f0a",
+   "response_id": "resp_6ae53c4f7a87be850b82422f",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

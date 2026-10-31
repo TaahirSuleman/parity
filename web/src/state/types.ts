@@ -41,11 +41,14 @@ export interface ParityEvent { type: string; run_id: string; at: string; [key: s
 /** A model call as carried by a `model.call` event. */
 export interface CallEvent { stage: string; model: string; request_id: string; tokens: number; latency_ms: number; cost_usd: number; cache_hit: boolean; attempt: number; http_status?: number | null; error?: string | null; at: string }
 
-export interface TimelineRow { turn: number; kind: "tool_call" | "actions" | "refused" | "blocked"; label: string; at: string }
+export interface TimelineRow { turn: number; kind: "tool_call" | "actions" | "refused" | "blocked" | "error" | "outcome"; label: string; at: string }
+
+export interface AgentOutcome { turns: number; finished: boolean; finish_forced: boolean; summary: string }
 
 export interface RunState {
   run: Run | null;
   timeline: TimelineRow[];
+  agent: AgentOutcome | null;
   models: { navigator: string | null; comparator: string; judge: string };
   steps: Step[];
   findings: Finding[];
@@ -61,7 +64,7 @@ export interface RunState {
 
 export const MODEL_LABELS: Record<string, string> = {
   "muse-spark-1.3": "Muse Spark 1.3",
-  "muse-spark-1.3-contributor": "Muse Spark 1.3",
+  "muse-spark-1.3-contributor": "Muse Spark 1.3 contributor",
   "muse-wonder-1.0": "Muse Wonder 1.0",
   "muse-voice-transcribe-1.0": "Muse Voice Transcribe",
 };

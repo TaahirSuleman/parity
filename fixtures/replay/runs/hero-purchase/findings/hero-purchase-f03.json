@@ -1,0 +1,89 @@
+{
+ "id": "hero-purchase-f03",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "★★★★☆ 4.3",
+ "sr_role": "image",
+ "sr_name": "rating",
+ "why_it_matters": "Blind user hears only generic rating and misses the 4.3 out of 5 stars value sighted users get.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 219,
+  "x_max": 232,
+  "y_max": 247
+ },
+ "element": {
+  "backend_id": 22,
+  "css_path": "img#p2",
+  "box_px": [
+   187,
+   158,
+   297,
+   178
+  ],
+  "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "p2"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at img#p2"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 22,
+   "css_path": "img#p2",
+   "box_px": [
+    187,
+    158,
+    297,
+    178
+   ],
+   "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "p2"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user hears only \"rating\" and cannot learn the product is rated 4.3 out of 5 stars.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "95312eff-9653-429f-a830-2fb931bbc5d1",
+   "response_id": "resp_6ae5393041a86ad71f2d4047",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

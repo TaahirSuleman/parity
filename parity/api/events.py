@@ -18,6 +18,13 @@ class EventBus:
         self._subs: dict[str, list[asyncio.Queue[Event]]] = {}
         self._done: set[str] = set()
 
+    def open(self, run_id: str) -> None:
+        """Register a run before its first event so early subscribers attach live instead of reading an empty log."""
+        self._history.setdefault(run_id, [])
+
+    def knows(self, run_id: str) -> bool:
+        return run_id in self._history
+
     def publish(self, run_id: str, event: Event) -> None:
         self._history.setdefault(run_id, []).append(event)
         for q in self._subs.get(run_id, []):

@@ -1,7 +1,11 @@
 import type { Run, RunMode } from "../state/types";
 
+export interface FlowOption { id: string; name: string; single_page: boolean }
+
 interface Props {
-  flowName: string;
+  flows: FlowOption[];
+  flowId: string;
+  onFlowChange: (id: string) => void;
   run: Run | null;
   mode: RunMode;
   canLive: boolean;
@@ -17,7 +21,7 @@ export function fmtDuration(ms: number): string {
   return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(ms < 10000 ? 1 : 0)} s`;
 }
 
-export function Header({ flowName, run, mode, canLive, running, onModeChange, onRun }: Props) {
+export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, onModeChange, onRun }: Props) {
   const axe = run?.axe_violations ?? 0;
   return (
     <header className="surface" style={{ borderRadius: 0, borderWidth: "0 0 1px 0" }}>
@@ -25,7 +29,11 @@ export function Header({ flowName, run, mode, canLive, running, onModeChange, on
         <div className="flex items-baseline gap-2">
           <h1 className="font-semibold tracking-tight m-0" style={{ fontSize: 15 }}>Parity</h1>
           <span className="muted">·</span>
-          <span>ShopRight · {flowName}</span>
+          <span>ShopRight ·</span>
+          <label className="sr-only" htmlFor="flow-select">Flow</label>
+          <select id="flow-select" className="btn-quiet" style={{ padding: "3px 8px" }} value={flowId} onChange={(e) => onFlowChange(e.target.value)} disabled={running}>
+            {flows.map((f) => <option key={f.id} value={f.id}>{f.name}{f.single_page ? "" : " (agent)"}</option>)}
+          </select>
         </div>
         <div className="pill" role="group" aria-label="Run mode">
           <button type="button" aria-pressed={mode === "replay"} onClick={() => onModeChange("replay")}>Replay</button>

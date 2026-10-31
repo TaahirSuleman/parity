@@ -1,0 +1,93 @@
+{
+ "id": "hero-purchase-f09",
+ "run_id": "hero-purchase",
+ "step_index": 2,
+ "status": "judged",
+ "sighted_text": "Terms",
+ "sr_role": "link",
+ "sr_name": "Click here",
+ "why_it_matters": "Blind user hears a generic link name and does not know it leads to Terms.",
+ "voice": null,
+ "bbox": {
+  "x_min": 649,
+  "y_min": 454,
+  "x_max": 685,
+  "y_max": 475
+ },
+ "element": {
+  "backend_id": 161,
+  "css_path": "a#f4",
+  "box_px": [
+   831,
+   327,
+   877,
+   342
+  ],
+  "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+  "dom_id": "f4"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at a#f4"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 161,
+   "css_path": "a#f4",
+   "box_px": [
+    831,
+    327,
+    877,
+    342
+   ],
+   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "f4"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "2.4.4",
+    "name": "Link Purpose (In Context)"
+   },
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   }
+  ],
+  "impact": "The user hears only generic 'Click here' and cannot know the link leads to the Terms they agree to by paying.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "0097dee6-d56b-42df-8098-ad76f864f250",
+   "response_id": "resp_6ae539fcf27bf6b6502740f8",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

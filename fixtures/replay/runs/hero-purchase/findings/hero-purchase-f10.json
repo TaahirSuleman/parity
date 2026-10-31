@@ -1,12 +1,12 @@
 {
- "id": "hero-checkout-f03",
- "run_id": "hero-checkout",
- "step_index": 0,
+ "id": "hero-purchase-f10",
+ "run_id": "hero-purchase",
+ "step_index": 2,
  "status": "judged",
  "sighted_text": "Pay R1,249",
  "sr_role": "button",
  "sr_name": "Submit",
- "why_it_matters": "A blind user hears a generic Submit and does not know the action will pay R1,249.",
+ "why_it_matters": "Blind user hears a generic Submit without the price and action that sighted users see.",
  "voice": null,
  "bbox": {
   "x_min": 526,
@@ -15,7 +15,7 @@
   "y_max": 567
  },
  "element": {
-  "backend_id": 47,
+  "backend_id": 164,
   "css_path": "button#f5",
   "box_px": [
    673,
@@ -51,7 +51,7 @@
    }
   },
   "element": {
-   "backend_id": 47,
+   "backend_id": 164,
    "css_path": "button#f5",
    "box_px": [
     673,
@@ -71,18 +71,14 @@
    {
     "sc": "2.5.3",
     "name": "Label in Name"
-   },
-   {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
    }
   ],
-  "impact": "The user cannot tell from the button that activating it will pay R1,249.",
+  "impact": "The user hears only generic Submit and cannot confirm at the point of action that the button will pay R1,249.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "ce881db6-7923-4e7a-994d-edaf3d557d24",
-   "response_id": "resp_6ae528adc4e0a5a6df1642b5",
+   "request_id": "13da02ad-be58-430c-8fda-6e6abe036755",
+   "response_id": "resp_6ae53a0950c786a27f9d47ab",
    "status": "completed",
    "incomplete_reason": null
   }

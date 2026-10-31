@@ -73,3 +73,13 @@ describe("agent timeline", () => {
     expect(s3.timeline[2].turn).toBe(3);
   });
 });
+
+describe("agent outcome", () => {
+  it("keeps the agent summary from run.finished and notes a forced finish", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const done = reduce(started, { type: "run.finished", run_id: started.run!.id, at: "2026-10-31T00:00:10Z", status: "done", agent: { turns: 9, finished: true, finish_forced: true, summary: "Order confirmed" } });
+    expect(done.agent?.turns).toBe(9);
+    expect(done.agent?.finish_forced).toBe(true);
+    expect(done.timeline[done.timeline.length - 1].label).toMatch(/forced/i);
+  });
+});

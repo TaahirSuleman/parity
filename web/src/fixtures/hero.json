@@ -6,14 +6,14 @@
   "goal": "Pay for the order",
   "target_url": "file:///Users/ammarah/Desktop/Meta_Hackathon/parity/store/checkout.html",
   "status": "done",
-  "started_at": "2026-10-30T23:48:40.514684Z",
-  "finished_at": "2026-10-30T23:48:41.004514Z",
+  "started_at": "2026-10-31T00:38:03.731097Z",
+  "finished_at": "2026-10-31T00:38:04.138048Z",
   "axe_violations": 0,
   "findings_verified": 6,
   "findings_rejected": 0,
-  "tokens": 34459,
+  "tokens": 36132,
   "cost_usd": 0.0,
-  "duration_ms": 485,
+  "duration_ms": 404,
   "client_ip_hash": "",
   "error": null,
   "replay_of": null
@@ -33,7 +33,7 @@
    ],
    "axe_violations": 0,
    "ax_nodes": 37,
-   "captured_at": "2026-10-30T23:48:40.984567Z"
+   "captured_at": "2026-10-31T00:38:04.120182Z"
   }
  ],
  "findings": [
@@ -105,19 +105,19 @@
    },
    "judgement": {
     "is_barrier": true,
-    "severity": "serious",
+    "severity": "moderate",
     "wcag": [
      {
       "sc": "1.1.1",
       "name": "Non-text Content"
      }
     ],
-    "impact": "The blind user cannot learn of the 50% OFF TODAY promotion that sighted users see.",
+    "impact": "The screen-reader user hears only \"image\" and cannot know about the 50% OFF TODAY promotion shown to sighted users.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "f40f6132-04c9-47c6-959c-1f97d85cdc40",
-     "response_id": "resp_6ae528940abc683a07804302",
+     "request_id": "766163be-d34a-4801-8ac5-7af20a873487",
+     "response_id": "resp_6ae53830e1c73ab9085847b8",
      "status": "completed",
      "incomplete_reason": null
     }
@@ -193,15 +193,20 @@
     "feedback": null
    },
    "judgement": {
-    "is_barrier": false,
-    "severity": "minor",
-    "wcag": [],
-    "impact": "The user can still learn the R1,249 charge from the accessible Pay button and item price.",
+    "is_barrier": true,
+    "severity": "serious",
+    "wcag": [
+     {
+      "sc": "1.1.1",
+      "name": "Non-text Content"
+     }
+    ],
+    "impact": "The user hears 'Total:' with no amount and cannot independently verify what will be charged before paying.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "4a6cae14-c7dd-4f39-91f3-695b10b0f5ff",
-     "response_id": "resp_6ae5289e84ce9a5572e14eb3",
+     "request_id": "b9ee48c1-faa4-4220-89ce-7e197d480f32",
+     "response_id": "resp_6ae5383acef13bb7132e4500",
      "status": "completed",
      "incomplete_reason": null
     }
@@ -281,20 +286,20 @@
     "severity": "serious",
     "wcag": [
      {
-      "sc": "2.5.3",
-      "name": "Label in Name"
-     },
-     {
       "sc": "1.1.1",
       "name": "Non-text Content"
+     },
+     {
+      "sc": "2.5.3",
+      "name": "Label in Name"
      }
     ],
-    "impact": "The user cannot tell from the button that activating it will pay R1,249.",
+    "impact": "The user hears only 'Submit' and cannot confirm at the button that activating it will pay R1,249.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "ce881db6-7923-4e7a-994d-edaf3d557d24",
-     "response_id": "resp_6ae528adc4e0a5a6df1642b5",
+     "request_id": "1cd2b5bc-dcb1-46d6-8726-f23aeaeb0e86",
+     "response_id": "resp_6ae5384747137ce43f2a44d7",
      "status": "completed",
      "incomplete_reason": null
     }
@@ -378,12 +383,12 @@
       "name": "Non-text Content"
      }
     ],
-    "impact": "The user cannot know the button deletes/removes and expects it to close, risking activating the wrong destructive action.",
+    "impact": "The user cannot know the button deletes/removes and may activate a destructive action thinking it only closes.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "aa2fba51-0289-4be1-ae37-8977e406e541",
-     "response_id": "resp_6ae528bc54dcc473257e49ba",
+     "request_id": "206e70e3-8ea9-4e4a-9d7a-c9a3b34e81ac",
+     "response_id": "resp_6ae53856f4c4fec86f684a7a",
      "status": "completed",
      "incomplete_reason": null
     }
@@ -471,12 +476,12 @@
       "name": "Label in Name"
      }
     ],
-    "impact": "The user hears only 'Click here' and cannot tell the link leads to the Terms without activating it, especially when navigating by links list.",
+    "impact": "User hears only generic Click here in the agreement sentence and cannot know the link is to the Terms they agree to by paying.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "d84c3525-5dbc-42a0-8d97-5b96736e5823",
-     "response_id": "resp_6ae528ccfa955e2a985c41ed",
+     "request_id": "2c2df33b-d9b5-4602-94f4-11b41f4f5d96",
+     "response_id": "resp_6ae5385ff20131d920524c3b",
      "status": "completed",
      "incomplete_reason": null
     }
@@ -558,14 +563,18 @@
      {
       "sc": "3.3.1",
       "name": "Error Identification"
+     },
+     {
+      "sc": "1.4.1",
+      "name": "Use of Color"
      }
     ],
-    "impact": "The screen-reader user is not told the card number is in error and cannot identify or correct it to complete payment.",
+    "impact": "The user cannot know the card number is flagged as invalid and so cannot correct it to complete payment.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "e49fbd9f-15a6-498b-ad05-35ce14c5204d",
-     "response_id": "resp_6ae528e615f8f55530684fe0",
+     "request_id": "c1bfc25d-1682-4bfa-9a5f-b742b8c9382b",
+     "response_id": "resp_6ae53869b5c362e6fc484a1a",
      "status": "completed",
      "incomplete_reason": null
     }
@@ -596,7 +605,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:40.987811Z"
+   "at": "2026-10-31T00:38:04.122803Z"
   },
   {
    "id": "fake-2",
@@ -617,7 +626,7 @@
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:40.989392Z"
+   "at": "2026-10-31T00:38:04.124111Z"
   },
   {
    "id": "fake-3",
@@ -625,20 +634,20 @@
    "step_index": 0,
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "f40f6132-04c9-47c6-959c-1f97d85cdc40",
-   "response_id": "resp_6ae528940abc683a07804302",
-   "prompt_sha256": "bfe5f0ac540bdd8120c545701da1175cade1f62171013869f3ba2205e92a275c",
+   "request_id": "766163be-d34a-4801-8ac5-7af20a873487",
+   "response_id": "resp_6ae53830e1c73ab9085847b8",
+   "prompt_sha256": "98ad6081e54f686442ed60a5c7236cbe251537e5e26ffbbe968c984b921a2946",
    "cache_hit": true,
-   "input_tokens": 1592,
+   "input_tokens": 2595,
    "cached_tokens": 0,
-   "output_tokens": 1453,
-   "total_tokens": 3045,
+   "output_tokens": 1095,
+   "total_tokens": 3690,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:40.994912Z"
+   "at": "2026-10-31T00:38:04.129106Z"
   },
   {
    "id": "fake-4",
@@ -646,20 +655,20 @@
    "step_index": 0,
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "4a6cae14-c7dd-4f39-91f3-695b10b0f5ff",
-   "response_id": "resp_6ae5289e84ce9a5572e14eb3",
-   "prompt_sha256": "9052834fe133e81d19d0fdc1996174006e84270366d45920b1d0bcd7927d20e3",
+   "request_id": "b9ee48c1-faa4-4220-89ce-7e197d480f32",
+   "response_id": "resp_6ae5383acef13bb7132e4500",
+   "prompt_sha256": "5a9982b82e9ac7411a4a7ed34a19a7e8b330990866f38e42ff26c85c5547a500",
    "cache_hit": true,
-   "input_tokens": 1497,
+   "input_tokens": 2500,
    "cached_tokens": 0,
-   "output_tokens": 1990,
-   "total_tokens": 3487,
+   "output_tokens": 1702,
+   "total_tokens": 4202,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:40.996811Z"
+   "at": "2026-10-31T00:38:04.130718Z"
   },
   {
    "id": "fake-5",
@@ -667,20 +676,20 @@
    "step_index": 0,
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "ce881db6-7923-4e7a-994d-edaf3d557d24",
-   "response_id": "resp_6ae528adc4e0a5a6df1642b5",
-   "prompt_sha256": "f273b7431ffd46940bfc04a9bca836d95b1c80d25e76f3df1be6906107dcc9aa",
+   "request_id": "1cd2b5bc-dcb1-46d6-8726-f23aeaeb0e86",
+   "response_id": "resp_6ae5384747137ce43f2a44d7",
+   "prompt_sha256": "85631ca32d1e507bad8e0e79eddf012bc4ca15b41e8a372ddd60dd3a5b4eeac0",
    "cache_hit": true,
-   "input_tokens": 1589,
+   "input_tokens": 2592,
    "cached_tokens": 0,
-   "output_tokens": 2673,
-   "total_tokens": 4262,
+   "output_tokens": 2098,
+   "total_tokens": 4690,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:40.998425Z"
+   "at": "2026-10-31T00:38:04.132010Z"
   },
   {
    "id": "fake-6",
@@ -688,20 +697,20 @@
    "step_index": 0,
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "aa2fba51-0289-4be1-ae37-8977e406e541",
-   "response_id": "resp_6ae528bc54dcc473257e49ba",
-   "prompt_sha256": "bcb420738ea8c8a4e1070b44f39e77316d03e14193d28879ec67525ea3cada37",
+   "request_id": "206e70e3-8ea9-4e4a-9d7a-c9a3b34e81ac",
+   "response_id": "resp_6ae53856f4c4fec86f684a7a",
+   "prompt_sha256": "3945bdf6985bb2fd67299ad53c7110ae21ec689aeb0066b64d0a3b582e1b502d",
    "cache_hit": true,
-   "input_tokens": 118,
-   "cached_tokens": 1379,
-   "output_tokens": 2136,
-   "total_tokens": 3633,
+   "input_tokens": 2500,
+   "cached_tokens": 0,
+   "output_tokens": 2328,
+   "total_tokens": 4828,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:40.999932Z"
+   "at": "2026-10-31T00:38:04.133269Z"
   },
   {
    "id": "fake-7",
@@ -709,20 +718,20 @@
    "step_index": 0,
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "d84c3525-5dbc-42a0-8d97-5b96736e5823",
-   "response_id": "resp_6ae528ccfa955e2a985c41ed",
-   "prompt_sha256": "e2d7f22a336aaa727cf5cbd1e46a0c85105c138f081f7a776aed0e9fe08d95c8",
+   "request_id": "2c2df33b-d9b5-4602-94f4-11b41f4f5d96",
+   "response_id": "resp_6ae5385ff20131d920524c3b",
+   "prompt_sha256": "829f99a3d65d2b4a017625b0b742575cf43cefb1155e5af6a306abe17844826b",
    "cache_hit": true,
-   "input_tokens": 1586,
+   "input_tokens": 2589,
    "cached_tokens": 0,
-   "output_tokens": 2501,
-   "total_tokens": 4087,
+   "output_tokens": 1553,
+   "total_tokens": 4142,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:41.001201Z"
+   "at": "2026-10-31T00:38:04.134546Z"
   },
   {
    "id": "fake-8",
@@ -730,20 +739,20 @@
    "step_index": 0,
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "e49fbd9f-15a6-498b-ad05-35ce14c5204d",
-   "response_id": "resp_6ae528e615f8f55530684fe0",
-   "prompt_sha256": "6cf0d81494fa2a869c151b18c4549b181ad7740083df3f80f0ed5030c585642d",
+   "request_id": "c1bfc25d-1682-4bfa-9a5f-b742b8c9382b",
+   "response_id": "resp_6ae53869b5c362e6fc484a1a",
+   "prompt_sha256": "a492af819102869c6b4b86148546907811aa974b6327df00708ab0b49bc4a2af",
    "cache_hit": true,
-   "input_tokens": 1515,
+   "input_tokens": 2518,
    "cached_tokens": 0,
-   "output_tokens": 4009,
-   "total_tokens": 5524,
+   "output_tokens": 1641,
+   "total_tokens": 4159,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "http_status": 200,
    "error": null,
    "attempt": 1,
-   "at": "2026-10-30T23:48:41.002453Z"
+   "at": "2026-10-31T00:38:04.136081Z"
   }
  ],
  "events": [
@@ -753,11 +762,14 @@
    "goal": "Pay for the order",
    "mode": "live",
    "target_url": "file:///Users/ammarah/Desktop/Meta_Hackathon/parity/store/checkout.html",
+   "single_page": true,
+   "agent_mode": null,
    "model": "muse-spark-1.3-contributor",
    "judge_model": "muse-spark-1.3",
+   "navigator_model": null,
    "type": "run.started",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.518639+00:00"
+   "at": "2026-10-31T00:38:03.733102+00:00"
   },
   {
    "index": 0,
@@ -767,7 +779,7 @@
    "reason": "single-page flow",
    "type": "step.captured",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.986909+00:00"
+   "at": "2026-10-31T00:38:04.122228+00:00"
   },
   {
    "stage": "seer",
@@ -782,7 +794,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.988325+00:00"
+   "at": "2026-10-31T00:38:04.123171+00:00"
   },
   {
    "index": 0,
@@ -1076,7 +1088,7 @@
    ],
    "type": "seer.done",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.988574+00:00"
+   "at": "2026-10-31T00:38:04.123423+00:00"
   },
   {
    "stage": "comparator",
@@ -1091,7 +1103,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.989634+00:00"
+   "at": "2026-10-31T00:38:04.124384+00:00"
   },
   {
    "index": 0,
@@ -1099,7 +1111,7 @@
    "attempt": 1,
    "type": "comparator.candidates",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.989712+00:00"
+   "at": "2026-10-31T00:38:04.124461+00:00"
   },
   {
    "index": 0,
@@ -1179,7 +1191,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.991074+00:00"
+   "at": "2026-10-31T00:38:04.125433+00:00"
   },
   {
    "index": 0,
@@ -1259,7 +1271,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.991812+00:00"
+   "at": "2026-10-31T00:38:04.126040+00:00"
   },
   {
    "index": 0,
@@ -1339,7 +1351,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.992532+00:00"
+   "at": "2026-10-31T00:38:04.126575+00:00"
   },
   {
    "index": 0,
@@ -1419,7 +1431,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.993129+00:00"
+   "at": "2026-10-31T00:38:04.127246+00:00"
   },
   {
    "index": 0,
@@ -1499,7 +1511,7 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.993765+00:00"
+   "at": "2026-10-31T00:38:04.127965+00:00"
   },
   {
    "index": 0,
@@ -1579,13 +1591,13 @@
    },
    "type": "verifier.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.994325+00:00"
+   "at": "2026-10-31T00:38:04.128531+00:00"
   },
   {
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "f40f6132-04c9-47c6-959c-1f97d85cdc40",
-   "tokens": 3045,
+   "request_id": "766163be-d34a-4801-8ac5-7af20a873487",
+   "tokens": 3690,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "cache_hit": true,
@@ -1594,10 +1606,50 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.995162+00:00"
+   "at": "2026-10-31T00:38:04.129291+00:00"
   },
   {
    "finding_id": "hero-fixture-f01",
+   "judgement": {
+    "is_barrier": true,
+    "severity": "moderate",
+    "wcag": [
+     {
+      "sc": "1.1.1",
+      "name": "Non-text Content"
+     }
+    ],
+    "impact": "The screen-reader user hears only \"image\" and cannot know about the 50% OFF TODAY promotion shown to sighted users.",
+    "model_meta": {
+     "model": "muse-spark-1.3",
+     "fallback": false,
+     "request_id": "766163be-d34a-4801-8ac5-7af20a873487",
+     "response_id": "resp_6ae53830e1c73ab9085847b8",
+     "status": "completed",
+     "incomplete_reason": null
+    }
+   },
+   "type": "judge.result",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T00:38:04.130224+00:00"
+  },
+  {
+   "stage": "judge",
+   "model": "muse-spark-1.3",
+   "request_id": "b9ee48c1-faa4-4220-89ce-7e197d480f32",
+   "tokens": 4202,
+   "latency_ms": 0,
+   "cost_usd": 0.0,
+   "cache_hit": true,
+   "attempt": 1,
+   "http_status": 200,
+   "error": null,
+   "type": "model.call",
+   "run_id": "hero-fixture",
+   "at": "2026-10-31T00:38:04.130978+00:00"
+  },
+  {
+   "finding_id": "hero-fixture-f02",
    "judgement": {
     "is_barrier": true,
     "severity": "serious",
@@ -1607,25 +1659,25 @@
       "name": "Non-text Content"
      }
     ],
-    "impact": "The blind user cannot learn of the 50% OFF TODAY promotion that sighted users see.",
+    "impact": "The user hears 'Total:' with no amount and cannot independently verify what will be charged before paying.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "f40f6132-04c9-47c6-959c-1f97d85cdc40",
-     "response_id": "resp_6ae528940abc683a07804302",
+     "request_id": "b9ee48c1-faa4-4220-89ce-7e197d480f32",
+     "response_id": "resp_6ae5383acef13bb7132e4500",
      "status": "completed",
      "incomplete_reason": null
     }
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.996245+00:00"
+   "at": "2026-10-31T00:38:04.131525+00:00"
   },
   {
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "4a6cae14-c7dd-4f39-91f3-695b10b0f5ff",
-   "tokens": 3487,
+   "request_id": "1cd2b5bc-dcb1-46d6-8726-f23aeaeb0e86",
+   "tokens": 4690,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "cache_hit": true,
@@ -1634,42 +1686,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.997005+00:00"
-  },
-  {
-   "finding_id": "hero-fixture-f02",
-   "judgement": {
-    "is_barrier": false,
-    "severity": "minor",
-    "wcag": [],
-    "impact": "The user can still learn the R1,249 charge from the accessible Pay button and item price.",
-    "model_meta": {
-     "model": "muse-spark-1.3",
-     "fallback": false,
-     "request_id": "4a6cae14-c7dd-4f39-91f3-695b10b0f5ff",
-     "response_id": "resp_6ae5289e84ce9a5572e14eb3",
-     "status": "completed",
-     "incomplete_reason": null
-    }
-   },
-   "type": "judge.result",
-   "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.997660+00:00"
-  },
-  {
-   "stage": "judge",
-   "model": "muse-spark-1.3",
-   "request_id": "ce881db6-7923-4e7a-994d-edaf3d557d24",
-   "tokens": 4262,
-   "latency_ms": 0,
-   "cost_usd": 0.0,
-   "cache_hit": true,
-   "attempt": 1,
-   "http_status": 200,
-   "error": null,
-   "type": "model.call",
-   "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.998681+00:00"
+   "at": "2026-10-31T00:38:04.132216+00:00"
   },
   {
    "finding_id": "hero-fixture-f03",
@@ -1678,33 +1695,33 @@
     "severity": "serious",
     "wcag": [
      {
-      "sc": "2.5.3",
-      "name": "Label in Name"
-     },
-     {
       "sc": "1.1.1",
       "name": "Non-text Content"
+     },
+     {
+      "sc": "2.5.3",
+      "name": "Label in Name"
      }
     ],
-    "impact": "The user cannot tell from the button that activating it will pay R1,249.",
+    "impact": "The user hears only 'Submit' and cannot confirm at the button that activating it will pay R1,249.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "ce881db6-7923-4e7a-994d-edaf3d557d24",
-     "response_id": "resp_6ae528adc4e0a5a6df1642b5",
+     "request_id": "1cd2b5bc-dcb1-46d6-8726-f23aeaeb0e86",
+     "response_id": "resp_6ae5384747137ce43f2a44d7",
      "status": "completed",
      "incomplete_reason": null
     }
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:40.999365+00:00"
+   "at": "2026-10-31T00:38:04.132786+00:00"
   },
   {
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "aa2fba51-0289-4be1-ae37-8977e406e541",
-   "tokens": 3633,
+   "request_id": "206e70e3-8ea9-4e4a-9d7a-c9a3b34e81ac",
+   "tokens": 4828,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "cache_hit": true,
@@ -1713,7 +1730,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:41.000114+00:00"
+   "at": "2026-10-31T00:38:04.133479+00:00"
   },
   {
    "finding_id": "hero-fixture-f04",
@@ -1726,25 +1743,25 @@
       "name": "Non-text Content"
      }
     ],
-    "impact": "The user cannot know the button deletes/removes and expects it to close, risking activating the wrong destructive action.",
+    "impact": "The user cannot know the button deletes/removes and may activate a destructive action thinking it only closes.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "aa2fba51-0289-4be1-ae37-8977e406e541",
-     "response_id": "resp_6ae528bc54dcc473257e49ba",
+     "request_id": "206e70e3-8ea9-4e4a-9d7a-c9a3b34e81ac",
+     "response_id": "resp_6ae53856f4c4fec86f684a7a",
      "status": "completed",
      "incomplete_reason": null
     }
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:41.000698+00:00"
+   "at": "2026-10-31T00:38:04.134030+00:00"
   },
   {
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "d84c3525-5dbc-42a0-8d97-5b96736e5823",
-   "tokens": 4087,
+   "request_id": "2c2df33b-d9b5-4602-94f4-11b41f4f5d96",
+   "tokens": 4142,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "cache_hit": true,
@@ -1753,7 +1770,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:41.001364+00:00"
+   "at": "2026-10-31T00:38:04.134811+00:00"
   },
   {
    "finding_id": "hero-fixture-f05",
@@ -1770,25 +1787,25 @@
       "name": "Label in Name"
      }
     ],
-    "impact": "The user hears only 'Click here' and cannot tell the link leads to the Terms without activating it, especially when navigating by links list.",
+    "impact": "User hears only generic Click here in the agreement sentence and cannot know the link is to the Terms they agree to by paying.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "d84c3525-5dbc-42a0-8d97-5b96736e5823",
-     "response_id": "resp_6ae528ccfa955e2a985c41ed",
+     "request_id": "2c2df33b-d9b5-4602-94f4-11b41f4f5d96",
+     "response_id": "resp_6ae5385ff20131d920524c3b",
      "status": "completed",
      "incomplete_reason": null
     }
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:41.001922+00:00"
+   "at": "2026-10-31T00:38:04.135495+00:00"
   },
   {
    "stage": "judge",
    "model": "muse-spark-1.3",
-   "request_id": "e49fbd9f-15a6-498b-ad05-35ce14c5204d",
-   "tokens": 5524,
+   "request_id": "c1bfc25d-1682-4bfa-9a5f-b742b8c9382b",
+   "tokens": 4159,
    "latency_ms": 0,
    "cost_usd": 0.0,
    "cache_hit": true,
@@ -1797,7 +1814,7 @@
    "error": null,
    "type": "model.call",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:41.002665+00:00"
+   "at": "2026-10-31T00:38:04.136268+00:00"
   },
   {
    "finding_id": "hero-fixture-f06",
@@ -1808,28 +1825,32 @@
      {
       "sc": "3.3.1",
       "name": "Error Identification"
+     },
+     {
+      "sc": "1.4.1",
+      "name": "Use of Color"
      }
     ],
-    "impact": "The screen-reader user is not told the card number is in error and cannot identify or correct it to complete payment.",
+    "impact": "The user cannot know the card number is flagged as invalid and so cannot correct it to complete payment.",
     "model_meta": {
      "model": "muse-spark-1.3",
      "fallback": false,
-     "request_id": "e49fbd9f-15a6-498b-ad05-35ce14c5204d",
-     "response_id": "resp_6ae528e615f8f55530684fe0",
+     "request_id": "c1bfc25d-1682-4bfa-9a5f-b742b8c9382b",
+     "response_id": "resp_6ae53869b5c362e6fc484a1a",
      "status": "completed",
      "incomplete_reason": null
     }
    },
    "type": "judge.result",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:41.003305+00:00"
+   "at": "2026-10-31T00:38:04.136872+00:00"
   },
   {
    "status": "done",
    "findings_verified": 6,
    "findings_rejected": 0,
    "axe_violations": 0,
-   "tokens": 34459,
+   "tokens": 36132,
    "cost_usd": 0.0,
    "verified": [
     {
@@ -1863,9 +1884,11 @@
      "screen_reader": "textbox, \"Card number\""
     }
    ],
+   "agent": null,
+   "final_url": "file:///Users/ammarah/Desktop/Meta_Hackathon/parity/store/checkout.html",
    "type": "run.finished",
    "run_id": "hero-fixture",
-   "at": "2026-10-30T23:48:41.004510+00:00"
+   "at": "2026-10-31T00:38:04.138044+00:00"
   }
  ]
 }

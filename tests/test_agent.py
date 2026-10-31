@@ -134,7 +134,8 @@ async def test_finish_refused_when_screen_unaudited(tmp_path, server_url, page):
     assert len(refused) == 1 and "audit_view" in refused[0].data["feedback"]
     first_result = json.loads(auditor_calls(client)[1]["input"][0]["output"])
     assert "error" in first_result and "audit_view" in first_result["feedback"]
-    assert loaded.run.findings_verified + loaded.run.findings_rejected >= 0 and len(loaded.steps) == 1
+    assert len(loaded.steps) == 1  # the product page was audited once (its findings depend on the recorded checkout fixtures)
+    assert len([e for e in loaded.events if e.type == "agent.tool_call" and e.data["tool"] == "audit_view"]) == 1
 
 
 async def test_finish_forced_after_three_refusals(tmp_path, server_url, page):
@@ -204,3 +205,63 @@ async def test_fallback_mode_audits_on_screen_change(tmp_path, server_url, page)
     assert all(t["type"] == "computer" for call in auditor_calls(client) for t in call["tools"])
     result: AgentResult = AgentResult(**next(e for e in loaded.events if e.type == "run.finished").data["agent"])
     assert result.finished is True and result.finish_forced is False and "checkout" in result.summary
+
+
+async def test_tool_infrastructure_error_fails_the_run(tmp_path, server_url, page):
+    """A Meta API outage inside audit_view is not a refusal: the run must end failed with the error recorded."""
+    from parity.meta.client import MetaError
+
+    script = [turn(function_call("audit_view", {"reason": "product"}, "c1")), turn(function_call("finish", {"summary": "x"}, "c2"))]
+
+    async def factory():
+        return page
+
+    err = MetaError("server_error", status=503, request_id="req-503", attempts=3)
+    async with harness(tmp_path, script, errors={"comparator": err}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.failed and "req-503" in (run.error or "")
+    assert not [e for e in loaded.events if e.type == "agent.refused"]
+    assert loaded.events[-1].type == "run.failed"
+
+
+async def test_last_turn_audits_current_screen_before_finish(tmp_path, server_url, page):
+    """finish is the only tool on the last turn; code audits the screen first so it is reachable."""
+    store = server_url + "/store/"
+    add = await centre(page, store + "product.html", "#p4")
+    script = [turn(computer_call([{"type": "click", **add}], "c1")), turn(function_call("finish", {"summary": "done"}, "c2"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory, max_turns=2)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done
+    assert [s.url.rsplit("/", 1)[-1] for s in loaded.steps] == ["cart.html"]
+    finished = next(e for e in loaded.events if e.type == "run.finished")
+    assert finished.data["agent"]["finished"] is True and finished.data["agent"]["finish_forced"] is False
+    last_input = auditor_calls(client)[1]["input"]
+    assert any("last turn" in json.dumps(item).lower() for item in last_input)
+
+
+async def test_dropped_and_bad_actions_do_not_crash_the_run(tmp_path, server_url, page):
+    script = [
+        turn(computer_call([{"type": "launch_missiles"}, {"type": "keypress", "keys": ["F99"]}, {"type": "wait"}], "c1")),
+        turn(function_call("audit_view", {"reason": "product"}, "c2")),
+        turn(function_call("finish", {"summary": "done"}, "c3")),
+    ]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done, run.error
+    blocked = [e for e in loaded.events if e.type == "nav.blocked"]
+    assert len(blocked) == 2 and blocked[0].data["action"] == "launch_missiles" and "F99" in json.dumps(blocked[1].data)
+    nav = next(e for e in loaded.events if e.type == "nav.actions")
+    assert nav.data["executed"] == 1 and nav.data["dropped"] == 2 and nav.data["safety_checks"] == 0
+    finished = next(e for e in loaded.events if e.type == "run.finished")
+    assert finished.data["agent"]["finished"] is True

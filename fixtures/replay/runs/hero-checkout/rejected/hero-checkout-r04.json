@@ -1,0 +1,56 @@
+{
+ "id": "hero-checkout-r04",
+ "run_id": "hero-checkout",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "red border error on Card number field",
+  "sr_quote": "textbox, \"Card number\"",
+  "why_it_matters": "A blind user receives no error state and does not know the card number is invalid.",
+  "bbox": {
+   "x_min": 526,
+   "y_min": 288,
+   "x_max": 854,
+   "y_max": 344
+  },
+  "attempt": 2
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "textbox at input#card"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": false,
+    "detail": "this element already has a finding in this run"
+   }
+  },
+  "element": {
+   "backend_id": 38,
+   "css_path": "input#card",
+   "box_px": [
+    673,
+    207,
+    1093,
+    248
+   ],
+   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "card"
+  },
+  "feedback": "this element is already reported; do not repeat it"
+ }
+}

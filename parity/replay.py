@@ -39,7 +39,8 @@ async def start(
     for step in loaded.steps:
         n = step.index
         new_step = Step.model_validate_json(_rewrite(step.model_dump_json(), source_id, new_id))
-        await bundle.store.put(keys.screenshot(new_id, n), await source.store.get(keys.screenshot(source_id, n)), "image/png")
+        if await source.store.exists(keys.screenshot(source_id, n)):  # an anonymised sample keeps a screenshot only where a finding was verified (§17)
+            await bundle.store.put(keys.screenshot(new_id, n), await source.store.get(keys.screenshot(source_id, n)), "image/png")
         for key_fn in (keys.ax, keys.axe, keys.source):  # the step's source is the patch base for decisions on the replayed run
             if await source.store.exists(key_fn(source_id, n)):
                 key = key_fn(new_id, n)

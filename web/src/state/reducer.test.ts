@@ -82,6 +82,27 @@ describe("agent outcome", () => {
     expect(done.agent?.finish_forced).toBe(true);
     expect(done.timeline[done.timeline.length - 1].label).toMatch(/forced/i);
   });
+
+  it("shows a walk the site stopped as its own reason, not as 'did not finish within 0 turns'", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const blocked = reduce(started, { type: "run.finished", run_id: started.run!.id, at: "2026-10-31T00:00:01Z", status: "done", agent: { turns: 0, finished: false, finish_forced: false, summary: "blocked by site: bot challenge" } });
+    expect(blocked.timeline[blocked.timeline.length - 1].label).toBe("blocked by site: bot challenge");
+    const stopped = reduce(started, { type: "run.finished", run_id: started.run!.id, at: "2026-10-31T00:00:09Z", status: "done", agent: { turns: 3, finished: false, finish_forced: false, summary: "stopped before irreversible step: 'Pay' looks like an irreversible step" } });
+    expect(stopped.timeline[stopped.timeline.length - 1].label).toBe("stopped before irreversible step: 'Pay' looks like an irreversible step");
+    const ranOut = reduce(started, { type: "run.finished", run_id: started.run!.id, at: "2026-10-31T00:00:09Z", status: "done", agent: { turns: 12, finished: false, finish_forced: false, summary: "still on the cart" } });
+    expect(ranOut.timeline[ranOut.timeline.length - 1].label).toBe("did not finish within 12 turns: still on the cart");
+  });
+});
+
+describe("safety checks", () => {
+  it("shows the recorded reason for an acknowledged safety check (a public site is not 'the store')", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const s = reduce(started, { type: "nav.safety_check", run_id: started.run!.id, at: "2026-10-31T00:00:02Z", turn: 2, codes: ["computer_action_requires_confirmation"], acknowledged: true,
+      reason: "routine confirmation; the public-site guard screens each action before it runs" });
+    const label = s.timeline[s.timeline.length - 1].label;
+    expect(label).toMatch(/public-site guard/);
+    expect(label).not.toMatch(/on the store/);
+  });
 });
 
 describe("the human gate", () => {

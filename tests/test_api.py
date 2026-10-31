@@ -247,3 +247,16 @@ async def test_replay_by_run_id_for_a_public_sample(tmp_path):
             assert events[0][0] == "run.started" and events[-1][0] == "run.finished"
             assert (await client.post("/api/runs", json={"mode": "replay", "replay_of": "nope"})).status_code == 404
             assert (await client.post("/api/runs", json={"mode": "live", "replay_of": "public-a"})).status_code == 422  # replay_of is for Replay only
+
+
+async def test_replay_of_a_bundle_whose_screenshot_was_withheld(api, tmp_path):
+    """An anonymised public sample keeps a screenshot only where a finding was verified (spec §17): a step without one must
+    still replay; its screenshot route answers 404 and the rest of the step is served."""
+    client, app = api
+    (tmp_path / "replay" / "runs" / SRC / "steps" / "0" / "screenshot.png").unlink()
+    r = await client.post("/api/runs", json={"mode": "replay", "replay_of": SRC, "pace_ms": 0})
+    assert r.status_code == 202, r.text
+    run_id = r.json()["run_id"]
+    assert (await client.get(f"/api/runs/{run_id}/steps/0/screenshot.png")).status_code == 404
+    events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
+    assert events[0][0] == "run.started" and events[-1][0] == "run.finished"  # the rest of the step replays as usual

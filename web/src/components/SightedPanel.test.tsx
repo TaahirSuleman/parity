@@ -24,3 +24,13 @@ describe("SightedPanel steps", () => {
     expect(seen).toEqual([0]);
   });
 });
+
+describe("SightedPanel withheld screenshot", () => {
+  it("says the screenshot was withheld when the image cannot be loaded, instead of a broken image", () => {
+    render(<SightedPanel screenshotUrl="/api/runs/r/steps/0/screenshot.png" findings={[]} percepts={[]} selectedId={null} stage={null} model="m" timeline={[]}
+      steps={steps} stepIndex={0} onStepChange={() => {}} onSelect={() => {}} />);
+    fireEvent.error(screen.getByRole("img", { name: /audited page/i }));
+    expect(screen.getByText(/screenshot withheld/i)).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /audited page/i })).toBeNull();
+  });
+});

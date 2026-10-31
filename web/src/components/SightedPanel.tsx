@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { BBox, Finding, RunState, Step, TimelineRow } from "../state/types";
 import { CodeBadge, MetaBadge } from "./MetaBadge";
 
@@ -29,6 +30,8 @@ export function stageBadge(stage: string | null, model: string) {
 }
 
 export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect }: Props) {
+  const [withheld, setWithheld] = useState(false);  // the image did not load: an anonymised sample keeps screenshots only where a finding was verified
+  useEffect(() => setWithheld(false), [screenshotUrl]);
   const shown = stepIndex === null ? findings : findings.filter((f) => f.step_index === stepIndex);
   const last = steps.length ? steps[steps.length - 1].index : null;
   const shownPercepts = stepIndex === null || stepIndex === last ? percepts : [];
@@ -49,8 +52,10 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
         </div>
       )}
       <div className="relative m-3" style={{ aspectRatio: "16 / 9", background: "var(--surface-2)", borderRadius: 4, overflow: "hidden" }}>
-        {screenshotUrl ? (
-          <img src={screenshotUrl} alt="The audited page as a sighted user sees it" className="block w-full h-full" />
+        {screenshotUrl && withheld ? (
+          <div className="absolute inset-0 grid place-items-center muted text-center px-6">Screenshot withheld for this screen: a third-party page's pixels are kept only where a finding was verified.</div>
+        ) : screenshotUrl ? (
+          <img src={screenshotUrl} alt="The audited page as a sighted user sees it" className="block w-full h-full" onError={() => setWithheld(true)} />
         ) : (
           <div className="absolute inset-0 grid place-items-center muted">Run the audit to see the page</div>
         )}

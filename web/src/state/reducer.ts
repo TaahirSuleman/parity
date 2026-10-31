@@ -52,7 +52,8 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     }
     case "nav.safety_check": {
       const codes = (ev.codes as string[] | undefined) ?? [];
-      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged on the store: ${codes.join(", ")}` };
+      const reason = typeof ev.reason === "string" && ev.reason ? ev.reason : "on the store";  // the event says why it was acknowledged (store, or the public-site guard)
+      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged, ${reason}: ${codes.join(", ")}` };
       return { ...state, timeline: [...state.timeline, row] };
     }
     case "nav.blocked":
@@ -129,7 +130,7 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
       const duration = Number(ev.duration_ms ?? Math.max(0, new Date(ev.at).getTime() - new Date(run.started_at).getTime()));  // the recorded run's time, not the replay's
       const agent = (ev.agent as RunState["agent"] | undefined) ?? null;
       const outcome = agent
-        ? [{ turn: agent.turns, kind: "outcome" as const, at: ev.at, label: agent.finished ? (agent.finish_forced ? `finished (forced after refusals): ${agent.summary}` : `finished: ${agent.summary}`) : `did not finish within ${agent.turns} turns: ${agent.summary || "no summary"}` }]
+        ? [{ turn: agent.turns, kind: "outcome" as const, at: ev.at, label: outcomeLabel(agent) }]
         : [];
       return {
         ...state, phase: "finished", stage: null, agent, timeline: [...state.timeline, ...outcome],
@@ -146,4 +147,12 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     default:
       return state;
   }
+}
+
+/** The walk's outcome line. A walk the site or the guard stopped is its own reason; only a walk that used its turns up "did not finish". */
+export function outcomeLabel(agent: NonNullable<RunState["agent"]>): string {
+  if (agent.finished) return agent.finish_forced ? `finished (forced after refusals): ${agent.summary}` : `finished: ${agent.summary}`;
+  const summary = agent.summary || "no summary";
+  if (agent.turns === 0 || /^(blocked by site|stopped)/i.test(summary)) return summary;
+  return `did not finish within ${agent.turns} turns: ${summary}`;
 }

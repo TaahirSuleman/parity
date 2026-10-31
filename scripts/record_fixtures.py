@@ -1,4 +1,4 @@
-"""Run seer + comparator once, live, on the recorded checkout capture; copy the cached responses into tests/fixtures/meta/.
+"""Run seer + comparator + judge + fixer once, live, on the recorded checkout capture; copy the cached responses into tests/fixtures/meta/.
 
 Costs a few cents the first time; every later run is served from cache/.
 Run: .venv/bin/python scripts/record_fixtures.py
@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 from parity.config import load_settings  # noqa: E402
 from parity.meta.client import ListTraceSink, MetaClient  # noqa: E402
 from parity.pipeline.comparator import compare  # noqa: E402
+from parity.pipeline.fixer import propose_fix  # noqa: E402
 from parity.pipeline.judge import judge  # noqa: E402
 from parity.pipeline.seer import see  # noqa: E402
 from parity.pipeline.verifier import verify  # noqa: E402
@@ -56,9 +57,17 @@ async def main() -> None:
             judgements[f.id] = await judge(client, f, cap, run_id="fixture", model=settings.model_for("judge"))
     finally:
         await client.aclose()
+    hero = next((f for f in verified if f.element.dom_id == "f5"), None)
+    fix = None
+    if hero is not None:
+        hero.judgement = judgements[hero.id]
+        client = MetaClient(settings, cache_dir=settings.cache_dir, trace=trace)
+        try:
+            fix = await propose_fix(client, hero, cap, run_id="fixture", model=settings.model_for("fixer"))
+        finally:
+            await client.aclose()
     (FIX / "meta").mkdir(exist_ok=True)
     manifest = {}
-    hero = next((f for f in verified if f.element.dom_id == "f5"), None)
     for call in trace.calls:
         src = settings.cache_dir / f"{call.prompt_sha256}.json"
         shutil.copy(src, FIX / "meta" / src.name)
@@ -72,6 +81,8 @@ async def main() -> None:
         print(f"  [PASS] {f.element.dom_id or '-':>5} | sighted={f.sighted_text[:34]!r:38} sr={f.sr_role}, {f.sr_name!r:16} judge={j.is_barrier} {j.severity} {[w.sc for w in j.wcag]}")
     for c, r in rejected:
         print(f"  [fail] {'-':>5} | sighted={c.sighted_text[:34]!r:38} sr={c.sr_quote[:28]!r:30} {r.feedback}")
+    if fix is not None:
+        print(f"\nfixer on the hero: {fix.explanation}\n  before: {fix.before_html[:120]}\n  after:  {fix.after_html[:120]}")
 
 
 if __name__ == "__main__":

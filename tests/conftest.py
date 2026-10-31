@@ -77,3 +77,23 @@ async def api(tmp_path):
     async with app.router.lifespan_context(app):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             yield client, app
+
+
+@pytest.fixture
+def hero():
+    """The recorded checkout capture and the verified hero finding (#f5: "Pay R1,249" vs button "Submit")."""
+    from pathlib import Path
+
+    from parity.pipeline.verifier import verify
+    from parity.store.models import Candidate, Capture, Finding
+
+    fixture = Path(__file__).parent / "fixtures" / "capture_checkout.json"
+    cap = Capture.model_validate_json(fixture.read_text())
+    cap.screenshot_png = fixture.with_suffix(".png").read_bytes()
+    f5 = next(n for n in cap.ax_nodes if n.dom_id == "f5")
+    cand = Candidate(step_index=0, sighted_text="Pay R1,249", sr_quote='button, "Submit"', why_it_matters="price hidden", bbox=f5.bbox)
+    r = verify(cand, cap, [])
+    assert r.passed
+    finding = Finding(id="f-1", run_id="r1", step_index=0, sighted_text=cand.sighted_text, sr_role="button", sr_name="Submit",
+                      why_it_matters=cand.why_it_matters, bbox=cand.bbox, element=r.element, verifier=r)
+    return cap, finding

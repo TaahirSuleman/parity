@@ -1,33 +1,14 @@
 import json
-from pathlib import Path
-
 import pytest
 
 from parity.meta.client import MetaError
 from parity.meta.fake import FakeMetaClient
 from parity.pipeline.judge import judge
-from parity.pipeline.verifier import verify
-from parity.store.models import Candidate, Capture, Finding, Severity
-
-FIXTURE = Path(__file__).parent / "fixtures" / "capture_checkout.json"
-
+from parity.store.models import Severity
 
 def response_with(payload) -> dict:
     text = payload if isinstance(payload, str) else json.dumps(payload)
     return {"id": "resp_fake", "output": [{"type": "message", "content": [{"type": "output_text", "text": text}]}], "usage": {"input_tokens": 10, "output_tokens": 5}}
-
-
-@pytest.fixture
-def hero():
-    cap = Capture.model_validate_json(FIXTURE.read_text())
-    cap.screenshot_png = FIXTURE.with_suffix(".png").read_bytes()
-    f5 = next(n for n in cap.ax_nodes if n.dom_id == "f5")
-    cand = Candidate(step_index=0, sighted_text="Pay R1,249", sr_quote='button, "Submit"', why_it_matters="price hidden", bbox=f5.bbox)
-    r = verify(cand, cap, [])
-    assert r.passed
-    finding = Finding(id="f-1", run_id="r1", step_index=0, sighted_text=cand.sighted_text, sr_role="button", sr_name="Submit",
-                      why_it_matters=cand.why_it_matters, bbox=cand.bbox, element=r.element, verifier=r)
-    return cap, finding
 
 
 GOOD = {"is_barrier": True, "severity": "critical", "wcag": [{"sc": "2.5.3", "name": "Label in Name"}, {"sc": "4.1.2", "name": "Name, Role, Value"}], "impact": "A blind shopper cannot tell what the button will charge."}

@@ -57,6 +57,13 @@ async def test_screenshot_and_metadata(checkout, store_url):
     assert checkout.viewport == (1280, 720) and checkout.step_index == 0
 
 
+async def test_capture_keeps_page_html(checkout):
+    """The rendered page source rides with the capture: the fixer patches it and the re-audit reloads it."""
+    assert "<html" in checkout.html and 'id="f5"' in checkout.html
+    f5 = next(n for n in checkout.ax_nodes if n.dom_id == "f5")
+    assert f5.outer_html and checkout.html.count(f5.outer_html) == 1
+
+
 def test_to_grid():
     assert to_grid((0, 0, 1280, 720), (1280, 720)) == BBox(x_min=0, y_min=0, x_max=1000, y_max=1000)
     assert to_grid((128, 72, 640, 360), (1280, 720)) == BBox(x_min=100, y_min=100, x_max=500, y_max=500)

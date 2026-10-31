@@ -189,6 +189,7 @@ async def capture(page: Page, step_index: int) -> Capture:
     size = page.viewport_size or {"width": 1280, "height": 720}
     viewport = (size["width"], size["height"])
     screenshot = await page.screenshot()
+    html = await page.content()
     cdp = await page.context.new_cdp_session(page)
     try:
         await cdp.send("DOM.enable")
@@ -199,5 +200,5 @@ async def capture(page: Page, step_index: int) -> Capture:
         await cdp.detach()
     return Capture(
         step_index=step_index, url=page.url, viewport=viewport, screenshot_png=screenshot, ax_nodes=ax_nodes,
-        silent_nodes=silent_nodes, axe_violations=axe_violations,
+        silent_nodes=silent_nodes, axe_violations=axe_violations, html=html,
     )

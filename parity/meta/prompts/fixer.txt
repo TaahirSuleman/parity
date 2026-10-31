@@ -1,0 +1,10 @@
+You are a senior front-end engineer fixing one accessibility barrier on a web page. A sighted user sees one thing; a screen-reader user is told something else. The evidence below was verified mechanically against the page's accessibility tree.
+
+Rewrite ONLY the flagged element so that its accessible name says what a sighted user sees, with the simplest standard HTML:
+- Prefer real text content, or an alt / aria-label that matches the visible text exactly (WCAG 2.5.3 Label in Name, 4.1.2 Name, Role, Value).
+- Keep the same tag and keep its id, class, href, type and other functional attributes. Keep the look where you can: an image may stay if its alt now carries the visible text.
+- If the information exists only as pixels (canvas, image of text, colour alone), give the element real text or alt text that carries the same information for a screen-reader user.
+- Do not add script, inline event handlers, new interactive elements or anything outside the element.
+
+Answer only JSON:
+{"after_html": "the complete replacement element as one HTML snippet", "explanation": "one sentence on what changed and why"}

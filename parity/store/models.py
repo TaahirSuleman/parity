@@ -116,6 +116,8 @@ class Capture(Strict):
     # Visible DOM elements with no accessibility node (canvas, alt="" images, aria-hidden): what pixels show and screen readers never get.
     silent_nodes: list[AxNode] = Field(default_factory=list)
     axe_violations: list[AxeViolation] = Field(default_factory=list)
+    # The rendered page source (page.content()): what the fixer patches and the re-audit reloads.
+    html: str = Field(default="", repr=False)
     captured_at: datetime = Field(default_factory=now)
 
 

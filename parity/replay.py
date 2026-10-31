@@ -40,9 +40,10 @@ async def start(
         n = step.index
         new_step = Step.model_validate_json(_rewrite(step.model_dump_json(), source_id, new_id))
         await bundle.store.put(keys.screenshot(new_id, n), await source.store.get(keys.screenshot(source_id, n)), "image/png")
-        for key_fn in (keys.ax, keys.axe):
+        for key_fn in (keys.ax, keys.axe, keys.source):  # the step's source is the patch base for decisions on the replayed run
             if await source.store.exists(key_fn(source_id, n)):
-                await bundle.store.put(key_fn(new_id, n), await source.store.get(key_fn(source_id, n)), "application/json")
+                key = key_fn(new_id, n)
+                await bundle.store.put(key, await source.store.get(key_fn(source_id, n)), "text/html; charset=utf-8" if key.endswith(".html") else "application/json")
         await bundle.store.put(keys.step(new_id, n), new_step.model_dump_json(indent=1).encode(), "application/json")
     for finding in loaded.findings:
         await bundle.write_finding(Finding.model_validate_json(_rewrite(finding.model_dump_json(), source_id, new_id)))

@@ -37,6 +37,7 @@ class Settings:
     index_path: Path = Path("./data/index.db")
     cache_dir: Path = Path("./cache")
     replay_dir: Path = Path("./fixtures/replay")
+    eval_dir: Path = Path("./eval/results")  # latest.json + public.json, served by GET /api/eval
     port: int = 8080
     default_mode: str = "replay"
     live_enabled: bool = True
@@ -89,6 +90,7 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         eval_model=get("PARITY_EVAL_MODEL", Settings.eval_model),
         voice_model=get("PARITY_VOICE_MODEL", Settings.voice_model),
         private=_bool(get("PARITY_PRIVATE", "false")),
+        eval_dir=Path(get("PARITY_EVAL_DIR", str(Settings.eval_dir))),
         run_timeout_s=int(get("PARITY_RUN_TIMEOUT_S", str(Settings.run_timeout_s))),
         data_dir=Path(get("PARITY_DATA_DIR", str(Settings.data_dir))),
         gcs_bucket=get("PARITY_GCS_BUCKET", ""),

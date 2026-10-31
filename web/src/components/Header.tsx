@@ -8,6 +8,8 @@ interface Props {
   onFlowChange: (id: string) => void;
   run: Run | null;
   approved?: number; // fixes approved by a human
+  view?: "workbench" | "eval";
+  onViewChange?: (view: "workbench" | "eval") => void;
   pending?: number; // fixes still waiting for a decision
   mode: RunMode;
   canLive: boolean;
@@ -26,7 +28,7 @@ export function fmtDuration(ms: number): string {
   return `${m} m ${Math.round((ms - m * 60000) / 1000)} s`;
 }
 
-export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, onModeChange, onRun, approved = 0, pending = 0 }: Props) {
+export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, onModeChange, onRun, approved = 0, pending = 0, view = "workbench", onViewChange }: Props) {
   const axe = run?.axe_violations ?? 0;
   return (
     <header className="surface" style={{ borderRadius: 0, borderWidth: "0 0 1px 0" }}>
@@ -49,6 +51,11 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
         <button type="button" className="btn-primary" onClick={onRun} disabled={running}>
           {running ? "Auditing…" : "Run the audit"}
         </button>
+        {onViewChange && (
+          <button type="button" className="btn-quiet" aria-pressed={view === "eval"} onClick={() => onViewChange(view === "eval" ? "workbench" : "eval")} title="Recall and precision against the seeded labels, the ablations, the judge comparison and the real-world sample">
+            Eval
+          </button>
+        )}
         <div className="ml-auto flex items-center gap-5 flex-wrap">
           <span className="counter" title="axe-core 4.14 violations on the audited screens">
             <span className="muted">axe-core</span> <strong>{axe}</strong> <span className="muted">{axe === 1 ? "violation" : "violations"}</span>

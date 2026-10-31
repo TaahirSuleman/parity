@@ -154,3 +154,10 @@ async def test_run_link_reloads_the_run(page, server_url):
     await page.reload()
     await page.get_by_role("button", name="Pay R1,249").first.wait_for(timeout=30000)
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=30000)
+
+
+async def test_eval_tab_shows_the_results_table(page, server_url):
+    await page.goto(server_url + "/")
+    await page.get_by_role("button", name=re.compile(r"^Eval")).click()
+    await page.get_by_role("heading", name=re.compile(r"Parity vs axe-core")).wait_for(timeout=10000)
+    assert "seeded faults" in await page.locator("main").inner_text()

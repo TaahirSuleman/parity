@@ -31,9 +31,11 @@ STORE_DIR = ROOT / "store"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
-async def discover_replays(replay_bundle: RunBundle) -> dict[str, str]:
-    """flow_id -> the newest recorded run for that flow (the committed hero bundle)."""
+async def discover_replays(replay_bundle: RunBundle) -> tuple[dict[str, str], list[str]]:
+    """(flow_id -> the newest recorded run for that flow, every readable run id). Public samples share the flow
+    "public", so the Eval tab opens them by run id."""
     by_flow: dict[str, str] = {}
+    all_ids: list[str] = []
     for run_id in await replay_bundle.list_run_ids():
         try:
             run = (await replay_bundle.load(run_id)).run
@@ -41,7 +43,8 @@ async def discover_replays(replay_bundle: RunBundle) -> dict[str, str]:
             log.warning("replay bundle %s unreadable: %s", run_id, exc)
             continue
         by_flow[run.flow_id] = run_id  # list_run_ids is sorted; later ids win
-    return by_flow
+        all_ids.append(run_id)
+    return by_flow, sorted(all_ids)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -54,8 +57,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         await st.index.init()
         recovered = await st.index.recover_interrupted(st.bundle)
         indexed = await st.index.rebuild(st.bundle)
-        st.replay_for_flow = await discover_replays(st.replay_bundle)
-        st.replay_ids = sorted(st.replay_for_flow.values())
+        st.replay_for_flow, st.replay_ids = await discover_replays(st.replay_bundle)
         log.info("boot: %d runs indexed, %d recovered, replays %s, storage %s", indexed, len(recovered), st.replay_ids, "gcs" if settings.gcs_bucket else "local")
         try:
             yield

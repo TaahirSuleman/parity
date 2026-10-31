@@ -190,3 +190,60 @@ async def test_public_run_responses_carry_no_ip_hash_or_internal_url(api):
     for body in (listed, detail):
         assert "client_ip_hash" not in body and "127.0.0.1" not in str(body.get("target_url", ""))
     assert (await client.get("/api/runs?limit=-1")).status_code == 422
+
+
+async def test_eval_route_serves_the_latest_results(tmp_path, monkeypatch):
+    """GET /api/eval is the one number set the Eval tab, the README and the video quote."""
+    from parity.app import create_app
+    from parity.config import load_settings
+
+    results = tmp_path / "results"
+    results.mkdir()
+    (results / "latest.json").write_text(json.dumps({"updated_at": "t", "model": "muse-spark-1.3-contributor", "n_faults": 37, "n_clean": 20,
+        "configs": {"full": {"runs": 3, "total": {"recall": 0.8, "precision": 0.9, "fp_on_clean": 0, "n": 30, "n_labels": 37, "cost_usd": 0.1, "seconds": 120}}},
+        "axe": {"recall": 0.0, "violations": 0}, "judge": {"muse-spark-1.3": {"agreement": 0.95, "needs_review_rate": 0.0, "cost_per_finding": 0.01, "n": 30}}}))
+    (results / "public.json").write_text(json.dumps([{"name": "Site A", "run_id": "public-a", "pages": 2, "verified": 3, "rejected": 1}]))
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_CACHE_DIR": str(tmp_path / "cache"),
+                                  "PARITY_INDEX_PATH": str(tmp_path / "index.db"), "PARITY_REPLAY_DIR": str(tmp_path / "replay"), "PARITY_EVAL_DIR": str(results)})
+    app = create_app(settings)
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            r = await client.get("/api/eval")
+            assert r.status_code == 200
+            body = r.json()
+            assert body["configs"]["full"]["total"]["recall"] == 0.8 and body["axe"]["violations"] == 0
+            assert body["public"] == [{"name": "Site A", "run_id": "public-a", "pages": 2, "verified": 3, "rejected": 1}]
+    (results / "latest.json").unlink()
+    app = create_app(settings)
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            assert (await client.get("/api/eval")).status_code == 404
+
+
+async def test_replay_by_run_id_for_a_public_sample(tmp_path):
+    """A public bundle has no flow in FLOWS: Replay starts it by run id (the Eval tab's 'open in Replay')."""
+    from parity.app import create_app
+    from parity.config import load_settings
+    from tests.helpers import make_replay_bundle
+
+    await make_replay_bundle(tmp_path / "replay")
+    src = tmp_path / "replay" / "runs"
+    (src / SRC).rename(src / "public-a")
+    for p in (src / "public-a").rglob("*"):
+        if p.is_file() and p.suffix in (".json", ".jsonl"):
+            p.write_text(p.read_text().replace(SRC, "public-a").replace('"flow_id": "checkout"', '"flow_id": "public"'))
+        elif p.is_file() and SRC in p.name:
+            p.rename(p.with_name(p.name.replace(SRC, "public-a")))
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_CACHE_DIR": str(tmp_path / "cache"),
+                                  "PARITY_INDEX_PATH": str(tmp_path / "index.db"), "PARITY_REPLAY_DIR": str(tmp_path / "replay")})
+    app = create_app(settings)
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            assert "public-a" in (await client.get("/api/health")).json()["replay_runs"]
+            r = await client.post("/api/runs", json={"mode": "replay", "replay_of": "public-a", "pace_ms": 0})
+            assert r.status_code == 202, r.text
+            run_id = r.json()["run_id"]
+            events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
+            assert events[0][0] == "run.started" and events[-1][0] == "run.finished"
+            assert (await client.post("/api/runs", json={"mode": "replay", "replay_of": "nope"})).status_code == 404
+            assert (await client.post("/api/runs", json={"mode": "live", "replay_of": "public-a"})).status_code == 422  # replay_of is for Replay only

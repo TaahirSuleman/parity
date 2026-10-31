@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { ApiError, decide, getFlows, getHealth, getRun, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
+import { ApiError, decide, getEval, getFlows, getHealth, getRun, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
+import type { EvalResults } from "./components/EvalTab";
 import { submitDecision } from "./state/decisions";
 import { runIdFromSearch, withRunParam } from "./state/location";
 import { shouldReset } from "./state/reducer";
@@ -29,6 +30,8 @@ export default function App() {
   const closeRef = useRef<(() => void) | null>(null);
   const [flowId, setFlowId] = useState<string>("");
   const [stepOverride, setStepOverride] = useState<number | null>(null); // a screen picked on the step strip
+  const [view, setView] = useState<"workbench" | "eval">("workbench");
+  const [evalResults, setEvalResults] = useState<EvalResults | null | undefined>(undefined);
   const flow = flows.find((f) => f.id === flowId) ?? flows[0];
 
   useEffect(() => {
@@ -65,6 +68,25 @@ export default function App() {
     }
   }, [flow, state.mode]);
 
+  const onViewChange = useCallback((next: "workbench" | "eval") => {
+    setView(next);
+    if (next === "eval" && evalResults === undefined) getEval().then(setEvalResults).catch(() => setEvalResults(null));
+  }, [evalResults]);
+
+  const onReplayRun = useCallback(async (runId: string) => {  // a recorded public sample, opened from the Eval tab
+    closeRef.current?.();
+    setStepOverride(null);
+    setView("workbench");
+    dispatch({ kind: "reset", mode: "replay" });
+    try {
+      const { run_id } = await startRun(null, "replay", runId);
+      window.history.replaceState(null, "", withRunParam(window.location.search, run_id) || window.location.pathname);
+      closeRef.current = streamRun(run_id, (ev) => dispatch({ kind: "event", ev }), (message) => dispatch({ kind: "error", message }));
+    } catch (e) {
+      dispatch({ kind: "error", message: e instanceof ApiError ? `${e.detail} (HTTP ${e.status})` : String(e) });
+    }
+  }, []);
+
   const onDecision = useCallback((id: string, decision: "approve" | "reject", reason: string) => {
     if (!state.run) return Promise.resolve();
     return submitDecision({ decide, getRun }, state.run.id, id, decision, reason, (ev) => dispatch({ kind: "event", ev }), (message) => dispatch({ kind: "error", message }));
@@ -80,6 +102,7 @@ export default function App() {
       state={state} flows={flows} flowId={flow?.id ?? ""} onFlowChange={setFlowId} canLive={canLive} screenshotUrl={shot} model="muse-spark-1.3-contributor"
       onModeChange={(mode) => { if (!shouldReset(state, mode)) return; closeRef.current?.(); dispatch({ kind: "reset", mode }); }} onRun={onRun}
       onSelect={(id) => { setStepOverride(null); dispatch({ kind: "select", id }); }} onDecision={onDecision} stepIndex={stepIndex} onStepChange={setStepOverride}
+      view={view} onViewChange={onViewChange} evalResults={evalResults ?? null} onReplayRun={onReplayRun}
     />
   );
 }

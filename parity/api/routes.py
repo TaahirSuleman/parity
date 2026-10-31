@@ -25,9 +25,10 @@ router = APIRouter(prefix="/api")
 
 
 class RunRequest(BaseModel):
-    flow_id: str
+    flow_id: str | None = None
     mode: RunMode = RunMode.replay
     pace_ms: int = Field(default=replay.DEFAULT_PACE_MS, ge=0, le=5000)
+    replay_of: str | None = Field(default=None, max_length=80, pattern=r"^[A-Za-z0-9][A-Za-z0-9-]*$")  # a recorded run id (public samples)
 
 
 class DecisionRequest(BaseModel):
@@ -53,7 +54,14 @@ async def flows() -> list[dict]:
 @router.post("/runs", status_code=202)
 async def start_run(req: RunRequest, request: Request) -> dict:
     st = request.app.state
-    flow = FLOWS.get(req.flow_id)
+    if req.replay_of and req.mode != RunMode.replay:
+        raise HTTPException(422, "replay_of selects a recorded run; it needs mode=replay")
+    if req.replay_of:
+        if req.replay_of not in st.replay_ids:
+            raise HTTPException(404, f"no recorded run {req.replay_of!r}")
+        run = await replay.start(req.replay_of, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms)
+        return {"run_id": run.id, "mode": run.mode, "replay_of": req.replay_of}
+    flow = FLOWS.get(req.flow_id or "")
     if flow is None:
         raise HTTPException(404, f"unknown flow {req.flow_id!r}")
     if req.mode == RunMode.replay:
@@ -173,3 +181,18 @@ async def run_patch(run_id: str, request: Request) -> Response:
     if not patch:
         raise HTTPException(404, "no approved fixes yet")
     return Response(content=patch, media_type="text/x-diff", headers={"Content-Disposition": f'attachment; filename="parity-{run_id}.patch"'})
+
+
+@router.get("/eval")
+async def eval_results(request: Request) -> dict:
+    """The one number set (eval/results/latest.json) plus the anonymised public sample (public.json)."""
+    import json
+
+    eval_dir = request.app.state.settings.eval_dir
+    latest = eval_dir / "latest.json"
+    if not latest.exists():
+        raise HTTPException(404, "no eval results yet: run `python -m eval.harness`")
+    body = json.loads(latest.read_text())
+    public = eval_dir / "public.json"
+    body["public"] = json.loads(public.read_text()) if public.exists() else []
+    return body

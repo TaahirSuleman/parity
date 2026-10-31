@@ -2,36 +2,36 @@
  "id": "hero-checkout-f03",
  "run_id": "hero-checkout",
  "step_index": 0,
- "status": "judged",
- "sighted_text": "red border error on Card number field",
- "sr_role": "textbox",
- "sr_name": "Card number",
- "why_it_matters": "Blind user will not know the card number is invalid because no error state or message is announced.",
+ "status": "reaudited",
+ "sighted_text": "Pay R1,249",
+ "sr_role": "button",
+ "sr_name": "Submit",
+ "why_it_matters": "Blind user does not hear the payment amount and gets only a generic action name.",
  "voice": null,
  "bbox": {
   "x_min": 525,
-  "y_min": 325,
-  "x_max": 855,
-  "y_max": 383
+  "y_min": 498,
+  "x_max": 646,
+  "y_max": 567
  },
  "element": {
-  "backend_id": 38,
-  "css_path": "input#card",
+  "backend_id": 47,
+  "css_path": "button#f5",
   "box_px": [
    673,
-   207,
-   1093,
-   248
+   360,
+   827,
+   408
   ],
-  "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
-  "dom_id": "card"
+  "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "dom_id": "f5"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "textbox at input#card"
+    "detail": "button at button#f5"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 38,
-   "css_path": "input#card",
+   "backend_id": 47,
+   "css_path": "button#f5",
    "box_px": [
     673,
-    207,
-    1093,
-    248
+    360,
+    827,
+    408
    ],
-   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
-   "dom_id": "card"
+   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "f5"
   },
   "feedback": null
  },
@@ -69,21 +69,37 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "3.3.1",
-    "name": "Error Identification"
+    "sc": "2.5.3",
+    "name": "Label in Name"
    }
   ],
-  "impact": "The screen-reader user cannot know the card number is flagged as invalid and will attempt to pay with an incorrect number.",
+  "impact": "The user hears only generic \"Submit\" at the payment action and cannot confirm from the button that it will pay R1,249.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "4479e47d-463f-486d-81c3-6954ceb786c0",
-   "response_id": "resp_6ae53c3432670e10f2544439",
+   "request_id": "5746eb75-a00a-4272-a171-9a23f9cdecd5",
+   "response_id": "resp_6ae62720d670a28a9c004a65",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "after_html": "<button id=\"f5\" class=\"btn\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -25,7 +25,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\" style=\"\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n+      <button id=\"f5\" class=\"btn\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
+  "explanation": "Removed the misleading aria-label and gave the image alt text matching the visible button text so the accessible name announces the payment amount.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "337fc8c8-136c-44f8-8164-bcc1e42d63b7",
+   "response_id": "resp_6ae627b3922d822d01004f5c",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "Submit",
+  "sr_name_after": "Pay R1,249",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

@@ -93,3 +93,5 @@ button { font: inherit; color: inherit; }
 
 .diff { max-height: 220px; overflow: auto; font-size: 12px; line-height: 1.45; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0 0; white-space: pre; }
 .fix-reason { flex: 1 1 220px; min-width: 0; }
+.badge.warn { border-color: var(--warn); }
+.badge.warn::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); margin-right: 6px; vertical-align: middle; }

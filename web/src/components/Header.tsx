@@ -58,7 +58,7 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
             {fmtCost(run?.cost_usd ?? 0)} · {fmtDuration(run?.duration_ms ?? 0)}
           </span>
           {run?.mode === "replay" && <span className="badge" title={`Replay of recorded run ${run.replay_of ?? ""}`}>replay</span>}
-          {run?.status === "awaiting_review" && <span className="badge" style={{ color: "var(--warn)" }} title="Proposed fixes wait for a human decision">awaiting review</span>}
+          {run?.status === "awaiting_review" && <span className="badge warn" title="Proposed fixes wait for a human decision">awaiting review</span>}
           {approved + pending > 0 && <span className="counter" title="Fixes approved · fixes waiting for a decision">{`${approved} approved · ${pending} to review`}</span>}
         </div>
       </div>

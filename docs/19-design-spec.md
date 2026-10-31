@@ -90,7 +90,8 @@ Finding    id, run_id, step_index, status(verified|judged|fix_proposed|reaudited
            verifier{passed, checks{name:{passed, detail}}}, judgement?, fix?, reaudit?, decision?
 Rejected   same as Candidate + verifier result (shown as the red row)
 Judgement  is_barrier, severity(critical|serious|moderate|minor), wcag[{sc, name}], impact, model_meta
-Fix        before_html, after_html, diff(unified), explanation, model_meta
+Fix        before_html, after_html, diff(unified, git-style a/ b/ paths, computed in code), explanation, model_meta
+           (P3) Capture carries html = page.content() at capture time: the source the fixer patches and the re-audit reloads at the page's real URL
 Reaudit    gap_closed(bool), sr_name_before, sr_name_after, comparator_still_flags(bool|null)
 Decision   decision(approve|reject), reason, decided_at
 ModelCall  id, run_id, step_index?, stage, model, request_id, response_id, prompt_sha256, cache_hit,
@@ -149,7 +150,7 @@ Expected cost per run with these roles: single page ≈ $0.01 (contributor) plus
 Static: `/store/*` demo store, `/` the SPA. Local one-command run: `make demo` (installs, builds, starts on :8080, opens the workbench).
 
 ## 8. SSE events (`{type, run_id, at, data}`)
-`run.started`, `nav.actions {turn, actions[]}`, `nav.blocked {turn, action, reason}`, `voice.transcribed {page, accuracy?}`, `step.captured {index, url, axe_violations, ax_nodes}`, `seer.done {index, percepts}`, `comparator.candidates {index, n, attempt}`, `verifier.result {candidate, passed, checks, finding_id?}`, `judge.result {finding_id, judgement}`, `fixer.proposed {finding_id, diff}`, `reaudit.result {finding_id, gap_closed, before, after}`, `model.call {stage, model, request_id, tokens, latency_ms, cost_usd, cache_hit}`, `decision.recorded {finding_id, decision}`, `run.finished {summary}`, `run.failed {error}`.
+`run.started`, `nav.actions {turn, actions[]}`, `nav.blocked {turn, action, reason}`, `voice.transcribed {page, accuracy?}`, `step.captured {index, url, axe_violations, ax_nodes}`, `seer.done {index, percepts}`, `comparator.candidates {index, n, attempt}`, `verifier.result {candidate, passed, checks, finding_id?}`, `judge.result {finding_id, judgement}`, `fixer.proposed {finding_id, diff, fix}`, `fixer.rejected {finding_id, reason}` (snippet refused or fixer error; the finding keeps its evidence), `reaudit.result {finding_id, gap_closed, before, after, reaudit}`, `reaudit.failed {finding_id, reason}`, `model.call {stage, model, request_id, tokens, latency_ms, cost_usd, cache_hit}`, `decision.recorded {finding_id, decision, status, run_status, approved, pending}` (also appended to `events.jsonl` after the run, so a reload shows it), `run.finished {summary}`, `run.failed {error}`.
 Replay emits the same events from `events.jsonl` with 250 ms pacing (×1 or ×2 selectable); screenshots come from the bundle. Replay is labelled in the UI and in every event (`run.mode`).
 
 ## 9. Workbench (React SPA; designed around the hero)

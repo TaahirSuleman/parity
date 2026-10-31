@@ -4,7 +4,7 @@ import { fmtCost, fmtDuration } from "./Header";
 interface Total { recall: number; precision: number; fp_on_clean: number; n: number; n_labels: number; cost_usd: number; seconds: number }
 interface JudgeRow { agreement: number; needs_review_rate: number; cost_per_finding: number; n: number }
 interface SweepRow { recall: number; precision: number; cost_usd: number; seconds: number }
-export interface PublicSample { name: string; run_id: string; pages: number; verified: number; rejected: number }
+export interface PublicSample { name: string; run_id: string; pages: number; verified: number; rejected: number; status?: string; note?: string }
 export interface EvalResults {
   updated_at?: string; model?: string; judge_model?: string; n_faults?: number; n_clean?: number; runs?: number;
   configs?: Record<string, { runs?: number; total: Total }>;
@@ -101,7 +101,8 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
             {(results.public ?? []).map((s) => (
               <li key={s.run_id} className="flex items-center gap-3 py-1 text-sm">
                 <span style={{ minWidth: 70 }}>{s.name}</span>
-                <span className="muted">{s.pages} screen{s.pages === 1 ? "" : "s"} · {s.verified} verified · {s.rejected} rejected</span>
+                <span className="muted">{s.pages} screen{s.pages === 1 ? "" : "s"} · {s.verified} verified · {s.rejected} rejected{s.status && s.status !== "done" && s.status !== "awaiting_review" ? ` · ${s.status}` : ""}</span>
+                {s.note && <span className="text-xs muted">({s.note})</span>}
                 <button type="button" className="btn-quiet text-xs ml-auto" onClick={() => onReplay(s.run_id)}>Replay {s.name}</button>
               </li>
             ))}

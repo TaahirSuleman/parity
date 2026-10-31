@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)
 PROMPTS = Path(__file__).resolve().parent.parent / "meta" / "prompts"
 PROMPT_TOOLS = (PROMPTS / "auditor.md").read_text()
 PROMPT_FALLBACK = (PROMPTS / "auditor_fallback.md").read_text()
+LAST_TURN_NOTICE = "\n\nThis is your last turn. Call finish with a one-sentence summary of where the flow stands."
 NUDGE = "Plain text is not accepted. Call audit_view for an unaudited screen, use the computer tool to continue, or call finish."
 AgentMode = Literal["tools", "fallback"]
 ROUTINE_SAFETY_CODES = {"computer_action_requires_confirmation"}  # acknowledged on our own store only
@@ -140,10 +141,14 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
         if last and mode == "tools":
             # Only finish is offered now; its precondition must be satisfiable, so code audits the current screen.
             await _audit_if_new(ctx, state, page, "last turn: audited by code before finish")
-            input_items = [*input_items, {"role": "user", "content": [{"type": "input_text", "text": "This is your last turn. Call finish with a one-sentence summary of where the flow stands."}]}]
+        instructions = PROMPT_TOOLS if mode == "tools" else PROMPT_FALLBACK
+        if last and mode == "tools":
+            # The notice rides in the instructions: a chained request must answer the pending tool call with its output
+            # alone; mixing a new user message into that input is rejected by the API (seen live: HTTP 400 on turn 12).
+            instructions += LAST_TURN_NOTICE
         body: dict[str, Any] = {
             "model": model, "tools": tools, "reasoning": {"effort": "low"}, "truncation": "auto", "parallel_tool_calls": False,
-            "instructions": PROMPT_TOOLS if mode == "tools" else PROMPT_FALLBACK, "input": input_items,
+            "instructions": instructions, "input": input_items,
         }
         if previous:
             body["previous_response_id"] = previous

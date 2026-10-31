@@ -13,7 +13,7 @@ const results = {
   axe: { recall: 0, violations: 0 },
   judge: { "muse-spark-1.3": { agreement: 0.95, needs_review_rate: 0.03, cost_per_finding: 0.01, n: 31 }, "muse-wonder-1.0": { agreement: 0.97, needs_review_rate: 0.0, cost_per_finding: 0.04, n: 31 } },
   effort_sweep: { low: { recall: 0.7, precision: 0.9, cost_usd: 0.08, seconds: 100 }, medium: { recall: 0.81, precision: 0.93, cost_usd: 0.12, seconds: 160 }, high: { recall: 0.83, precision: 0.92, cost_usd: 0.2, seconds: 260 } },
-  public: [{ name: "Site A", run_id: "public-a", pages: 2, verified: 3, rejected: 1 }],
+  public: [{ name: "Site A", run_id: "public-a", pages: 2, verified: 3, rejected: 1 }, { name: "Site B", run_id: "public-b", pages: 7, verified: 0, rejected: 9, status: "failed", note: "the model API returned 400 on turn 8" }],
 };
 
 describe("EvalTab", () => {
@@ -30,6 +30,8 @@ describe("EvalTab", () => {
     expect(screen.getByRole("row", { name: /wonder/i })).toHaveTextContent("97%");
     fireEvent.click(screen.getByRole("button", { name: /replay site a/i }));
     expect(opened).toEqual(["public-a"]);
+    expect(screen.getByText(/returned 400 on turn 8/)).toBeInTheDocument();
+    expect(screen.getByText(/7 screens · 0 verified · 9 rejected · failed/)).toBeInTheDocument();
     expect(screen.getAllByText(/MUSE SPARK/).length).toBeGreaterThan(0); // every number is attributed to its Meta model
     expect(screen.queryByText(/complian/i)).toBeNull();
   });

@@ -243,7 +243,7 @@ async def test_last_turn_audits_current_screen_before_finish(tmp_path, server_ur
     finished = next(e for e in loaded.events if e.type == "run.finished")
     assert finished.data["agent"]["finished"] is True and finished.data["agent"]["finish_forced"] is False
     last_input = auditor_calls(client)[1]["input"]
-    assert any("last turn" in json.dumps(item).lower() for item in last_input)
+    assert "last turn" in auditor_calls(client)[-1]["instructions"]  # the notice rides in the instructions, never as a second input item
 
 
 async def test_dropped_and_bad_actions_do_not_crash_the_run(tmp_path, server_url, page):
@@ -460,3 +460,18 @@ async def test_public_mode_respects_robots(tmp_path, server_url, page, monkeypat
     assert run.status == RunStatus.done and run.error is None
     assert not loaded.steps and not auditor_calls(client)  # nothing captured, no model call
     assert "robots.txt" in next(e for e in loaded.events if e.type == "nav.blocked").data["reason"]
+
+
+async def test_last_turn_request_answers_the_pending_call_only(tmp_path, server_url, page):
+    """A chained request may carry the tool output alone; the last-turn notice travels in the instructions (live 400 otherwise)."""
+    script = [turn(function_call("audit_view", {"reason": "p"}, "c1")), turn(function_call("finish", {"summary": "done"}, "c2"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory, max_turns=2)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    last = auditor_calls(client)[-1]
+    assert [i.get("type") or i.get("role") for i in last["input"]] == ["function_call_output"]
+    assert "last turn" in last["instructions"] and [t["name"] for t in last["tools"] if t.get("type") == "function"] == ["finish"]

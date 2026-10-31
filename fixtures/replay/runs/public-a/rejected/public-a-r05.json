@@ -1,0 +1,45 @@
+{
+ "id": "public-a-r05",
+ "run_id": "public-a",
+ "step_index": 1,
+ "candidate": {
+  "step_index": 1,
+  "sighted_text": "star rating: 3 out of 5 stars",
+  "sr_quote": "not announced",
+  "why_it_matters": "Blind user gets no rating information that sighted users see as stars.",
+  "bbox": {
+   "x_min": 511,
+   "y_min": 518,
+   "x_max": 572,
+   "y_max": 539
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": false,
+    "detail": "no element at that box"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": null,
+  "feedback": "the box does not land on an element; tighten it around the exact element you mean"
+ }
+}

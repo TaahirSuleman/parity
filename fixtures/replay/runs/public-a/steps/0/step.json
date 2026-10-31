@@ -1,0 +1,16 @@
+{
+ "run_id": "public-a",
+ "index": 0,
+ "url": "https://site-a.invalid/",
+ "actions": [],
+ "screenshot": "steps/0/screenshot.png",
+ "ax_tree": "steps/0/ax.json",
+ "axe": "steps/0/axe.json",
+ "viewport": [
+  1280,
+  720
+ ],
+ "axe_violations": 4,
+ "ax_nodes": 351,
+ "captured_at": "2026-10-31T21:46:13.936766Z"
+}

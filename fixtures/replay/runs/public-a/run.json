@@ -1,0 +1,19 @@
+{
+ "id": "public-a",
+ "mode": "live",
+ "flow_id": "public",
+ "goal": "Site A: Open the first book on the page and read its details. Do not buy anything.",
+ "target_url": "https://site-a.invalid/",
+ "status": "done",
+ "started_at": "2026-10-31T21:46:03.740075Z",
+ "finished_at": "2026-10-31T21:49:57.015475Z",
+ "axe_violations": 7,
+ "findings_verified": 1,
+ "findings_rejected": 5,
+ "tokens": 152971,
+ "cost_usd": 0.01912306,
+ "duration_ms": 233280,
+ "client_ip_hash": "",
+ "error": null,
+ "replay_of": null
+}

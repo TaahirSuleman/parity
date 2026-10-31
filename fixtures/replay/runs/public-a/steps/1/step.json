@@ -1,0 +1,16 @@
+{
+ "run_id": "public-a",
+ "index": 1,
+ "url": "https://site-a.invalid/catalogue/a-light-in-the-attic_1000/index.html",
+ "actions": [],
+ "screenshot": "steps/1/screenshot.png",
+ "ax_tree": "steps/1/ax.json",
+ "axe": "steps/1/axe.json",
+ "viewport": [
+  1280,
+  720
+ ],
+ "axe_violations": 3,
+ "ax_nodes": 50,
+ "captured_at": "2026-10-31T21:47:22.582016Z"
+}

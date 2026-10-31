@@ -94,3 +94,19 @@ async def test_css_drawn_content_without_text_is_a_silent_node(page, store_url):
     cap = await capture(page, 0)
     assert "rating-css" in {n.dom_id for n in cap.silent_nodes}
     assert "rating-css" not in {n.dom_id for n in cap.ax_nodes}
+
+
+async def test_css_generated_text_is_announced_not_silent(page):
+    """Chrome exposes ::before/::after text to screen readers (a "New" badge is read); only pixels with no speakable
+    content (icon glyphs, background images) are silent. The generated text stays in the tree, attributed to its element."""
+    from parity.pipeline.capture import capture
+
+    await page.set_content("""<html><head><style>
+      .new::before { content: "New"; } .dot { display:inline-block; width:12px; height:12px; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><circle cx='6' cy='6' r='6' fill='green'/></svg>"); }
+      .icon::before { content: "\\e900"; display:inline-block; width:16px; height:16px; }
+    </style></head><body><p><span id="badge" class="new"></span> Wireless headphones <span id="dot" class="dot"></span> <span id="icon" class="icon"></span></p></body></html>""")
+    cap = await capture(page, 0)
+    silent = {n.dom_id for n in cap.silent_nodes}
+    assert "badge" not in silent and {"dot", "icon"} <= silent
+    badge = [n for n in cap.ax_nodes if n.name == "New"]
+    assert badge and badge[0].dom_id == "badge" and badge[0].role == "text" and badge[0].bbox is not None

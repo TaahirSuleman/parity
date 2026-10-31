@@ -88,7 +88,7 @@ async def _audit(args) -> int:
     print(f"agent: {agent.get('summary', run.error or '')}")
     for b in blocked:
         print(f"blocked: {b}")
-    print(f"anonymise before sharing: scripts/anonymise_bundle.py --data-dir {settings.data_dir} --run-id {run.id} --host {parts.netloc} --letter A")
+    print(f"anonymise before sharing: scripts/anonymise_bundle.py --data-dir {settings.data_dir} --run-id {run.id} --host {parts.netloc} --name '<brand name>' --letter <A|B|C>")
     return 0 if run.status != "failed" else 1
 
 

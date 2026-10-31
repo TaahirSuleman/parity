@@ -31,7 +31,7 @@ sys.path.insert(0, str(ROOT))
 from parity.api.events import EventBus  # noqa: E402
 from parity.config import Settings, load_settings  # noqa: E402
 from parity.flows import Flow  # noqa: E402
-from parity.meta.client import MetaClient, TraceRouter  # noqa: E402
+from parity.meta.client import MetaClient, MetaError, TraceRouter  # noqa: E402
 from parity.pipeline.audit import Ablation  # noqa: E402
 from parity.pipeline.judge import judge  # noqa: E402
 from parity.pipeline.runner import run_flow  # noqa: E402
@@ -39,7 +39,7 @@ from parity.store import bundle as bundle_mod  # noqa: E402
 from parity.store.blob import LocalBlobStore  # noqa: E402
 from parity.store.bundle import RunBundle  # noqa: E402
 from parity.store.index import RunIndex  # noqa: E402
-from parity.store.models import AxeViolation, AxNode, Capture, Finding  # noqa: E402
+from parity.store.models import AxeViolation, AxNode, Capture, Finding, Judgement, Severity  # noqa: E402
 
 LABELS_PATH = ROOT / "eval" / "labels.json"
 RESULTS_DIR = ROOT / "eval" / "results"
@@ -74,13 +74,22 @@ class Matches:
     by_finding: dict[str, str | None] = field(default_factory=dict)
 
 
+def label_id_of(element) -> str | None:
+    """The id a finding is scored under: the element's own, else the nearest id above it in its css path (a label on a
+    wrapper such as span#k4 > img[alt=""] is hit by the inner img). The same rule the axe baseline is scored under."""
+    if element.dom_id:
+        return element.dom_id
+    ids = _ids_in(element.css_path or "")
+    return ids[-1] if ids else None
+
+
 def match(findings: list, labels: list[dict]) -> Matches:
     """A verified finding matches a label when its located element carries the label's id (spec §13)."""
     faults = {r["id"] for r in labels if not r["clean"]}
     clean = {r["id"] for r in labels if r["clean"]}
     m = Matches(set(), set(), [], [], len(findings), len(faults))
     for f in findings:
-        dom_id = f.element.dom_id
+        dom_id = label_id_of(f.element)
         if dom_id in faults:
             m.hits.add(dom_id)
             m.matched += 1
@@ -136,7 +145,7 @@ def judge_agreement(findings: list, labels: list[dict], judge_cost_usd: float) -
         if j is None or j.is_barrier is None:
             unsure += 1
             continue
-        dom_id = f.element.dom_id
+        dom_id = label_id_of(f.element)
         if dom_id in faults:
             decided += 1
             agree += j.is_barrier is True
@@ -150,6 +159,31 @@ def judge_agreement(findings: list, labels: list[dict], judge_cost_usd: float) -
 
 def mean(xs: list[float]) -> float:
     return sum(xs) / len(xs) if xs else 0.0
+
+
+def provenance(labels_path: Path = LABELS_PATH) -> dict[str, Any]:
+    """Which code and which labels produced a results file: numbers from different versions are never merged."""
+    import hashlib
+    import subprocess
+
+    def git(*args: str) -> str:
+        try:
+            return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=10).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            return ""
+
+    sha = git("rev-parse", "HEAD") or "unknown"
+    return {"git_sha": sha, "git_dirty": bool(git("status", "--porcelain", "--untracked-files=no")),
+            "labels_sha256": hashlib.sha256(Path(labels_path).read_bytes()).hexdigest()}
+
+
+def configs_for(*, ablations: bool, no_screenshot: bool, no_tree: bool, no_grounding: bool, needs_full: bool) -> list[str]:
+    """The configurations an invocation runs. A sweep, a judge comparison or the standard check scores against the full run,
+    so they add it when the flags left it out."""
+    if ablations:
+        return list(CONFIGS)
+    cfg = "tree_only" if no_screenshot else "screenshot_only" if no_tree else "no_grounding" if no_grounding else "full"
+    return ["full", cfg] if needs_full and cfg != "full" else [cfg]
 
 
 # --- running pages --------------------------------------------------------------------------------------
@@ -182,7 +216,7 @@ async def run_eval(*, client=None, client_factory=None, base_url: str, pages: li
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "model": settings.model_for("comparator"),
         "judge_model": settings.model_for("judge"), "effort": effort, "runs": runs, "pages": list(pages), "labels": "eval/labels.json",
         "n_faults": sum(not r["clean"] for r in labels if r["page"] in pages), "n_clean": sum(bool(r["clean"]) for r in labels if r["page"] in pages),
-        "configs": {}, "axe": {"per_page": {}}, "judge": {},
+        **provenance(labels_path), "configs": {}, "axe": {}, "judge": {},
     }
     kwargs: dict[str, Any] = {}
     if page_factory is not None:
@@ -228,9 +262,12 @@ async def run_eval(*, client=None, client_factory=None, base_url: str, pages: li
                           "tokens": sum(v["tokens"] for v in per_page.values()), "cost_usd": sum(v["cost_usd"] for v in per_page.values()),
                           "seconds": sum(v["seconds"] for v in per_page.values())},
             }
+        if not full_runs:  # ablation-only invocation: nothing to score axe or the judges on (zeros would overwrite real rows)
+            return results
         # axe-core baseline on the same labels, from the full run's own axe scan of each page
         axe_hits: set[str] = set()
         axe_viol = 0
+        results["axe"] = {"per_page": {}}
         for page_name, (run_id, _) in full_runs.items():
             raw = json.loads((await bundle.store.get(bundle_mod.keys.axe(run_id, 0))).decode())
             viol = [AxeViolation.model_validate(v) for v in (raw if isinstance(raw, list) else raw.get("violations", []))]
@@ -258,7 +295,11 @@ async def run_eval(*, client=None, client_factory=None, base_url: str, pages: li
                 cap = await capture_from_bundle(bundle, run_id, 0, url)
                 for f in fs:
                     g = f.model_copy(deep=True)
-                    g.judgement = await judge(c, g, cap, run_id, model=jm, fallback_model=jm)
+                    try:
+                        g.judgement = await judge(c, g, cap, run_id, model=jm, fallback_model=jm)
+                    except MetaError as exc:  # as in the product: a judge that fails after its retries sends the finding to a human
+                        log(f"  judge {jm} failed on {f.id} (request {exc.request_id}): needs_review")
+                        g.judgement = Judgement(is_barrier=None, severity=Severity.needs_review, model_meta={"error": str(exc), "model": jm})
                     rejudged.append(g)
             cost = sum(t.cost_usd for t in getattr(router, "unrouted", []) if t.stage == "judge")
             results["judge"][jm] = _agreement_by_page(rejudged, page_of, labels, cost)
@@ -297,8 +338,11 @@ def write_results(results: dict[str, Any], out_dir: Path = RESULTS_DIR, name: st
 
 
 def merge_latest(existing: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
-    """latest.json is the union of every invocation: a configuration is replaced only by one with at least as many
-    runs, judges accumulate, and the other sections are replaced when the new results carry them."""
+    """latest.json is the union of every invocation measured against the same labels: a configuration is replaced only
+    by one with at least as many runs, the judge table is one invocation's (its rows share the verified findings) and is
+    replaced wholesale, and the other sections are replaced when the new results carry them. Other labels start over."""
+    if existing.get("labels_sha256") != new.get("labels_sha256"):
+        existing = {}
     out = dict(existing)
     for key, value in new.items():
         if value in ({}, None, []):
@@ -309,8 +353,6 @@ def merge_latest(existing: dict[str, Any], new: dict[str, Any]) -> dict[str, Any
                 if name not in cfgs or int(entry.get("runs", 1)) >= int(cfgs[name].get("runs", 1)):
                     cfgs[name] = entry
             out["configs"] = cfgs
-        elif key == "judge":
-            out["judge"] = {**out.get("judge", {}), **value}
         else:
             out[key] = value
     out["updated_at"] = new.get("generated_at", existing.get("updated_at"))
@@ -370,11 +412,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.judge_model:
         env["PARITY_JUDGE_MODEL"] = args.judge_model
     pages = [p.strip() for p in args.pages.split(",") if p.strip()]
-    if args.ablations:
-        configs = list(CONFIGS)
-    else:
-        configs = ["full" if not (args.no_screenshot or args.no_tree or args.no_grounding) else
-                   "tree_only" if args.no_screenshot else "screenshot_only" if args.no_tree else "no_grounding"]
+    configs = configs_for(ablations=args.ablations, no_screenshot=args.no_screenshot, no_tree=args.no_tree, no_grounding=args.no_grounding,
+                          needs_full=bool(args.effort_sweep or args.standard_check or args.compare_judge))
+    stamp = args.name or datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
 
     async def go() -> int:
         server, base_url = _serve(base)
@@ -392,6 +432,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"model={settings.model_for('comparator')} judge={settings.model_for('judge')} effort={args.effort} pages={pages} runs={args.runs} configs={configs}")
             results = await run_eval(client_factory=factory_for(settings), base_url=base_url, pages=pages, runs=args.runs, configs=configs,
                                      data_dir=work / "data", settings=settings, effort=args.effort, judge_models=args.compare_judge)
+            write_results(results, name=stamp)  # the paid runs are on disk before any optional phase can fail
             if args.effort_sweep:
                 results["effort_sweep"] = {}
                 for eff in ("low", "medium", "high"):
@@ -408,7 +449,7 @@ def main(argv: list[str] | None = None) -> int:
                 r = await run_eval(client_factory=factory_for(std, "standard"), base_url=base_url, pages=pages, runs=1, configs=["full"],
                                    data_dir=work / "data-standard", settings=std, judge_models=[])
                 results["standard_tier_check"] = {"model": "muse-spark-1.3", **r["configs"]["full"]["total"]}
-            path = write_results(results, name=args.name)
+            path = write_results(results, name=stamp)
             print(f"wrote {path.relative_to(ROOT)} and refreshed latest.json / latest.md")
             for cfg, v in results["configs"].items():
                 t = v["total"]

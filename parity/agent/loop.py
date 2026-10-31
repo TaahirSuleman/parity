@@ -21,7 +21,7 @@ from parity.meta.client import text_of
 from parity.meta.images import png_to_data_url
 from parity.pipeline.actions import execute, is_allowed_target, settle
 from parity.pipeline.audit import RunContext, audit_view
-from parity.pipeline.guard import Blocked, guard_action
+from parity.pipeline.guard import CHALLENGE_PROBES, Blocked, challenge_reason, guard_action
 
 log = logging.getLogger(__name__)
 PROMPTS = Path(__file__).resolve().parent.parent / "meta" / "prompts"
@@ -30,7 +30,13 @@ PROMPT_FALLBACK = (PROMPTS / "auditor_fallback.md").read_text()
 LAST_TURN_NOTICE = "\n\nThis is your last turn. Call finish with a one-sentence summary of where the flow stands."
 NUDGE = "Plain text is not accepted. Call audit_view for an unaudited screen, use the computer tool to continue, or call finish."
 AgentMode = Literal["tools", "fallback"]
-ROUTINE_SAFETY_CODES = {"computer_action_requires_confirmation"}  # acknowledged on our own store only
+# Spark attaches this code to every batch. On our own store it is acknowledged as routine; in public mode it is acknowledged
+# because the read-only guard screens every action first; any other code stops the run.
+ROUTINE_SAFETY_CODES = {"computer_action_requires_confirmation"}
+
+
+class InspectionFailed(RuntimeError):
+    """The element under an action could not be read; in public mode the action is refused rather than guessed at."""
 
 
 @dataclass
@@ -82,30 +88,49 @@ class _Conversation:
 _TARGET_JS = """([x, y, kind]) => {
   const el = kind === "click" || kind === "double_click" ? document.elementFromPoint(x, y) : document.activeElement;
   if (!el || el === document.body) return null;
-  const ctl = el.closest("button, a, input, select, textarea, [role=button], [role=link], summary, label") || el;
-  const img = ctl.querySelector ? ctl.querySelector("img[alt]") : null;
-  const name = (ctl.getAttribute && (ctl.getAttribute("aria-label") || ctl.getAttribute("title"))) || (img && img.alt) || (ctl.innerText || ctl.value || "").trim();
-  const type = (ctl.getAttribute && (ctl.getAttribute("autocomplete") || ctl.getAttribute("type"))) || null;
+  const ctl = el.closest("button, a, input, select, textarea, summary, label, iframe, [onclick], [role=button], [role=link], [role=menuitem], [role=tab], [role=checkbox], [role=switch], [tabindex]") || el;
+  const attr = (n, a) => (n.getAttribute && n.getAttribute(a)) || "";
+  // Every source a name can come from, not the one the accessible-name algorithm would pick: a title beside visible text,
+  // aria-labelledby pointing elsewhere, split text in an onclick div, an image's alt. Any of them matching is enough to refuse.
+  const sources = [attr(ctl, "aria-label"), attr(ctl, "title"), attr(ctl, "value"), (ctl.innerText || ctl.textContent || "")];
+  for (const id of attr(ctl, "aria-labelledby").split(/\\s+/).filter(Boolean)) { const n = document.getElementById(id); if (n) sources.push(n.textContent || ""); }
+  if (ctl.querySelectorAll) for (const img of ctl.querySelectorAll("img[alt], [aria-label], [title]")) sources.push(attr(img, "alt"), attr(img, "aria-label"), attr(img, "title"));
+  const name = Array.from(new Set(sources.map(s => s.replace(/\\s+/g, " ").trim()).filter(Boolean))).join(" | ");
+  const type = [attr(ctl, "type"), attr(ctl, "autocomplete")].join(" ").trim() || null;
   const submits = !!(ctl.form && (ctl.type === "submit" || ctl.tagName === "BUTTON" && !ctl.getAttribute("type")));
-  return { tag: ctl.tagName.toLowerCase(), role: ctl.getAttribute("role") || ctl.tagName.toLowerCase(), name: name.slice(0, 200), type, submits };
+  return { tag: ctl.tagName.toLowerCase(), role: attr(ctl, "role") || ctl.tagName.toLowerCase(), name: name.slice(0, 300), type, submits };
 }"""
 
 
 async def inspect_target(page: Page, action: dict[str, Any]):
-    """The element an action would land on, for the public-site guard: (AxNode-ish, field type, submits?)."""
+    """The element an action would land on, for the public-site guard: (AxNode-ish, field type tokens, submits?).
+    Raises InspectionFailed when the page cannot be read: the guard then refuses rather than guesses."""
     from parity.store.models import AxNode
 
     try:
         info = await page.evaluate(_TARGET_JS, [action.get("x", 0), action.get("y", 0), str(action.get("type") or "")])
-    except Exception:
-        info = None
+    except Exception as exc:
+        raise InspectionFailed(f"the element under the action could not be inspected: {type(exc).__name__}") from exc
     if not info:
         return None, None, False
     field_type = (info.get("type") or "").lower() or None
-    if field_type in ("text", "search", "number"):
-        field_type = field_type
     node = AxNode(backend_id=0, role=str(info.get("role") or ""), name=str(info.get("name") or ""))
     return node, field_type, bool(info.get("submits"))
+
+
+_WALL_JS = """(probes) => {
+  const visible = (n) => { const r = n.getBoundingClientRect(); const cs = getComputedStyle(n); return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none"; };
+  return { title: document.title || "", markers: probes.filter(sel => { try { return Array.from(document.querySelectorAll(sel)).some(visible) || (sel.startsWith("#") && !!document.querySelector(sel)); } catch (e) { return false; } }) };
+}"""
+
+
+async def wall_reason(page: Page) -> str | None:
+    """'blocked by site: …' when the current screen is a CAPTCHA, bot challenge or login wall (spec §17), else None."""
+    try:
+        info = await page.evaluate(_WALL_JS, list(CHALLENGE_PROBES))
+    except Exception:
+        return None
+    return challenge_reason(str(info.get("title") or ""), page.url, list(info.get("markers") or []))
 
 
 async def _audit_if_new(ctx: RunContext, state: AgentState, page: Page, reason: str) -> None:
@@ -126,6 +151,10 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
     tool_names = ["audit_view", "finish"] if mode == "tools" else []
     full_tools: list[dict[str, Any]] = [{"type": "computer"}, *tool_definitions(tool_names)]
     conversation = _Conversation(ctx, mode)
+    if ctx.public and (wall := await wall_reason(page)):
+        await ctx.emit("nav.blocked", {"turn": 0, "url": page.url, "reason": wall})
+        state.summary = wall
+        return AgentResult(0, False, False, wall)  # never bypassed, never audited, never sent to the model
     if mode == "fallback":
         await _audit_if_new(ctx, state, page, "first screen")
     input_items: list[dict[str, Any]] = [{"role": "user", "content": [
@@ -172,7 +201,8 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                         codes = [c.get("code") for c in safety if isinstance(c, dict)]
                         on_store = page.url.startswith(ctx.base_url.rstrip("/") + "/")
                         if on_store and set(codes) <= ROUTINE_SAFETY_CODES:
-                            await ctx.emit("nav.safety_check", {"turn": turn, "codes": codes, "acknowledged": True, "reason": "routine confirmation on the demo store"})
+                            reason = "routine confirmation; the public-site guard screens each action before it runs" if ctx.public else "routine confirmation on the demo store"
+                            await ctx.emit("nav.safety_check", {"turn": turn, "codes": codes, "acknowledged": True, "reason": reason})
                         else:
                             await ctx.emit("nav.blocked", {"turn": turn, "reason": "the model raised a safety check; the batch was not executed", "safety_codes": codes, "url": page.url})
                             state.summary = f"stopped: safety check {codes} raised by the model; no action was taken"
@@ -181,8 +211,11 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                     off_origin = False
                     for action in actions:
                         if ctx.public:
-                            target, field_type, submits = await inspect_target(page, action)
-                            verdict = guard_action(action, target, field_type, submits=submits)
+                            try:
+                                target, field_type, submits = await inspect_target(page, action)
+                                verdict = guard_action(action, target, field_type, submits=submits)
+                            except InspectionFailed as exc:
+                                verdict = Blocked(f"{exc}; refused rather than guessed")
                             if isinstance(verdict, Blocked):
                                 await ctx.emit("nav.blocked", {"turn": turn, "action": action.get("type"), "url": page.url, "reason": f"stopped before irreversible step: {verdict.reason}"})
                                 state.summary = f"stopped before irreversible step: {verdict.reason}"
@@ -202,6 +235,10 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                         await ctx.emit("nav.blocked", {"turn": turn, "url": page.url, "reason": "navigated outside the allowed origins"})
                         state.summary = f"stopped: the page navigated to {page.url}, outside the allowed origins"
                         return AgentResult(turns, False, False, state.summary)  # recorded by the finally below
+                    if ctx.public and (wall := await wall_reason(page)):
+                        await ctx.emit("nav.blocked", {"turn": turn, "url": page.url, "reason": wall})
+                        state.summary = wall
+                        return AgentResult(turns, False, False, wall)
                     outputs.append({
                         "type": "computer_call_output", "call_id": item.get("call_id"),
                         "acknowledged_safety_checks": item.get("pending_safety_checks", []),

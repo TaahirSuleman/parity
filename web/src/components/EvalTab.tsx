@@ -18,6 +18,16 @@ export interface EvalResults {
 const CONFIG_LABELS: Record<string, string> = { full: "Parity (full)", screenshot_only: "screenshot only", tree_only: "tree only", no_grounding: "no grounding" };
 const pct = (x: number | undefined) => (x === undefined || x === null ? "—" : `${Math.round(100 * x)}%`);
 
+/** What the ablation numbers say, and nothing more: which configurations recall less than full Parity, and which do not. */
+export function ablationSentence(keys: string[], configs: Record<string, { total: Total }>, fullRecall: number): string {
+  const lower = keys.filter((k) => configs[k].total.recall < fullRecall).map((k) => CONFIG_LABELS[k] ?? k);
+  const notLower = keys.filter((k) => configs[k].total.recall >= fullRecall).map((k) => CONFIG_LABELS[k] ?? k);
+  const parts: string[] = [];
+  if (lower.length) parts.push(`Lower recall than full Parity: ${lower.join(", ")}.`);
+  if (notLower.length) parts.push(`Not lower: ${notLower.join(", ")}.`);
+  return parts.join(" ");
+}
+
 export function EvalTab({ results, onReplay }: { results: EvalResults | null; onReplay: (runId: string) => void }) {
   if (!results) {
     return (
@@ -60,8 +70,8 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
         </table>
         {full && order.length > 1 && (
           <p className="text-sm mt-2 mb-0" aria-label="Ablation strip">
-            Ablations: {order.filter((k) => k !== "full").map((k) => `${CONFIG_LABELS[k]} recall ${pct(configs[k].total.recall)}`).join(" · ")} — full Parity {pct(full.recall)}.
-            Taking away the screenshot, the tree or the grounding step costs recall; the Verifier keeps precision.
+            Ablations: {order.filter((k) => k !== "full").map((k) => `${CONFIG_LABELS[k]} recall ${pct(configs[k].total.recall)}`).join(" · ")} — full Parity {pct(full.recall)}.{" "}
+            {ablationSentence(order.filter((k) => k !== "full"), configs, full.recall)}
           </p>
         )}
       </section>

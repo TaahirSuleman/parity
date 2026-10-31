@@ -105,3 +105,32 @@ async def test_comparator_output_budget_leaves_room_for_reasoning(tmp_path):
     fake = FakeMetaClient(tmp_path, default={"id": "r", "_request_id": "q", "status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": '{"findings": []}'}]}], "usage": {}})
     await compare(fake, cap, [], "r1", model="muse-spark-1.3-contributor")
     assert fake.calls[-1]["max_output_tokens"] >= 12000
+
+
+async def test_unparseable_retry_is_a_new_request_not_a_cache_hit(tmp_path):
+    """The retry after a non-JSON answer must reach the model: the same body would be served from the on-disk cache (the bad
+    answer again). The retry says what went wrong, which is a different request."""
+    from pathlib import Path
+
+    import httpx
+
+    from parity.config import load_settings
+    from parity.meta.client import MetaClient, TraceRouter
+    from parity.pipeline.comparator import compare
+    from parity.store.models import Capture
+
+    hits = {"n": 0}
+
+    def handler(request):
+        hits["n"] += 1
+        return httpx.Response(200, json={"id": f"r{hits['n']}", "status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": "Sorry, here are my thoughts"}]}], "usage": {"input_tokens": 1, "output_tokens": 1}})
+
+    settings = load_settings(env={"MODEL_API_KEY": "test-key-not-real", "PARITY_DATA_DIR": str(tmp_path)})
+    client = MetaClient(settings, cache_dir=tmp_path / "cache", trace=TraceRouter(), http=httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    cap = Capture.model_validate_json((Path(__file__).parent / "fixtures" / "capture_checkout.json").read_text())
+    first = await compare(client, cap, [], "r1", model="muse-spark-1.3-contributor")
+    again = await compare(client, cap, [], "r1", model="muse-spark-1.3-contributor")
+    assert first.parse_ok is False and again.parse_ok is False and hits["n"] == 1  # the identical request is a cache hit
+    retry = await compare(client, cap, [], "r1", model="muse-spark-1.3-contributor", unparseable_retry=True)
+    assert retry.parse_ok is False and hits["n"] == 2  # the retry is a new request
+    await client.aclose()

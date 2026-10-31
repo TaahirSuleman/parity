@@ -133,16 +133,17 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     rejected_here = 0
     feedback: list[str] | None = None
     seen: set[tuple[str, str | None]] = set()
+    unparseable_retry = False
     for attempt in range(1, MAX_COMPARATOR_ATTEMPTS + 1):
         candidates = await compare(
             ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
-            use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree,
+            use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree, unparseable_retry=unparseable_retry,
         )
         await ctx.emit("comparator.candidates", {"index": step_index, "n": len(candidates), "attempt": attempt, "parse_ok": getattr(candidates, "parse_ok", True)})
         if not getattr(candidates, "parse_ok", True):
             await ctx.emit("comparator.unparseable", {"index": step_index, "attempt": attempt})
             if attempt < MAX_COMPARATOR_ATTEMPTS:
-                feedback = None  # ask again, plainly: the answer was not JSON
+                feedback, unparseable_retry = None, True  # ask again, saying why: the same request would replay the cached bad answer
                 continue
         failures: list[str] = []
         retry_worthy = False

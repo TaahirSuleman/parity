@@ -223,3 +223,5 @@ async def test_unparseable_comparator_answer_is_retried_once(tmp_path, server_ur
     assert run.findings_verified == 1, run.error
     types = [e.type for e in loaded.events]
     assert "comparator.unparseable" in types and types.count("comparator.candidates") == 2
+    prompts = [c["input"][0]["content"][0]["text"] for c in client.calls if "ACCESSIBILITY TREE:" in c["input"][0]["content"][0].get("text", "")]
+    assert len(prompts) >= 2 and prompts[0] != prompts[1] and "not valid JSON" in prompts[1]  # a different request: not a cache replay of the bad answer

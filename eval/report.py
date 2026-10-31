@@ -19,7 +19,9 @@ def render(r: dict) -> str:
     lines = [f"# Eval results — {r.get('updated_at', r.get('generated_at', ''))}", "",
              f"Model `{r.get('model', '?')}`, judge `{r.get('judge_model', '?')}`, effort `{r.get('effort', '?')}`, {r.get('runs', '?')} run(s) per page, "
              f"pages {', '.join(r.get('pages', []))}. Labels: {r.get('n_faults', '?')} seeded faults, {r.get('n_clean', '?')} clean controls "
-             f"(`{r.get('labels', 'eval/labels.json')}`). Recall and precision are means over runs; n is verified findings.", ""]
+             f"(`{r.get('labels', 'eval/labels.json')}`). Recall and precision are means over runs; n is verified findings.", "",
+             f"Measured at commit `{str(r.get('git_sha', 'unknown'))[:12]}`{' (uncommitted changes present)' if r.get('git_dirty') else ''}, "
+             f"labels sha256 `{str(r.get('labels_sha256', '?'))[:12]}`. A finding is scored under its element's id or the nearest id above it.", ""]
     cfgs = r.get("configs", {})
     axe = r.get("axe", {})
     lines += ["## Parity vs axe-core (same labels)", "", "| System | Recall | Precision | Findings | FP on clean | Cost | Time |", "|---|---|---|---|---|---|---|"]

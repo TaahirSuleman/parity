@@ -442,6 +442,73 @@ async def test_public_mode_stops_before_an_irreversible_click(tmp_path, server_u
     assert len(auditor_calls(client)) == 2  # no third turn after the stop
 
 
+WALL_HTML = """<html><head><title>Just a moment...</title></head><body><h1>Checking your browser before accessing the site</h1>
+<form id="challenge-form"><input type="hidden" name="r"></form></body></html>"""
+
+
+async def test_public_mode_ends_at_a_bot_wall(tmp_path, server_url, page):
+    """A CAPTCHA, bot challenge or login wall is never bypassed or audited: the run ends done with reason 'blocked by site' (spec §17)."""
+    from parity.flows import Flow
+
+    await page.route("**/store/wall.html", lambda route: route.fulfill(status=200, content_type="text/html", body=WALL_HTML))
+    script = [turn(computer_call([{"type": "wait", "ms": 10}], "c1")), turn(function_call("finish", {"summary": "x"}, "c2"))]
+
+    async def factory():
+        return page
+
+    flow = Flow(id="public-test", name="public", start_url="/store/wall.html", goal="browse", pages=("wall.html",), single_page=False)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=factory, public=True)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and run.error is None
+    assert not auditor_calls(client) and not loaded.steps  # the wall is neither sent to the model nor audited
+    blocked = next(e for e in loaded.events if e.type == "nav.blocked")
+    assert blocked.data["reason"] == "blocked by site: bot challenge"
+    result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
+    assert result["summary"].startswith("blocked by site")
+
+
+async def test_public_mode_safety_check_reason_names_the_guard(tmp_path, server_url, page):
+    """In public mode the routine confirmation code is acknowledged because every action is screened by the read-only guard;
+    the event says that rather than 'on the demo store'."""
+    from parity.flows import Flow
+
+    checks = [{"id": "sc1", "code": "computer_action_requires_confirmation", "message": "confirm"}]
+    item = computer_call([{"type": "wait", "ms": 10}], "c1")
+    item["pending_safety_checks"] = checks
+    script = [turn(item), turn(function_call("audit_view", {"reason": "p"}, "c2"), function_call("finish", {"summary": "done"}, "c3"))]
+
+    async def factory():
+        return page
+
+    flow = Flow(id="public-test", name="public", start_url="/store/product.html", goal="browse", pages=("product.html",), single_page=False)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=factory, public=True)
+        loaded = await bundle.load(run.id)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    ev = next(e for e in loaded.events if e.type == "nav.safety_check")
+    assert ev.data["acknowledged"] is True and "public-site guard" in ev.data["reason"] and "demo store" not in ev.data["reason"]
+
+
+async def test_public_mode_never_runs_the_fixer(tmp_path, server_url, page):
+    """A public site is sampled read-only: a verified finding is judged and stored, never patched or re-fetched (spec §17)."""
+    from parity.flows import Flow
+
+    script = [turn(function_call("audit_view", {"reason": "checkout"}, "c1")), turn(function_call("finish", {"summary": "x"}, "c2"))]
+
+    async def factory():
+        return page
+
+    flow = Flow(id="public-test", name="public", start_url="/store/checkout.html", goal="browse", pages=("checkout.html",), single_page=False)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=factory, public=True)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and run.findings_verified >= 1, run.error
+    assert not [e.type for e in loaded.events if e.type.startswith(("fixer.", "reaudit."))]
+    assert next(e for e in loaded.events if e.type == "run.finished").data["fixes_proposed"] == 0
+    assert all(f.fix is None for f in loaded.findings)
+
+
 async def test_public_mode_respects_robots(tmp_path, server_url, page, monkeypatch):
     import parity.pipeline.runner as runner_mod
 

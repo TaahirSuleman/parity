@@ -6,15 +6,15 @@
   "verified": 1,
   "rejected": 5,
   "status": "done",
-  "note": ""
+  "note": "one verified gap (a book cover image named by its title, not described); the judge rated it not a barrier"
  },
  {
   "name": "Site B",
   "run_id": "public-b",
-  "pages": 7,
+  "pages": 0,
   "verified": 0,
-  "rejected": 9,
-  "status": "failed",
-  "note": "the model API returned 400 on turn 8; the walk's screens and verifier rows are kept"
+  "rejected": 0,
+  "status": "done",
+  "note": "blocked by site: a bot challenge stood in front of the first page, so the run ended before anything was sent to a model (spec \u00a717)"
  }
 ]

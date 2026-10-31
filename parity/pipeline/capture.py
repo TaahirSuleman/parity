@@ -6,6 +6,7 @@ sighted user sees. Both are taken before axe-core is injected, so the page is un
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +28,7 @@ KEEP_UNNAMED = {
 }
 log = logging.getLogger(__name__)
 MAX_OUTER_HTML = 2000
+SPEAKABLE = re.compile(r"[^\s-]")  # anything beyond whitespace and private-use icon glyphs; mirrors the JS below
 
 _ELEMENT_INFO_JS = """
 function () {
@@ -81,17 +83,42 @@ async def _element_info(cdp: CDPSession, backend_id: int) -> dict[str, Any]:
         return {}
 
 
+def _generated_owners(raw: dict[str, Any], by_id: dict[str, dict[str, Any]]) -> list[int]:
+    """CSS ::before/::after text is an AX text node with no DOM node of its own; a screen reader reads it as part of the
+    element that generated it. The ancestors that have a DOM node, nearest first: the first is usually the pseudo-element
+    itself (no tag, no HTML), the next the real element."""
+    owners: list[int] = []
+    parent = raw.get("parentId")
+    for _ in range(5):
+        node = by_id.get(parent) if parent is not None else None
+        if node is None:
+            break
+        if node.get("backendDOMNodeId") is not None:
+            owners.append(node["backendDOMNodeId"])
+        parent = node.get("parentId")
+    return owners
+
+
 async def _ax_nodes(cdp: CDPSession, viewport: tuple[int, int]) -> list[AxNode]:
     tree = await cdp.send("Accessibility.getFullAXTree")
+    raws = tree.get("nodes", [])
+    by_id = {r.get("nodeId"): r for r in raws}
     nodes: list[AxNode] = []
-    for raw in tree.get("nodes", []):
+    generated: list[tuple[list[int], str]] = []  # (candidate owner backend ids, text) for generated-content text nodes
+    for raw in raws:
         if raw.get("ignored"):
             continue
         role = (raw.get("role") or {}).get("value") or ""
         role = ROLE_RENAMES.get(role, role)
         name = ((raw.get("name") or {}).get("value") or "")[:MAX_NAME]
         backend_id = raw.get("backendDOMNodeId")
-        if role in FILTERED_ROLES or backend_id is None:
+        if role in FILTERED_ROLES:
+            continue
+        if backend_id is None:
+            # Generated text a screen reader can say ("New", "★★★★☆") is kept; an icon-font glyph (private-use code point) is pixels.
+            owners = _generated_owners(raw, by_id) if role == "text" and SPEAKABLE.search(name) else []
+            if owners:
+                generated.append((owners, name))
             continue
         if not name.strip() and role not in KEEP_UNNAMED:
             continue
@@ -106,6 +133,18 @@ async def _ax_nodes(cdp: CDPSession, viewport: tuple[int, int]) -> list[AxNode]:
                 dom_id=info.get("id"),
             )
         )
+    kept = {n.backend_id for n in nodes}
+    for owners, name in generated:
+        for owner in owners:
+            info = await _element_info(cdp, owner)
+            if not info.get("tag"):
+                continue  # the pseudo-element node: no tag, no HTML; the element that generated it is the next ancestor
+            if owner not in kept:  # a named control already carries its generated text in its own name
+                box_px = await _box_px(cdp, owner)
+                kept.add(owner)
+                nodes.append(AxNode(backend_id=owner, role="text", name=name, css_path=info.get("cssPath", ""), box_px=box_px,
+                                    bbox=to_grid(box_px, viewport) if box_px else None, outer_html=info.get("outerHTML"), dom_id=info.get("id")))
+            break
     return nodes
 
 
@@ -123,9 +162,11 @@ _SILENT_JS = """
     const parent = pathOf(node.parentElement);
     return (parent ? parent + " > " : "") + t + ":nth-of-type(" + i + ")";
   }
-  // Pixels with no words: CSS-drawn content (icon fonts, ::before glyphs, background images) on elements with no text and no
-  // role reaches no screen reader. Such an element, or a wrapper whose children are all like it, is silent too.
+  // Pixels with no words: CSS-drawn content (icon-font glyphs, background images) on elements with no text and no role
+  // reaches no screen reader. Generated text that can be spoken ("New", "★★★★☆") is NOT silent: Chrome exposes it and
+  // screen readers read it. Such an element, or a wrapper whose children are all like it, is silent too.
   const CSS_TAGS = new Set(["span", "i", "b", "em", "strong", "div", "p", "a", "li", "td", "th", "label", "small", "sup", "sub"]);
+  const speakable = (s) => /[^\\s\\uE000-\\uF8FF]/u.test(s);  // anything beyond whitespace and private-use icon glyphs
   function pixelOnly(el, depth) {
     if (!el || el.nodeType !== 1 || depth > 3 || !CSS_TAGS.has(el.tagName.toLowerCase())) return false;
     if ((el.textContent || "").trim() !== "" || el.getAttribute("role") || el.getAttribute("aria-label")) return false;
@@ -133,7 +174,9 @@ _SILENT_JS = """
     if (cs.backgroundImage && cs.backgroundImage !== "none") return true;
     for (const pseudo of ["::before", "::after"]) {
       const content = getComputedStyle(el, pseudo).content;
-      if (content && content !== "none" && content !== "normal" && content !== '""' && content !== "''") return true;
+      if (!content || content === "none" || content === "normal" || content === '""' || content === "''") continue;
+      if (/^url\\(/.test(content)) return true;
+      return !speakable(content.replace(/^["']|["']$/g, ""));
     }
     const kids = Array.from(el.children);
     return kids.length > 0 && kids.every(k => pixelOnly(k, depth + 1));

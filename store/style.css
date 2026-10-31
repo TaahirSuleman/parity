@@ -38,5 +38,5 @@ s { color: var(--muted); font-weight: 400; margin-right: 8px; }
 input.qty { width: 54px; display: inline-block; padding: 6px; }
 input.short { width: 90px; display: inline-block; }
 textarea { width: 100%; border: 1px solid #b7bbc6; border-radius: 6px; padding: 8px; font-size: 14px; font-family: inherit; }
-.stars { display: inline-block; letter-spacing: 2px; color: #f5a623; font-size: 16px; line-height: 1; }
-.stars.four::before { content: "\\2605\\2605\\2605\\2605\\2606"; }
+.stars { display: inline-block; width: 84px; height: 16px; vertical-align: middle; }
+.stars.four { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='84' height='16'><polygon points='8,1 10.2,5.6 15.2,6.2 11.5,9.7 12.5,14.7 8,12.2 3.5,14.7 4.5,9.7 0.8,6.2 5.8,5.6' fill='%23f5a623' transform='translate(0,0)'/><polygon points='8,1 10.2,5.6 15.2,6.2 11.5,9.7 12.5,14.7 8,12.2 3.5,14.7 4.5,9.7 0.8,6.2 5.8,5.6' fill='%23f5a623' transform='translate(17,0)'/><polygon points='8,1 10.2,5.6 15.2,6.2 11.5,9.7 12.5,14.7 8,12.2 3.5,14.7 4.5,9.7 0.8,6.2 5.8,5.6' fill='%23f5a623' transform='translate(34,0)'/><polygon points='8,1 10.2,5.6 15.2,6.2 11.5,9.7 12.5,14.7 8,12.2 3.5,14.7 4.5,9.7 0.8,6.2 5.8,5.6' fill='%23f5a623' transform='translate(51,0)'/><polygon points='8,1 10.2,5.6 15.2,6.2 11.5,9.7 12.5,14.7 8,12.2 3.5,14.7 4.5,9.7 0.8,6.2 5.8,5.6' fill='none' stroke='%23f5a623' stroke-width='1.2' transform='translate(68,0)'/></svg>"); background-repeat: no-repeat; }

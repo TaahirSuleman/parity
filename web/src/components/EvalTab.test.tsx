@@ -27,6 +27,9 @@ describe("EvalTab", () => {
     expect(screen.getByRole("row", { name: /axe-core/i })).toHaveTextContent("0%");
     expect(screen.getByText(/37 seeded faults/)).toBeInTheDocument();
     for (const label of ["screenshot only", "tree only", "no grounding"]) expect(screen.getByText(label)).toBeInTheDocument();
+    const strip = screen.getByLabelText("Ablation strip");
+    expect(strip).toHaveTextContent("Lower recall than full Parity: screenshot only, tree only, no grounding.");
+    expect(strip).not.toHaveTextContent(/verifier/i); // the Verifier is on in every configuration: the ablations say nothing about it
     expect(screen.getByRole("row", { name: /wonder/i })).toHaveTextContent("97%");
     fireEvent.click(screen.getByRole("button", { name: /replay site a/i }));
     expect(opened).toEqual(["public-a"]);
@@ -34,6 +37,13 @@ describe("EvalTab", () => {
     expect(screen.getByText(/7 screens · 0 verified · 9 rejected · failed/)).toBeInTheDocument();
     expect(screen.getAllByText(/MUSE SPARK/).length).toBeGreaterThan(0); // every number is attributed to its Meta model
     expect(screen.queryByText(/complian/i)).toBeNull();
+  });
+
+  it("reads the ablation sentence from the numbers, not from a script", () => {
+    const flat = { ...results, configs: { ...results.configs, no_grounding: { runs: 3, total: { ...results.configs.no_grounding.total, recall: 0.81 } } } };
+    render(<EvalTab results={flat} onReplay={() => {}} />);
+    const strip = screen.getByLabelText("Ablation strip");
+    expect(strip).toHaveTextContent("Lower recall than full Parity: screenshot only, tree only. Not lower: no grounding.");
   });
 
   it("says so when there are no results yet", () => {

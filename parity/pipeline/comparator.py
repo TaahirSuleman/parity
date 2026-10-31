@@ -41,7 +41,12 @@ def percept_block(percepts: list[Percept]) -> str:
     return json.dumps(rows, ensure_ascii=False)
 
 
-def build_prompt(capture: Capture, percepts: list[Percept], feedback: list[str] | None, *, use_tree: bool, use_screenshot: bool = True) -> str:
+UNPARSEABLE_NOTE = ("Your previous answer to this request was not valid JSON (prose, or cut off before the closing brace). "
+                    "Answer with the JSON object only: no words before or after it.")
+
+
+def build_prompt(capture: Capture, percepts: list[Percept], feedback: list[str] | None, *, use_tree: bool, use_screenshot: bool = True,
+                 unparseable_retry: bool = False) -> str:
     inputs: list[str] = []
     if use_screenshot:
         inputs.append("- a screenshot: what a sighted user sees;")
@@ -63,6 +68,8 @@ def build_prompt(capture: Capture, percepts: list[Percept], feedback: list[str] 
         parts.append("SILENT ELEMENTS:\n" + silent_block(capture))
     if feedback:
         parts.append("VERIFIER FEEDBACK on your previous attempt (fix these, keep the findings that were fine):\n- " + "\n- ".join(feedback))
+    if unparseable_retry:
+        parts.append(UNPARSEABLE_NOTE)  # a different request: the identical body would be served from the cache, bad answer and all
     return "\n\n".join(parts)
 
 
@@ -101,10 +108,11 @@ def parse_candidates(text: str, step_index: int, attempt: int = 1) -> CandidateL
 
 async def compare(
     client, capture: Capture, percepts: list[Percept], run_id: str, feedback: list[str] | None = None, *,
-    model: str, effort: str = "medium", use_screenshot: bool = True, use_tree: bool = True,
+    model: str, effort: str = "medium", use_screenshot: bool = True, use_tree: bool = True, unparseable_retry: bool = False,
 ) -> list[Candidate]:
-    attempt = 2 if feedback else 1
-    content: list[dict[str, Any]] = [{"type": "input_text", "text": build_prompt(capture, percepts, feedback, use_tree=use_tree, use_screenshot=use_screenshot)}]
+    attempt = 2 if (feedback or unparseable_retry) else 1
+    content: list[dict[str, Any]] = [{"type": "input_text", "text": build_prompt(capture, percepts, feedback, use_tree=use_tree, use_screenshot=use_screenshot,
+                                                                                  unparseable_retry=unparseable_retry)}]
     if use_screenshot:
         content.append({"type": "input_image", "image_url": png_to_data_url(capture.screenshot_png)})
     body = {

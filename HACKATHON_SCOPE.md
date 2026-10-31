@@ -18,7 +18,7 @@
 |---|---|---|
 | Playwright (Python) | browser automation, screenshots, CDP accessibility tree | Apache-2.0 |
 | axe-core | rule-engine baseline the agent is compared against | MPL-2.0 |
-| FastAPI, uvicorn, sse-starlette, httpx, pydantic, aiosqlite, python-dotenv | backend | MIT / BSD |
+| FastAPI, uvicorn, sse-starlette, httpx, pydantic, aiosqlite, python-dotenv, Pillow | backend (Pillow masks public-sample screenshots) | MIT / BSD / MIT-CMU |
 | google-cloud-storage | run bundle storage on Cloud Run | Apache-2.0 |
 | pytest, pytest-asyncio | tests | MIT |
 | React, Vite, TypeScript, Tailwind CSS | workbench | MIT / Apache-2.0 |

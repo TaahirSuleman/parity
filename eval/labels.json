@@ -17,7 +17,7 @@
   "page": "product.html",
   "id": "rating-css",
   "kind": "pixel-only",
-  "description": "Four-star rating drawn with CSS ::before; no text, no role, nothing announced",
+  "description": "Four-star rating drawn as a CSS background image; no text, no role, nothing announced",
   "clean": false
  },
  {

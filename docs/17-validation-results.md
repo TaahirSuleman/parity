@@ -45,3 +45,17 @@ via `scripts/variance_runs.py`; full data in `docs/variance.json`.
   retries 5 times over ~33 s (was 3 over ~4 s) and treats 429 as retryable.
 - Judged against the 12-finding hero bundle, run-to-run recall on seeded barriers is stable;
   per-barrier recall/precision vs labels is Phase 4 (Task 19).
+
+## Fixer and re-audit, live (Phase 3, 31 Oct)
+
+| Flow | Verified | Fixes proposed | Gaps closed by re-audit | Cost | Time |
+|---|---|---|---|---|---|
+| Checkout (single page) | 6 | 6 | 4 (f6 "Delete" and the card error stay open for the human) | $0.082 | 356 s |
+| Purchase (agent, 4 screens) | 12 | 11 (1 snippet refused) | 7 | $0.139 | 772 s |
+
+- The hero fix is the one you would write: `<button id="f5" class="btn">Pay R1,249</button>` (or the image
+  with `alt="Pay R1,249"`); the re-audit reads the new name "Pay R1,249" from the tree and closes the gap.
+- `gap_closed` is strict by design (name must equal or contain the sighted text): a trash icon renamed
+  "Delete" is a good fix but stays "open", so the human sees the before/after and decides.
+- Cost of the fix stage is small (fixer ≈ $0.0004 per finding at contributor rates); time is not: two
+  model calls per barrier add ~6 min to a live purchase run. Replay stays the default for judges.

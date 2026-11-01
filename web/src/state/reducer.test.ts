@@ -154,7 +154,8 @@ describe("pre-P4 QA: what the header and the selection show", () => {
 
 describe("safety checks on the timeline", () => {
   it("records an acknowledged routine check as a timeline row", () => {
-    const s = reduce(play(events.filter((e) => e.type === "run.started")), { type: "nav.safety_check", run_id: "r", at: "2026-10-31T00:00:00Z", turn: 2, codes: ["computer_action_requires_confirmation"], acknowledged: true });
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const s = reduce(started, { type: "nav.safety_check", run_id: started.run!.id, at: "2026-10-31T00:00:00Z", turn: 2, codes: ["computer_action_requires_confirmation"], acknowledged: true });
     expect(s.timeline.at(-1)?.label).toMatch(/safety check acknowledged.*confirm-to-proceed/);
   });
 });
@@ -184,5 +185,38 @@ describe("Task 24: timeline wording for judges", () => {
     expect(s.timeline[s.timeline.length - 1].label).not.toMatch(/computer_action_requires_confirmation/);
     const f = reduce(started, { type: "agent.tool_call", run_id: started.run!.id, at: "2026-10-31T00:00:03Z", turn: 3, tool: "finish", args: { summary: "Order confirmed" } });
     expect(f.timeline[f.timeline.length - 1].label).toMatch(/^finish the walk: Order confirmed/);
+  });
+});
+
+describe("reduce guards (stress pass)", () => {
+  it("ignores events from another run once a run is on screen: two streams must never mix into one feed", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const foreign = { ...events.find((e) => e.type === "verifier.result" && e.passed === true)!, run_id: "other-run" };
+    expect(reduce(started, foreign).findings).toHaveLength(0);
+    const otherStart = { ...events.find((e) => e.type === "run.started")!, run_id: "other-run" };
+    expect(reduce(started, otherStart).run?.id).toBe(started.run!.id); // a second start cannot take over a running run
+  });
+
+  it("a re-audit or judge result never downgrades a decided finding's status (the approved count and the patch link vanished mid-run)", () => {
+    const finished = play(events);
+    const f = finished.findings.find((x) => x.fix)!;
+    const approved = reduce(finished, { type: "decision.recorded", run_id: finished.run!.id, at: "t", finding_id: f.id, decision: { decision: "approve", reason: "ok", decided_at: "t" }, status: "approved", run_status: "awaiting_review" } as unknown as ParityEvent);
+    const after = reduce(approved, { type: "reaudit.result", run_id: finished.run!.id, at: "t", finding_id: f.id, reaudit: f.reaudit ?? { gap_closed: true } } as unknown as ParityEvent);
+    expect(after.findings.find((x) => x.id === f.id)?.status).toBe("approved");
+  });
+
+  it("finishing opens the hero only when the judge has not picked a card themselves", () => {
+    const beforeEnd = play(events.filter((e) => e.type !== "run.finished"));
+    const finish = events.find((e) => e.type === "run.finished")!;
+    const hero = pickHero(beforeEnd.findings)!;
+    const other = beforeEnd.findings.find((f) => f.id !== hero.id)!;
+    expect(reduce(select(beforeEnd, other.id), finish).selectedFindingId).toBe(other.id);
+    expect(reduce(beforeEnd, finish).selectedFindingId).toBe(hero.id);
+  });
+
+  it("does not say 'blocked: blocked by site'", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const s = reduce(started, { type: "nav.blocked", run_id: started.run!.id, at: "t", turn: 1, reason: "blocked by site: bot challenge" } as unknown as ParityEvent);
+    expect(s.timeline[s.timeline.length - 1]?.label).toBe("blocked by site: bot challenge");
   });
 });

@@ -52,3 +52,16 @@ describe("reconcileDecisions", () => {
     expect(events).toEqual([]);
   });
 });
+
+describe("submitDecision conflicts (stress pass)", () => {
+  it("tells the user when another viewer decided first, instead of silently showing that decision as theirs", async () => {
+    const notices: string[] = [];
+    await submitDecision({
+      decide: async () => { throw new ApiError(409, "finding f1 was already approved"); },
+      getRun: async () => ({ run, findings: [decided], steps: [], rejected: [], trace: [] }),
+    }, "r1", "f1", "reject", "late", () => {}, () => {}, (m) => notices.push(m));
+    expect(notices).toHaveLength(1);
+    expect(notices[0]).toMatch(/another viewer/i);
+    expect(notices[0]).toMatch(/approved/i);
+  });
+});

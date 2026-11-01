@@ -14,3 +14,20 @@ describe("Workbench announcements", () => {
     expect(live?.textContent).toMatch(/audit started/i);
   });
 });
+
+describe("Workbench (stress pass)", () => {
+  it("counts approvals by the human's decision, announces a failure, and lets focus land on the main region", async () => {
+    const hero = (await import("./fixtures/hero.json")).default as unknown as { events: import("./state/types").ParityEvent[] };
+    const { reduce } = await import("./state/reducer");
+    const finished = hero.events.reduce(reduce, initialState);
+    const f = finished.findings.find((x) => x.fix)!;
+    const state: RunState = { ...finished, findings: finished.findings.map((x) => (x.id === f.id ? { ...x, status: "reaudited", decision: { decision: "approve", reason: "ok", decided_at: "t" } } : x)) };
+    const { container, unmount } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={false} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    expect(container.textContent).toMatch(/1 approved/);
+    expect(container.querySelector("main")?.getAttribute("tabindex")).toBe("-1");
+    unmount();
+    const failed: RunState = { ...running, phase: "failed", error: "interrupted by restart", run: { ...running.run!, status: "failed" } };
+    const second = render(<Workbench state={failed} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={false} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    expect(second.container.querySelector("[aria-live=polite]")?.textContent).toMatch(/audit failed/i);
+  });
+});

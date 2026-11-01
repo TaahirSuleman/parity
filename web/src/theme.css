@@ -96,8 +96,13 @@ button { font: inherit; color: inherit; }
   .progress::after { animation: none; width: 100%; }
 }
 
-.diff { max-height: 220px; overflow: auto; font-size: 12px; line-height: 1.45; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0 0; white-space: pre; }
-.fix-reason { flex: 1 1 220px; min-width: 0; }
+.diff { max-height: 220px; overflow: auto; font-size: 12px; line-height: 1.45; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.fix-reason { flex: 1 1 100%; min-width: 0; }
+/* A short or narrow viewport (200% zoom on a laptop, a phone): the page scrolls instead of the three panels shrinking to slivers. */
+@media (max-height: 639px), (max-width: 899px) {
+  .workbench-root { height: auto !important; min-height: 100vh; }
+  .workbench-grid > section { min-height: 280px; }
+}
 .badge.warn { border-color: var(--warn); }
 .badge.warn::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--warn); margin-right: 6px; vertical-align: middle; }
 .btn-quiet[role="switch"][aria-checked="true"] { border-color: var(--focus); box-shadow: inset 0 0 0 1px var(--focus); }

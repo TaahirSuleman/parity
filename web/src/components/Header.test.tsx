@@ -139,3 +139,22 @@ describe("Task 24: a cold judge reads the header", () => {
     expect(screen.getByTitle(/Findings that passed the Verifier/)).toHaveTextContent(/3.*rejected by the Verifier/);
   });
 });
+
+describe("Header labels (stress pass)", () => {
+  const base = { id: "r1", mode: "replay" as const, flow_id: "checkout", goal: "", target_url: "", status: "done" as const, started_at: "2026-10-31T00:00:00Z",
+    axe_violations: 0, findings_verified: 3, findings_rejected: 1, tokens: 0, cost_usd: 0, duration_ms: 0 };
+  const props = { flows: [{ id: "checkout", name: "Checkout", single_page: true }], flowId: "checkout", onFlowChange: () => {}, mode: "replay" as const, canLive: false, running: false, onModeChange: () => {}, onRun: () => {} };
+
+  it("names a public sample by its goal and never calls it the store, whatever the flow id's spelling", () => {
+    render(<Header {...props} run={{ ...base, flow_id: "public-site-a.invalid", goal: "Site A: Open the first book" }} />);
+    expect(screen.getByText(/Site A · read-only sample/)).toBeInTheDocument();
+    expect(screen.queryByText(/ShopRight/)).toBeNull();
+  });
+
+  it("shows a failed run as failed, with no '0 ms' and no axe count for a page that was never audited", () => {
+    render(<Header {...props} run={{ ...base, status: "failed", error: "interrupted by restart", duration_ms: 0 }} screens={0} />);
+    expect(screen.getByText(/failed/i)).toBeInTheDocument();
+    expect(screen.queryByText(/0 ms/)).toBeNull();
+    expect(screen.queryByText(/axe-core/)).toBeNull();
+  });
+});

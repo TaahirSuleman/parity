@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Run, RunMode } from "../state/types";
+import { isPublicRun, type Run, type RunMode } from "../state/types";
 
 export interface FlowOption { id: string; name: string; single_page: boolean }
 
@@ -15,6 +15,7 @@ interface Props {
   mode: RunMode;
   canLive: boolean;
   running: boolean;
+  screens?: number; // screens captured so far: with none, there is no axe count to show
   onModeChange: (mode: RunMode) => void;
   onRun: () => void;
 }
@@ -32,7 +33,7 @@ export function fmtDuration(ms: number): string {
 
 /** What the header calls the site on screen: our store, or an anonymised public sample ("Site A"). */
 export function siteLabel(run: Run | null): string {
-  if (run?.flow_id === "public") return /^(Site [A-Z])\b/.exec(run.goal)?.[1] ?? "Public site";
+  if (isPublicRun(run)) return /^(Site [A-Z])\b/.exec(run!.goal)?.[1] ?? "Public site";
   return "ShopRight";
 }
 
@@ -48,14 +49,17 @@ function useElapsed(startedAt: string | undefined, running: boolean): number {
   return running && startedAt ? Math.max(0, now - new Date(startedAt).getTime()) : 0;
 }
 
-export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, onModeChange, onRun, approved = 0, pending = 0, view = "workbench", onViewChange }: Props) {
+export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, screens, onModeChange, onRun, approved = 0, pending = 0, view = "workbench", onViewChange }: Props) {
   const axe = run?.axe_violations ?? 0;
   const elapsed = useElapsed(run?.started_at, running && !!run);
-  const isPublic = run?.flow_id === "public";
+  const isPublic = isPublicRun(run);
+  const audited = screens === undefined || screens > 0;
+  const replay = run?.mode === "replay";
+  const time = !run ? "—" : running ? (replay ? "replaying…" : fmtDuration(elapsed)) : run.duration_ms > 0 ? (replay ? `recorded ${fmtDuration(run.duration_ms)}` : fmtDuration(run.duration_ms)) : "—";
   return (
     <header className="surface" style={{ borderRadius: 0, borderWidth: "0 0 1px 0" }}>
       <div className="flex items-center gap-4 px-4 py-2.5 flex-wrap">
-        <div className="flex items-baseline gap-2">
+        <div className="flex items-baseline gap-2 flex-wrap">
           <h1 className="font-semibold tracking-tight m-0" style={{ fontSize: 15 }}>Parity</h1>
           <span className="muted">·</span>
           {isPublic ? (
@@ -88,18 +92,21 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
           </button>
         )}
         <div className="ml-auto flex items-center gap-5 flex-wrap">
-          <span className="counter" title="axe-core 4.14 violations on the audited screens">
-            <span className="muted">axe-core</span> <strong>{run ? axe : "—"}</strong> <span className="muted">{axe === 1 ? "violation" : "violations"}</span>
-          </span>
+          {(!run || audited) && (
+            <span className="counter" title="axe-core 4.14 violations on the audited screens">
+              <span className="muted">axe-core</span> <strong>{run ? axe : "—"}</strong> <span className="muted">{axe === 1 ? "violation" : "violations"}</span>
+            </span>
+          )}
           <span className="counter" title="Findings that passed the Verifier · candidates it rejected">
             <span className="muted">Parity</span> <strong style={{ color: "var(--ok)" }}>{run ? run.findings_verified : "—"}</strong> <span className="muted">verified</span>{" · "}
             <strong style={{ color: "var(--bad)" }}>{run ? run.findings_rejected : "—"}</strong> <span className="muted">rejected by the Verifier</span>
           </span>
           <span className="counter mono muted" title="Model cost and wall time for this run">
-            {run ? `${fmtCost(run.cost_usd)} · ${running ? (run.mode === "replay" ? "replaying…" : fmtDuration(elapsed)) : run.mode === "replay" && run.duration_ms > 0 ? `recorded ${fmtDuration(run.duration_ms)}` : fmtDuration(run.duration_ms)}` : "— · —"}
+            {run ? `${fmtCost(run.cost_usd)} · ${time}` : "— · —"}
           </span>
           {run?.mode === "replay" && <span className="badge" title={`Replay of recorded run ${run.replay_of ?? ""}`}>replay</span>}
           {run?.status === "awaiting_review" && <span className="badge warn" title="Proposed fixes wait for a human decision">awaiting review</span>}
+          {run?.status === "failed" && <span className="badge" style={{ borderColor: "var(--bad)", color: "var(--bad)" }} title={run.error ?? "the run failed"}>failed</span>}
           {approved + pending > 0 && <span className="counter" title="Fixes approved · fixes waiting for a decision">{`${approved} approved · ${pending} to review`}</span>}
           {run && approved > 0 && <a className="btn-quiet" style={{ padding: "3px 8px", textDecoration: "none" }} href={`/api/runs/${run.id}/patch`} download={`parity-${run.id}.patch`} title="The approved fixes as one git patch">Download fix.patch</a>}
         </div>

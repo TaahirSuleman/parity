@@ -59,6 +59,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
         </button>
       </div>
       {notice && <p role="alert" className="m-0 px-3 py-2 text-sm" style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--line)", color: "var(--bad)" }}>{notice}</p>}
+      {phase === "failed" && items.length > 0 && <p role="alert" className="m-0 px-3 py-2 text-sm" style={{ borderBottom: "1px solid var(--line)", color: "var(--bad)" }}>Run failed: {error}</p>}
       {verifierOff && (
         <p className="m-0 px-3 py-2 text-sm" style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--line)" }} role="status">
           With the gate off this run would report {reported} finding{reported === 1 ? "" : "s"}: {falseCount} false report{falseCount === 1 ? "" : "s"} (the evidence did not hold), {dupCount} duplicate{dupCount === 1 ? "" : "s"}{axeCount ? `, ${axeCount} already reported by axe-core` : ""}.
@@ -84,7 +85,6 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
             <RejectedRow key={it.v.id} rejected={it.v} asReported={verifierOff} kind={kindOf(it.v)} />
           ),
         )}
-        {phase === "failed" && items.length > 0 && <p className="m-0 p-2" style={{ color: "var(--bad)" }}>{error}</p>}
       </div>
     </section>
   );

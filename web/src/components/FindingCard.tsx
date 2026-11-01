@@ -70,7 +70,7 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           <li><CodeBadge what="code · verifier" /></li>
         </ul>
         <details className="check-details text-xs muted mt-1" onClick={(e) => e.stopPropagation()}>
-          <summary className="cursor-pointer">Check details</summary>
+          <summary className="cursor-pointer" aria-label={`Check details for ${finding.sighted_text}`}>Check details</summary>
           <ul className="m-0 mt-1 pl-4">
             {Object.entries(finding.verifier.checks).map(([name, c]) => (
               <li key={name}><span className="mono">{CHECK_LABELS[name] ?? name}</span> — {c.detail}</li>
@@ -123,7 +123,7 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           </div>
           {finding.fix.explanation && <p className="m-0 mt-1">{finding.fix.explanation}</p>}
           <details className="mt-1">
-            <summary className="cursor-pointer muted">Diff</summary>
+            <summary className="cursor-pointer muted" aria-label={`Diff for ${finding.sighted_text}`}>Diff</summary>
             <pre className="diff mono" tabIndex={0} role="region" aria-label={`Unified diff for ${finding.sighted_text}`}>
               {finding.fix.diff.split("\n").map((line, i) => (
                 <span key={i} className={line.startsWith("+") && !line.startsWith("+++") ? "diff-add" : line.startsWith("-") && !line.startsWith("---") ? "diff-del" : undefined}>{line}{"\n"}</span>

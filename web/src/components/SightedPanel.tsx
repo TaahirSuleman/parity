@@ -15,7 +15,10 @@ interface Props {
   onStepChange?: (index: number) => void;
   onSelect: (id: string) => void;
   finished?: boolean;
+  isPublic?: boolean; // an anonymised sample keeps screenshots only where a finding was verified
 }
+
+const pathOf = (url: string) => { try { const u = new URL(url, "http://x"); return u.pathname + u.search; } catch { return url; } };
 
 export const screenName = (url: string) => (url.split("/").pop() || "page").replace(/\.html?$/, "").replace(/[-_]/g, " ");
 
@@ -31,12 +34,13 @@ export function stageBadge(stage: string | null, model: string, hasBoxes = false
   return <CodeBadge what="Chromium · screenshot" />;
 }
 
-export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect, finished = false }: Props) {
+export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect, finished = false, isPublic = false }: Props) {
   const [withheld, setWithheld] = useState(false);  // the image did not load: an anonymised sample keeps screenshots only where a finding was verified
   useEffect(() => setWithheld(false), [screenshotUrl]);
   const onScreen = stepIndex === null ? findings : findings.filter((f) => f.step_index === stepIndex);
   const area = (f: Finding) => (f.bbox.x_max - f.bbox.x_min) * (f.bbox.y_max - f.bbox.y_min);
-  const shown = [...onScreen].sort((a, b) => area(b) - area(a));  // largest first: a small control's box (and its hit halo) paints on top
+  const shown = [...onScreen].sort((a, b) => a.bbox.y_min - b.bbox.y_min || a.bbox.x_min - b.bbox.x_min);  // reading order for the tab order
+  const depth = new Map([...onScreen].sort((a, b) => area(b) - area(a)).map((f, i) => [f.id, i]));  // largest lowest: a small control's box (and its hit halo) paints on top
   const last = steps.length ? steps[steps.length - 1].index : null;
   const shownPercepts = stepIndex === null || stepIndex === last ? percepts : [];
   return (
@@ -49,7 +53,7 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
         <div className="flex items-center gap-1 px-3 pt-2 flex-wrap" role="group" aria-label="Screens of the flow">
           {steps.map((s) => (
             <button key={s.index} type="button" className="btn-quiet text-xs" style={{ padding: "2px 8px" }} aria-pressed={s.index === stepIndex} onClick={() => onStepChange?.(s.index)}
-              title={s.url}>
+              title={pathOf(s.url)}>
               {s.index + 1} · {screenName(s.url)}
             </button>
           ))}
@@ -57,7 +61,7 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
       )}
       <div className="relative m-3" style={{ aspectRatio: "16 / 9", background: "var(--surface-2)", borderRadius: 4, overflow: "hidden", flexShrink: 0 }}>
         {screenshotUrl && withheld ? (
-          <div className="absolute inset-0 grid place-items-center muted text-center px-6">Screenshot withheld for this screen: a third-party page's pixels are kept only where a finding was verified.</div>
+          <div className="absolute inset-0 grid place-items-center muted text-center px-6">{isPublic ? "Screenshot withheld for this screen: a third-party page's pixels are kept only where a finding was verified." : "The screenshot for this screen could not be loaded."}</div>
         ) : screenshotUrl ? (
           <img src={screenshotUrl} alt="The audited page as a sighted user sees it" className="block w-full h-full" style={{ objectFit: "contain" }} onError={() => setWithheld(true)} />
         ) : (
@@ -66,7 +70,7 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
         {shownPercepts.map((p, i) => <span key={`p${i}`} className="percept" style={pct(p.bbox)} aria-hidden="true" />)}
         {shown.map((f) => (
           <button
-            key={f.id} type="button" className="box" style={pct(f.bbox)} data-selected={f.id === selectedId} onClick={() => onSelect(f.id)}
+            key={f.id} type="button" className="box" style={{ ...pct(f.bbox), zIndex: 1 + (depth.get(f.id) ?? 0) }} data-selected={f.id === selectedId} onClick={() => onSelect(f.id)}
             aria-label={`Finding: sighted user sees ${f.sighted_text}`} aria-pressed={f.id === selectedId}
           >
             {f.id === selectedId && <span className="box-label">{f.sighted_text}</span>}

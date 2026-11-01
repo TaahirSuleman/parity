@@ -9,7 +9,7 @@ export function resetFor(mode: RunMode): RunState {
 }
 
 export function select(state: RunState, id: string | null): RunState {
-  return { ...state, selectedFindingId: id };
+  return { ...state, selectedFindingId: id, userSelected: id !== null };
 }
 
 const SEVERITY_RANK: Record<string, number> = { critical: 4, serious: 3, moderate: 2, minor: 1, needs_review: 0 };
@@ -35,12 +35,16 @@ export function shouldReset(state: RunState, mode: RunMode): boolean {
 }
 
 function patchFinding(state: RunState, id: string, patch: Partial<Finding>): RunState {
-  return { ...state, findings: state.findings.map((f) => (f.id === id ? { ...f, ...patch } : f)) };
+  // a decided finding keeps its decision's status: a late re-audit or judge result must not turn "approved" back into "reaudited"
+  return { ...state, findings: state.findings.map((f) => (f.id === id ? { ...f, ...patch, ...(f.decision && patch.status ? { status: f.status } : {}) } : f)) };
 }
 
 /** Pure: one SSE event in, the next RunState out. Unknown event types leave the state unchanged. */
 export function reduce(state: RunState, ev: ParityEvent): RunState {
   const run = state.run;
+  if (run && ev.run_id !== run.id && (ev.type !== "run.started" || state.phase === "running")) {
+    return state; // another run's stream (a double click opened two), or a second start over a run that is going: never mixed into this feed
+  }
   switch (ev.type) {
     case "run.started": {
       const mode = (ev.mode as RunMode) ?? state.mode;
@@ -65,8 +69,10 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
       const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged (${reason}): ${codes.map((c) => SAFETY_LABELS[c] ?? c).join(", ")}` };
       return { ...state, timeline: [...state.timeline, row] };
     }
-    case "nav.blocked":
-      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "blocked", label: `blocked: ${String(ev.reason ?? "")}`, at: ev.at }] };
+    case "nav.blocked": {
+      const reason = String(ev.reason ?? "");
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "blocked", label: /^blocked\b/i.test(reason) ? reason : `blocked: ${reason}`, at: ev.at }] };
+    }
     case "agent.tool_call": {
       const args = (ev.args as Record<string, unknown> | undefined) ?? {};
       const reason = typeof args.reason === "string" ? args.reason : typeof args.summary === "string" ? args.summary : "";
@@ -145,7 +151,7 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
         : [];
       return {
         ...state, phase: "finished", stage: null, agent, timeline: [...state.timeline, ...outcome],
-        selectedFindingId: pickHero(state.findings)?.id ?? state.selectedFindingId,
+        selectedFindingId: state.userSelected ? state.selectedFindingId : pickHero(state.findings)?.id ?? state.selectedFindingId,
         run: {
           ...run, status: (ev.status as Run["status"]) ?? "done", finished_at: ev.at, duration_ms: duration,
           findings_verified: Number(ev.findings_verified ?? run.findings_verified), findings_rejected: Number(ev.findings_rejected ?? run.findings_rejected),

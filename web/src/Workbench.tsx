@@ -6,7 +6,7 @@ import { ScreenReaderPanel } from "./components/ScreenReaderPanel";
 import { SightedPanel } from "./components/SightedPanel";
 import { TraceDrawer } from "./components/TraceDrawer";
 import type { FlowOption } from "./components/Header";
-import type { RunMode, RunState } from "./state/types";
+import { isPublicRun, type RunMode, type RunState } from "./state/types";
 
 interface Props {
   state: RunState;
@@ -26,27 +26,29 @@ interface Props {
   onViewChange?: (view: "workbench" | "eval") => void;
   evalResults?: EvalResults | null;
   onReplayRun?: (runId: string) => void;
+  starting?: boolean; // a start request is in flight: the Run button is already taken
 }
 
 /** The whole workbench from props: the mock and the live app render this same component. */
-export function Workbench({ state, flows, flowId, onFlowChange, canLive, screenshotUrl, model, onModeChange, onRun, onSelect, onDecision, stepIndex = null, onStepChange, view = "workbench", onViewChange, evalResults = null, onReplayRun }: Props) {
-  const approved = state.findings.filter((f) => f.status === "approved").length;
+export function Workbench({ state, flows, flowId, onFlowChange, canLive, screenshotUrl, model, onModeChange, onRun, onSelect, onDecision, stepIndex = null, onStepChange, view = "workbench", onViewChange, evalResults = null, onReplayRun, starting = false }: Props) {
+  const approved = state.findings.filter((f) => f.decision?.decision === "approve").length;  // by the human's decision, which no later event overwrites
   const pending = state.findings.filter((f) => f.fix && !f.decision).length;
   const [traceOpen, setTraceOpen] = useState(false);
   const selected = state.findings.find((f) => f.id === state.selectedFindingId) ?? null;
-  const isPublic = state.run?.flow_id === "public";
+  const isPublic = isPublicRun(state.run);
   const outcome = state.agent && !state.agent.finished ? state.agent.summary : null;  // a walk the site or the guard stopped
   const live = state.phase === "running" ? "Audit started: capturing the page and comparing what is seen with what is announced."
-    : state.phase === "finished" ? `Audit finished: ${state.run?.findings_verified ?? 0} verified findings.` : "";
+    : state.phase === "finished" ? `Audit finished: ${state.run?.findings_verified ?? 0} verified findings.`
+    : state.phase === "failed" ? `Audit failed: ${state.error ?? "the run failed"}.` : "";
   return (
-    <div className="flex flex-col" style={{ height: "100vh" }}>
-      <Header view={view} onViewChange={onViewChange} approved={approved} pending={pending} flows={flows} flowId={flowId} onFlowChange={onFlowChange} run={state.run} mode={state.mode} canLive={canLive} running={state.phase === "running"} onModeChange={onModeChange} onRun={onRun} />
+    <div className="flex flex-col workbench-root" style={{ height: "100vh" }}>
+      <Header view={view} onViewChange={onViewChange} approved={approved} pending={pending} flows={flows} flowId={flowId} onFlowChange={onFlowChange} run={state.run} mode={state.mode} canLive={canLive} running={state.phase === "running" || starting} screens={state.steps.length} onModeChange={onModeChange} onRun={onRun} />
       {view === "eval" ? (
-        <main className="flex-1 flex flex-col min-h-0 overflow-auto"><EvalTab results={evalResults} onReplay={(id) => onReplayRun?.(id)} /></main>
+        <main id="main" tabIndex={-1} className="flex-1 flex flex-col min-h-0 overflow-auto"><EvalTab results={evalResults} onReplay={(id) => onReplayRun?.(id)} /></main>
       ) : (
-      <main className="flex-1 workbench-grid">
+      <main id="main" tabIndex={-1} className="flex-1 workbench-grid">
         <SightedPanel screenshotUrl={screenshotUrl} findings={state.findings} percepts={state.percepts} selectedId={state.selectedFindingId} stage={state.stage} model={state.models.navigator ?? model} timeline={state.timeline}
-          steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} finished={state.phase === "finished"} />
+          steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} finished={state.phase === "finished"} isPublic={isPublic} />
         <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
           flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} notice={state.notice ?? null} outcome={outcome} steps={state.steps}
           fixesExpected={state.phase === "running" && !isPublic} comparatorModel={state.models.comparator} />

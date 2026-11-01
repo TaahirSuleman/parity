@@ -38,7 +38,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
     return (
       <section className="surface p-5 m-3" aria-labelledby="eval-h">
         <h2 id="eval-h" className="text-xs uppercase tracking-wider muted font-medium m-0">Eval</h2>
-        <p className="muted">No eval results yet. Run <code className="mono">python -m eval.harness --ablations</code> to produce them.</p>
+        <p className="muted">No eval results are published on this server yet.</p>
       </section>
     );
   }
@@ -53,7 +53,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
           <h2 id="eval-main-h" className="m-0" style={{ fontSize: 16 }}>Parity vs axe-core, same labels</h2>
           <MetaBadge model={model} capability="seer · comparator" />
           <CodeBadge what="code · verifier" />
-          <span className="muted text-xs ml-auto">{results.n_faults ?? "?"} seeded faults · {results.n_clean ?? "?"} clean controls · {results.runs ?? configs.full?.runs ?? 1} run(s) per page · {fmtWhen(results.updated_at)}</span>
+          <span className="muted text-xs ml-auto">{results.n_faults ?? "?"} seeded faults · {results.n_clean ?? "?"} clean controls · {results.runs ?? configs.full?.runs ?? 1} {(results.runs ?? configs.full?.runs ?? 1) === 1 ? "run" : "runs"} per page · {fmtWhen(results.updated_at)}</span>
         </div>
         <table className="eval mt-3">
           <thead><tr><th scope="col">System</th><th scope="col">Recall</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">FP on clean</th><th scope="col">Cost / page set</th><th scope="col">Time</th></tr></thead>

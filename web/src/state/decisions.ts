@@ -27,7 +27,7 @@ export function decisionEvent(runId: string, finding: Finding, run: Run): Parity
  */
 export async function submitDecision(
   api: DecisionApi, runId: string, findingId: string, decision: "approve" | "reject", reason: string,
-  onEvent: (ev: ParityEvent) => void, onError: (message: string) => void,
+  onEvent: (ev: ParityEvent) => void, onError: (message: string) => void, onConflict?: (message: string) => void,
 ): Promise<void> {
   try {
     const res = await api.decide(runId, findingId, decision, reason);
@@ -39,6 +39,8 @@ export async function submitDecision(
         const recorded = detail.findings.find((f) => f.id === findingId);
         if (recorded?.decision) {
           onEvent(decisionEvent(runId, recorded, detail.run));
+          const theirs = recorded.decision.decision === "approve" ? "approved" : "rejected";
+          onConflict?.(`Another viewer decided this finding first: it is ${theirs}. Your ${decision === "approve" ? "approval" : "rejection"} was not recorded.`);
           return;
         }
       } catch {

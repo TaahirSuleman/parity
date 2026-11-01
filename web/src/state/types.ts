@@ -62,7 +62,11 @@ export interface RunState {
   percepts: { visible_text: string; kind: string; bbox: BBox }[];
   error: string | null;
   notice?: string | null; // a transient message (a failed decision, an interrupted stream): shown, never fatal
+  userSelected?: boolean; // the judge picked a card themselves: finishing must not take it away
 }
+
+/** A read-only public sample ("Site A"): run.json says `public`; an older sample's start event said `public-<host>`. */
+export const isPublicRun = (run: Pick<Run, "flow_id"> | null | undefined): boolean => Boolean(run && (run.flow_id === "public" || run.flow_id.startsWith("public-")));
 
 export const MODEL_LABELS: Record<string, string> = {
   "muse-spark-1.3": "Muse Spark 1.3",

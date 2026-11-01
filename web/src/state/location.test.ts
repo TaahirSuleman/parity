@@ -11,3 +11,13 @@ describe("run links", () => {
     expect(withRunParam("?run=old", null)).toBe("");
   });
 });
+
+describe("run links by path (stress pass)", () => {
+  it("also reads /runs/<id>, the form the server and the QA report call a run link", async () => {
+    const { runIdFromLocation } = await import("./location");
+    expect(runIdFromLocation("/runs/20261031-1234-ab", "")).toBe("20261031-1234-ab");
+    expect(runIdFromLocation("/", "?run=r1")).toBe("r1");
+    expect(runIdFromLocation("/runs/..%2Fetc", "")).toBeNull();
+    expect(runIdFromLocation("/eval", "")).toBeNull();
+  });
+});

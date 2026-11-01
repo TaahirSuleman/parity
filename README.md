@@ -6,7 +6,7 @@ Built this week (26 Oct – 4 Nov 2026) for the Meta Global AI Developer Hackath
 
 ## Try it
 
-- **Hosted demo:** _added after the first deploy (docs/23 §6, Task 22)_. No login. Press **Run the audit** with **Replay** selected: a recorded run plays back with no model calls. **Live** runs the real pipeline against the bundled store and is rate-limited per visitor.
+- **Hosted demo:** [https://parity-u7lcbbxuia-uc.a.run.app](https://parity-u7lcbbxuia-uc.a.run.app). No login. Press **Run the audit** with **Replay** selected: a recorded run plays back with no model calls. **Live** runs the real pipeline against the bundled store and is rate-limited per visitor.
 - **Locally, in three commands:**
 
 ```bash

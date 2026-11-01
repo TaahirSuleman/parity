@@ -22,4 +22,4 @@ Remove them and Parity collapses into axe-core. The accessibility tree says what
 "Parity was built this week on Meta's Muse Spark; Playwright and axe-core are pre-existing open source."
 
 ## X post (Most Viral)
-axe-core says 0 violations. A blind shopper still can't tell what the Pay button charges. Parity (built this week on Meta's Muse Spark) walks the checkout as a sighted user and as a screen reader, proves each gap against the accessibility tree, proposes the fix and re-checks it. 84% recall / 97% precision on faults axe passes. [video] [URL]
+axe-core says 0 violations. A blind shopper still can't tell what the Pay button charges. Parity (built this week on Meta's Muse Spark) walks the checkout as a sighted user and as a screen reader, proves each gap against the accessibility tree, proposes the fix and re-checks it. 84% recall / 97% precision on faults axe passes. [video] https://parity-u7lcbbxuia-uc.a.run.app

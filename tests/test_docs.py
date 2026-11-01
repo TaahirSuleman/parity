@@ -61,6 +61,5 @@ def test_readme_quotes_every_ablation_and_describes_gating_as_the_code_does():
 import pytest
 
 
-@pytest.mark.xfail(reason="the hosted URL is filled in at the first deploy (Task 22)", strict=False)
 def test_readme_has_the_hosted_url():
     assert "run.app" in README and "added after the first deploy" not in README

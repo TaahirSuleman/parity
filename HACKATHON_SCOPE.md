@@ -24,7 +24,7 @@
 | React, Vite, TypeScript, Tailwind CSS | workbench | MIT / Apache-2.0 |
 | Playwright Docker base image | deploy image | Apache-2.0 |
 
-No pre-existing application code, models, datasets or prompts are reused. Public statistics quoted in the demo (WebAIM Million 2026; US ADA web suits 2025) are cited in the README.
+No pre-existing application code, models, datasets or prompts are reused. The README quotes only numbers measured here; any public statistic shown in the video is cited on screen.
 
 ## Models at runtime
 Only Meta models: `muse-spark-1.3-contributor` (default for navigation, perception, comparison and fixes), `muse-spark-1.3` (the judge, the judge fallback and private mode); `muse-wonder-1.0` was measured as an alternative judge in the eval and is not used at runtime. `muse-voice-transcribe-1.0` (transcribing recorded VoiceOver audio) is planned for a later phase and is part of the submission only if the README says so. Playwright and axe-core are not models. VoiceOver is Apple's screen reader; if used, it only records audio clips and is never called at runtime.

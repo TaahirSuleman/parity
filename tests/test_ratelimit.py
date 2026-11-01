@@ -46,3 +46,20 @@ def test_check_looks_without_counting():
 def test_unknown_visitor_is_one_bucket():
     rl = RateLimiter(per_ip_per_hour=2, global_per_day=10, clock=Clock())
     assert rl.take("").allowed and rl.take("").allowed and isinstance(rl.take(""), Denied)
+
+
+def test_check_never_allocates_state():
+    """Refused or probing requests must not grow the limiter: 2,000 forged hops left 8 MB of keys in review."""
+    rl = RateLimiter(per_ip_per_hour=1, global_per_day=10, clock=Clock())
+    for i in range(100):
+        rl.check(f"10.0.{i // 256}.{i % 256}" + "x" * 50)
+    assert rl._per_ip == {}
+    rl.take("1.1.1.1")
+    assert set(rl._per_ip) == {"1.1.1.1"}
+
+
+def test_denied_message_states_the_limit_only():
+    """The UI writes the retry time and the Replay suggestion once; the server's text must not repeat them."""
+    rl = RateLimiter(per_ip_per_hour=0, global_per_day=10, clock=Clock())
+    d = rl.take("a")
+    assert isinstance(d, Denied) and "Replay" not in d.message and "try again" not in d.message.lower()

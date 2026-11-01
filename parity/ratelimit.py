@@ -29,9 +29,8 @@ class Denied:
 
     @property
     def message(self) -> str:
-        if self.scope == "ip":
-            return f"you have used this hour's Live runs; try again in {self.retry_after_s} s, or watch a Replay (no model calls, no limit)"
-        return f"today's Live runs are used up for everyone; try again in {self.retry_after_s} s, or watch a Replay (no model calls, no limit)"
+        """The limit that was hit, and nothing more: the UI adds the retry time and the Replay suggestion once."""
+        return "you have used this hour's Live runs" if self.scope == "ip" else "today's Live runs are used up for everyone"
 
 
 Verdict = Allowed | Denied
@@ -52,14 +51,19 @@ class RateLimiter:
             window.popleft()
 
     def check(self, ip: str) -> Verdict:
+        """Looks without allocating: a refused or probing request must not grow the limiter (forged addresses are free to send)."""
         now = self.clock()
         self._prune(self._global, DAY_S, now)
         if len(self._global) >= self.global_per_day:
             return Denied(retry_after_s=max(1, int(DAY_S - (now - self._global[0]))), scope="global")
-        mine = self._per_ip.setdefault(ip or "unknown", deque())
-        self._prune(mine, HOUR_S, now)
-        if len(mine) >= self.per_ip_per_hour:
-            return Denied(retry_after_s=max(1, int(HOUR_S - (now - mine[0]))), scope="ip")
+        mine = self._per_ip.get(ip or "unknown")
+        if mine is not None:
+            self._prune(mine, HOUR_S, now)
+            if not mine:
+                del self._per_ip[ip or "unknown"]
+                mine = None
+        if len(mine or ()) >= self.per_ip_per_hour:  # a limit of 0 refuses everyone, without ever allocating
+            return Denied(retry_after_s=max(1, int(HOUR_S - (now - mine[0]))) if mine else HOUR_S, scope="ip")
         return Allowed()
 
     def take(self, ip: str) -> Verdict:

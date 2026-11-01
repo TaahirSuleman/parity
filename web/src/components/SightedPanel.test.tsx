@@ -53,3 +53,15 @@ describe("Task 24: idle legend", () => {
     expect(legend).toHaveTextContent(/code/);
   });
 });
+
+describe("box stacking", () => {
+  it("draws the largest boxes first so a small control's box, and its hit halo, sit on top", () => {
+    const small = { ...onStep2, id: "small", bbox: { x_min: 100, y_min: 100, x_max: 110, y_max: 104 } };
+    const large = { ...onStep2, id: "large", bbox: { x_min: 0, y_min: 90, x_max: 400, y_max: 120 } };
+    const { container } = render(<SightedPanel screenshotUrl="/shot.png" findings={[small, large]} percepts={[]} selectedId={null} stage={null} model="m" timeline={[]}
+      steps={steps} stepIndex={2} onStepChange={() => {}} onSelect={() => {}} />);
+    const boxes = container.querySelectorAll("button.box");
+    expect(boxes[0].getAttribute("aria-label")).toBe(large && boxes[0].getAttribute("aria-label")); // placeholder to keep TS happy
+    expect(Array.from(boxes).map((b) => (b as HTMLElement).style.width)).toEqual(["40%", "1%"]);
+  });
+});

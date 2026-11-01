@@ -10,7 +10,7 @@ from pathlib import Path
 
 import aiosqlite
 
-from parity.store.bundle import RunBundle
+from parity.store.bundle import RunBundle, keys
 from parity.store.models import Event, Finding, ModelCall, Run, RunMode, RunStatus, now
 
 log = logging.getLogger(__name__)
@@ -126,17 +126,21 @@ class RunIndex:
         replays_seen = 0
         for run_id in sorted(await bundle.list_run_ids(), reverse=True):
             try:
-                loaded = await bundle.load(run_id)
+                run = Run.model_validate_json(await bundle.store.get(keys.run(run_id)))  # one read decides eviction; the rest is loaded once
             except Exception as exc:  # one corrupt bundle must not stop the server from booting
                 log.warning("boot skips unreadable bundle %s: %s", run_id, exc)
                 continue
-            run = loaded.run
             if run.mode == RunMode.replay:
                 replays_seen += 1
                 if replays_seen > replay_keep:
-                    await bundle.delete_run(run_id)
+                    await bundle.delete_run(run_id)  # evicted without reading its screens, findings or logs
                     evicted.append(run_id)
                     continue
+            try:
+                loaded = await bundle.load(run_id, run=run)
+            except Exception as exc:
+                log.warning("boot skips unreadable bundle %s: %s", run_id, exc)
+                continue
             if run.status in (RunStatus.running, RunStatus.queued):
                 run.status = RunStatus.failed
                 run.error = "interrupted by restart"
@@ -151,6 +155,18 @@ class RunIndex:
                 await self.insert_call(call)
             indexed += 1
         return {"indexed": indexed, "recovered": sorted(recovered), "evicted": sorted(evicted)}
+
+    async def replay_ids_oldest_first(self) -> list[str]:
+        db = await self._conn()
+        async with db.execute("SELECT id FROM runs WHERE mode = ? ORDER BY started_at ASC, id ASC", (RunMode.replay.value,)) as cur:
+            return [row[0] for row in await cur.fetchall()]
+
+    async def delete_run(self, run_id: str) -> None:
+        db = await self._conn()
+        await db.execute("DELETE FROM model_calls WHERE run_id = ?", (run_id,))
+        await db.execute("DELETE FROM findings WHERE run_id = ?", (run_id,))
+        await db.execute("DELETE FROM runs WHERE id = ?", (run_id,))
+        await db.commit()
 
     async def recover_interrupted(self, bundle: RunBundle) -> list[str]:
         """Runs still marked running/queued after a restart are failed, bundle first, then index."""

@@ -185,10 +185,10 @@ class RunBundle:
     async def read_screenshot(self, run_id: str, n: int) -> bytes:
         return await self.store.get(keys.screenshot(run_id, n))
 
-    async def load(self, run_id: str) -> LoadedRun:
+    async def load(self, run_id: str, run: Run | None = None) -> LoadedRun:
         if not await self.exists(run_id):
             raise KeyError(run_id)
-        run = Run.model_validate_json(await self.store.get(keys.run(run_id)))
+        run = run or Run.model_validate_json(await self.store.get(keys.run(run_id)))
         loaded = LoadedRun(run=run)
         prefix = keys.prefix(run_id)
         for key in await self.store.list(prefix):

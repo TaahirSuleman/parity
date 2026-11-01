@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import ipaddress
 import logging
 from typing import Literal
 
@@ -60,7 +61,7 @@ async def start_run(req: RunRequest, request: Request) -> dict:
     if req.replay_of:
         if req.replay_of not in st.replay_ids:
             raise HTTPException(404, f"no recorded run {req.replay_of!r}")
-        run = await replay.start(req.replay_of, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms)
+        run = await replay.start(req.replay_of, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms, replay_keep=st.settings.replay_keep)
         return {"run_id": run.id, "mode": run.mode, "replay_of": req.replay_of}
     flow = FLOWS.get(req.flow_id or "")
     if flow is None:
@@ -69,7 +70,7 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         source_id = st.replay_for_flow.get(flow.id)
         if source_id is None:
             raise HTTPException(404, f"no replay bundle recorded for flow {flow.id!r}")
-        run = await replay.start(source_id, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms)
+        run = await replay.start(source_id, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms, replay_keep=st.settings.replay_keep)
         return {"run_id": run.id, "mode": run.mode, "replay_of": source_id}
     if not st.settings.live_enabled:
         raise HTTPException(403, "Live mode is disabled on this server; use Replay")
@@ -113,13 +114,16 @@ async def _live(st, flow, run_id: str, ip_hash: str) -> None:
 
 
 def client_ip(request: Request, trust_proxy: bool) -> str:
-    """The visitor's address for the per-IP limit: behind the platform proxy, the first X-Forwarded-For hop; otherwise the
-    socket peer (a direct client can type any header it likes)."""
+    """The visitor's address for the per-IP limit. Behind Google's front end the address it saw is APPENDED to X-Forwarded-For,
+    so the right-most hop is the one it vouches for and anything to the left is what the client typed; a direct client's header
+    is ignored altogether. A hop that is not an IP address falls back to the socket peer."""
     if trust_proxy:
-        forwarded = request.headers.get("x-forwarded-for", "")
-        first = forwarded.split(",")[0].strip()
-        if first:
-            return first
+        hops = [h.strip() for h in request.headers.get("x-forwarded-for", "").split(",") if h.strip()]
+        if hops:
+            try:
+                return str(ipaddress.ip_address(hops[-1]))
+            except ValueError:
+                pass
     return request.client.host if request.client else ""
 
 

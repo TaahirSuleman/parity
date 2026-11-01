@@ -132,6 +132,8 @@ async def test_boot_indexes_recovers_and_caps_replays_in_one_pass(tmp_path):
     finally:
         await index.close()
     run_json_reads = [k for k in reads if k.endswith("/run.json")]  # counted before the assertions below load bundles themselves
+    evicted_reads = [k for k in reads if "/20261101-110000-rep0/" in k and not k.endswith("/run.json")]
+    assert evicted_reads == [], evicted_reads  # an evicted copy costs one run.json read, nothing more
     assert result["recovered"] == ["20261101-100000-live"] and result["evicted"] == ["20261101-110000-rep0"] and result["indexed"] == 3
     ids = await bundle.list_run_ids()
     assert "20261101-110000-rep0" not in ids and {"20261101-120000-rep1", "20261101-130000-rep2", "20261101-100000-live"} <= set(ids)

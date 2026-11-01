@@ -44,7 +44,7 @@ class Settings:
     live_per_ip_per_hour: int = 3
     live_global_per_day: int = 40
     live_target_origins: str = "self"
-    replay_keep: int = 50  # Replay copies kept across boots; the oldest beyond this are evicted at boot
+    replay_keep: int = 20  # Replay copies kept (evicted oldest-first when a Replay starts and at boot); boot loads each kept copy once
     trust_proxy: bool = False  # behind Cloud Run the visitor is the first X-Forwarded-For hop; a direct client's header is ignored
     log_level: str = "info"
 

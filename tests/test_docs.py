@@ -48,3 +48,19 @@ def test_readme_and_docs_map_links_resolve():
             if not path.exists():
                 missing.append(f"{doc.relative_to(ROOT)} -> {target}")
     assert missing == [], missing
+
+
+def test_readme_quotes_every_ablation_and_describes_gating_as_the_code_does():
+    latest = json.loads((ROOT / "eval" / "results" / "latest.json").read_text())
+    for key in ("screenshot_only", "tree_only", "no_grounding"):
+        assert f"{round(100 * latest['configs'][key]['total']['recall'])}%" in README, key
+    assert "a screen must be audited before the walk moves on" not in README  # only finish is gated; code audits the last screen itself
+    assert "`finish` is refused" in README
+
+
+import pytest
+
+
+@pytest.mark.xfail(reason="the hosted URL is filled in at the first deploy (Task 22)", strict=False)
+def test_readme_has_the_hosted_url():
+    assert "run.app" in README and "added after the first deploy" not in README

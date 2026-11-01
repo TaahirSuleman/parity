@@ -302,7 +302,8 @@ async def test_live_runs_are_rate_limited_per_ip_with_a_json_429_and_replay_is_u
 
 
 async def test_forwarded_for_header_is_trusted_only_behind_a_proxy(tmp_path):
-    """Behind Cloud Run the visitor is the first X-Forwarded-For hop; from a direct client the header is whatever they typed, so it is ignored."""
+    """Behind Cloud Run the visitor is the RIGHT-most X-Forwarded-For hop (the front end appends the address it saw; anything to the
+    left is what the client typed); from a direct client the whole header is ignored."""
     import httpx
 
     from parity.meta.fake import FakeMetaClient
@@ -311,13 +312,15 @@ async def test_forwarded_for_header_is_trusted_only_behind_a_proxy(tmp_path):
         async with app.router.lifespan_context(app):
             app.state.client = FakeMetaClient(tmp_path / "none")
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-                first = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"}, headers={"X-Forwarded-For": "203.0.113.1, 10.0.0.1"})
+                first = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"}, headers={"X-Forwarded-For": "10.9.9.1, 198.51.100.7"})
                 assert first.status_code == 202
                 await _finish(client, first.json()["run_id"])
-                return (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"}, headers={"X-Forwarded-For": "203.0.113.2, 10.0.0.1"})).status_code
+                forged = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"}, headers={"X-Forwarded-For": "10.9.9.2, 198.51.100.7"})).status_code
+                other = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"}, headers={"X-Forwarded-For": "203.0.113.9"})).status_code
+                return forged, other
 
-    assert await two_posts(await _app_with(tmp_path / "direct", PARITY_LIVE_PER_IP_PER_HOUR="1")) == 429  # spoofed header ignored: same visitor
-    assert await two_posts(await _app_with(tmp_path / "proxied", PARITY_LIVE_PER_IP_PER_HOUR="1", PARITY_TRUST_PROXY="1")) == 202  # two visitors
+    assert await two_posts(await _app_with(tmp_path / "direct", PARITY_LIVE_PER_IP_PER_HOUR="1")) == (429, 429)  # header ignored: one visitor
+    assert await two_posts(await _app_with(tmp_path / "proxied", PARITY_LIVE_PER_IP_PER_HOUR="1", PARITY_TRUST_PROXY="1")) == (429, 202)  # a forged left hop is still the same visitor; a new right hop is another
 
 
 async def test_finished_run_buffers_are_evicted_and_history_is_still_served(api):
@@ -336,3 +339,27 @@ async def test_health_reports_storage_index_and_model_reachability(api):
     body = (await client.get("/api/health")).json()
     assert body["storage"] == "local" and isinstance(body["runs_indexed"], int)
     assert body["models_ok"] is False  # no key in tests: the boot probe did not run
+
+
+async def test_replay_start_caps_the_copies_kept(tmp_path):
+    """Every Replay click copies a bundle; the cap applies when a Replay starts, not only at the next boot, so a day of judges cannot slow the next restart."""
+    import httpx
+
+    app = await _app_with(tmp_path, PARITY_REPLAY_KEEP="1")
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            ids = []
+            for _ in range(3):
+                r = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})
+                assert r.status_code == 202
+                ids.append(r.json()["run_id"])
+                await _finish(client, ids[-1])
+            kept = await app.state.bundle.list_run_ids()
+    assert ids[-1] in kept and ids[0] not in kept and ids[1] not in kept, (ids, kept)
+
+
+async def test_asset_404_is_not_cached_for_a_year_and_head_root_is_allowed(api):
+    client, _ = api
+    missing = await client.get("/assets/index-nope.js")
+    assert missing.status_code == 404 and "immutable" not in missing.headers.get("cache-control", "")
+    assert (await client.head("/")).status_code == 200  # uptime checkers use HEAD

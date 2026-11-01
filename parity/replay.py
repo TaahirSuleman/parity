@@ -22,10 +22,28 @@ def _rewrite(text: str, source_id: str, new_id: str) -> str:
     return text.replace(source_id, new_id)
 
 
+async def evict_replay_copies(bundle: RunBundle, index, keep: int) -> list[str]:
+    """Delete the oldest Replay copies beyond ``keep`` (the index knows which runs are replays, so no bundle is read)."""
+    ids = await index.replay_ids_oldest_first()
+    gone: list[str] = []
+    for run_id in ids[: max(0, len(ids) - keep)]:
+        try:
+            await bundle.delete_run(run_id)
+            await index.delete_run(run_id)
+            gone.append(run_id)
+        except Exception as exc:
+            log.warning("could not evict replay copy %s: %s", run_id, exc)
+    return gone
+
+
 async def start(
     source_id: str, source: RunBundle, bus: EventBus, bundle: RunBundle, index, *, pace_ms: int = DEFAULT_PACE_MS, run_id: str | None = None,
+    replay_keep: int | None = None,
 ) -> Run:
-    """Copy the source bundle into ``bundle`` under a new id and schedule the paced event replay."""
+    """Copy the source bundle into ``bundle`` under a new id and schedule the paced event replay. With ``replay_keep`` the
+    oldest copies beyond it are evicted first, so boot cost stays bounded however often judges click Replay."""
+    if replay_keep is not None:
+        await evict_replay_copies(bundle, index, max(0, replay_keep - 1))
     loaded = await source.load(source_id)
     new_id = run_id or new_run_id()
     run = Run.model_validate_json(_rewrite(loaded.run.model_dump_json(), source_id, new_id))
@@ -103,8 +121,11 @@ async def _publish(run: Run, final_status: RunStatus, events: list[Event], bus: 
             if pace_ms and i < len(events) - 1:
                 await asyncio.sleep(pace_ms / 1000)
     finally:
+        from parity.pipeline.gate import run_lock
+
         if not finalized:
             await finalize()
-        await bundle.flush(run.id)
+        async with run_lock(run.id):  # a decision recorded during the last write must not be overwritten by it
+            await bundle.flush(run.id)
         bundle.forget(run.id)  # as for a live run: the bundle is the record; late subscribers read it
         bus.forget(run.id)

@@ -19,7 +19,7 @@ make setup                  # Homebrew python@3.12, node, uv; venv; Chromium; we
 make demo                   # serves http://127.0.0.1:8080 and opens it
 ```
 
-Tests: `make test` (pytest, including browser smoke tests) and `make test-web` (vitest). The eval: `.venv/bin/python -m eval.harness --ablations --runs 3` (live; costs about $1.50 per run set).
+Tests: `make test` (pytest, including browser smoke tests) and `make test-web` (vitest). The eval: `.venv/bin/python -m eval.harness --ablations --runs 3` (live; about $3.50 for the four configurations on a cold cache).
 
 ## What you will see
 
@@ -31,7 +31,7 @@ The Purchase flow (one pick away) is the agent walk: Muse Spark's computer use t
 
 ![Parity's pipeline: Navigator, Capture, Seer, Comparator, Verifier per screen; Judge, Fixer, Re-audit, Human gate, Run bundle per finding](docs/img/architecture.png)
 
-**How it acts.** The model decides; allow-listed code acts. Muse Spark's computer-use output is a list of actions; a small executor runs only the kinds it knows (click, type, key, scroll, wait, screenshot) and only inside the allowed origin. Two gated function tools, `audit_view` and `finish`, are refused with feedback when their preconditions do not hold (a screen must be audited before the walk moves on; `finish` is refused until the current screen is audited). On a third-party site (CLI only, never from the hosted app) a read-only guard refuses anything that looks like a purchase, a sign-up or a form submission, and a bot wall ends the run as `blocked by site`.
+**How it acts.** The model decides; allow-listed code acts. Muse Spark's computer-use output is a list of actions; a small executor runs only the kinds it knows (click, type, key, scroll, wait, screenshot) and only inside the allowed origin. Two function tools are gated by code: `finish` is refused, with feedback, until the current screen has been audited (after three refusals the finish is forced and marked as such); `audit_view` is answered once per screen, so a repeat costs nothing; and on the last turn code audits the screen itself before offering `finish`. On a third-party site (CLI only, never from the hosted app) a read-only guard refuses anything that looks like a purchase, a sign-up or a form submission, and a bot wall ends the run as `blocked by site`.
 
 **What is deterministic.** Capture (screenshot, Chrome's accessibility tree with boxes, axe-core), the Verifier's five checks, the re-audit's name rule, the human gate, the patch export, the Replay, and the eval's matching are code. A finding cannot exist without passing the Verifier, and nothing is applied to a page without a human approving it.
 
@@ -43,7 +43,7 @@ The Purchase flow (one pick away) is the agent walk: Muse Spark's computer use t
 | **Muse Spark 1.3 · perception grounding** (0–1000 boxes) | Seer | Turns the screenshot into *what a sighted user sees, where*; the Verifier can only check a claim that comes with a box. |
 | **Muse Spark 1.3 · multimodal comparison** | Comparator | Reads the screenshot and the accessibility tree together and names where they disagree, quoting the tree exactly so code can verify the quote. |
 | **Muse Spark 1.3 · a separate judge call** | Judge | Severity and WCAG, fails closed to "needs review"; Muse Wonder 1.0 was measured as an alternative judge (same agreement, 2.3× the cost). |
-| **Muse Spark 1.3 · fixer and re-audit** | Fixer, Re-audit | A minimal HTML change, then the comparison run again on the patched page in a sandbox. |
+| **Muse Spark 1.3 · fixer, and the comparison inside the re-audit** | Fixer, Re-audit | A minimal HTML change, then (code) the patched page loaded in a sandbox, the name rule checked, and (Spark) the comparison run again. |
 
 Contributor tier by default (the same model at about a twelfth of the price); a private mode switches every stage to standard `muse-spark-1.3`. Every stage shows its model badge in the workbench, and the trace drawer lists every call with its model, request ID, tokens, latency, cost and cache state. Real screen-reader audio (VoiceOver clips transcribed by Muse Voice Transcribe) is planned but **not yet built**; this README will say so if it lands.
 
@@ -59,7 +59,7 @@ Measured on the bundled store: **38 seeded faults of the kind axe-core passes, 2
 | no grounding (no Seer) | 82% | 95% | 33 per run | 0.7 | $0.36 | 428 s |
 | axe-core 4.14 | 0% | — | 0 violations | — | $0 | — |
 
-How to read it: the accessibility tree carries most of the recall; the screenshot alone finds little because the Verifier rejects what cannot be quoted from the tree; grounding adds two points of recall and removes 0.7 false positives on clean controls per page set; precision stays at or above 95% in every configuration because the Verifier gates all four (the "Without the Verifier" switch in the workbench shows what a run would have reported without it). axe-core's 0% is by construction: the faults were chosen to pass it. Judge: Spark and Wonder each agree with the labels on 94% of the same 33 findings. Three runs is a small sample; the spread between runs was two to three labels per page set. Full method and caveats: [docs/17](docs/17-validation-results.md).
+How to read it: the accessibility tree carries most of the recall; the screenshot alone finds little because the Verifier rejects what cannot be quoted from the tree; grounding adds two points of recall and removes 0.7 false positives on clean controls per page set; precision stays between 95% and 98% in every configuration because the Verifier gates all four (the "Without the Verifier" switch in the workbench shows what a run would have reported without it). axe-core's 0% is by construction: the faults were chosen to pass it. Judge: Spark and Wonder each agree with the labels on 94% of the same 33 findings. Three runs is a small sample; the spread between runs was two to three labels per page set. Full method and caveats: [docs/17](docs/17-validation-results.md).
 
 **Real-world sample** (read-only, anonymised, CLI only): Site A, two screens, six verified findings (five CSS-drawn star ratings that announce nothing; axe reports none of them). Site B: a bot challenge in front of the first page ended the run before anything was sent to a model.
 

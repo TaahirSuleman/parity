@@ -34,7 +34,9 @@ export function stageBadge(stage: string | null, model: string, hasBoxes = false
 export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect, finished = false }: Props) {
   const [withheld, setWithheld] = useState(false);  // the image did not load: an anonymised sample keeps screenshots only where a finding was verified
   useEffect(() => setWithheld(false), [screenshotUrl]);
-  const shown = stepIndex === null ? findings : findings.filter((f) => f.step_index === stepIndex);
+  const onScreen = stepIndex === null ? findings : findings.filter((f) => f.step_index === stepIndex);
+  const area = (f: Finding) => (f.bbox.x_max - f.bbox.x_min) * (f.bbox.y_max - f.bbox.y_min);
+  const shown = [...onScreen].sort((a, b) => area(b) - area(a));  // largest first: a small control's box (and its hit halo) paints on top
   const last = steps.length ? steps[steps.length - 1].index : null;
   const shownPercepts = stepIndex === null || stepIndex === last ? percepts : [];
   return (
@@ -75,7 +77,7 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
         <ul className="mx-3 mb-3 mt-0 p-0 text-xs muted flex flex-col gap-1" style={{ listStyle: "none" }} aria-label="Pipeline: who does what">
           <li><strong>Muse Spark 1.3</strong> · Navigator (computer use), Seer (grounding), Comparator, Judge, Fixer: the model perceives and proposes.</li>
           <li><strong>Code</strong> · Capture, Verifier, Re-audit, Human gate: deterministic checks decide what counts; a finding exists only after the Verifier.</li>
-          <li><strong>Gated tools</strong> · "audit this screen" and "finish the walk" are refused by code until their preconditions hold.</li>
+          <li><strong>Gated tools</strong> · "finish the walk" is refused by code until the current screen has been audited; "audit this screen" is answered once per screen; on the last turn code audits the screen itself.</li>
         </ul>
       )}
       {timeline.length > 0 && (

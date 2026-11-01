@@ -72,7 +72,7 @@ deploy() {
     --min-instances 1 --max-instances 1 --cpu 2 --memory 2Gi --no-cpu-throttling --timeout 3600 --concurrency 20 \
     --service-account "$SA" \
     --set-secrets "MODEL_API_KEY=${SECRET}:latest" \
-    --set-env-vars "PARITY_GCS_BUCKET=${BUCKET},PARITY_INDEX_PATH=/tmp/index.db,PARITY_CACHE_DIR=/tmp/cache,PARITY_DEFAULT_MODE=replay,PARITY_TRUST_PROXY=1,PARITY_LOG_LEVEL=info"
+    --set-env-vars "PARITY_GCS_BUCKET=${BUCKET},PARITY_INDEX_PATH=/tmp/index.db,PARITY_CACHE_DIR=/tmp/cache,PARITY_DEFAULT_MODE=replay,PARITY_TRUST_PROXY=1,LOG_LEVEL=info"
   url
 }
 
@@ -89,6 +89,6 @@ teardown() {
 
 case "${1:-}" in
   setup|secret|build|deploy|url|teardown) "$1" ;;
-  all) setup; build; deploy ;;
+  all) setup; if [ -n "${MODEL_API_KEY:-}" ] || [ -f "$ROOT/.env" ]; then secret; else echo "no MODEL_API_KEY: run 'deploy/cloudrun.sh secret' before deploy"; fi; build; deploy ;;
   *) sed -n '2,12p' "$0"; exit 1 ;;
 esac

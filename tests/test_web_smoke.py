@@ -240,8 +240,10 @@ async def test_screenshot_boxes_have_a_24px_hit_area(page, server_url):
             const bad = [];
             for (const b of document.querySelectorAll('button.box')) {
               const r = b.getBoundingClientRect();
-              if (r.width >= 24 && r.height >= 24) continue;
               const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+              const centre = document.elementFromPoint(cx, cy);
+              if (!centre || centre.closest('button.box') !== b) bad.push(`${b.getAttribute('aria-label')} centre -> ${centre && centre.tagName}`);  // no halo may take a box's own centre
+              if (r.width >= 24 && r.height >= 24) continue;
               const ex = Math.max(8, (24 - r.width) / 2) - 2, ey = Math.max(8, (24 - r.height) / 2) - 2;  // 2px inside the halo
               for (const [x, y] of [[cx, r.top - ey], [cx, r.bottom + ey], [r.left - ex, cy], [r.right + ex, cy]]) {
                 const hit = document.elementFromPoint(x, y);

@@ -104,7 +104,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # browser that cached it before a redeploy asks for an asset that no longer exists and shows a blank page.
         response = await call_next(request)
         path = request.url.path
-        if path.startswith("/assets/"):
+        if path.startswith("/assets/") and response.status_code == 200:
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         elif not path.startswith(("/api/", "/store/")) and response.headers.get("content-type", "").startswith("text/html"):
             response.headers["Cache-Control"] = "no-cache"
@@ -115,7 +115,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if STATIC_DIR.exists():
         app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
 
-        @app.get("/{path:path}", include_in_schema=False)
+        @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)
         async def spa(path: str) -> FileResponse:
             # A shared run link (/runs/<id>, or ?run= on any path) opens the workbench: any path that is not an API route, a
             # store page or a real file under static/ serves index.html. A missing file (favicon.ico) stays a 404.

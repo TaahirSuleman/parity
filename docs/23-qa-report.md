@@ -264,3 +264,26 @@ show the path, not a local origin; "Diff" and "Check details" are named per find
 (largest-lowest z-index keeps the hit test); the tab title follows the run's state; a favicon; no "0 ms"; "run"/"runs".
 Left for the user's VoiceOver pass: the length of the status read on load, two near-identical "capturing" announcements, "image, image"
 during the run, and whether a freshly inserted `role=status` is announced.
+
+### 7.5 Verification of the stress pass
+
+- Every fix above has a test that failed before the change and passed after it. The Python suite is green (339 tests, including the
+  Playwright smoke suite and the docs checks); vitest is 86 of 86.
+- Both agents' repro scripts were re-run on the fixed build: 272 API fuzz cases with no 5xx; `Infinity` and a lone surrogate answer 422;
+  a 60 MB body answers 413 in 0.1 s with nothing echoed; 200 unread SSE clients plus 200 half-sent requests leave health at 8 ms and file
+  descriptors back where they started; 2,000 bursts of 30 ids produce no collision; every Enter spelling, the `::before`-labelled button,
+  "Complete purchase" and the icon-only button are refused by the guard; SIGTERM to a real uvicorn mid-replay exits in 1 s and leaves
+  `run.json` failed ("the server shut down") with `run.failed` closing the log. In the browser: a double or triple click starts one run;
+  three tabs deciding the same finding get 200, 409, 409 and the two losers are told; approving before the re-audit keeps the count and
+  the patch link; finishing leaves a chosen card and its reason field alone; Site A and Site B play under their own names; Run from the
+  Eval tab switches views and is announced; `/runs/<id>` opens the run; a bad link and a failed flow list show notices; at 200% zoom
+  on a 1280×720 laptop the page scrolls (main 3,909 px, no slivers); nothing overflows sideways from 768 to 1920 px at 2×; the keyboard
+  journey has no body stops, no invisible focus and nothing out of view.
+- One repro still counted two POSTs on a slow network: the page trace shows the second click landing at 17.6 s, not at 1 s. Playwright's
+  click waits for the button to leave its disabled state, that is for the first run to finish, and then starts a legitimate new run.
+- Hosted (revision parity-00004 from f1c7bd5, deployed after the pass): `/api/health` reports `storage: gcs`, `models_ok: true`; `/%00`,
+  `/eval/%00`, a 2,000-character path and a 2,000-character or NUL run id all answer 404; `/api/runs` is 404; the run made before the
+  redeploy (`20261101-164858-0f8e`) is still served with its one decision and its patch; `/` is `no-cache` and the hashed bundle immutable;
+  a 3 MB body is refused with 413.
+- Hosted stress on revision 00004: 10 concurrent Replays in 4.2 s, none bad; the fuzz list produced no 5xx; one Live checkout run finished
+  (7 verified, $0.104, 268 s) and a second Live POST during it answered 429 with `retry_after_s: 60` and the Replay suggestion.

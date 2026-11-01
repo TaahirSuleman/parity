@@ -205,3 +205,13 @@ async def test_every_call_is_logged(tmp_path, caplog):
     line = next((r.getMessage() for r in caplog.records if "comparator" in r.getMessage()), "")
     assert "muse-spark-1.3" in line and "req-1" in line and "tokens" in line and "ms" in line and "$" in line
     assert KEY not in line
+
+
+def test_default_call_timeout_covers_a_long_comparator_answer(tmp_path):
+    """Spec §15 said 60 s per call before the comparator's 12,000-token budget; measured p95 is 70 s, so the cap is 120 s (ledgered)."""
+    from parity.config import load_settings
+    from parity.meta.client import CALL_TIMEOUT_S, MetaClient, TraceRouter
+
+    assert CALL_TIMEOUT_S == 120
+    client = MetaClient(load_settings(env={"MODEL_API_KEY": "k", "PARITY_DATA_DIR": str(tmp_path)}), cache_dir=tmp_path / "c", trace=TraceRouter())
+    assert client._http.timeout.read == 120

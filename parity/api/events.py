@@ -26,11 +26,18 @@ class EventBus:
         return run_id in self._history
 
     def publish(self, run_id: str, event: Event) -> None:
+        if run_id not in self._history and run_id in self._done:
+            return  # a forgotten run: the event is already in the bundle, and a partial in-memory history would shadow it
         self._history.setdefault(run_id, []).append(event)
         for q in self._subs.get(run_id, []):
             q.put_nowait(event)
         if event.type in TERMINAL:
             self._done.add(run_id)
+
+    def forget(self, run_id: str) -> None:
+        """Drop a finished run's in-memory history once the bundle holds it; late subscribers read the bundle."""
+        self._history.pop(run_id, None)
+        self._subs.pop(run_id, None)
 
     def is_finished(self, run_id: str) -> bool:
         return run_id in self._done

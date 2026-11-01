@@ -260,3 +260,71 @@ async def test_replay_of_a_bundle_whose_screenshot_was_withheld(api, tmp_path):
     assert (await client.get(f"/api/runs/{run_id}/steps/0/screenshot.png")).status_code == 404
     events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
     assert events[0][0] == "run.started" and events[-1][0] == "run.finished"  # the rest of the step replays as usual
+
+
+async def _app_with(tmp_path, **env):
+    from parity.app import create_app
+    from parity.config import load_settings
+    from tests.helpers import make_replay_bundle
+
+    await make_replay_bundle(tmp_path / "replay")
+    settings = load_settings(env={
+        "PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_CACHE_DIR": str(tmp_path / "cache"),
+        "PARITY_INDEX_PATH": str(tmp_path / "index.db"), "PARITY_REPLAY_DIR": str(tmp_path / "replay"), **env,
+    })
+    return create_app(settings)
+
+
+async def _finish(client, run_id: str) -> None:
+    events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
+    assert events[-1][0] in ("run.finished", "run.failed")
+
+
+async def test_live_runs_are_rate_limited_per_ip_with_a_json_429_and_replay_is_unlimited(tmp_path):
+    """Spec §15: a visitor gets a few Live runs an hour; the refusal says when to retry and points at Replay, which is never counted."""
+    import httpx
+
+    from parity.meta.fake import FakeMetaClient
+
+    app = await _app_with(tmp_path, PARITY_LIVE_PER_IP_PER_HOUR="1")
+    async with app.router.lifespan_context(app):
+        app.state.client = FakeMetaClient(tmp_path / "none")  # a live run fails fast without fixtures, which is all this needs
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            first = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"})
+            assert first.status_code == 202
+            await _finish(client, first.json()["run_id"])
+            second = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"})
+            assert second.status_code == 429 and second.headers.get("Retry-After")
+            body = second.json()
+            assert body["suggestion"] == "replay" and isinstance(body["retry_after_s"], int) and body["retry_after_s"] > 0 and "error" in body
+            for _ in range(5):  # Replay is unlimited
+                assert (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).status_code == 202
+
+
+async def test_forwarded_for_header_is_trusted_only_behind_a_proxy(tmp_path):
+    """Behind Cloud Run the visitor is the first X-Forwarded-For hop; from a direct client the header is whatever they typed, so it is ignored."""
+    import httpx
+
+    from parity.meta.fake import FakeMetaClient
+
+    async def two_posts(app):
+        async with app.router.lifespan_context(app):
+            app.state.client = FakeMetaClient(tmp_path / "none")
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                first = await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"}, headers={"X-Forwarded-For": "203.0.113.1, 10.0.0.1"})
+                assert first.status_code == 202
+                await _finish(client, first.json()["run_id"])
+                return (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"}, headers={"X-Forwarded-For": "203.0.113.2, 10.0.0.1"})).status_code
+
+    assert await two_posts(await _app_with(tmp_path / "direct", PARITY_LIVE_PER_IP_PER_HOUR="1")) == 429  # spoofed header ignored: same visitor
+    assert await two_posts(await _app_with(tmp_path / "proxied", PARITY_LIVE_PER_IP_PER_HOUR="1", PARITY_TRUST_PROXY="1")) == 202  # two visitors
+
+
+async def test_finished_run_buffers_are_evicted_and_history_is_still_served(api):
+    """A finished run's events and trace live in the bundle; keeping them in memory as well would grow with every Replay click."""
+    client, app = api
+    run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+    await _finish(client, run_id)
+    assert not app.state.bus.knows(run_id) and run_id not in app.state.bundle._events and run_id not in app.state.bundle._trace
+    events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)  # a late subscriber reads the bundle
+    assert events[0][0] == "run.started" and events[-1][0] == "run.finished" and len(events) > 5

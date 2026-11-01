@@ -21,6 +21,7 @@ from parity.api.routes import router
 from parity.config import Settings, load_settings
 from parity.meta.client import MetaClient, TraceRouter
 from parity.pipeline import browser
+from parity.ratelimit import RateLimiter
 from parity.store.blob import LocalBlobStore, make_blob_store
 from parity.store.bundle import RunBundle
 from parity.store.index import RunIndex
@@ -77,6 +78,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.trace = TraceRouter()
     st.client = MetaClient(settings, cache_dir=settings.cache_dir, trace=st.trace) if settings.has_key else None
     st.live_lock = asyncio.Lock()
+    st.limiter = RateLimiter(settings.live_per_ip_per_hour, settings.live_global_per_day)
     st.last_live_run = None  # the newest Live run id, for the finishing-run grace in POST /runs
     st.self_base_url = f"http://127.0.0.1:{settings.port}"
     st.replay_for_flow = {}

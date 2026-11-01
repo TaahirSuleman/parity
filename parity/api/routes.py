@@ -9,6 +9,7 @@ from typing import Literal
 
 from urllib.parse import urlparse
 
+from fastapi.responses import JSONResponse
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
@@ -74,19 +75,26 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         raise HTTPException(403, "Live mode is disabled on this server; use Replay")
     if st.client is None:
         raise HTTPException(503, "Live mode needs MODEL_API_KEY on the server; use Replay")
+    ip = client_ip(request, st.settings.trust_proxy)
+    verdict = st.limiter.check(ip)
+    if not verdict.allowed:
+        return _too_many(verdict.message, verdict.retry_after_s)
     if st.live_lock.locked():
         # A holder that has already published its terminal event is only mid-teardown: wait for the
         # slot instead of refusing, so "Run" works the moment a viewer sees the previous run end.
         finishing = st.last_live_run is not None and st.bus.is_finished(st.last_live_run)
         if not finishing:
-            raise HTTPException(429, "a Live run is already in progress; try again shortly or use Replay", headers={"Retry-After": "60"})
+            return _too_many("a Live run is already in progress; try again shortly, or watch a Replay (no model calls, no limit)", 60)
         try:
             await asyncio.wait_for(st.live_lock.acquire(), timeout=2)
         except TimeoutError:
-            raise HTTPException(429, "a Live run is already in progress; try again shortly or use Replay", headers={"Retry-After": "60"}) from None
+            return _too_many("a Live run is already in progress; try again shortly, or watch a Replay (no model calls, no limit)", 60)
     else:
         await st.live_lock.acquire()  # the slot is taken here, synchronously, so a double click cannot queue two runs
-    ip = request.client.host if request.client else ""
+    verdict = st.limiter.take(ip)  # counted once the slot is ours; a refusal here is a race between two of this visitor's clicks
+    if not verdict.allowed:
+        st.live_lock.release()
+        return _too_many(verdict.message, verdict.retry_after_s)
     ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16] if ip else ""
     run_id = replay.new_run_id()
     st.last_live_run = run_id
@@ -102,6 +110,23 @@ async def _live(st, flow, run_id: str, ip_hash: str) -> None:
         log.exception("live run %s crashed outside the runner", run_id)
     finally:
         st.live_lock.release()
+
+
+def client_ip(request: Request, trust_proxy: bool) -> str:
+    """The visitor's address for the per-IP limit: behind the platform proxy, the first X-Forwarded-For hop; otherwise the
+    socket peer (a direct client can type any header it likes)."""
+    if trust_proxy:
+        forwarded = request.headers.get("x-forwarded-for", "")
+        first = forwarded.split(",")[0].strip()
+        if first:
+            return first
+    return request.client.host if request.client else ""
+
+
+def _too_many(message: str, retry_after_s: int) -> JSONResponse:
+    """429 as the UI reads it: what happened, when to retry, and that Replay is the way in (spec §15)."""
+    body = {"error": message, "retry_after_s": int(retry_after_s), "suggestion": "replay", "detail": message}
+    return JSONResponse(body, status_code=429, headers={"Retry-After": str(int(retry_after_s))})
 
 
 def public_run(run) -> dict:

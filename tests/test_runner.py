@@ -247,3 +247,36 @@ async def test_cancelled_run_is_recorded_as_failed(tmp_path, server_url):
         loaded = await bundle.load(runs[0])
     assert loaded.run.status == RunStatus.failed and "cancel" in (loaded.run.error or "").lower()
     assert loaded.events[-1].type == "run.failed"
+
+
+async def test_bundle_is_flushed_after_each_stage(tmp_path, server_url, page, monkeypatch):
+    """A crash mid-screen must keep the seer and comparator output on disk: the bundle is flushed after each stage, not once per screen."""
+    import json as _json
+
+    import parity.pipeline.audit as audit_mod
+    from parity.store.bundle import keys
+
+    original = audit_mod.judge
+    seen: dict[str, bool] = {}
+
+    async def spying_judge(client, finding, cap, run_id, **kw):
+        if not seen:
+            try:
+                raw = await bundle_ref["bundle"].store.get(keys.events(run_id))  # straight from disk, not the in-memory buffer
+                types = [_json.loads(line)["type"] for line in raw.decode().splitlines()]
+            except Exception:  # nothing flushed yet
+                types = []
+            seen.update(seer="seer.done" in types, verifier="verifier.result" in types)
+        return await original(client, finding, cap, run_id, **kw)
+
+    monkeypatch.setattr(audit_mod, "judge", spying_judge)
+    bundle_ref: dict = {}
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        bundle_ref["bundle"] = bundle
+        run = await run_single_page(settings, client, bundle=bundle, bus=bus, index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory)
+    assert run.findings_verified >= 1, run.error
+    assert seen == {"seer": True, "verifier": True}, seen

@@ -124,6 +124,8 @@ async def run_flow(
         else:
             await _settle(ctx, t0)  # the last word on the status: a decision may have landed since the terminal event
         await bundle.flush(run.id)
+        bundle.forget(run.id)  # the bundle is the record now; the buffers would otherwise grow with every run
+        bus.forget(run.id)
     return run
 
 

@@ -106,3 +106,5 @@ async def _publish(run: Run, final_status: RunStatus, events: list[Event], bus: 
         if not finalized:
             await finalize()
         await bundle.flush(run.id)
+        bundle.forget(run.id)  # as for a live run: the bundle is the record; late subscribers read it
+        bus.forget(run.id)

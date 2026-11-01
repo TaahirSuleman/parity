@@ -155,6 +155,11 @@ class RunBundle:
     def add_event(self, run_id: str, event: Event) -> None:
         self._events.setdefault(run_id, []).append(event)
 
+    def forget(self, run_id: str) -> None:
+        """Drop a run's in-memory event and trace buffers after its final flush; later appends read the file."""
+        self._events.pop(run_id, None)
+        self._trace.pop(run_id, None)
+
     async def flush(self, run_id: str) -> None:
         if run_id in self._trace:
             await self.store.put(keys.trace(run_id), _jsonl(self._trace[run_id]), "application/x-ndjson")

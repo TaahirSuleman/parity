@@ -128,6 +128,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     if ctx.ablation.use_grounding and ctx.ablation.use_screenshot:
         percepts = await see(ctx.client, cap, run.id, model=settings.model_for("seer"), effort=ctx.ablation.effort)
     await ctx.emit("seer.done", {"index": step_index, "percepts": [p.model_dump(mode="json") for p in percepts]})
+    await ctx.bundle.flush(run.id)  # per stage, not per screen: a crash mid-screen keeps what the seer saw
 
     new_findings: list[Finding] = []
     rejected_here = 0
@@ -185,6 +186,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
             break
         feedback = list(dict.fromkeys(failures))
 
+    await ctx.bundle.flush(run.id)  # the comparator's and verifier's output is on disk before the judges run
     gate = asyncio.Semaphore(JUDGE_CONCURRENCY)
 
     async def judge_one(finding: Finding) -> None:

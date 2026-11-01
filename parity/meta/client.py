@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 RETRY_SLEEPS = (1, 3, 9, 20)
 MAX_ATTEMPTS = 5  # live 5xx bursts last several seconds; a run should outlive them
-CALL_TIMEOUT_S = 300
+CALL_TIMEOUT_S = 120  # spec §15 said 60 before the comparator's 12,000-token budget; measured p95 is 70 s (ledgered, P5 Task 21)
 
 
 class MetaError(Exception):

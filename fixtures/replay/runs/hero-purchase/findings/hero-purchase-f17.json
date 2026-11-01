@@ -1,0 +1,84 @@
+{
+ "id": "hero-purchase-f17",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "judged",
+ "sighted_text": "headphones product thumbnail image",
+ "sr_role": "image",
+ "sr_name": "image",
+ "why_it_matters": "Blind user gets a generic name with no product information about the thumbnail.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 186,
+  "x_max": 177,
+  "y_max": 228
+ },
+ "element": {
+  "backend_id": 129,
+  "css_path": "img#item-thumb",
+  "box_px": [
+   187,
+   134,
+   227,
+   164
+  ],
+  "outer_html": "<img id=\"item-thumb\" alt=\"image\" width=\"40\" height=\"30\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='30'&gt;&lt;rect width='40' height='30' rx='3' fill='%23dfe3ea'/&gt;&lt;ellipse cx='20' cy='15' rx='11' ry='9' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+  "dom_id": "item-thumb"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at img#item-thumb"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 129,
+   "css_path": "img#item-thumb",
+   "box_px": [
+    187,
+    134,
+    227,
+    164
+   ],
+   "outer_html": "<img id=\"item-thumb\" alt=\"image\" width=\"40\" height=\"30\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='30'&gt;&lt;rect width='40' height='30' rx='3' fill='%23dfe3ea'/&gt;&lt;ellipse cx='20' cy='15' rx='11' ry='9' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "item-thumb"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": false,
+  "severity": "minor",
+  "wcag": [],
+  "impact": "The user still knows the item is Noise-cancelling headphones from the adjacent text and can act on the cart with no loss of information.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "ada4b2cd-a7cd-43c7-8649-4f32fbf0b896",
+   "response_id": "resp_6ae74500da28be87cd604293",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

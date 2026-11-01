@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f14",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "status": "reaudited",
+ "sighted_text": "Offer ends in 02:14:09",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user misses the limited-time offer countdown because it is a canvas with no announcement.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 556,
+  "x_max": 302,
+  "y_max": 586
+ },
+ "element": {
+  "backend_id": 55,
+  "css_path": "canvas#promo-timer",
+  "box_px": [
+   187,
+   400,
+   387,
+   422
+  ],
+  "outer_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
+  "dom_id": "promo-timer"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:canvas at canvas#promo-timer"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 55,
+   "css_path": "canvas#promo-timer",
+   "box_px": [
+    187,
+    400,
+    387,
+    422
+   ],
+   "outer_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
+   "dom_id": "promo-timer"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user does not know the sale price expires in about 2 hours and may miss the discounted price.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "19cea609-0f93-4a64-b379-c2dc2fee6383",
+   "response_id": "resp_6ae744a56eded0d263c343ad",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
+  "after_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"img\" aria-label=\"Offer ends in 02:14:09\">Offer ends in 02:14:09</canvas>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -37,7 +37,7 @@\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n       <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n-    <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n+    <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"img\" aria-label=\"Offer ends in 02:14:09\">Offer ends in 02:14:09</canvas></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n       <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n",
+  "explanation": "Removed role presentation and added matching aria-label and fallback text so the canvas countdown is announced as Offer ends in 02:14:09.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "a6ea5acb-bf21-4732-a7a9-0b11f3ab3966",
+   "response_id": "resp_6ae74631954e639f68aa4a66",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "",
+  "sr_name_after": "Offer ends in 02:14:09",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

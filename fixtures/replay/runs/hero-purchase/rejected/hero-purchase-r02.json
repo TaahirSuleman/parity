@@ -4,14 +4,14 @@
  "step_index": 3,
  "candidate": {
   "step_index": 3,
-  "sighted_text": "SR-10428",
-  "sr_quote": "text, \"SR-10428\"",
-  "why_it_matters": "The order number is announced out of order detached from its sentence, so a blind user hears 'Order ...' without the identifier in context and may miss their order number.",
+  "sighted_text": "Packed (bold/dark as current) vs Shipped, Delivered (dimmed as upcoming)",
+  "sr_quote": "list, \"Delivery status\"",
+  "why_it_matters": "A blind user hears the three stages as plain text with no indication that Packed is the current status.",
   "bbox": {
-   "x_min": 181,
-   "y_min": 176,
-   "x_max": 238,
-   "y_max": 200
+   "x_min": 146,
+   "y_min": 332,
+   "x_max": 293,
+   "y_max": 354
   },
   "attempt": 1
  },
@@ -20,15 +20,15 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "text at "
+    "detail": "text at body > main:nth-of-type(1) > section:nth-of-type(1) > ol:nth-of-type(1) > li:nth-of-type(3)"
    },
    "sr_quote_exact": {
-    "passed": true,
-    "detail": "quote equals the accessibility tree entry"
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
    },
    "diverges": {
-    "passed": false,
-    "detail": "visible text equals the accessible name"
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -40,17 +40,17 @@
    }
   },
   "element": {
-   "backend_id": 222,
-   "css_path": "",
+   "backend_id": 352,
+   "css_path": "body > main:nth-of-type(1) > section:nth-of-type(1) > ol:nth-of-type(1) > li:nth-of-type(3)",
    "box_px": [
-    232,
-    127,
-    304,
-    144
+    315,
+    239,
+    375,
+    255
    ],
-   "outer_html": "",
+   "outer_html": "<li>Delivered</li>",
    "dom_id": null
   },
-  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
  }
 }

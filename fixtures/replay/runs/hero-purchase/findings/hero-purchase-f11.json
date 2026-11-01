@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f11",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 0,
  "status": "reaudited",
- "sighted_text": "trash icon",
- "sr_role": "button",
- "sr_name": "Close",
- "why_it_matters": "A blind user hears a name that contradicts the icon's meaning and may activate the wrong action.",
+ "sighted_text": "green in-stock dot",
+ "sr_role": "image",
+ "sr_name": "status",
+ "why_it_matters": "Generic name loses the green in-stock meaning conveyed by colour.",
  "voice": null,
  "bbox": {
-  "x_min": 653,
-  "y_min": 501,
-  "x_max": 690,
-  "y_max": 565
+  "x_min": 299,
+  "y_min": 436,
+  "x_max": 307,
+  "y_max": 450
  },
  "element": {
-  "backend_id": 166,
-  "css_path": "button#f6",
+  "backend_id": 46,
+  "css_path": "span#stock-dot",
   "box_px": [
-   837,
-   360,
-   883,
-   408
+   383,
+   314,
+   393,
+   324
   ],
-  "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-  "dom_id": "f6"
+  "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+  "dom_id": "stock-dot"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f6"
+    "detail": "image at span#stock-dot"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 166,
-   "css_path": "button#f6",
+   "backend_id": 46,
+   "css_path": "span#stock-dot",
    "box_px": [
-    837,
-    360,
-    883,
-    408
+    383,
+    314,
+    393,
+    324
    ],
-   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "f6"
+   "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+   "dom_id": "stock-dot"
   },
   "feedback": null
  },
@@ -71,34 +71,38 @@
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
+   },
+   {
+    "sc": "1.4.1",
+    "name": "Use of Color"
    }
   ],
-  "impact": "User cannot know the button performs delete/trash and may activate it expecting only to close.",
+  "impact": "The user cannot tell the product is in stock and available because the green colour meaning is announced only as \"status\".",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "de4e43f3-aa7b-4d89-9f28-ad0f46918030",
-   "response_id": "resp_6ae647154a0401c3d1f048cb",
+   "request_id": "10ce4494-60fa-4b21-840e-8016300579ed",
+   "response_id": "resp_6ae744a14dcab1cae9054418",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-  "after_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -29,7 +29,7 @@\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n-      <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n+      <button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n   </section>\n",
-  "explanation": "Changed aria-label from Close to Delete so the accessible name matches the visible trash icon meaning.",
+  "before_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+  "after_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"in stock\"></span>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -32,7 +32,7 @@\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n-      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n+      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"in stock\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n",
+  "explanation": "Changed aria-label from generic \"status\" to \"in stock\" so screen readers convey the green in-stock meaning sighted users get from colour.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "d732d798-f772-4e79-a67a-68160a273de8",
-   "response_id": "resp_6ae64785e6a9725731d84ff3",
+   "request_id": "0a238140-01a8-4865-87c1-61ceadf2c7d5",
+   "response_id": "resp_6ae746231897fb74bf7d428d",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "Close",
-  "sr_name_after": "Delete",
+  "sr_name_before": "status",
+  "sr_name_after": "in stock",
   "comparator_still_flags": false
  },
  "decision": null

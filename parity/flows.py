@@ -22,7 +22,7 @@ FLOWS: dict[str, Flow] = {
     ),
     "purchase": Flow(
         id="purchase", name="Purchase flow",  start_url="/store/product.html",
-        goal="Buy the noise-cancelling headphones and pay with card 4111 1111 1111 1111, expiry 10/28. Stop when the order is confirmed.",
+        goal="Buy the noise-cancelling headphones and pay with card 4111 1111 1111 1111, expiry 10/28. The cart may already hold other items: leave them exactly as they are and go straight to checkout. Stop when the order is confirmed.",
         pages=("product.html", "cart.html", "checkout.html", "confirm.html"), single_page=False,
     ),
 }

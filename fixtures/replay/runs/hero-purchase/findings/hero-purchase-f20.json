@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f20",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "Free",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user misses that delivery is free, which affects total cost understanding.",
+ "voice": null,
+ "bbox": {
+  "x_min": 443,
+  "y_min": 510,
+  "x_max": 474,
+  "y_max": 535
+ },
+ "element": {
+  "backend_id": 152,
+  "css_path": "span#k4 > img:nth-of-type(1)",
+  "box_px": [
+   567,
+   367,
+   607,
+   385
+  ],
+  "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:img at span#k4 > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 152,
+   "css_path": "span#k4 > img:nth-of-type(1)",
+   "box_px": [
+    567,
+    367,
+    607,
+    385
+   ],
+   "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "The user hears 'Delivery' with no value in the cart summary and cannot confirm there that delivery is free or verify the total.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "eb2b698f-0fb7-4858-825e-4d53eece99f4",
+   "response_id": "resp_6ae74505ad9c146adf514afc",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\">",
+  "after_html": "<img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\">",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -29,7 +29,7 @@\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n     <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n-    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n+    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,323.00</p>\n     <div class=\"actions\">\n       <a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>\n",
+  "explanation": "Changed empty alt to alt=\"Free\" so the screen reader announces the same visible text.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "ba04fcb2-67ab-4fc8-b6fb-19da5beb31e3",
+   "response_id": "resp_6ae74639acdee9d6730f4388",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "",
+  "sr_name_after": "Free",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

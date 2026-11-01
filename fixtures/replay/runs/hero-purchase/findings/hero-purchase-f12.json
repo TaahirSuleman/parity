@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f12",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "status": "reaudited",
+ "sighted_text": "R1,599.00 crossed-out original price",
+ "sr_role": "text",
+ "sr_name": "R1,599.00",
+ "why_it_matters": "Blind user hears the price without knowing it is the struck-through original price, not the current price.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 519,
+  "x_max": 193,
+  "y_max": 542
+ },
+ "element": {
+  "backend_id": 91,
+  "css_path": "s#was-price",
+  "box_px": [
+   187,
+   374,
+   247,
+   390
+  ],
+  "outer_html": "<s id=\"was-price\" class=\"small\">R1,599.00</s>",
+  "dom_id": "was-price"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "text at s#was-price"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 91,
+   "css_path": "s#was-price",
+   "box_px": [
+    187,
+    374,
+    247,
+    390
+   ],
+   "outer_html": "<s id=\"was-price\" class=\"small\">R1,599.00</s>",
+   "dom_id": "was-price"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.3.1",
+    "name": "Info and Relationships"
+   }
+  ],
+  "impact": "User cannot tell R1,599.00 is the crossed-out original price and may mistake it for the current price instead of R1,249.00.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "047f60c9-722a-4e44-90b6-1c80df7aa455",
+   "response_id": "resp_6ae744a3f348284bbd4f40b4",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<s id=\"was-price\" class=\"small\">R1,599.00</s>",
+  "after_html": "<s id=\"was-price\" class=\"small\"><span style=\"position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;\">Original price: </span>R1,599.00</s>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -35,7 +35,7 @@\n       <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n-    <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n+    <p class=\"total\"><s id=\"was-price\" class=\"small\"><span style=\"position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;\">Original price: </span>R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n       <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n     <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n     <div class=\"actions\">\n",
+  "explanation": "Added visually-hidden prefix Original price: inside the same s element so screen readers hear it as the crossed-out original price while the visual price is unchanged.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "9f1cb674-f458-4967-bd68-eae4d1c58585",
+   "response_id": "resp_6ae74632a7bdf6e48f794327",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "R1,599.00",
+  "sr_name_after": "R1,599.00",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

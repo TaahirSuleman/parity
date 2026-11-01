@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f24",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "lock icon Secure checkout",
+ "sr_role": "image",
+ "sr_name": "image",
+ "why_it_matters": "Blind user gets only a generic image name and misses the secure checkout assurance conveyed visually.",
+ "voice": null,
+ "bbox": {
+  "x_min": 526,
+  "y_min": 400,
+  "x_max": 620,
+  "y_max": 439
+ },
+ "element": {
+  "backend_id": 173,
+  "css_path": "img#trust-seal",
+  "box_px": [
+   673,
+   288,
+   793,
+   316
+  ],
+  "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "trust-seal"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at img#trust-seal"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 173,
+   "css_path": "img#trust-seal",
+   "box_px": [
+    673,
+    288,
+    793,
+    316
+   ],
+   "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "trust-seal"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "minor",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user hears only \"image\" and misses the \"Secure checkout\" assurance that sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "08355b0b-a8eb-4660-8434-c2c5531db4a7",
+   "response_id": "resp_6ae7450dda7cfd4e112b4869",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
+  "after_html": "<img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -44,7 +44,7 @@\n       <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n     </p>\n-    <p><img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n+    <p><img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n   </section>\n </main>\n <script>\n",
+  "explanation": "Changed alt from \"image\" to \"Secure checkout\" so the accessible name matches the visible text.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "28bb7b5d-1453-4d70-bfdc-d4ffbb876fcc",
+   "response_id": "resp_6ae746423e415d431b7543ab",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "image",
+  "sr_name_after": "Secure checkout",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

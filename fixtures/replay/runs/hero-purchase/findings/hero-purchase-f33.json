@@ -1,0 +1,109 @@
+{
+ "id": "hero-purchase-f33",
+ "run_id": "hero-purchase",
+ "step_index": 3,
+ "status": "reaudited",
+ "sighted_text": "Download invoice",
+ "sr_role": "link",
+ "sr_name": "Open",
+ "why_it_matters": "A blind user hears only the generic word Open and does not know the link downloads the invoice.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 366,
+  "x_max": 233,
+  "y_max": 390
+ },
+ "element": {
+  "backend_id": 335,
+  "css_path": "a#invoice-link",
+  "box_px": [
+   187,
+   265,
+   317,
+   285
+  ],
+  "outer_html": "<a id=\"invoice-link\" href=\"#invoice\" aria-label=\"Open\"><img alt=\"\" width=\"130\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='130' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'&gt;Download invoice&lt;/text&gt;&lt;/svg&gt;\"></a>",
+  "dom_id": "invoice-link"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at a#invoice-link"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 335,
+   "css_path": "a#invoice-link",
+   "box_px": [
+    187,
+    265,
+    317,
+    285
+   ],
+   "outer_html": "<a id=\"invoice-link\" href=\"#invoice\" aria-label=\"Open\"><img alt=\"\" width=\"130\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='130' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'&gt;Download invoice&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "invoice-link"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "2.4.4",
+    "name": "Link Purpose (In Context)"
+   },
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   }
+  ],
+  "impact": "The user hears only the generic name “Open” and cannot know the link downloads the order invoice.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "a829805e-b07d-49ca-98aa-77c7a2cc8a08",
+   "response_id": "resp_6ae745fba583351ff9af4ddf",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<a id=\"invoice-link\" href=\"#invoice\" aria-label=\"Open\"><img alt=\"\" width=\"130\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='130' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Download invoice</text></svg>\"></a>",
+  "after_html": "<a id=\"invoice-link\" href=\"#invoice\">Download invoice</a>",
+  "diff": "--- a/store/confirm.html\n+++ b/store/confirm.html\n@@ -19,7 +19,7 @@\n     <p>A receipt has been sent to your email. Delivery is expected tomorrow.</p>\n     <p class=\"row\"><span class=\"small\">Tracking</span> <canvas id=\"tracking-canvas\" width=\"180\" height=\"22\" role=\"presentation\"></canvas></p>\n     <ol class=\"steps\" aria-label=\"Delivery status\"><li id=\"status-packed\" class=\"current\">Packed</li><li>Shipped</li><li>Delivered</li></ol>\n-    <p class=\"row\"><a id=\"invoice-link\" href=\"#invoice\" aria-label=\"Open\"><img alt=\"\" width=\"130\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='130' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Download invoice</text></svg>\"></a>\n+    <p class=\"row\"><a id=\"invoice-link\" href=\"#invoice\">Download invoice</a>\n       <a id=\"rate-link\" href=\"#rate\">Rate your purchase</a></p>\n     <p><a id=\"back-link\" href=\"product.html\">Back to the shop</a></p>\n   </section>\n",
+  "explanation": "Replaced the misleading aria-label \"Open\" and empty-alt image-of-text with real text \"Download invoice\" so the accessible name matches what sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "076d8414-5b30-47bf-a542-85d728e31bf7",
+   "response_id": "resp_6ae746610fc5846f2e58435e",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "Open",
+  "sr_name_after": "Download invoice",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

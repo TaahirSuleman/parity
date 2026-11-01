@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f09",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Terms",
- "sr_role": "link",
- "sr_name": "Click here",
- "why_it_matters": "A blind user hears a generic link name that does not match the visible text and does not convey its destination.",
+ "sighted_text": "blue colour option",
+ "sr_role": "button",
+ "sr_name": "Option 3",
+ "why_it_matters": "Generic name hides which colour the button selects.",
  "voice": null,
  "bbox": {
-  "x_min": 649,
-  "y_min": 451,
-  "x_max": 678,
-  "y_max": 472
+  "x_min": 235,
+  "y_min": 375,
+  "x_max": 255,
+  "y_max": 411
  },
  "element": {
-  "backend_id": 161,
-  "css_path": "a#f4",
+  "backend_id": 41,
+  "css_path": "button#swatch-3",
   "box_px": [
-   831,
+   301,
+   270,
    327,
-   877,
-   342
+   296
   ],
-  "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
-  "dom_id": "f4"
+  "outer_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
+  "dom_id": "swatch-3"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#f4"
+    "detail": "button at button#swatch-3"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,58 +51,54 @@
    }
   },
   "element": {
-   "backend_id": 161,
-   "css_path": "a#f4",
+   "backend_id": 41,
+   "css_path": "button#swatch-3",
    "box_px": [
-    831,
+    301,
+    270,
     327,
-    877,
-    342
+    296
    ],
-   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
-   "dom_id": "f4"
+   "outer_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
+   "dom_id": "swatch-3"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
-    "sc": "2.5.3",
-    "name": "Label in Name"
-   },
-   {
-    "sc": "2.4.4",
-    "name": "Link Purpose (In Context)"
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "The user hears only 'Click here' and cannot tell the link leads to the Terms or activate it by its visible name.",
+  "impact": "The user cannot know that Option 3 is the blue colour and cannot confidently select the intended colour variant.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "bcef221a-7ae7-4c64-b1e4-7c7e2ad3c75b",
-   "response_id": "resp_6ae64707e37efd38ba72421a",
+   "request_id": "fe405971-5efd-4cc4-9484-91772368ab6c",
+   "response_id": "resp_6ae7449897ca8ab35144469f",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
-  "after_html": "<a id=\"f4\" href=\"#terms\">Terms</a>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -26,7 +26,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\">Terms</a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
-  "explanation": "Removed the generic aria-label 'Click here' and replaced the image-only content with real text 'Terms' so the accessible name matches the visible link text.",
+  "before_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
+  "after_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -27,7 +27,7 @@\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n-      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n+      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n",
+  "explanation": "Changed aria-label from generic Option 3 to Blue so the screen reader announces the actual blue colour.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "7a5da337-1e1a-450e-9a1b-cd599a19d0b1",
-   "response_id": "resp_6ae6477dfad5a3c8ad9a439b",
+   "request_id": "b4146f0d-0832-4519-8378-342fb514d449",
+   "response_id": "resp_6ae7461c5b6bd39a0dd44bb7",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "Click here",
-  "sr_name_after": "Terms",
+  "gap_closed": false,
+  "sr_name_before": "Option 3",
+  "sr_name_after": "Blue",
   "comparator_still_flags": false
  },
  "decision": null

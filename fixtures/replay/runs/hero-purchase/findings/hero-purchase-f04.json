@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f04",
  "run_id": "hero-purchase",
- "step_index": 1,
+ "step_index": 0,
  "status": "reaudited",
- "sighted_text": "trash icon",
- "sr_role": "button",
- "sr_name": "Close",
- "why_it_matters": "Blind user hears Close and expects a dialog to close rather than the cart item to be removed.",
+ "sighted_text": "product thumbnail - black oval shape",
+ "sr_role": "image",
+ "sr_name": "photo 1",
+ "why_it_matters": "Generic name gives no product information about the thumbnail content.",
  "voice": null,
  "bbox": {
-  "x_min": 819,
-  "y_min": 187,
-  "x_max": 854,
-  "y_max": 253
+  "x_min": 146,
+  "y_min": 297,
+  "x_max": 196,
+  "y_max": 364
  },
  "element": {
-  "backend_id": 88,
-  "css_path": "button#k3",
+  "backend_id": 34,
+  "css_path": "img#gallery-1",
   "box_px": [
-   1047,
-   134,
-   1093,
-   182
+   187,
+   214,
+   251,
+   262
   ],
-  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-  "dom_id": "k3"
+  "outer_html": "<img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+  "dom_id": "gallery-1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#k3"
+    "detail": "image at img#gallery-1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,59 +51,55 @@
    }
   },
   "element": {
-   "backend_id": 88,
-   "css_path": "button#k3",
+   "backend_id": 34,
+   "css_path": "img#gallery-1",
    "box_px": [
-    1047,
-    134,
-    1093,
-    182
+    187,
+    214,
+    251,
+    262
    ],
-   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "k3"
+   "outer_html": "<img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "gallery-1"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "moderate",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
-   },
-   {
-    "sc": "2.4.6",
-    "name": "Headings and Labels"
    }
   ],
-  "impact": "User hears \"Close\" instead of remove/delete and cannot know the button removes the headphones from the cart, so they cannot remove the item intentionally and risk deleting it while expecting to close something.",
+  "impact": "The user cannot tell what the first product thumbnail shows and cannot distinguish this view from the other gallery images.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "9d8fead6-2c88-45b2-b095-3942dc437151",
-   "response_id": "resp_6ae646a70d8bfd853b324fe0",
+   "request_id": "07f33124-39d7-44d7-937d-8c9d0106e286",
+   "response_id": "resp_6ae7449149cc443513744eac",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -20,7 +20,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,249.00</span></div>\n",
-  "explanation": "Changed aria-label from Close to Remove Noise-cancelling headphones so the name describes the trash-icon delete action.",
+  "before_html": "<img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">",
+  "after_html": "<img id=\"gallery-1\" alt=\"black oval shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -20,7 +20,7 @@\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n-      <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-1\" alt=\"black oval shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n       <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n",
+  "explanation": "Changed alt from generic 'photo 1' to 'black oval shape' so the accessible name describes the visible thumbnail content.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "c8077926-b0ce-44da-9981-05086f4dab11",
-   "response_id": "resp_6ae6477529f67acf8dcc4489",
+   "request_id": "690ffe58-9e2d-46f5-a5ad-bb80de730e83",
+   "response_id": "resp_6ae746120ad9fff5893f47c1",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "Close",
-  "sr_name_after": "Remove Noise-cancelling headphones",
-  "comparator_still_flags": false
+  "sr_name_before": "photo 1",
+  "sr_name_after": "black oval shape",
+  "comparator_still_flags": true
  },
  "decision": null
 }

@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f25",
+ "run_id": "hero-purchase",
+ "step_index": 2,
+ "status": "reaudited",
+ "sighted_text": "50% OFF TODAY",
+ "sr_role": "image",
+ "sr_name": "image",
+ "why_it_matters": "Blind user hears only generic 'image' and misses the promotional information.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 175,
+  "x_max": 380,
+  "y_max": 300
+ },
+ "element": {
+  "backend_id": 224,
+  "css_path": "img#f1",
+  "box_px": [
+   187,
+   126,
+   487,
+   216
+  ],
+  "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "f1"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at img#f1"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 224,
+   "css_path": "img#f1",
+   "box_px": [
+    187,
+    126,
+    487,
+    216
+   ],
+   "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "f1"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "The screen-reader user cannot perceive the '50% OFF TODAY' promotion that sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "63486fb7-1647-4487-889c-33de75a8acdd",
+   "response_id": "resp_6ae7456d8413ef259d5740b1",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">",
+  "after_html": "<img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -14,8 +14,7 @@\n <main>\n   <section class=\"card\" aria-labelledby=\"order-h\">\n     <h1 id=\"order-h\">Your order</h1>\n-    <img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n+    <img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n     <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n",
+  "explanation": "Changed alt from generic \"image\" to \"50% OFF TODAY\" so screen readers announce the same promotion sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "fa14d74f-18cc-46c8-b014-5b3396ba6085",
+   "response_id": "resp_6ae7464764eae6007f21494d",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "image",
+  "sr_name_after": "50% OFF TODAY",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

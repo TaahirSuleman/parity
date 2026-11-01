@@ -51,9 +51,10 @@ export default function App() {
       setHealth(h);
       setFlows(fl);
       if (h) dispatch({ kind: "reset", mode: h.has_key && h.live_enabled && h.mode_default === "live" ? "live" : "replay" });
-      // Default to the multi-page agent flow when a recorded replay exists for it; else the first flow with a replay.
+      // Default to the single-page checkout replay: it reaches the hero finding in seconds and always carries it; the
+      // multi-page agent walk (longer, and its findings vary with where the agent scrolls) is one pick away.
       const replayable = fl.filter((f) => h?.replay_flows?.[f.id]);
-      const preferred = replayable.find((f) => !f.single_page) ?? replayable[0] ?? fl[0];
+      const preferred = replayable.find((f) => f.single_page) ?? replayable[0] ?? fl[0];
       if (preferred) setFlowId(preferred.id);
       const linked = runIdFromSearch(window.location.search);
       if (linked) {  // a shared or reloaded run: its history streams back in

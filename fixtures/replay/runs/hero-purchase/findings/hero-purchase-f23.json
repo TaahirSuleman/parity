@@ -1,0 +1,109 @@
+{
+ "id": "hero-purchase-f23",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "Standard (free) selected",
+ "sr_role": "button",
+ "sr_name": "Standard (free)",
+ "why_it_matters": "Blind user cannot tell which delivery option is currently selected.",
+ "voice": null,
+ "bbox": {
+  "x_min": 569,
+  "y_min": 347,
+  "x_max": 659,
+  "y_max": 389
+ },
+ "element": {
+  "backend_id": 170,
+  "css_path": "button#delivery-standard",
+  "box_px": [
+   728,
+   250,
+   844,
+   280
+  ],
+  "outer_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>",
+  "dom_id": "delivery-standard"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#delivery-standard"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 170,
+   "css_path": "button#delivery-standard",
+   "box_px": [
+    728,
+    250,
+    844,
+    280
+   ],
+   "outer_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>",
+   "dom_id": "delivery-standard"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
+   },
+   {
+    "sc": "1.3.1",
+    "name": "Info and Relationships"
+   }
+  ],
+  "impact": "User cannot tell that Standard (free) is the currently selected delivery option and may choose the wrong option or incur an unwanted charge.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "d72b50c9-8e85-4842-bb36-f0f949f47f0e",
+   "response_id": "resp_6ae7450c5bf458325ad14fe0",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>",
+  "after_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\" aria-label=\"Standard (free) selected\">Standard (free)</button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -41,7 +41,7 @@\n     <p class=\"row\"><input id=\"promo-input\" placeholder=\"Promo code\"> <button id=\"promo-apply\" class=\"ghost\" type=\"button\">Apply</button></p>\n     <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button></p>\n     <p class=\"row\"><span class=\"small\">Delivery</span>\n-      <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n+      <button id=\"delivery-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\" aria-label=\"Standard (free) selected\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n     </p>\n     <p><img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n",
+  "explanation": "Added aria-label including 'selected' and aria-pressed true so the accessible name and state match the visual selected styling.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "3f2aa09a-86f2-456b-aaa6-db94a45ae520",
+   "response_id": "resp_6ae7465083a2d38af8034a60",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "Standard (free)",
+  "sr_name_after": "Standard (free) selected",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

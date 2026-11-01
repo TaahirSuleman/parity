@@ -1,0 +1,109 @@
+{
+ "id": "hero-purchase-f15",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "status": "reaudited",
+ "sighted_text": "heart icon",
+ "sr_role": "button",
+ "sr_name": "Close",
+ "why_it_matters": "Name contradicts the visible wishlist heart and suggests closing instead of saving.",
+ "voice": null,
+ "bbox": {
+  "x_min": 242,
+  "y_min": 617,
+  "x_max": 275,
+  "y_max": 681
+ },
+ "element": {
+  "backend_id": 58,
+  "css_path": "button#p5",
+  "box_px": [
+   310,
+   444,
+   352,
+   490
+  ],
+  "outer_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
+  "dom_id": "p5"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#p5"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 58,
+   "css_path": "button#p5",
+   "box_px": [
+    310,
+    444,
+    352,
+    490
+   ],
+   "outer_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
+   "dom_id": "p5"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
+   },
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   }
+  ],
+  "impact": "The user cannot know the button saves to wishlist and hears Close instead, so they will avoid it or expect it to close something.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "91c47392-7977-4fa7-a3ad-036bb1a616cd",
+   "response_id": "resp_6ae744a97169fdda85e444f1",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
+  "after_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -40,7 +40,7 @@\n     <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n-      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n+      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>\n       <button id=\"share-btn\" class=\"icon\" type=\"button\" aria-label=\"Share\">⇪</button>\n       <a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>\n     </div>\n",
+  "explanation": "Changed aria-label from Close to Add to wishlist so the accessible name matches the visible heart icon's wishlist function.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "02320a2e-df12-41ff-9bd5-c0df6ba23d4d",
+   "response_id": "resp_6ae74633e5c1e45c6a594207",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Add to wishlist",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

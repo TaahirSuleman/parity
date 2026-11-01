@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f19",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "-R125.00",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user misses the coupon discount amount needed to understand the total.",
+ "voice": null,
+ "bbox": {
+  "x_min": 404,
+  "y_min": 453,
+  "x_max": 474,
+  "y_max": 481
+ },
+ "element": {
+  "backend_id": 148,
+  "css_path": "canvas#coupon-savings",
+  "box_px": [
+   517,
+   326,
+   607,
+   346
+  ],
+  "outer_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
+  "dom_id": "coupon-savings"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:canvas at canvas#coupon-savings"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 148,
+   "css_path": "canvas#coupon-savings",
+   "box_px": [
+    517,
+    326,
+    607,
+    346
+   ],
+   "outer_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
+   "dom_id": "coupon-savings"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "Screen-reader user hears 'Coupon' with no value and cannot know the R125.00 discount or verify how the total was calculated.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "bf60f4f8-5b20-4472-b233-9be03d051a86",
+   "response_id": "resp_6ae744ffa62567894fa94faf",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
+  "after_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"-R125.00\">-R125.00</canvas>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -28,7 +28,7 @@\n       <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n-    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n+    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"-R125.00\">-R125.00</canvas></span></div>\n     <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,323.00</p>\n     <div class=\"actions\">\n",
+  "explanation": "Removed role=presentation and added aria-label and fallback text -R125.00 so the canvas discount amount is announced to screen readers.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "5a652877-3f69-459e-ad1f-bf0fe601e586",
+   "response_id": "resp_6ae7463bcae9d785af2a4c57",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "",
+  "sr_name_after": "-R125.00",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

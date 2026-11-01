@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f27",
+ "run_id": "hero-purchase",
+ "step_index": 2,
+ "status": "reaudited",
+ "sighted_text": "Card number field with red border indicating error",
+ "sr_role": "textbox",
+ "sr_name": "Card number",
+ "why_it_matters": "Blind user gets no error or invalid announcement and does not know the card number is rejected.",
+ "voice": null,
+ "bbox": {
+  "x_min": 526,
+  "y_min": 288,
+  "x_max": 854,
+  "y_max": 344
+ },
+ "element": {
+  "backend_id": 250,
+  "css_path": "input#card",
+  "box_px": [
+   673,
+   207,
+   1093,
+   248
+  ],
+  "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+  "dom_id": "card"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "textbox at input#card"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 250,
+   "css_path": "input#card",
+   "box_px": [
+    673,
+    207,
+    1093,
+    248
+   ],
+   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "card"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "3.3.1",
+    "name": "Error Identification"
+   }
+  ],
+  "impact": "The user cannot know the card number field is flagged as invalid and cannot identify or correct the error to complete payment.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "9bd13bea-10f4-4ee4-8f8b-29b91b00464f",
+   "response_id": "resp_6ae74571983013fdba594640",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">",
+  "after_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\">",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -27,7 +27,7 @@\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n     <h2 id=\"pay-h\">Payment</h2>\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n-    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n+    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n",
+  "explanation": "Added aria-invalid=\"true\" so screen readers announce the field as invalid, matching the red-border error seen by sighted users.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "44b74a33-766a-4bf7-a3db-d7ba2c299a95",
+   "response_id": "resp_6ae74652be216a53e1834664",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Card number",
+  "sr_name_after": "Card number",
+  "comparator_still_flags": true
+ },
+ "decision": null
+}

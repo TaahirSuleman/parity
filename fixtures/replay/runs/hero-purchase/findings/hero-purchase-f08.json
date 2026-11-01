@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f08",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 0,
  "status": "reaudited",
- "sighted_text": "red border indicating error around Card number field",
- "sr_role": "textbox",
- "sr_name": "Card number",
- "why_it_matters": "A blind user receives no error state and may submit an invalid card number without knowing it is flagged.",
+ "sighted_text": "beige colour option",
+ "sr_role": "button",
+ "sr_name": "Option 2",
+ "why_it_matters": "Generic name hides which colour the button selects.",
  "voice": null,
  "bbox": {
-  "x_min": 525,
-  "y_min": 287,
-  "x_max": 854,
-  "y_max": 345
+  "x_min": 209,
+  "y_min": 375,
+  "x_max": 229,
+  "y_max": 411
  },
  "element": {
-  "backend_id": 155,
-  "css_path": "input#card",
+  "backend_id": 40,
+  "css_path": "button#swatch-2",
   "box_px": [
-   673,
-   207,
-   1093,
-   248
+   267,
+   270,
+   293,
+   296
   ],
-  "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
-  "dom_id": "card"
+  "outer_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
+  "dom_id": "swatch-2"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "textbox at input#card"
+    "detail": "button at button#swatch-2"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 155,
-   "css_path": "input#card",
+   "backend_id": 40,
+   "css_path": "button#swatch-2",
    "box_px": [
-    673,
-    207,
-    1093,
-    248
+    267,
+    270,
+    293,
+    296
    ],
-   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
-   "dom_id": "card"
+   "outer_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
+   "dom_id": "swatch-2"
   },
   "feedback": null
  },
@@ -69,36 +69,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "3.3.1",
-    "name": "Error Identification"
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user cannot tell the Card number field is flagged as invalid and may attempt to pay with an incorrect number without knowing it needs fixing.",
+  "impact": "User cannot tell that this button selects the beige colour and cannot reliably choose the intended colour variant.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "7d533bfc-a043-4e8b-8954-e5903c76e459",
-   "response_id": "resp_6ae646f9c5f5ef1d3a314657",
+   "request_id": "2b7c2919-8aad-4365-8fff-99f1269fdb91",
+   "response_id": "resp_6ae74499fb69b4bc29ce46da",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">",
-  "after_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number, invalid\">",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -24,7 +24,7 @@\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n     <h2 id=\"pay-h\">Payment</h2>\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n-    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n+    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number, invalid\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n",
-  "explanation": "Added aria-invalid=\"true\" and an aria-label including \"invalid\" so the screen reader announces the error state that sighted users see as a red border.",
+  "before_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
+  "after_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -26,7 +26,7 @@\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n-      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n+      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n",
+  "explanation": "Changed the generic aria-label from \"Option 2\" to \"Beige\" so the accessible name matches the beige colour the sighted user sees.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "1a4eeb4c-bdfd-414e-9517-db73689830d7",
-   "response_id": "resp_6ae64785f63f55c7fec84f46",
+   "request_id": "ca253df4-3a3d-4a31-80b7-c310b649f9db",
+   "response_id": "resp_6ae746180095adc34bbb4b9a",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "Card number",
-  "sr_name_after": "Card number, invalid",
+  "sr_name_before": "Option 2",
+  "sr_name_after": "Beige",
   "comparator_still_flags": false
  },
  "decision": null

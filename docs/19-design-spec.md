@@ -156,6 +156,7 @@ Static: `/store/*` demo store, `/` the SPA. Local one-command run: `make demo` (
 Replay emits the same events from `events.jsonl` with a fixed pacing (the ×1/×2 control was dropped); screenshots come from the bundle. Replay is labelled in the UI and in every event (`run.mode`).
 
 ## 9. Workbench (React SPA; designed around the hero)
+**Default flow (1 Nov):** the header opens on the single-page checkout replay, which reaches the hero finding in about fifteen seconds and always carries it; the Purchase flow (the agent walk, longer, and whose findings vary with where the agent scrolls before it audits) is one pick away in the same control. Its goal tells the agent to leave other cart items alone: on store v2 the seeded carry-case line (quantity error shown only in red) sent two of five recorded walks into a loop on the cart.
 Layout at ≥1280 px: header, three columns, trace drawer.
 - **Header:** flow name and mode pill (**Live** / **Replay**), **Run the audit** button, axe-core badge (`axe-core · 0 violations`) beside the Parity counter (`Parity · 6 verified · 1 rejected`), cost and time for the run.
 - **Left, Sighted:** the latest screenshot with grounding boxes; the selected finding's box in green; percept boxes faint. Badge: *Muse Spark 1.3 · computer use* while navigating, *· grounding* when the Seer runs.

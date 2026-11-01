@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f16",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "status": "reaudited",
+ "sighted_text": "Compare",
+ "sr_role": "link",
+ "sr_name": "More",
+ "why_it_matters": "Name contradicts visible text so blind user cannot find the Compare action.",
+ "voice": null,
+ "bbox": {
+  "x_min": 323,
+  "y_min": 635,
+  "x_max": 373,
+  "y_max": 662
+ },
+ "element": {
+  "backend_id": 60,
+  "css_path": "a#compare-link",
+  "box_px": [
+   414,
+   457,
+   478,
+   477
+  ],
+  "outer_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'&gt;Compare&lt;/text&gt;&lt;/svg&gt;\"></a>",
+  "dom_id": "compare-link"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at a#compare-link"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 60,
+   "css_path": "a#compare-link",
+   "box_px": [
+    414,
+    457,
+    478,
+    477
+   ],
+   "outer_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'&gt;Compare&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "compare-link"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   }
+  ],
+  "impact": "The screen-reader user hears only More and cannot identify or activate the link as the visible Compare action.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "11bad571-a4e3-4c0f-8a46-11f45992ce0d",
+   "response_id": "resp_6ae744aaba0ff6b8a4b145df",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>",
+  "after_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"Compare\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -42,7 +42,7 @@\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n       <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n       <button id=\"share-btn\" class=\"icon\" type=\"button\" aria-label=\"Share\">⇪</button>\n-      <a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>\n+      <a id=\"compare-link\" href=\"#compare\" aria-label=\"Compare\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>\n     </div>\n   </section>\n   <section class=\"card\" aria-labelledby=\"details-h\">\n",
+  "explanation": "Changed aria-label from More to Compare so the accessible name matches the visible text.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "f5eda4c6-1202-4d4a-9b97-9ee8bceeac9e",
+   "response_id": "resp_6ae7463b2e52c4cf88144716",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "More",
+  "sr_name_after": "Compare",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

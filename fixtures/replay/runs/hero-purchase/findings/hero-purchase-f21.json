@@ -1,0 +1,109 @@
+{
+ "id": "hero-purchase-f21",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "red border indicating error on quantity field",
+ "sr_role": "textbox",
+ "sr_name": "Qty",
+ "why_it_matters": "Blind user gets no error or invalid announcement and does not know the quantity value 12 is flagged as an error.",
+ "voice": null,
+ "bbox": {
+  "x_min": 393,
+  "y_min": 326,
+  "x_max": 435,
+  "y_max": 372
+ },
+ "element": {
+  "backend_id": 139,
+  "css_path": "input#case-qty",
+  "box_px": [
+   503,
+   235,
+   557,
+   268
+  ],
+  "outer_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" style=\"\">",
+  "dom_id": "case-qty"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "textbox at input#case-qty"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 139,
+   "css_path": "input#case-qty",
+   "box_px": [
+    503,
+    235,
+    557,
+    268
+   ],
+   "outer_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "case-qty"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "3.3.1",
+    "name": "Error Identification"
+   },
+   {
+    "sc": "1.4.1",
+    "name": "Use of Color"
+   }
+  ],
+  "impact": "Screen-reader user cannot know the Qty value 12 is flagged as an error and will not know it needs to be corrected before checkout.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "bf910d29-8836-44eb-94de-2f1567f548cc",
+   "response_id": "resp_6ae7450600bcb3f7df3b4cf4",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\">",
+  "after_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" aria-label=\"Qty, error\" aria-invalid=\"true\">",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -25,7 +25,7 @@\n     </div>\n     <div class=\"line\">\n       <span>Carry case</span>\n-      <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n+      <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" aria-label=\"Qty, error\" aria-invalid=\"true\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n     <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n",
+  "explanation": "Added aria-invalid=\"true\" and an error-inclusive aria-label so the screen reader announces the error conveyed visually by the red border.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "c23be52c-fedd-44e1-a6bc-8e3aaa5cb579",
+   "response_id": "resp_6ae7464748b4f739e03a462c",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Qty",
+  "sr_name_after": "Qty, error",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

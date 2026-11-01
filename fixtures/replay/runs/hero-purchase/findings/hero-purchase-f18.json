@@ -1,0 +1,109 @@
+{
+ "id": "hero-purchase-f18",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "trash icon remove Noise-cancelling headphones",
+ "sr_role": "button",
+ "sr_name": "Close",
+ "why_it_matters": "Blind user is told Close instead of remove, so they do not know the button deletes the item from the cart.",
+ "voice": null,
+ "bbox": {
+  "x_min": 438,
+  "y_min": 186,
+  "x_max": 474,
+  "y_max": 253
+ },
+ "element": {
+  "backend_id": 134,
+  "css_path": "button#k3",
+  "box_px": [
+   561,
+   134,
+   607,
+   182
+  ],
+  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "dom_id": "k3"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#k3"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 134,
+   "css_path": "button#k3",
+   "box_px": [
+    561,
+    134,
+    607,
+    182
+   ],
+   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "k3"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   },
+   {
+    "sc": "2.4.6",
+    "name": "Headings and Labels"
+   }
+  ],
+  "impact": "The user hears only \"Close\" and cannot know the button will remove the Noise-cancelling headphones from the cart.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "8183d57d-adc4-41a2-b2a6-bbb16eb54fac",
+   "response_id": "resp_6ae7450464e79d12d460479f",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -20,7 +20,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\">\n",
+  "explanation": "Changed aria-label from Close to Remove Noise-cancelling headphones so the accessible name matches the visible delete action.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "c69170ea-3efd-485f-b013-63010bc44191",
+   "response_id": "resp_6ae74639a94135b2f3324b49",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Remove Noise-cancelling headphones",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

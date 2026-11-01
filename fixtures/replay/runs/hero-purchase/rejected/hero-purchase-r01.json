@@ -6,12 +6,12 @@
   "step_index": 1,
   "sighted_text": "Checkout",
   "sr_quote": "link, \"Checkout\"",
-  "why_it_matters": "Blind user is told it is a link while sighted users see a button, creating wrong expectations about the checkout action.",
+  "why_it_matters": "Blind user hears a link while sighted users see a button, creating misleading expectations about the action.",
   "bbox": {
-   "x_min": 145,
-   "y_min": 433,
-   "x_max": 228,
-   "y_max": 493
+   "x_min": 146,
+   "y_min": 619,
+   "x_max": 227,
+   "y_max": 678
   },
   "attempt": 1
  },
@@ -40,13 +40,13 @@
    }
   },
   "element": {
-   "backend_id": 98,
+   "backend_id": 155,
    "css_path": "a#k5",
    "box_px": [
     187,
-    313,
+    446,
     291,
-    355
+    488
    ],
    "outer_html": "<a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>",
    "dom_id": "k5"

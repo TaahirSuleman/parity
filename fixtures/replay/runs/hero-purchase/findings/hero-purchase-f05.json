@@ -1,45 +1,45 @@
 {
  "id": "hero-purchase-f05",
  "run_id": "hero-purchase",
- "step_index": 1,
+ "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Free",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "Blind user gets no delivery cost information and does not know delivery is free.",
+ "sighted_text": "product thumbnail - dark square shape",
+ "sr_role": "image",
+ "sr_name": "photo 2",
+ "why_it_matters": "Generic name gives no product information about the thumbnail content.",
  "voice": null,
  "bbox": {
-  "x_min": 822,
-  "y_min": 325,
-  "x_max": 847,
-  "y_max": 347
+  "x_min": 202,
+  "y_min": 297,
+  "x_max": 252,
+  "y_max": 364
  },
  "element": {
-  "backend_id": 95,
-  "css_path": "span#k4 > img:nth-of-type(1)",
+  "backend_id": 35,
+  "css_path": "img#gallery-2",
   "box_px": [
-   1053,
-   234,
-   1093,
-   252
+   259,
+   214,
+   323,
+   262
   ],
-  "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": null
+  "outer_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+  "dom_id": "gallery-2"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:img at span#k4 > img:nth-of-type(1)"
+    "detail": "image at img#gallery-2"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -51,54 +51,54 @@
    }
   },
   "element": {
-   "backend_id": 95,
-   "css_path": "span#k4 > img:nth-of-type(1)",
+   "backend_id": 35,
+   "css_path": "img#gallery-2",
    "box_px": [
-    1053,
-    234,
-    1093,
-    252
+    259,
+    214,
+    323,
+    262
    ],
-   "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": null
+   "outer_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "gallery-2"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "moderate",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears 'Delivery' with no value and cannot confirm that delivery is free.",
+  "impact": "User cannot tell what product view the second thumbnail shows and misses the visual detail a sighted user gets.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "fb658671-578e-4728-b67d-5c8b4768b3a0",
-   "response_id": "resp_6ae646ad9d625a31502c4009",
+   "request_id": "756602ce-4006-4c0a-af2a-4ed0b8d567c4",
+   "response_id": "resp_6ae744937259edb1d5b54eef",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\">",
-  "after_html": "<img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\">",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -24,7 +24,7 @@\n       </span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,249.00</span></div>\n-    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n+    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,249.00</p>\n     <div class=\"actions\">\n       <a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>\n",
-  "explanation": "Changed empty alt to alt=\"Free\" so the image announces the same delivery value sighted users see.",
+  "before_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">",
+  "after_html": "<img id=\"gallery-2\" alt=\"product thumbnail - dark square shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -21,7 +21,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n       <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n-      <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-2\" alt=\"product thumbnail - dark square shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n",
+  "explanation": "Changed alt from 'photo 2' to 'product thumbnail - dark square shape' so the accessible name describes the visible thumbnail content.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "ed2148e9-1a6e-41f3-a341-8e585a0c4382",
-   "response_id": "resp_6ae64776a9d3b359300a4bbc",
+   "request_id": "a04da976-9e4c-4325-869c-bfaf110e1403",
+   "response_id": "resp_6ae74623f4062558e80a4484",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "Free",
+  "sr_name_before": "photo 2",
+  "sr_name_after": "product thumbnail - dark square shape",
   "comparator_still_flags": false
  },
  "decision": null

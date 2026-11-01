@@ -30,6 +30,7 @@ def main() -> int:
     ap.add_argument("--name", default="hero-checkout")
     ap.add_argument("--flow", default="checkout")
     ap.add_argument("--min-rejected", type=int, default=1, help="re-run (up to 3 times) until the Verifier rejected at least this many candidates")
+    ap.add_argument("--require-hero", action=argparse.BooleanOptionalAction, default=True, help="refuse a run that did not verify #f5 (the checkout hero); pass --no-require-hero for the purchase walk, whose findings vary with the agent's scrolling")
     ap.add_argument("--timeout-s", type=int, default=1800, help="run deadline for the recording (the hosted default is 900 s; a full-store purchase walk with every fix re-audited needs longer)")
     args = ap.parse_args()
     base = load_settings()
@@ -69,7 +70,7 @@ def main() -> int:
             print("run did not finish cleanly:", run.get("error"))
             return 1
         hero = [f for f in detail["findings"] if f["element"].get("dom_id") == "f5"]
-        if not hero:
+        if args.require_hero and not hero:
             print("no hero finding (#f5) in this run; not recording")
             return 1
         if run["findings_rejected"] < args.min_rejected:

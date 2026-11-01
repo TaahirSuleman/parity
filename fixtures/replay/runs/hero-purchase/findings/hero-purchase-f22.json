@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f22",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "status": "reaudited",
+ "sighted_text": "Gift wrap toggle switched on",
+ "sr_role": "button",
+ "sr_name": "Gift wrap",
+ "why_it_matters": "Blind user is not told the toggle state, so they do not know gift wrap is currently on.",
+ "voice": null,
+ "bbox": {
+  "x_min": 582,
+  "y_min": 303,
+  "x_max": 616,
+  "y_max": 336
+ },
+ "element": {
+  "backend_id": 166,
+  "css_path": "button#gift-wrap",
+  "box_px": [
+   745,
+   218,
+   789,
+   242
+  ],
+  "outer_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+  "dom_id": "gift-wrap"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#gift-wrap"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 166,
+   "css_path": "button#gift-wrap",
+   "box_px": [
+    745,
+    218,
+    789,
+    242
+   ],
+   "outer_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+   "dom_id": "gift-wrap"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
+   }
+  ],
+  "impact": "Screen reader user cannot tell gift wrap is currently on or know what pressing the control will do.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "c0de543d-c862-4377-83ba-54860ffddbfc",
+   "response_id": "resp_6ae745063e54387359cb4495",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+  "after_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" role=\"switch\" aria-checked=\"true\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -39,7 +39,7 @@\n   <section class=\"card\" aria-labelledby=\"options-h\">\n     <h2 id=\"options-h\">Options</h2>\n     <p class=\"row\"><input id=\"promo-input\" placeholder=\"Promo code\"> <button id=\"promo-apply\" class=\"ghost\" type=\"button\">Apply</button></p>\n-    <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button></p>\n+    <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" role=\"switch\" aria-checked=\"true\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button></p>\n     <p class=\"row\"><span class=\"small\">Delivery</span>\n       <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n",
+  "explanation": "Added role=\"switch\" and aria-checked=\"true\" so the screen reader announces the on state that sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "15c4c65f-dc68-4884-811d-de43e2736d91",
+   "response_id": "resp_6ae746425f6bbec875af47e9",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": false,
+  "sr_name_before": "Gift wrap",
+  "sr_name_after": "Gift wrap",
+  "comparator_still_flags": true
+ },
+ "decision": null
+}

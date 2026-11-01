@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "★★★★☆ 4.3",
- "sr_role": "image",
- "sr_name": "rating",
- "why_it_matters": "A blind user hears only a generic rating without the 4.3 star value sighted users get.",
+ "sighted_text": "★★★★☆",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "Blind user misses the star rating because the stars render pixels with no accessibility entry.",
  "voice": null,
  "bbox": {
   "x_min": 146,
   "y_min": 219,
-  "x_max": 232,
-  "y_max": 247
+  "x_max": 212,
+  "y_max": 242
  },
  "element": {
-  "backend_id": 22,
-  "css_path": "img#p2",
+  "backend_id": 28,
+  "css_path": "span#rating-css",
   "box_px": [
    187,
    158,
-   297,
-   178
+   271,
+   174
   ],
-  "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": "p2"
+  "outer_html": "<span id=\"rating-css\" class=\"stars four\"></span>",
+  "dom_id": "rating-css"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#p2"
+    "detail": "silent:span at span#rating-css"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "quote equals the accessibility tree entry"
+    "detail": "no accessibility node with a name at that box"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "detail": "visible content has no announcement"
    },
    "not_axe": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 22,
-   "css_path": "img#p2",
+   "backend_id": 28,
+   "css_path": "span#rating-css",
    "box_px": [
     187,
     158,
-    297,
-    178
+    271,
+    174
    ],
-   "outer_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "p2"
+   "outer_html": "<span id=\"rating-css\" class=\"stars four\"></span>",
+   "dom_id": "rating-css"
   },
   "feedback": null
  },
@@ -73,32 +73,32 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears only 'rating' and cannot know the 4.3-star value that sighted users use to judge the product.",
+  "impact": "The user hears only 'based on 212 reviews' and cannot learn the 4-out-of-5 star rating that sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "3b4c518d-138d-4a49-976f-87bfda6512e5",
-   "response_id": "resp_6ae64661dc0e158fd0874336",
+   "request_id": "2f8f9698-1dd0-41a1-80f7-00af52cf4894",
+   "response_id": "resp_6ae74490a0cf4ba890fb4b6c",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
-  "after_html": "<img id=\"p2\" alt=\"★★★★☆ 4.3\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -16,8 +16,7 @@\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n+    <p><img id=\"p2\" alt=\"★★★★☆ 4.3\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span></p>\n     <div class=\"actions\">\n",
-  "explanation": "Changed alt from 'rating' to '★★★★☆ 4.3' to match the visible rating text for screen-reader users.",
+  "before_html": "<span id=\"rating-css\" class=\"stars four\"></span>",
+  "after_html": "<span id=\"rating-css\" class=\"stars four\" role=\"img\" aria-label=\"4 out of 5 stars\"></span>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -16,7 +16,7 @@\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n+    <p class=\"row\"><span id=\"rating-css\" class=\"stars four\" role=\"img\" aria-label=\"4 out of 5 stars\"></span><span class=\"small\">based on 212 reviews</span></p>\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n",
+  "explanation": "Added role=\"img\" and aria-label=\"4 out of 5 stars\" so the CSS-only stars expose the visible 4-out-of-5 rating to screen readers.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "e6948c02-f568-4895-947f-f626cd55a7a4",
-   "response_id": "resp_6ae64772cff8bbd3472546a5",
+   "request_id": "444267b9-d1a3-4a34-988c-bc391ca07eab",
+   "response_id": "resp_6ae746112ba8c141497d405e",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "rating",
-  "sr_name_after": "★★★★☆ 4.3",
+  "gap_closed": false,
+  "sr_name_before": "",
+  "sr_name_after": "4 out of 5 stars",
   "comparator_still_flags": false
  },
  "decision": null

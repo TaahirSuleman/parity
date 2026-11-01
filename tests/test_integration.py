@@ -256,8 +256,11 @@ async def test_committed_replay_bundles_load_and_replay(tmp_path):
                 detail = (await client.get(f"/api/runs/{run_id}")).json()
                 assert len(detail["findings"]) == verified and len(detail["rejected"]) == rejected and detail["steps"]
                 assert all(f["fix"] is None or f["fix"]["diff"].startswith("--- a/store/") for f in detail["findings"])
-                hero = next((f for f in detail["findings"] if f["element"]["dom_id"] == "f5"), None)
-                assert hero and hero["fix"] and hero["reaudit"]["gap_closed"] is True, flow
+                if flow == "checkout":  # the hero: Pay R1,249 vs Submit, with a fix the re-audit closed
+                    hero = next((f for f in detail["findings"] if f["element"]["dom_id"] == "f5"), None)
+                    assert hero and hero["fix"] and hero["reaudit"]["gap_closed"] is True, flow
+                else:  # the agent walk: its findings vary with where the agent scrolls; it must still carry a closed-gap fix to open on
+                    assert any(f["fix"] and f.get("reaudit") and f["reaudit"]["gap_closed"] for f in detail["findings"]), flow
                 assert (await client.get(f"/api/runs/{run_id}/steps/0/screenshot.png")).status_code == 200
                 # a completed agent turn is not an error: the trace must only carry real failures (HTTP status / transport)
                 assert all(c["error"] is None or c["http_status"] is None or c["http_status"] >= 400 for c in detail["trace"]), flow

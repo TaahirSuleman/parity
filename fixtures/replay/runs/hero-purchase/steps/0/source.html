@@ -16,13 +16,33 @@
     <img id="p1" alt="badge" width="120" height="28"
          src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>">
     <h1 id="product-h">Noise-cancelling headphones</h1>
+    <p class="row"><span id="rating-css" class="stars four"></span><span class="small">based on 212 reviews</span></p>
     <p><img id="p2" alt="rating" width="110" height="20"
          src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>"> <span class="small">(212 reviews)</span></p>
+    <div class="thumbs">
+      <img id="gallery-1" alt="photo 1" width="64" height="48" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>">
+      <img id="gallery-2" alt="photo 2" width="64" height="48" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>">
+      <img id="divider-1" alt="decorative divider graphic" width="64" height="48" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>">
+    </div>
+    <p class="row"><span class="small">Colour</span>
+      <button id="swatch-1" class="swatch selected" type="button" aria-label="Option 1" style="background:#3a3d44"></button>
+      <button id="swatch-2" class="swatch" type="button" aria-label="Option 2" style="background:#d9c7a3"></button>
+      <button id="swatch-3" class="swatch" type="button" aria-label="Option 3" style="background:#1f3b73"></button>
+    </p>
+    <p class="row"><span class="small">Size</span>
+      <button id="size-standard" class="tab current" type="button">Standard</button>
+      <button id="size-large" class="tab" type="button">Large</button>
+      <span id="stock-dot" class="dot ok" role="img" aria-label="status"></span><span class="small">stock</span>
+    </p>
     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>
-    <p class="total"><s class="small">R1,599.00</s> <span id="p3">R1,249.00</span></p>
+    <p class="total"><s id="was-price" class="small">R1,599.00</s> <span id="p3">R1,249.00</span>
+      <span id="instalment-price"><img alt="" width="150" height="16" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>"></span></p>
+    <p><canvas id="promo-timer" width="200" height="22" role="presentation"></canvas></p>
     <div class="actions">
       <button id="p4" class="btn" type="button">Add to cart</button>
       <button id="p5" class="icon" type="button" aria-label="Close">♡</button>
+      <button id="share-btn" class="icon" type="button" aria-label="Share">⇪</button>
+      <a id="compare-link" href="#compare" aria-label="More"><img alt="" width="64" height="16" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>"></a>
     </div>
   </section>
   <section class="card" aria-labelledby="details-h">
@@ -31,10 +51,13 @@
     <div class="line"><span>Warranty</span><span>2 years</span></div>
     <div class="line"><span>Delivery</span><span>Free</span></div>
     <p><a id="p6" href="#returns">Returns policy</a></p>
+    <p><a id="spec-link" href="#specs">Full specifications</a></p>
   </section>
 </main>
 <script>
   document.getElementById("p4").addEventListener("click", function () { location.href = "cart.html"; });
+  var t = document.getElementById("promo-timer").getContext("2d");
+  t.font = "bold 15px Arial"; t.fillStyle = "#d0021b"; t.fillText("Offer ends in 02:14:09", 0, 16);
 </script>
 </body>
 </html>

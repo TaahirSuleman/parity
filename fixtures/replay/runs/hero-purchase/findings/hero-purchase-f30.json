@@ -1,0 +1,105 @@
+{
+ "id": "hero-purchase-f30",
+ "run_id": "hero-purchase",
+ "step_index": 2,
+ "status": "reaudited",
+ "sighted_text": "Pay with wallet",
+ "sr_role": "button",
+ "sr_name": "Button",
+ "why_it_matters": "Blind user hears only generic Button with no purpose and cannot discover the wallet payment option.",
+ "voice": null,
+ "bbox": {
+  "x_min": 636,
+  "y_min": 578,
+  "x_max": 745,
+  "y_max": 635
+ },
+ "element": {
+  "backend_id": 268,
+  "css_path": "button#express-pay",
+  "box_px": [
+   814,
+   416,
+   954,
+   457
+  ],
+  "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "dom_id": "express-pay"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#express-pay"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 268,
+   "css_path": "button#express-pay",
+   "box_px": [
+    814,
+    416,
+    954,
+    457
+   ],
+   "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "express-pay"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "serious",
+  "wcag": [
+   {
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
+   }
+  ],
+  "impact": "User hears only generic Button and cannot know it is the Pay with wallet option or choose to pay with wallet.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "328b08d0-648b-4758-b536-e58030ef57eb",
+   "response_id": "resp_6ae74578e39ffbbffe484c8d",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": {
+  "before_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button>",
+  "after_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -36,7 +36,7 @@\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n-      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n+      <button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button></p>\n   </section>\n </main>\n <script>\n",
+  "explanation": "Replaced the generic aria-label and empty-alt image-of-text with real text 'Pay with wallet' so the accessible name matches what sighted users see.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "370dccc3-f35a-4271-bf57-aecca2c5f4a2",
+   "response_id": "resp_6ae7465d82272078911d4917",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "Button",
+  "sr_name_after": "Pay with wallet",
+  "comparator_still_flags": false
+ },
+ "decision": null
+}

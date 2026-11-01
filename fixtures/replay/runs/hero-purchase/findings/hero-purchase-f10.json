@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f10",
  "run_id": "hero-purchase",
- "step_index": 2,
+ "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Pay R1,249",
+ "sighted_text": "Standard (selected)",
  "sr_role": "button",
- "sr_name": "Submit",
- "why_it_matters": "A blind user hears a generic name that contradicts the visible label and misses the price being confirmed.",
+ "sr_name": "Standard",
+ "why_it_matters": "Blind user is not told this size is currently selected.",
  "voice": null,
  "bbox": {
-  "x_min": 525,
-  "y_min": 500,
-  "x_max": 646,
-  "y_max": 567
+  "x_min": 172,
+  "y_min": 422,
+  "x_max": 234,
+  "y_max": 464
  },
  "element": {
-  "backend_id": 164,
-  "css_path": "button#f5",
+  "backend_id": 44,
+  "css_path": "button#size-standard",
   "box_px": [
-   673,
-   360,
-   827,
-   408
+   220,
+   304,
+   299,
+   334
   ],
-  "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-  "dom_id": "f5"
+  "outer_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>",
+  "dom_id": "size-standard"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f5"
+    "detail": "button at button#size-standard"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 164,
-   "css_path": "button#f5",
+   "backend_id": 44,
+   "css_path": "button#size-standard",
    "box_px": [
-    673,
-    360,
-    827,
-    408
+    220,
+    304,
+    299,
+    334
    ],
-   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-   "dom_id": "f5"
+   "outer_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>",
+   "dom_id": "size-standard"
   },
   "feedback": null
  },
@@ -69,36 +69,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "2.5.3",
-    "name": "Label in Name"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "User hears only generic Submit and cannot tell from the button that activating it will pay R1,249.",
+  "impact": "Blind user cannot tell that Standard is the currently selected size and cannot verify their size choice before purchase.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "0624ce31-0101-468f-8212-884e78878d61",
-   "response_id": "resp_6ae6470eef632002ba934339",
+   "request_id": "c37251e1-dd8b-45eb-9e5b-988cd51c260b",
+   "response_id": "resp_6ae7449c2cfd3847e7ec46ed",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "after_html": "<button id=\"f5\" class=\"btn\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -28,7 +28,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n+      <button id=\"f5\" class=\"btn\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n",
-  "explanation": "Removed the misleading aria-label=\"Submit\" and gave the image alt=\"Pay R1,249\" so the button's accessible name matches the visible label.",
+  "before_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>",
+  "after_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-current=\"true\" aria-label=\"Standard (selected)\">Standard</button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -30,7 +30,7 @@\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n-      <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n+      <button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-current=\"true\" aria-label=\"Standard (selected)\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n       <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n     </p>\n",
+  "explanation": "Added aria-current and an aria-label including \"(selected)\" so the accessible name/state conveys the visible selected styling to screen readers.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "89ae7f8c-1285-4eb4-b1ec-31af194d36c8",
-   "response_id": "resp_6ae647922e6d2226e9d0466f",
+   "request_id": "413ea15d-8754-4e4d-9bad-99a7976182b8",
+   "response_id": "resp_6ae746304bccb6c0153443d3",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "Submit",
-  "sr_name_after": "Pay R1,249",
+  "sr_name_before": "Standard",
+  "sr_name_after": "Standard (selected)",
   "comparator_still_flags": false
  },
  "decision": null

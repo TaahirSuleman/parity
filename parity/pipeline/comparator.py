@@ -83,7 +83,7 @@ def parse_candidates(text: str, step_index: int, attempt: int = 1) -> CandidateL
     out = CandidateList()
     try:
         data = json.loads(text)
-    except json.JSONDecodeError:
+    except (ValueError, RecursionError):  # JSONDecodeError, a 5,000-digit number, or brackets nested past the stack: not usable JSON
         out.parse_ok = False
         return out
     items = data.get("findings") if isinstance(data, dict) else None

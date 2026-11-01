@@ -134,3 +134,11 @@ async def test_unparseable_retry_is_a_new_request_not_a_cache_hit(tmp_path):
     retry = await compare(client, cap, [], "r1", model="muse-spark-1.3-contributor", unparseable_retry=True)
     assert retry.parse_ok is False and hits["n"] == 2  # the retry is a new request
     await client.aclose()
+
+
+def test_parse_candidates_treats_every_unparseable_answer_alike():
+    """Deeply nested brackets raise RecursionError and a 5,000-digit number raises ValueError from json.loads: neither is JSON the
+    comparator can use, and neither may fail the run."""
+    deep = "[" * 100000 + "]" * 100000
+    assert parse_candidates(deep, step_index=0) == []
+    assert parse_candidates("1" * 5000, step_index=0) == []

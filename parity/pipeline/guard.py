@@ -13,6 +13,7 @@ import json
 import logging
 import re
 import shutil
+import unicodedata
 import urllib.robotparser
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -22,9 +23,14 @@ from urllib.parse import urlsplit
 from parity.store.models import AxNode
 
 log = logging.getLogger(__name__)
-IRREVERSIBLE = re.compile(r"\b(pay|buy|place order|submit|sign ?up|subscribe|confirm|delete|checkout now)\b", re.IGNORECASE)
+IRREVERSIBLE = re.compile(
+    r"\b(pay|buy|purchase|complete|place (?:\w+ )?order|order now|submit|send|sign ?up|register|subscribe|unsubscribe|confirm|delete|checkout(?: now)?|donate|book now|reserve|apply now)\b",
+    re.IGNORECASE,
+)
+INVISIBLE = re.compile(r"[\u200b-\u200f\u2060\ufeff\u00ad]")  # zero-width and soft characters a label can hide a word behind
 BLOCKED_FIELDS = {"password", "cc-number", "cc-csc", "cc-exp", "email", "tel", "new-password", "current-password"}
-SUBMIT_KEYS = {"enter", "return", "numpadenter", "space", " "}  # Enter submits a form; Space activates a focused control
+SUBMIT_KEYS = {"enter", "return", "numpadenter", "space"}  # Enter submits a form; Space activates a focused control
+UNNAMED_CONTROLS = {"button", "menuitem", "switch"}  # a control the tree cannot name is a step whose effect is unknown
 USER_AGENT = "Parity"
 # Bot walls and login walls (spec §17): recognised from the title, the URL and a few well-known markers; never bypassed.
 CHALLENGE_TITLES = re.compile(r"just a moment|attention required|access denied|verify you are human|are you a robot|checking your browser|security check|unusual traffic", re.I)
@@ -56,7 +62,7 @@ def guard_action(action: dict, target: AxNode | None, field_type: str | None, *,
     """One action against the element under it. ``field_type`` is the input's type/autocomplete token; ``submits``
     says the target submits a form (a submit button, or an input inside a form)."""
     kind = str(action.get("type") or "").lower()
-    name = (target.name if target else "") or ""
+    name = unicodedata.normalize("NFKC", INVISIBLE.sub(" ", (target.name if target else "") or ""))
     if kind in ("click", "double_click"):
         if target is not None and target.role == "iframe":
             return Blocked("the click lands inside an embedded frame, whose content is not inspected; not allowed on a public site")
@@ -65,6 +71,8 @@ def guard_action(action: dict, target: AxNode | None, field_type: str | None, *,
         if IRREVERSIBLE.search(name):
             word = IRREVERSIBLE.search(name).group(1)
             return Blocked(f"'{name}' looks like an irreversible step ({word.lower()}); stopped before it")
+        if target is not None and target.role in UNNAMED_CONTROLS and not name.strip():
+            return Blocked(f"the {target.role} under the pointer has no accessible name, so its effect is unknown; not clicked on a public site")
         return Allowed()
     if kind == "type":
         if target is not None and target.role == "iframe":
@@ -76,11 +84,19 @@ def guard_action(action: dict, target: AxNode | None, field_type: str | None, *,
             return Blocked("the typed text contains a newline, which submits a form; not allowed on a public site")
         return Allowed()
     if kind == "keypress":
-        keys = [str(k).lower() for k in (action.get("keys") or ([action.get("key")] if action.get("key") else []))]
-        if any(k in SUBMIT_KEYS for k in keys) and (target is not None or submits):
+        keys = [str(k) for k in (action.get("keys") or ([action.get("key")] if action.get("key") else []))]
+        if any(_submits(k) for k in keys) and (target is not None or submits):
             return Blocked("Enter or Space on a focused control would submit or activate it; not allowed on a public site")
         return Allowed()
     return Allowed()  # scroll, wait, screenshot
+
+
+def _submits(key: str) -> bool:
+    """Every spelling the executor maps to Enter or Space: "\n", "numpad enter", "Shift+Enter", "NumpadEnter", " "."""
+    k = key.lower()
+    if "\n" in k or "\r" in k or k == " ":
+        return True
+    return any(token in SUBMIT_KEYS for token in k.replace("_", " ").replace("+", " ").split())
 
 
 def challenge_reason(title: str, url: str, markers_present: list[str]) -> str | None:

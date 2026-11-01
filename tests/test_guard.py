@@ -216,3 +216,21 @@ async def test_anonymise_masks_the_kept_screenshot_outside_the_finding_boxes(tmp
     # the hero finding's box is (526,500)-(646,567) on the 0-1000 grid of a 1280x720 screenshot: (673,360)-(827,408) in pixels
     assert after.getpixel((750, 384)) == before.getpixel((750, 384))  # inside the finding: untouched
     assert after.getpixel((20, 20)) != before.getpixel((20, 20)) and after.getpixel((20, 20)) == after.getpixel((1200, 700))  # outside: one flat colour
+
+
+def test_blocks_every_spelling_of_enter_and_unnamed_buttons_on_a_public_site():
+    """The executor maps "\\n", "numpad enter", "Shift+Enter" and friends to Enter, so the guard must refuse them the same way;
+    a button the accessibility tree cannot name (an icon, a CSS ::before label) is an unknown step, refused rather than guessed."""
+    for keys in (["\n"], ["\r"], ["numpad enter"], ["numpad_enter"], ["Shift+Enter"], ["NumpadEnter"], ["shift", "enter"]):
+        assert isinstance(guard_action({"type": "keypress", "keys": keys}, node("textbox", "Search"), "search"), Blocked), keys
+    assert guard_action({"type": "keypress", "keys": ["shift", "Tab"]}, node("textbox", "Search"), "search").allowed
+    assert isinstance(guard_action({"type": "click", "x": 1, "y": 1}, node("button", ""), None), Blocked)
+    assert guard_action({"type": "click", "x": 1, "y": 1}, node("link", ""), None).allowed  # a link only navigates
+    assert guard_action({"type": "click", "x": 1, "y": 1}, node("img", ""), None).allowed
+
+
+def test_irreversible_labels_cover_the_common_checkout_words():
+    for name in ("Complete purchase", "Place your order", "Order now", "Donate", "Pay​now", "Book now", "Register", "Send message", "Purchase"):
+        assert isinstance(guard_action({"type": "click", "x": 1, "y": 1}, node("button", name), None), Blocked), name
+    for name in ("Add to cart", "Continue shopping", "Apply filters", "Cancel", "Show more", "Search"):
+        assert guard_action({"type": "click", "x": 1, "y": 1}, node("button", name), None).allowed, name

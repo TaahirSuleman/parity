@@ -28,8 +28,10 @@ PROMPT = (Path(__file__).resolve().parent.parent / "meta" / "prompts" / "fixer.t
 MAX_OUTPUT_TOKENS = 6000
 MAX_FIX_HTML = 4000  # an element larger than this is not patched: the model would have to invent what it cannot see
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
-DENIED_TAGS = {"script", "iframe", "frame", "frameset", "object", "embed", "base", "meta", "link", "style", "form", "template", "noscript"}
+DENIED_TAGS = {"script", "iframe", "frame", "frameset", "object", "embed", "base", "meta", "link", "style", "form", "template", "noscript",
+               "animate", "animatemotion", "animatetransform", "set", "discard", "handler", "listener", "foreignobject"}
 URL_ATTRS = {"href", "src", "action", "formaction", "data", "poster", "cite", "background", "ping", "xlink:href"}
+NAV_ATTRS = {"action", "formaction", "formmethod", "formtarget", "formenctype", "formnovalidate", "method", "target", "ping"}  # where a form goes is never an accessibility fix
 ACTIVE_SCHEMES = ("javascript:", "vbscript:", "data:text/html", "data:text/javascript", "data:application")
 
 
@@ -278,13 +280,18 @@ def validate_snippet(before_html: str, after_html: str) -> None:
     if before.root_attrs.get("id") and after.root_attrs.get("id") != before.root_attrs["id"]:
         raise FixRejected(f"snippet is for element #{after.root_attrs.get('id') or '?'}, not #{before.root_attrs['id']}")
     kept_handlers = {(n, v) for _, attrs in before.elements for n, v in attrs if n.startswith("on")}
+    kept_nav = {(t, n, v) for t, attrs in before.elements for n, v in attrs if n in NAV_ATTRS}
     ids = [v for _, attrs in after.elements for n, v in attrs if n == "id"]
     if len(ids) != len(set(ids)):
         raise FixRejected("snippet repeats an id")
     for tag, attrs in after.elements:
         if tag in DENIED_TAGS:
             raise FixRejected(f"snippet adds a <{tag}> element")
+        if len(attrs) != len({n for n, _ in attrs}):
+            raise FixRejected(f"snippet repeats an attribute on <{tag}> (browsers keep the first, checks would read the last)")
         for name, value in attrs:
+            if name in NAV_ATTRS and (tag, name, value) not in kept_nav:
+                raise FixRejected(f"snippet changes where the form goes ({name})")
             if name.startswith("on") and (name, value) not in kept_handlers:
                 raise FixRejected(f"snippet adds an inline handler ({name})")
             if name == "srcdoc":

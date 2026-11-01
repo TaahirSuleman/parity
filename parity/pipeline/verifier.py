@@ -65,7 +65,13 @@ def parse_quote(quote: str) -> tuple[str, str]:
         role, name = m.group(1), m.group(2)
     else:
         role, name = "", q
-    name = name.strip().strip('"“”\'').strip()
+    name = name.strip()
+    wrapped = re.match(r'^(["“”\'])(.*)(["“”\'])$', name, re.S)
+    if wrapped:  # one pair of quote marks around the name; a quote mark inside it (Monitor 27") belongs to the name
+        name = wrapped.group(2)
+    elif name[:1] in '"“”\'':
+        name = name[1:]  # a missing closing quote is forgiven
+    name = name.strip()
     role_n = normalise(role)
     return ROLE_ALIASES.get(role_n, role_n), normalise(name)
 

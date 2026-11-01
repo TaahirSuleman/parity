@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from parity.config import load_settings
 from parity.store.blob import LocalBlobStore
@@ -17,6 +18,16 @@ from parity.verifier_off import verifier_off
 def _bundle(data_dir: str | None) -> RunBundle:
     settings = load_settings()
     return RunBundle(LocalBlobStore(Path(data_dir) if data_dir else settings.data_dir))
+
+
+def public_target(url: str) -> tuple[str, str, str] | None:
+    """(origin, start path, host) for a public audit URL, or None when it is not http(s). Credentials in the URL are dropped:
+    they would otherwise be stored in run.json and printed in the hint."""
+    parts = urlsplit(url)
+    if parts.scheme not in ("http", "https") or not parts.hostname:
+        return None
+    netloc = parts.hostname + (f":{parts.port}" if parts.port else "")
+    return f"{parts.scheme}://{netloc}", (parts.path or "/") + (f"?{parts.query}" if parts.query else ""), netloc
 
 
 async def _verify(args) -> int:
@@ -50,7 +61,6 @@ async def _index_rebuild(args) -> int:
 
 async def _audit(args) -> int:
     """One public-site walk from the command line. Never from the hosted UI."""
-    from urllib.parse import urlsplit
 
     from parity.api.events import EventBus
     from parity.flows import Flow
@@ -64,13 +74,12 @@ async def _audit(args) -> int:
     if not settings.has_key:
         print("MODEL_API_KEY missing (expected in .env); a public audit calls the model and needs it")
         return 1
-    parts = urlsplit(args.url)
-    if parts.scheme not in ("http", "https") or not parts.netloc:
+    target = public_target(args.url)
+    if target is None:
         print(f"not an http(s) URL: {args.url}")
         return 2
-    origin = f"{parts.scheme}://{parts.netloc}"
-    start = (parts.path or "/") + (f"?{parts.query}" if parts.query else "")
-    flow = Flow(id=f"public-{parts.netloc}", name=f"Public: {parts.netloc}", start_url=start, goal=args.goal, pages=(start,), single_page=False)
+    origin, start, netloc = target
+    flow = Flow(id=f"public-{netloc}", name=f"Public: {netloc}", start_url=start, goal=args.goal, pages=(start,), single_page=False)
     bundle = RunBundle(LocalBlobStore(settings.data_dir))
     index = RunIndex(settings.index_path)
     await index.init()
@@ -88,7 +97,8 @@ async def _audit(args) -> int:
     print(f"agent: {agent.get('summary', run.error or '')}")
     for b in blocked:
         print(f"blocked: {b}")
-    print(f"anonymise before sharing: scripts/anonymise_bundle.py --data-dir {settings.data_dir} --run-id {run.id} --host {parts.netloc} --name '<brand name>' --letter <A|B|C>")
+    if run.status != "failed":
+        print(f"anonymise before sharing: scripts/anonymise_bundle.py --data-dir {settings.data_dir} --run-id {run.id} --host {netloc} --name '<brand name>' --letter <A|B|C>")
     return 0 if run.status != "failed" else 1
 
 

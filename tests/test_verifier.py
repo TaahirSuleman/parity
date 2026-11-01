@@ -125,3 +125,27 @@ def test_locate_ignores_zero_area_offscreen_nodes():
     visible = AxNode(backend_id=1, role="button", name="Place order", bbox=BBox(x_min=400, y_min=960, x_max=600, y_max=1000))
     offscreen = AxNode(backend_id=2, role="link", name="Privacy", bbox=BBox(x_min=400, y_min=1000, x_max=600, y_max=1000))  # clamped to a line
     assert locate(BBox(x_min=410, y_min=965, x_max=590, y_max=999), [offscreen, visible]) is visible
+
+
+def test_parse_quote_strips_one_pair_of_quote_marks_and_keeps_the_rest():
+    """'button, "Monitor 27""' quotes a name that ends in an inch mark exactly; stripping every quote character made the exact
+    quote fail and dropped a correct finding."""
+    from parity.pipeline.verifier import normalise, parse_quote
+
+    assert parse_quote('button, "Monitor 27""') == ("button", normalise('Monitor 27"'))
+    assert parse_quote('link, "Customers\'"') == ("link", normalise("Customers'"))
+    assert parse_quote('heading, "“Quoted”"') == ("heading", normalise("“Quoted”"))
+    assert parse_quote('button, "Submit"') == ("button", "submit")
+    assert parse_quote("button, Submit") == ("button", "submit")
+    assert parse_quote('button, "Submit') == ("button", "submit")  # a missing closing quote is forgiven
+
+
+def test_parse_quote_is_linear_on_hostile_input():
+    import time
+
+    from parity.pipeline.verifier import parse_quote
+
+    t0 = time.perf_counter()
+    parse_quote("button" + " " * 20000 + ', "x"')
+    parse_quote("x" * 50000)
+    assert time.perf_counter() - t0 < 0.2

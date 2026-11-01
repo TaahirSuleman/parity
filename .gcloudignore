@@ -1,0 +1,23 @@
+.git
+.venv
+.superpowers
+.claude
+.pytest_cache
+__pycache__
+*.pyc
+node_modules
+web/node_modules
+web/dist
+parity/static
+parity/vendor
+data
+cache
+docs
+seeds
+tests
+scripts
+.env*
+*.log
+# gcloud builds submit uploads the tree minus these (and .env never)
+.env
+.env.*

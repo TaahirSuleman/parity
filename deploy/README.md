@@ -15,7 +15,9 @@ the model key in Secret Manager. Spec: docs/19 §12. Docker is not needed on you
 5. Check `https://<url>/api/health`: `storage: "gcs"`, `models_ok: true`, `runs_indexed`.
 
 ## Redeploy
-`deploy/cloudrun.sh build && deploy/cloudrun.sh deploy`. Runs, decisions and screenshots live in the bucket, so they survive a
+`deploy/cloudrun.sh build && deploy/cloudrun.sh deploy`. `build` tags the image with the commit it was built from and records that tag in `deploy/.image-tag` (local, git-ignored); `deploy` reuses it, so the two can run minutes and commits apart. `TAG=<sha> deploy/cloudrun.sh deploy` re-deploys any image already in the registry.
+
+The service URL: `https://parity-u7lcbbxuia-uc.a.run.app` (project parity-hackathon-2026). Runs, decisions and screenshots live in the bucket, so they survive a
 redeploy; the SQLite index and the model-response cache are rebuilt in `/tmp`. Boot reads each bundle once and evicts the oldest
 Replay copies beyond `PARITY_REPLAY_KEEP` (default 50).
 

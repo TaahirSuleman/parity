@@ -151,3 +151,13 @@ Two fresh-context reviewers (UX/UI and the workbench's own accessibility; requir
 
 - vitest 64/64; the Python suite and the browser smoke tests green (see the ledger for the counts); the smoke tests gained: decisions survive a reload and the header follows the run's flow; axe-clean at 768 px after a run with the trace open; the screenshot keeps its 16:9 shape with the trace open; `index.html` is `no-cache` and hashed assets immutable.
 - Hero bundles re-recorded 1 Nov on store v2 with the final code and a fresh cache. hero-checkout: 7 verified, 3 rejected, $0.09, 4 m 42 s; all seven fixes approved on a replay give a 4,276-byte patch that `git apply --check` accepts against the repository's `store/checkout.html`. hero-purchase (sixth attempt, with the goal telling the agent to leave other cart items alone): all four screens, the agent finished in 9 turns, 35 verified, 2 rejected, 33 fixes proposed and re-audited (16 closed the gap, none skipped by the budget), $0.44, 20 m 9 s recorded under the 30-minute recording deadline; the hero `#f5` is among the findings. All 33 fixes approved on a replay give a patch that `git apply --check` accepts against the repository (see the ledger for the byte count and files).
+
+### 6.4 Hosted deploy (Task 22, 1 Nov evening)
+
+`https://parity-u7lcbbxuia-uc.a.run.app` — Cloud Run, us-central1, one warm 2-CPU/2 GiB instance, bundles in a private bucket, the key from Secret Manager.
+Checked after the first deploy: `/api/health` reports `storage: gcs`, `models_ok: true`; `/` is `no-cache` and a deep link (`/runs/<id>`) serves the workbench; `/api/nope` is 404.
+A Replay of the checkout hero finished in 2 s; approving its fix persisted (re-read from the API) and `fix.patch` downloaded as `text/x-diff`; the step
+screenshot was served from the bucket. One Live run of the checkout page on the hosted instance: 7 verified, 0 rejected, 278 s, $0.096. From the desktop
+pane (a fresh browser, no login) the hosted Replay opened on "Pay R1,249" vs `button, "Submit"`. Persistence across a redeploy is recorded in the ledger
+(the run, its decision and its screenshot re-read after the second deploy).
+

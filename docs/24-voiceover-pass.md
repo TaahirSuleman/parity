@@ -10,7 +10,7 @@ Record what VoiceOver said (VO+Shift+C copies the last phrase to the clipboard),
 | # | Step | Done |
 |---|---|---|
 | 0.1 | macOS: System Settings → Keyboard → **Keyboard navigation** on. Safari → Settings → Advanced → **Press Tab to highlight each item on a webpage** on. | |
-| 0.2 | VoiceOver Utility: leave Verbosity at default; Web → Navigation: "DOM order" (not "Group items"), so what you hear matches the document; Quick Nav off (VO+Left+Right toggles it). | |
+| 0.2 | VoiceOver Utility (System Settings → Accessibility → VoiceOver → "Open VoiceOver Utility…", or VO+F8 while VoiceOver is on): leave Verbosity at default; Web → Navigation: "Navigate webpages by: DOM order" (not "Grouping items"), so what you hear matches the document; Web → Page Loading: keep "Speak webpage summary" on and "Automatically speak the webpage" off, so Question A measures our page and not VoiceOver's own read-all; Commanders → Quick Nav: "Enable Quick Nav" off (pressing Left Arrow and Right Arrow together also toggles it; VoiceOver says "Quick Nav on/off"). | |
 | 0.3 | Keys: VO = Control+Option. VO+Right/Left reads the next/previous item; VO+Space activates; VO+U opens the rotor (Left/Right changes list: Headings, Landmarks, Form Controls, Links, Tables); VO+Shift+Down interacts with a group/table/list, VO+Shift+Up leaves it; VO+A reads from here on; Control stops speech; VO+Shift+C copies the last phrase. | |
 | 0.4 | Open a new Safari window at `https://parity-u7lcbbxuia-uc.a.run.app/` and turn VoiceOver on (Cmd+F5). Keep a notes file open for the verbatim phrases. | |
 

@@ -5,6 +5,10 @@ user actually hears. This pass does. Do it on the hosted demo, in Safari, with V
 Record what VoiceOver said (VO+Shift+C copies the last phrase to the clipboard), what you expected, and a verdict:
 **blocks** (a judge could not do the step), **confusing** (doable, but wrong or noisy), **cosmetic**, or **ok**.
 
+**Status (Mon 2 Nov):** not a gate for Phase 6 (doc 20 Phase 6b note; docs/25 §2 and §6). The agent runs sections 1–12 in Chrome through the Claude in
+Chrome extension and reads each phrase back from VoiceOver's scripting interface; the rotor rows are checked against the accessibility tree.
+The user answers Questions A–D by ear. Fixes land after Task 28.
+
 ## 0. Setup
 
 | # | Step | Done |

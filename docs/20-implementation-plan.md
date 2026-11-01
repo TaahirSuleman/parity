@@ -347,7 +347,10 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
   - Manual VoiceOver pass by the builder (Cmd+F5, tab through a Replay run, open a finding) before the cold review; note the result in `docs/submission-checklist.md`.
 
-# Phase 6b: External benchmark on pages we did not make (W3C BAD) — Mon 2 Nov, after the VoiceOver-pass fixes [D11, doc 18 §11, doc 19 §19]
+# Phase 6b: External benchmark on pages we did not make (W3C BAD) — Mon 2 Nov [D11, doc 18 §11, doc 19 §19]
+
+The VoiceOver pass over the workbench (docs/24) is **not a gate** for Phase 6b or Phase 6 (ruled Mon 2 Nov, docs/25 §2): its outcome is wording and
+announcement fixes in `web/src`, which land after Task 28 so one change touches the UI at a time. Phase 6 runs in a fresh chat from the kickoff in docs/25 §5.
 
 Two gates. **Core** (Tasks 26E.1–26E.3) by Mon 15:00 SAST; **hosted** (26E.4–26E.5) by Tue 12:00 SAST. A gate missed is dropped, not squeezed.
 Runs use `muse-spark-1.3-contributor` for the eval and `muse-spark-1.3` for the recorded Replay bundles; every call is cached and traced as usual.
@@ -394,6 +397,7 @@ Exit check: in Replay, selecting the hero finding plays the VoiceOver segment sa
 ### Task 26: Recording kit (manual step for the builder)
 - Create `scripts/vo_focus_logger.js` (injected into the store page; logs `{t_ms, dom_id}` on every focus or VoiceOver cursor change via `focusin` and a `MutationObserver` on `aria-activedescendant`, posts to `POST /api/voice/focuslog` in dev only) and `docs/voice-recording.md` (exact macOS steps: VoiceOver on, speech rate, record system audio with a named free tool, export WAV 16 kHz mono 16-bit, save the VoiceOver caption text).
 - Deliverable: `store/voice/checkout.wav`, `checkout.json` (focus log) and `checkout.captions.txt` committed; then the same for product and cart if time allows. **Can be recorded any time after Task 13; ideally during the Sun tester session.**
+- Captions by script, not by hand (docs/25 §3): with "Allow VoiceOver to be controlled with AppleScript" on, `osascript -e 'tell application "VoiceOver" to return content of last phrase'` returns the text just spoken; `scripts/vo_captions.sh <seconds>` polls it every ~120 ms and writes `{t_ms, text}` lines, which become `checkout.captions.txt` and the `word_accuracy` reference in Task 27.
 
 ### Task 27: Transcribe and align
 - Create `parity/voice.py`; test `tests/test_voice.py` with a cached transcribe fixture.

@@ -214,3 +214,17 @@ async def test_index_html_is_never_cached_but_hashed_assets_are(api):
     asset = re.search(r'(/assets/index-[^"]+\.js)', home.text).group(1)
     js = await client.get(asset)
     assert js.status_code == 200 and "max-age=31536000" in js.headers.get("cache-control", "") and "immutable" in js.headers.get("cache-control", "")
+
+
+async def test_spa_deep_link_serves_the_workbench_and_api_404s_stay_404(api):
+    """A shared run link (/runs/<id>, or ?run= on any path) opens the workbench; unknown API paths and store files behave as before."""
+    import re
+
+    client, _ = api
+    deep = await client.get("/runs/20261101-000000-abcd")
+    assert deep.status_code == 200 and deep.headers["content-type"].startswith("text/html") and 'id="root"' in deep.text
+    assert (await client.get("/api/nope")).status_code == 404
+    assert (await client.get("/store/nope.html")).status_code == 404
+    asset = re.search(r'(/assets/index-[^"]+\.js)', deep.text).group(1)
+    assert (await client.get(asset)).status_code == 200
+    assert (await client.get("/store/checkout.html")).status_code == 200

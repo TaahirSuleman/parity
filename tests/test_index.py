@@ -97,3 +97,44 @@ async def test_recovery_leaves_a_terminal_event(store):
     await bundle.create(sample_run("silent", RunStatus.running))
     await index.recover_interrupted(bundle)
     assert [e.type for e in (await bundle.load("silent")).events] == ["run.failed"]
+
+
+async def test_boot_indexes_recovers_and_caps_replays_in_one_pass(tmp_path):
+    """Boot on a bucket must not read every bundle twice, and Replay copies must not pile up: one pass indexes, fails the
+    interrupted run with a terminal event, and evicts the oldest Replay copies beyond the cap."""
+    from parity.store.blob import LocalBlobStore
+    from parity.store.bundle import RunBundle
+    from parity.store.index import RunIndex
+    from parity.store.models import RunMode, RunStatus
+    from tests.test_bundle import sample_run
+
+    store = LocalBlobStore(tmp_path / "data")
+    reads: list[str] = []
+    original_get = store.get
+
+    async def counted_get(key):
+        reads.append(key)
+        return await original_get(key)
+
+    store.get = counted_get  # type: ignore[method-assign]
+    bundle = RunBundle(store)
+    live = sample_run("20261101-100000-live", RunStatus.running)
+    await bundle.create(live)
+    for i, stamp in enumerate(("20261101-110000", "20261101-120000", "20261101-130000")):
+        r = sample_run(f"{stamp}-rep{i}", RunStatus.done)
+        r.mode = RunMode.replay
+        r.replay_of = "hero-checkout"
+        await bundle.create(r)
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        result = await index.boot(bundle, replay_keep=2)
+    finally:
+        await index.close()
+    run_json_reads = [k for k in reads if k.endswith("/run.json")]  # counted before the assertions below load bundles themselves
+    assert result["recovered"] == ["20261101-100000-live"] and result["evicted"] == ["20261101-110000-rep0"] and result["indexed"] == 3
+    ids = await bundle.list_run_ids()
+    assert "20261101-110000-rep0" not in ids and {"20261101-120000-rep1", "20261101-130000-rep2", "20261101-100000-live"} <= set(ids)
+    assert (await bundle.load("20261101-100000-live")).run.status == RunStatus.failed
+    assert (await bundle.load("20261101-100000-live")).events[-1].type == "run.failed"
+    assert len(run_json_reads) <= 4, run_json_reads  # each bundle's run.json read once

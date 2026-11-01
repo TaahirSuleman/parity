@@ -43,7 +43,7 @@ async def health(request: Request) -> dict:
     return {
         "ok": True, "mode_default": st.settings.default_mode, "live_enabled": st.settings.live_enabled,
         "storage": "gcs" if st.settings.gcs_bucket else "local", "runs_indexed": await st.index.count_runs(),
-        "has_key": st.settings.has_key, "replay_runs": st.replay_ids, "replay_flows": st.replay_for_flow, "version": request.app.version,
+        "has_key": st.settings.has_key, "models_ok": bool(getattr(st, "models_ok", False)), "replay_runs": st.replay_ids, "replay_flows": st.replay_for_flow, "version": request.app.version,
     }
 
 

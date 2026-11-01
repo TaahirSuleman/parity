@@ -5,12 +5,13 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from typing import Any
 from pathlib import Path
 
 import aiosqlite
 
 from parity.store.bundle import RunBundle
-from parity.store.models import Event, Finding, ModelCall, Run, RunStatus, now
+from parity.store.models import Event, Finding, ModelCall, Run, RunMode, RunStatus, now
 
 log = logging.getLogger(__name__)
 
@@ -116,6 +117,40 @@ class RunIndex:
                 await self.insert_call(call)
             count += 1
         return count
+
+    async def boot(self, bundle: RunBundle, *, replay_keep: int = 50) -> dict[str, Any]:
+        """Everything boot needs from the bundles in ONE pass over them (a bucket read costs a round trip): index each run,
+        fail the ones a restart interrupted (with a terminal event), and evict the oldest Replay copies beyond ``replay_keep``
+        so a day of judges clicking Replay does not slow the next boot. Newest first, so the kept replays are the recent ones."""
+        indexed, recovered, evicted = 0, [], []
+        replays_seen = 0
+        for run_id in sorted(await bundle.list_run_ids(), reverse=True):
+            try:
+                loaded = await bundle.load(run_id)
+            except Exception as exc:  # one corrupt bundle must not stop the server from booting
+                log.warning("boot skips unreadable bundle %s: %s", run_id, exc)
+                continue
+            run = loaded.run
+            if run.mode == RunMode.replay:
+                replays_seen += 1
+                if replays_seen > replay_keep:
+                    await bundle.delete_run(run_id)
+                    evicted.append(run_id)
+                    continue
+            if run.status in (RunStatus.running, RunStatus.queued):
+                run.status = RunStatus.failed
+                run.error = "interrupted by restart"
+                run.finished_at = now()
+                await bundle.write_run(run)
+                await bundle.append_event(run_id, Event(type="run.failed", run_id=run_id, data={"error": run.error}))
+                recovered.append(run_id)
+            await self.upsert_run(run)
+            for finding in loaded.findings:
+                await self.upsert_finding(finding)
+            for call in loaded.trace:
+                await self.insert_call(call)
+            indexed += 1
+        return {"indexed": indexed, "recovered": sorted(recovered), "evicted": sorted(evicted)}
 
     async def recover_interrupted(self, bundle: RunBundle) -> list[str]:
         """Runs still marked running/queued after a restart are failed, bundle first, then index."""

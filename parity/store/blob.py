@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -19,6 +20,7 @@ class BlobStore(Protocol):
     async def get(self, key: str) -> bytes: ...
     async def exists(self, key: str) -> bool: ...
     async def list(self, prefix: str) -> list[str]: ...
+    async def delete_prefix(self, prefix: str) -> int: ...
 
 
 class LocalBlobStore:
@@ -56,6 +58,16 @@ class LocalBlobStore:
                 if rel.startswith(prefix):
                     out.append(rel)
         return sorted(out)
+
+    async def delete_prefix(self, prefix: str) -> int:
+        """Remove every object under ``prefix`` (a run's directory); returns how many files went."""
+        keys = await self.list(prefix)
+        for key in keys:
+            self._path(key).unlink(missing_ok=True)
+        folder = self._path(prefix.rstrip("/")) if prefix else None
+        if folder is not None and folder.is_dir():
+            shutil.rmtree(folder, ignore_errors=True)
+        return len(keys)
 
 
 class GcsBlobStore:
@@ -96,6 +108,17 @@ class GcsBlobStore:
         blobs = await asyncio.to_thread(lambda: list(self._get_client().list_blobs(self.bucket_name, prefix=full)))
         cut = len(self.prefix) + 1 if self.prefix else 0
         return sorted(b.name[cut:] for b in blobs)
+
+    async def delete_prefix(self, prefix: str) -> int:
+        full = self._name(prefix)
+
+        def go() -> int:
+            blobs = list(self._get_client().list_blobs(self.bucket_name, prefix=full))
+            for b in blobs:
+                b.delete()
+            return len(blobs)
+
+        return await asyncio.to_thread(go)
 
 
 def make_blob_store(settings: Settings, gcs_client: Any | None = None) -> BlobStore:

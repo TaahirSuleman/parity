@@ -12,7 +12,8 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from parity import __version__
@@ -48,6 +49,17 @@ async def discover_replays(replay_bundle: RunBundle) -> tuple[dict[str, str], li
     return by_flow, sorted(all_ids)
 
 
+async def probe_models(client: MetaClient | None) -> bool:
+    """Once at boot: can the model API be reached with this key? Surfaced by /api/health as models_ok; never fatal."""
+    if client is None:
+        return False
+    try:
+        return bool(await asyncio.wait_for(client.models(), timeout=15))
+    except Exception as exc:
+        log.warning("model API probe failed: %s", exc)
+        return False
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
     logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -56,10 +68,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI):
         st = app.state
         await st.index.init()
-        recovered = await st.index.recover_interrupted(st.bundle)
-        indexed = await st.index.rebuild(st.bundle)
+        booted = await st.index.boot(st.bundle, replay_keep=settings.replay_keep)
         st.replay_for_flow, st.replay_ids = await discover_replays(st.replay_bundle)
-        log.info("boot: %d runs indexed, %d recovered, replays %s, storage %s", indexed, len(recovered), st.replay_ids, "gcs" if settings.gcs_bucket else "local")
+        st.models_ok = await probe_models(st.client)
+        log.info("boot: %d runs indexed, %d recovered, %d replay copies evicted, replays %s, storage %s, models_ok %s", booted["indexed"], len(booted["recovered"]),
+                 len(booted["evicted"]), st.replay_ids, "gcs" if settings.gcs_bucket else "local", st.models_ok)
         try:
             yield
         finally:
@@ -83,6 +96,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.self_base_url = f"http://127.0.0.1:{settings.port}"
     st.replay_for_flow = {}
     st.replay_ids = []
+    st.models_ok = False
 
     @app.middleware("http")
     async def cache_policy(request, call_next):
@@ -99,5 +113,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(router)
     app.mount("/store", StaticFiles(directory=STORE_DIR, html=True), name="store")
     if STATIC_DIR.exists():
-        app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="spa")
+        app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+
+        @app.get("/{path:path}", include_in_schema=False)
+        async def spa(path: str) -> FileResponse:
+            # A shared run link (/runs/<id>, or ?run= on any path) opens the workbench: any path that is not an API route, a
+            # store page or a real file under static/ serves index.html. A missing file (favicon.ico) stays a 404.
+            if path.startswith(("api/", "store/")) or path in ("api", "store"):
+                raise HTTPException(404)
+            candidate = (STATIC_DIR / path).resolve() if path else STATIC_DIR / "index.html"
+            if path and STATIC_DIR.resolve() in candidate.parents and candidate.is_file():
+                return FileResponse(candidate)
+            if "." in path.rsplit("/", 1)[-1]:
+                raise HTTPException(404)
+            return FileResponse(STATIC_DIR / "index.html")
     return app

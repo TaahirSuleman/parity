@@ -328,3 +328,11 @@ async def test_finished_run_buffers_are_evicted_and_history_is_still_served(api)
     assert not app.state.bus.knows(run_id) and run_id not in app.state.bundle._events and run_id not in app.state.bundle._trace
     events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)  # a late subscriber reads the bundle
     assert events[0][0] == "run.started" and events[-1][0] == "run.finished" and len(events) > 5
+
+
+async def test_health_reports_storage_index_and_model_reachability(api):
+    """The deploy check reads these three: where bundles live, how many runs the index holds, and whether the model API answered at boot."""
+    client, _ = api
+    body = (await client.get("/api/health")).json()
+    assert body["storage"] == "local" and isinstance(body["runs_indexed"], int)
+    assert body["models_ok"] is False  # no key in tests: the boot probe did not run

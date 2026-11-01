@@ -206,6 +206,11 @@ class RunBundle:
         loaded.events = await self.events(run_id)
         return loaded
 
+    async def delete_run(self, run_id: str) -> int:
+        """Remove a run's objects (an evicted Replay copy); its buffers go with it."""
+        self.forget(run_id)
+        return await self.store.delete_prefix(f"runs/{run_id}/")
+
     async def list_run_ids(self) -> list[str]:
         ids = {key.split("/")[1] for key in await self.store.list("runs/") if key.endswith("/run.json")}
         return sorted(ids)

@@ -27,7 +27,7 @@ IRREVERSIBLE = re.compile(
     r"\b(pay|buy|purchase|complete|place (?:\w+ )?order|order now|submit|send|sign ?up|register|subscribe|unsubscribe|confirm|delete|checkout(?: now)?|donate|book now|reserve|apply now)\b",
     re.IGNORECASE,
 )
-INVISIBLE = re.compile(r"[\u200b-\u200f\u2060\ufeff\u00ad]")  # zero-width and soft characters a label can hide a word behind
+INVISIBLE = re.compile(r"[\u200b-\u200f\u2060\ufeff\u00ad\u202a-\u202e\u2066-\u2069]")  # zero-width, soft and bidi-control characters a label can hide a word behind
 BLOCKED_FIELDS = {"password", "cc-number", "cc-csc", "cc-exp", "email", "tel", "new-password", "current-password"}
 SUBMIT_KEYS = {"enter", "return", "numpadenter", "space"}  # Enter submits a form; Space activates a focused control
 UNNAMED_CONTROLS = {"button", "menuitem", "switch"}  # a control the tree cannot name is a step whose effect is unknown
@@ -37,7 +37,7 @@ CHALLENGE_TITLES = re.compile(r"just a moment|attention required|access denied|v
 CAPTCHA_MARKERS = (".g-recaptcha", "iframe[src*='recaptcha']", "iframe[src*='hcaptcha']", "[data-sitekey]")
 CHALLENGE_MARKERS = ("iframe[src*='challenges.cloudflare.com']", "#challenge-form", "#challenge-running", "#px-captcha", "#sec-cpt-if")
 LOGIN_TITLES = re.compile(r"\b(sign in|log ?in|login|signin)\b", re.I)
-LOGIN_PATHS = re.compile(r"/(login|signin|sign-in|log-in|account/login|auth)\b", re.I)
+LOGIN_PATHS = re.compile(r"/(login|signin|sign-in|sign_in|log-in|log_in|account/login|auth)\b", re.I)
 CHALLENGE_PROBES = (*CAPTCHA_MARKERS, *CHALLENGE_MARKERS, "input[type=password]")
 MASK_RGB = (214, 216, 222)
 MASK_MARGIN_PX = 8
@@ -62,15 +62,18 @@ def guard_action(action: dict, target: AxNode | None, field_type: str | None, *,
     """One action against the element under it. ``field_type`` is the input's type/autocomplete token; ``submits``
     says the target submits a form (a submit button, or an input inside a form)."""
     kind = str(action.get("type") or "").lower()
-    name = unicodedata.normalize("NFKC", INVISIBLE.sub(" ", (target.name if target else "") or ""))
+    raw = (target.name if target else "") or ""
+    # read the label both with hidden characters removed (P\u200bay) and with them as spaces (Pay\u200bnow): either spelling counts
+    spellings = [unicodedata.normalize("NFKC", INVISIBLE.sub(gap, raw)) for gap in ("", " ")]
+    name = spellings[1]
     if kind in ("click", "double_click"):
         if target is not None and target.role == "iframe":
             return Blocked("the click lands inside an embedded frame, whose content is not inspected; not allowed on a public site")
         if submits:
             return Blocked("form submission is not allowed on a public site")
-        if IRREVERSIBLE.search(name):
-            word = IRREVERSIBLE.search(name).group(1)
-            return Blocked(f"'{name}' looks like an irreversible step ({word.lower()}); stopped before it")
+        hit = next((m for m in (IRREVERSIBLE.search(s) for s in spellings) if m), None)
+        if hit:
+            return Blocked(f"'{name}' looks like an irreversible step ({hit.group(1).lower()}); stopped before it")
         if target is not None and target.role in UNNAMED_CONTROLS and not name.strip():
             return Blocked(f"the {target.role} under the pointer has no accessible name, so its effect is unknown; not clicked on a public site")
         return Allowed()
@@ -84,7 +87,8 @@ def guard_action(action: dict, target: AxNode | None, field_type: str | None, *,
             return Blocked("the typed text contains a newline, which submits a form; not allowed on a public site")
         return Allowed()
     if kind == "keypress":
-        keys = [str(k) for k in (action.get("keys") or ([action.get("key")] if action.get("key") else []))]
+        given = action.get("keys") or ([action.get("key")] if action.get("key") else [])
+        keys = [str(k) for k in ([given] if isinstance(given, str) else given)]  # a model may send one key as a string, not a list
         if any(_submits(k) for k in keys) and (target is not None or submits):
             return Blocked("Enter or Space on a focused control would submit or activate it; not allowed on a public site")
         return Allowed()
@@ -103,6 +107,7 @@ def challenge_reason(title: str, url: str, markers_present: list[str]) -> str | 
     """'blocked by site: <what>' when the screen is a CAPTCHA, a bot challenge or a login wall, else None. A password field
     alone is not a wall (shops keep one in the header); it is one with a login title or path."""
     present = set(markers_present)
+    title = unicodedata.normalize("NFKC", title or "")  # "Just\xa0a moment" is "Just a moment"
     if present & set(CAPTCHA_MARKERS):
         return "blocked by site: CAPTCHA"
     if present & set(CHALLENGE_MARKERS) or CHALLENGE_TITLES.search(title or ""):

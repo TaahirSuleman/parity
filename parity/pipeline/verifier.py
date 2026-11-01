@@ -57,9 +57,12 @@ def locate(bbox: BBox | None, nodes: list[AxNode]) -> AxNode | None:
     return min(containing, key=lambda n: n.bbox.area, default=None)
 
 
+MAX_QUOTE_CHARS = 1000
+
+
 def parse_quote(quote: str) -> tuple[str, str]:
     """'button, "Submit"' -> ('button', 'submit'), both normalised. Role aliases folded."""
-    q = (quote or "").strip()
+    q = (quote or "").strip()[:MAX_QUOTE_CHARS]  # a role and a name are never this long; past it the role regex backtracks quadratically
     m = re.match(r'^\s*([A-Za-z][\w\- ]*?)\s*[,:]\s*(.*)$', q)
     if m:
         role, name = m.group(1), m.group(2)

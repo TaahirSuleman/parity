@@ -59,3 +59,15 @@ describe("Task 24: the idle state frames the product", () => {
     expect(status).toHaveTextContent(/Replay plays a recorded run.*no model calls/i);
   });
 });
+
+describe("FindingsFeed notices (stress pass)", () => {
+  it("scrolls a new notice into view: on a phone the feed sits below the screenshot and a 429 was out of sight", async () => {
+    const { FindingsFeed } = await import("./FindingsFeed");
+    const { render } = await import("@testing-library/react");
+    const { vi } = await import("vitest");
+    const spy = vi.fn();
+    Element.prototype.scrollIntoView = spy;
+    render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="idle" error={null} onSelect={() => {}} notice="Live is busy or rate-limited: try again in 30 min." />);
+    expect(spy).toHaveBeenCalled();
+  });
+});

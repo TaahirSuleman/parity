@@ -249,3 +249,13 @@ async def test_anonymise_relabels_the_start_event_as_well_as_run_json(tmp_path):
     assert started["data"]["flow_id"] == "public" and started["data"]["flow_name"] == "Site A" and started["data"]["goal"] == "Site A: Open the first book."
     assert "shop.example" not in (dest / "events.jsonl").read_text()
     assert json.loads((dest / "run.json").read_text())["goal"] == "Site A: Open the first book."
+
+
+def test_guard_edge_spellings_from_the_fuzz():
+    """A zero-width character inside a word, `keys` given as one string, an NBSP in a challenge title, and a /users/sign_in path."""
+    from parity.pipeline.guard import challenge_reason
+
+    assert isinstance(guard_action({"type": "click", "x": 1, "y": 1}, node("button", "P​ay now"), None), Blocked)
+    assert isinstance(guard_action({"type": "keypress", "keys": "Enter"}, node("textbox", "Card"), "cc-number"), Blocked)
+    assert challenge_reason("Just\xa0a moment...", "https://x/", []) == "blocked by site: bot challenge"
+    assert challenge_reason("Shop", "https://x/users/sign_in", ["input[type=password]"]) == "blocked by site: login"

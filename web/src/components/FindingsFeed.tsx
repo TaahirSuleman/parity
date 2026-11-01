@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Finding, Rejected, RunState, Step } from "../state/types";
 import { FindingCard } from "./FindingCard";
 import { RejectedRow } from "./RejectedRow";
@@ -21,6 +21,10 @@ interface Props {
 }
 
 export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow", notice = null, outcome = null, steps = [], fixesExpected = true, comparatorModel }: Props) {
+  const noticeRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {  // on a phone the feed sits below the screenshot: a notice must come to the reader, not wait to be found
+    if (notice) noticeRef.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+  }, [notice]);
   const [verifierOff, setVerifierOff] = useState(false);
   useEffect(() => {  // the selected card is where the eye should be, whatever selected it (a box, a key, the run finishing)
     if (!selectedId) return;
@@ -58,7 +62,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
           Without the Verifier
         </button>
       </div>
-      {notice && <p role="alert" className="m-0 px-3 py-2 text-sm" style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--line)", color: "var(--bad)" }}>{notice}</p>}
+      {notice && <p ref={noticeRef} role="alert" className="m-0 px-3 py-2 text-sm" style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--line)", color: "var(--bad)" }}>{notice}</p>}
       {phase === "failed" && items.length > 0 && <p role="alert" className="m-0 px-3 py-2 text-sm" style={{ borderBottom: "1px solid var(--line)", color: "var(--bad)" }}>Run failed: {error}</p>}
       {verifierOff && (
         <p className="m-0 px-3 py-2 text-sm" style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--line)" }} role="status">

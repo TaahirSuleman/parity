@@ -149,3 +149,15 @@ def test_parse_quote_is_linear_on_hostile_input():
     parse_quote("button" + " " * 20000 + ', "x"')
     parse_quote("x" * 50000)
     assert time.perf_counter() - t0 < 0.2
+
+
+def test_parse_quote_bounds_hostile_lengths():
+    """'a' + 20,000 spaces + 'b' took 1.8 s in the role regex (quadratic backtracking); a quote that long is not a role and a name."""
+    import time
+
+    from parity.pipeline.verifier import parse_quote
+
+    t0 = time.perf_counter()
+    for n in (2_000, 10_000, 20_000):
+        parse_quote("a" + " " * n + "b")
+    assert time.perf_counter() - t0 < 0.3

@@ -263,3 +263,10 @@ def test_validator_keeps_an_existing_formaction_unchanged():
     validate_snippet(before, '<button id="go" formaction="/checkout/pay">Pay R1,249</button>')  # the same destination as before
     with pytest.raises(FixRejected):
         validate_snippet(before, '<button id="go" formaction="/checkout/other">Pay R1,249</button>')
+
+
+def test_validator_refuses_a_snippet_far_larger_than_any_element_it_may_patch():
+    from parity.pipeline.fixer import validate_snippet
+
+    with pytest.raises(FixRejected):
+        validate_snippet(BEFORE, '<button id="f5">' + "x" * 1_000_000 + "</button>")

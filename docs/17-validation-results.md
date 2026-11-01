@@ -65,3 +65,29 @@ via `scripts/variance_runs.py`; full data in `docs/variance.json`.
 - Re-recorded again after the pre-P4 QA pass (docs/23): rejections are now only real refusals (the comparator's
   own repeats are no longer counted), the `Order SR-10428` text-fragment false positive is gone, and the agent's
   routine `computer_action_requires_confirmation` checks are acknowledged on our store and shown on the timeline.
+
+## Eval on the seeded store (Phase 4, 1 Nov)
+
+Measured with `eval/harness.py` at commit `1e6caad` (labels sha256 `43b432f8abea`): 4 configurations × 3 runs × 4 pages, effort `medium`, judge `muse-spark-1.3`. The file is `eval/results/final.json`; `latest.md` is its rendering and the only number set the README, the Eval tab and the video quote. A finding is scored under its element's id or the nearest id above it; the labels never reach the agent (`tests/test_store_v2.py` checks `parity/` does not import `eval/`).
+
+| System | Recall | Precision | Findings | FP on clean | Cost / page set | Time |
+|---|---|---|---|---|---|---|
+| Parity (full) | 84% | 97% | 33 / 38 | 0.0 | $0.37 | 281 s |
+| screenshot only | 17% | 95% | 7 / 38 | 0.0 | $0.08 | 391 s |
+| tree only | 75% | 98% | 29 / 38 | 0.3 | $0.32 | 442 s |
+| no grounding | 82% | 95% | 33 / 38 | 0.7 | $0.36 | 428 s |
+| axe-core 4.14 | 0% | — | 0 violations | — | $0 | — |
+
+Per page (full): product 96% / 100% (16 of 16 found), cart 85% / 100% (8 of 9), checkout 74% / 95% (7 of 9), confirm 58% / 81% (3 of 4). Missed in every run — cart: `promo-input` (placeholder-as-label); checkout: `cvv` (placeholder-as-label), `step-payment` (state-visual-only); confirm: `status-packed` (state-visual-only).
+
+**Reading.** The accessibility tree carries most of the recall (tree only: 75%); the screenshot alone finds little (17%) because without the tree the model cannot quote what is announced, and the Verifier rejects what it cannot quote. Grounding (the Seer's boxes) adds two points of recall and removes 0.7 false positives on clean controls per page set. Precision stays at or above 95% in every configuration because the Verifier gates all four; the ablations say nothing about the Verifier itself — that number is the workbench's "Without the Verifier" toggle. axe-core's 0% is by construction: the 38 faults were chosen to pass it (0 violations on all four pages), so it is a statement about this class of gap, not about axe in general. Three runs is a small sample; run-to-run spread on recall was 2–3 labels per page set.
+
+**Effort sweep** (full, one run each): low 84% / 97% at $0.35 and 231 s; medium 84% / 97% at $0.37 and 281 s; high 74% / 100% at $0.31 and 339 s. Medium stays the default for seer and comparator: low is within noise of it on one run, and the 3-run table above was measured at medium.
+
+**Judge** (the same 33 verified findings): `muse-spark-1.3` agrees with the labels on 94%, `muse-wonder-1.0` on 94%, at $0.011 vs $0.026 per finding; Spark stays the judge (D6). Neither sent a finding to needs_review.
+
+**Standard tier** (`muse-spark-1.3` for every stage, one run): 82% / 100% at $0.47 — private mode costs about 25% more for the same quality.
+
+**Real-world sample** (read-only, anonymised; spec §17): Site A, 2 screens, 6 verified and 0 rejected — five CSS-drawn star ratings that announce nothing (judged barriers, moderate) and a cover image named by its title alone (judged not a barrier); axe-core reports none of them. Site B: a bot challenge in front of the first page ended the run as `blocked by site` in 1.2 s with nothing sent to a model.
+
+**An earlier pass** (31 Oct, pre-review code, 37 labels, 3 runs) gave full 74% / 91% and no grounding 78% / 93%; it is not quoted. The difference comes from the review fixes: CSS-drawn elements captured as silent nodes and generated text kept, labels on wrappers scored under the nearest id, and the comparator's retry after a non-JSON answer no longer served from the cache.

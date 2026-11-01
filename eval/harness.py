@@ -333,7 +333,8 @@ def write_results(results: dict[str, Any], out_dir: Path = RESULTS_DIR, name: st
     latest = out_dir / "latest.json"
     merged = merge_latest(json.loads(latest.read_text()) if latest.exists() else {}, results)
     latest.write_text(json.dumps(merged, indent=1, default=_json_default) + "\n")
-    (out_dir / "latest.md").write_text(render(merged))
+    public = out_dir / "public.json"  # the anonymised samples, written by hand after each one; shown in the rendering, kept out of latest.json
+    (out_dir / "latest.md").write_text(render({**merged, "public": json.loads(public.read_text())} if public.exists() else merged))
     return path
 
 

@@ -177,3 +177,16 @@ def test_merge_latest_starts_over_when_the_labels_or_code_changed():
     new = {"configs": {"full": {"total": {"recall": 0.7}, "runs": 1}}, "labels_sha256": "NEW", "generated_at": "t3"}
     out = merge_latest(existing, new)
     assert out["configs"] == new["configs"] and "effort_sweep" not in out and out["labels_sha256"] == "NEW"
+
+
+def test_latest_md_carries_the_public_sample_rows(tmp_path):
+    """public.json is written by hand after each anonymised sample; latest.md (what the README quotes) shows those rows too."""
+    from eval.harness import write_results
+
+    out = tmp_path / "results"
+    out.mkdir()
+    (out / "public.json").write_text(json.dumps([{"name": "Site A", "run_id": "public-a", "pages": 2, "verified": 6, "rejected": 0, "status": "done", "note": ""}]))
+    write_results({"generated_at": "t1", "labels_sha256": "L", "configs": {}, "axe": {}, "judge": {}}, out_dir=out, name="x")
+    md = (out / "latest.md").read_text()
+    assert "Real-world sample" in md and "| Site A | 2 | 6 | 0 |" in md
+    assert "public" not in json.loads((out / "latest.json").read_text())  # the samples stay in their own file

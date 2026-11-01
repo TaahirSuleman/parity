@@ -273,3 +273,45 @@ A fair comparison, not a strawman: the multi-agent variant gets the same models,
 - **Bot walls:** consent banners may be dismissed only with the most privacy-preserving option; CAPTCHAs, bot challenges and logins end the run with reason `blocked by site`. Never bypassed.
 - **Politeness:** respect robots.txt for the start URL, one run per site, no parallel requests, ≤ 12 navigator turns.
 - **Disclosure:** results are stored as Replay bundles under `fixtures/replay/runs/public-<letter>/` with the host, its URLs and the brand name replaced by "Site A/B/C" in every text file; the agent's own screenshots and transcript are not copied; a step screenshot is kept only where a finding was verified, and masked to the findings' boxes (the evidence stays, the rest of the page does not travel). A bot wall ends the run as `blocked by site` before anything is sent to a model (revised 1 Nov after the P4 review). Counts of verified findings appear in the README and the Eval tab. A site is named only after its owner has been notified.
+
+## 19. External pages: the W3C BAD benchmark now, arbitrary URLs after the event [D11]
+
+### 19.1 Benchmark (Phase 6b)
+- **Pages.** `https://www.w3.org/WAI/demos/bad/before/{home,news,tickets,survey}.html` (faults) and `…/after/{same}.html` (controls). Read-only,
+  robots.txt honoured (it allows `/WAI/demos/`), one run per page at a time, ≤ 12 turns, the W3C copyright notice kept wherever a screenshot or
+  text from the pages is stored. `HACKATHON_SCOPE.md` lists the pages under the W3C document licence once they are used.
+- **Labels: `eval/labels_external.json`**, transcribed by hand from the pages' own annotations (`#annot_NN`), one row per annotation:
+  `{page: "bad/before/home.html", id: "home-01", kind, description, sc: ["1.1.1"], in_scope: true|false, anchor: {...}, clean: false}`; and one row
+  per repaired counterpart on the "after" page with `clean: true`. `in_scope` is decided by kind, not by what Parity found: alt text missing /
+  meaningless / verbose / placeholder, title-only name, image-only link without a name, non-descriptive link text, unlabelled or mis-labelled form
+  control are in scope; reading order, link visual distinction, colour alone, layout tables, heading structure are out of scope and reported as such.
+- **Anchors.** BAD elements rarely have ids, so a label anchors by one of: `{"src": "<file name>"}` (matched against the finding's element outer
+  HTML), `{"text": "<visible text>"}` (normalised equality with the finding's sighted text), or `{"css": "<path>"}`. `eval/harness.py` gains
+  `label_for(element, sighted_text, labels)`: the existing nearest-id rule first, then the anchors; the axe baseline is scored by the same function.
+  A label matched by more than one finding counts once (as today).
+- **Runs.** `python -m eval.harness --external --runs 2` with the contributor model: 16 runs, about $1.50 and 30 minutes. Output: an `external`
+  block in `latest.json` (`in_scope_recall`, `precision`, `fp_on_after_pages`, `out_of_scope_count`, `axe_recall`, cost and seconds per page, n).
+- **Surfaces.** The Eval tab adds a row group "External pages (W3C BAD)" with the in-scope note and the out-of-scope count; the README's eval table
+  gains the same row with the subset stated in words. No number is quoted anywhere before the run exists.
+
+### 19.2 Judge-runnable external flows (Phase 6b, second gate)
+- `Flow` gains `public: bool = False` and `attribution: str = ""`. `EXTERNAL_FLOWS` holds `bad-home`, `bad-news`, `bad-tickets`, `bad-survey`
+  with absolute `start_url`s, a read-only goal each (the survey's goal says not to submit), `single_page=True`, `public=True`. `GET /api/flows`
+  returns `public` and `attribution`; the runner takes `public=flow.public` and the flow's origin as `base_url`.
+- The workbench groups them as "External page (W3C demo, read-only)", shows the attribution line, and passes `fixesExpected=false` (no fixer, no
+  re-audit: §17 stands, we never patch a page we do not serve). The header names the site from the flow, never "ShopRight".
+- Replay bundles `fixtures/replay/runs/bad-<page>` recorded once each with the Spark model (~$0.10 each), not anonymised (the pages are a public
+  demonstration published for this purpose), with a `NOTICE` carrying the W3C copyright line. Rate limits unchanged; `PARITY_EXTERNAL_FLOWS=0`
+  hides the group.
+
+### 19.3 After the event: arbitrary URLs on the hosted app
+What the hosted app would need before a URL field is safe to expose, none of which fits before the freeze:
+- A URL policy: http(s) only, public DNS answers only (resolve first; refuse private, link-local, loopback and cloud-metadata ranges, and re-check
+  on every redirect), a deny list, one run per origin at a time, a crawl delay, robots.txt as now.
+- Terms and consent: the visitor affirms they may audit the page; a per-site opt-out list; an abuse contact and a takedown path in the README.
+- Retention: third-party bundles masked to the findings' boxes by default (the anonymiser's rule), deleted after 24 h, never in the public samples
+  without the owner's agreement.
+- Cost: a per-URL and per-day cap on top of the per-visitor limit; the contributor model by default.
+- The prompts mark page text as untrusted (the README's open gap) before any page we did not write can steer the navigator.
+- No fixes and no re-audit on pages we do not serve; proposed snippets only if a later product serves the developer's own staging site (the real
+  customer path: a CI step or an extension running against the developer's own origin, where fixes can be applied and re-audited).

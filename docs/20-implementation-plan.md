@@ -347,6 +347,46 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
   - Manual VoiceOver pass by the builder (Cmd+F5, tab through a Replay run, open a finding) before the cold review; note the result in `docs/submission-checklist.md`.
 
+# Phase 6b: External benchmark on pages we did not make (W3C BAD) — Mon 2 Nov, after the VoiceOver-pass fixes [D11, doc 18 §11, doc 19 §19]
+
+Two gates. **Core** (Tasks 26E.1–26E.3) by Mon 15:00 SAST; **hosted** (26E.4–26E.5) by Tue 12:00 SAST. A gate missed is dropped, not squeezed.
+Runs use `muse-spark-1.3-contributor` for the eval and `muse-spark-1.3` for the recorded Replay bundles; every call is cached and traced as usual.
+
+### Task 26E.1: Labels we did not write
+- Create `eval/labels_external.json` from the BAD annotations of `before/{home,news,tickets,survey}.html` (one row per `#annot_NN`, `in_scope` by kind
+  per doc 19 §19.1, an `anchor` per row) and the repaired counterparts on `after/*` as `clean: true` rows. Keep the W3C copyright line in the file header.
+- Test `tests/test_eval_external.py::test_external_labels_are_well_formed`: every row has page, id, kind, in_scope, anchor with exactly one key,
+  clean; ids unique; every before-page fault row has a counterpart or an explicit `"no_counterpart": true`.
+
+### Task 26E.2: Anchor matching in the harness
+- `eval/harness.py`: `label_for(element, sighted_text, labels) -> str | None` (nearest-id rule first, then `src` file name in the element's outer HTML,
+  then normalised `text` equality with the sighted text, then `css` path); `match()` and the axe baseline use it; `--external` selects the external
+  label file and the absolute page URLs; results land in `latest.json["external"]` per doc 19 §19.1.
+- Tests (deterministic, fixtures only): `test_label_for_prefers_dom_id`, `test_label_for_matches_src_file_name`, `test_label_for_matches_visible_text`,
+  `test_external_metrics_count_in_scope_only_and_report_out_of_scope`, `test_axe_baseline_scored_by_the_same_anchor`.
+
+### Task 26E.3: The runs and the numbers
+- `python -m eval.harness --external --runs 2` (16 runs, ~$1.50). Record cost and seconds. Write the `external` block; `eval/report.py` renders it;
+  the Eval tab gains the row group "External pages (W3C BAD)" with the in-scope note (vitest `EvalTab.test.tsx: renders the external row with its
+  subset note`); the README eval table gains the row with the subset stated in words. Commit `eval/results/latest.json` and `final.json` as for Task 19.
+- **Gate (core):** numbers exist with n stated, or the row says "not run" and nothing is claimed.
+
+### Task 26E.4: Judge-runnable external flows
+- `parity/flows.py`: `Flow.public`, `Flow.attribution`, `EXTERNAL_FLOWS` (doc 19 §19.2); `GET /api/flows` returns both fields; `start_run` passes
+  `public=flow.public`, `base_url=origin`; `PARITY_EXTERNAL_FLOWS` toggles the group.
+- Tests: `tests/test_api.py::test_external_flows_are_public_and_listed_with_attribution`, `tests/test_runner.py::test_external_flow_runs_public_and_never_fixes`
+  (FakeMetaClient; asserts no fixer call and the guard active); vitest `Header.test.tsx: names an external flow's site, never the store` and
+  `Workbench.test.tsx: external runs expect no fixes`.
+- UI: the flow picker groups "External page (W3C demo, read-only)"; the attribution line under the header; `fixesExpected=false` for `public` flows.
+
+### Task 26E.5: Replay bundles and the record
+- Record `fixtures/replay/runs/bad-{home,news,tickets,survey}` once each (`scripts/record_replay.py` with the flow id), add the `NOTICE`, add the
+  W3C BAD row to `HACKATHON_SCOPE.md`, the public samples list in `eval/results/public.json`, and a line in the video script where the external
+  page is shown. Smoke: `tests/test_web_smoke.py::test_external_replay_plays_with_attribution`.
+- **Gate (hosted):** a judge can pick "W3C demo: home" and watch it in Replay for free, or run it Live within the limits.
+
+---
+
 # Phase 6: Voice, real screen-reader audio (Mon 2 Nov night to Tue 3 Nov 11:00, before the freeze)
 
 Exit check: in Replay, selecting the hero finding plays the VoiceOver segment saying "Submit, button", shows its Voice Transcribe transcript with the badge *Muse Voice Transcribe · real VoiceOver audio*, and the card shows `transcript_agrees` ticked. G-V accuracy is shown beside it.

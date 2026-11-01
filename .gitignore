@@ -13,3 +13,4 @@ parity/vendor/
 .DS_Store
 __pycache__/
 parity.egg-info/
+deploy/.image-tag

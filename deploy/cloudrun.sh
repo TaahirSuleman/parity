@@ -19,9 +19,15 @@ BUCKET="${BUCKET:-${PROJECT}-parity-runs}"
 SA_NAME="${SA_NAME:-parity-run}"
 SA="${SA_NAME}@${PROJECT}.iam.gserviceaccount.com"
 SECRET="${SECRET:-parity-model-api-key}"
-TAG="${TAG:-$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)}"
-IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/${REPO}/parity"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/${REPO}/parity"
+LAST_TAG_FILE="$ROOT/deploy/.image-tag"  # written by build, read by deploy: the two may run minutes and commits apart
+if [ -z "${TAG:-}" ]; then
+  case "${1:-}" in
+    deploy|url) TAG="$(cat "$LAST_TAG_FILE" 2>/dev/null || git rev-parse --short HEAD)" ;;
+    *) TAG="$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)" ;;
+  esac
+fi
 
 say() { printf '\n== %s\n' "$*"; }
 need_project() { [ -n "$PROJECT" ] || { echo "no project: gcloud config set project <id>"; exit 1; }; }
@@ -62,6 +68,7 @@ build() {
   need_project
   say "Cloud Build → $IMAGE:$TAG"
   gcloud builds submit "$ROOT" --tag "$IMAGE:$TAG" --project "$PROJECT" --region "$REGION" --timeout 1800
+  printf '%s\n' "$TAG" > "$LAST_TAG_FILE"
 }
 
 deploy() {

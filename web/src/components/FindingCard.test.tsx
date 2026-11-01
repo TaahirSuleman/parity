@@ -196,3 +196,13 @@ describe("QA pass 2: re-audit wording, screen label, context copy", () => {
     expect(screen.getByRole("status")).toHaveTextContent(/Approved · Real text now/);
   });
 });
+
+describe("Task 24: verifier details reachable without a mouse", () => {
+  it("lists what each check saw under a disclosure, not only in a hover title", () => {
+    const { container } = render(<FindingCard finding={finding} selected={true} onSelect={() => {}} />);
+    expect(screen.getByText(/check details/i)).toBeInTheDocument();
+    const items = container.querySelectorAll("details.check-details li");
+    expect(items).toHaveLength(5);
+    expect(container.querySelector("details.check-details")?.textContent).toMatch(/button at button#f5/);
+  });
+});

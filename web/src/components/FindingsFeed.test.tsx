@@ -50,3 +50,12 @@ describe("FindingsFeed selection, notices and outcomes", () => {
     expect(screen.queryByText(/no divergences passed/i)).toBeNull();
   });
 });
+
+describe("Task 24: the idle state frames the product", () => {
+  it("says what Parity is and that Replay is a recorded run with no model calls", () => {
+    render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="idle" error={null} onSelect={() => {}} flowName="Checkout page" />);
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent(/sighted .* screen-reader/i);
+    expect(status).toHaveTextContent(/Replay plays a recorded run.*no model calls/i);
+  });
+});

@@ -23,7 +23,7 @@ export function TraceDrawer({ calls, open, onToggle }: { calls: CallEvent[]; ope
                 <tr key={`${c.request_id}-${i}`}>
                   <td>{c.stage}</td>
                   <td><MetaBadge model={c.model} capability={c.stage} /></td>
-                  <td title={c.request_id}>{c.request_id.slice(0, 8) || "—"}</td>
+                  <td><span aria-hidden="true" title={c.request_id}>{c.request_id.slice(0, 8) || "—"}</span><span className="sr-only">{c.request_id || "no request id"}</span></td>
                   <td>{c.tokens.toLocaleString()}</td>
                   <td>{c.latency_ms.toLocaleString()} ms</td>
                   <td>{fmtCost(c.cost_usd)}</td>

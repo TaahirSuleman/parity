@@ -50,7 +50,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
     <section className="surface flex flex-col min-h-0 overflow-auto" aria-labelledby="findings-h">
       <div className="flex items-center justify-between gap-2 px-3 py-2 border-b hairline flex-wrap">
         <h2 id="findings-h" className="text-xs uppercase tracking-wider muted font-medium m-0">Findings</h2>
-        <span className="mono text-xs muted">{findings.length} verified · {rejected.length} rejected</span>
+        <span className="mono text-xs muted">{findings.length} verified · {rejected.length} rejected by the Verifier</span>
         <button
           type="button" role="switch" aria-checked={verifierOff} className="btn-quiet text-xs" style={{ padding: "2px 8px" }}
           onClick={() => setVerifierOff((v) => !v)} title="Show what this run would report if the Verifier did not gate findings"
@@ -66,7 +66,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
       )}
       {items.length === 0 && (
         <p className="muted m-0 p-5" role="status">
-          {phase === "idle" && `Parity walks the ${flowName} as a sighted shopper and as a screen-reader user, then shows where the two differ. Run the audit to start.`}
+          {phase === "idle" && `Parity walks the ${flowName} as a sighted shopper and as a screen-reader user, then shows where the two differ, proves each gap against the page's accessibility tree, and proposes a fix for a human to approve. Replay plays a recorded run with no model calls; Live runs the pipeline against the demo store. Run the audit to start.`}
           {phase === "running" && "Capturing the page and comparing what is seen with what is announced…"}
           {phase === "finished" && (outcome
             ? (steps.length === 0 ? `The site stopped the walk before any screen was audited: ${outcome}.` : `The walk ended early (${outcome}); no divergences passed the verifier on the screens it audited.`)

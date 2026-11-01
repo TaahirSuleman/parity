@@ -13,6 +13,9 @@ export function select(state: RunState, id: string | null): RunState {
 }
 
 const SEVERITY_RANK: Record<string, number> = { critical: 4, serious: 3, moderate: 2, minor: 1, needs_review: 0 };
+const TOOL_LABELS: Record<string, string> = { audit_view: "audit this screen", finish: "finish the walk" };
+const SAFETY_LABELS: Record<string, string> = { computer_action_requires_confirmation: "confirm-to-proceed" };
+const toolLabel = (tool: unknown) => TOOL_LABELS[String(tool)] ?? String(tool);
 
 const CONTROL_ROLES = new Set(["button", "link", "textbox", "searchbox", "checkbox", "radio", "combobox", "switch", "tab", "menuitem", "slider", "spinbutton"]);
 
@@ -59,7 +62,7 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     case "nav.safety_check": {
       const codes = (ev.codes as string[] | undefined) ?? [];
       const reason = typeof ev.reason === "string" && ev.reason ? ev.reason : "on the store";  // the event says why it was acknowledged (store, or the public-site guard)
-      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged (${reason}): ${codes.join(", ")}` };
+      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged (${reason}): ${codes.map((c) => SAFETY_LABELS[c] ?? c).join(", ")}` };
       return { ...state, timeline: [...state.timeline, row] };
     }
     case "nav.blocked":
@@ -67,12 +70,12 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     case "agent.tool_call": {
       const args = (ev.args as Record<string, unknown> | undefined) ?? {};
       const reason = typeof args.reason === "string" ? args.reason : typeof args.summary === "string" ? args.summary : "";
-      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "tool_call", label: `${String(ev.tool)}${reason ? `: ${reason}` : ""}`, at: ev.at }] };
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "tool_call", label: `${toolLabel(ev.tool)}${reason ? `: ${reason}` : ""}`, at: ev.at }] };
     }
     case "agent.refused":
-      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "refused", label: `${String(ev.tool)} refused: ${String(ev.feedback ?? "")}`, at: ev.at }] };
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "refused", label: `${toolLabel(ev.tool)} refused: ${String(ev.feedback ?? "")}`, at: ev.at }] };
     case "agent.tool_error":
-      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "error", label: `${String(ev.tool)} error: ${String(ev.error ?? "")}`, at: ev.at }] };
+      return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "error", label: `${toolLabel(ev.tool)} error: ${String(ev.error ?? "")}`, at: ev.at }] };
     case "step.captured": {
       if (!run) return state;
       const index = Number(ev.index ?? 0);

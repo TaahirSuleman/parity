@@ -75,6 +75,8 @@ button { font: inherit; color: inherit; }
 
 .box { position: absolute; border: 1.5px solid var(--ok); border-radius: 2px; pointer-events: auto; cursor: pointer; background: transparent; padding: 0; }
 .box[data-selected="true"] { border-color: var(--focus); border-width: 2px; box-shadow: 0 0 0 1px rgba(255,255,255,0.6); }
+/* WCAG 2.5.8: the visible outline is the element's size; the hit area is at least 24x24 (an invisible margin grows small boxes). */
+.box::after { content: ""; position: absolute; top: min(-10px, calc((100% - 24px) / 2 - 2px)); bottom: min(-10px, calc((100% - 24px) / 2 - 2px)); left: min(-10px, calc((100% - 24px) / 2 - 2px)); right: min(-10px, calc((100% - 24px) / 2 - 2px)); }  /* measured from the padding box: 2px covers the border */
 .box-label { position: absolute; left: -2px; top: -18px; font-family: var(--mono); font-size: 10px; background: var(--focus); color: var(--surface); padding: 0 4px; border-radius: 2px; white-space: nowrap; }
 .percept { position: absolute; border: 1px dashed var(--muted); opacity: 0.35; border-radius: 2px; pointer-events: none; }
 
@@ -102,7 +104,7 @@ button { font: inherit; color: inherit; }
 .btn-quiet[role="switch"]::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; border: 1px solid var(--muted); vertical-align: middle; }
 .btn-quiet[role="switch"][aria-checked="true"]::before { background: var(--focus); border-color: var(--focus); }
 .diff-add { color: var(--ok); } .diff-del { color: var(--bad); }
-.workbench-grid { display: grid; gap: 12px; padding: 12px; min-height: 0; grid-template-columns: minmax(0, 5fr) minmax(0, 4fr) minmax(0, 3fr); grid-auto-rows: minmax(0, 1fr); }
+.workbench-grid { display: grid; gap: 12px; padding: 12px; min-height: 0; grid-template-columns: minmax(0, 6fr) minmax(0, 4fr) minmax(0, 3fr); grid-auto-rows: minmax(0, 1fr); }
 @media (max-width: 1279px) { .workbench-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-rows: minmax(0, auto); } .workbench-grid > section:first-child { grid-column: 1 / -1; } }
 @media (max-width: 899px) { .workbench-grid { grid-template-columns: minmax(0, 1fr); } }
 table.eval { border-collapse: collapse; font-size: 14px; width: 100%; }

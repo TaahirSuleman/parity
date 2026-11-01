@@ -3,8 +3,10 @@ import type { Finding, ParityEvent, Run, RunMode } from "./state/types";
 export interface Health { ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; replay_runs: string[]; replay_flows: Record<string, string>; version: string }
 export interface FlowInfo { id: string; name: string; start_url: string; goal: string; pages: string[]; single_page: boolean }
 
+export interface ErrorBody { error?: string; retry_after_s?: number; suggestion?: string; detail?: string }
+
 export class ApiError extends Error {
-  constructor(public status: number, public detail: string) {
+  constructor(public status: number, public detail: string, public body: ErrorBody = {}) {
     super(detail);
   }
 }
@@ -12,10 +14,12 @@ export class ApiError extends Error {
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
     let detail = res.statusText;
+    let body: ErrorBody = {};
     try {
-      detail = (await res.json()).detail ?? detail;
+      body = (await res.json()) as ErrorBody;
+      detail = body.detail ?? body.error ?? detail;
     } catch { /* keep statusText */ }
-    throw new ApiError(res.status, String(detail));
+    throw new ApiError(res.status, String(detail), body);
   }
   return (await res.json()) as T;
 }

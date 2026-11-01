@@ -124,3 +124,18 @@ describe("QA pass 2: header honesty", () => {
     expect(fmtDuration(153000)).toBe("2 m 33 s");
   });
 });
+
+describe("Task 24: a cold judge reads the header", () => {
+  const flowsMin = [{ id: "checkout", name: "Checkout", single_page: true }];
+  it("labels the modes: Replay is pressed by default and says it is a recorded run; Live says it is rate-limited", () => {
+    render(<Header flows={flowsMin} flowId="checkout" onFlowChange={() => {}} run={null} mode="replay" canLive={true} running={false} onModeChange={() => {}} onRun={() => {}} />);
+    expect(screen.getByRole("button", { name: /^Replay/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Live \(rate-limited\)/ })).toBeInTheDocument();
+    expect(screen.getByText(/recorded run.*no model calls/i)).toBeInTheDocument();
+  });
+  it("says whose rejection the red count is", () => {
+    const run = { id: "r1", mode: "replay" as const, flow_id: "checkout", goal: "", target_url: "", status: "done" as const, started_at: "2026-11-01T12:00:00Z", axe_violations: 0, findings_verified: 7, findings_rejected: 3, tokens: 0, cost_usd: 0.09, duration_ms: 282000 };
+    render(<Header flows={flowsMin} flowId="checkout" onFlowChange={() => {}} run={run} mode="replay" canLive={false} running={false} onModeChange={() => {}} onRun={() => {}} />);
+    expect(screen.getByTitle(/Findings that passed the Verifier/)).toHaveTextContent(/3.*rejected by the Verifier/);
+  });
+});

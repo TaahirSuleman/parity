@@ -59,7 +59,18 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
         ) : screenshotUrl ? (
           <img src={screenshotUrl} alt="The audited page as a sighted user sees it" className="block w-full h-full" style={{ objectFit: "contain" }} onError={() => setWithheld(true)} />
         ) : (
-          <div className="absolute inset-0 grid place-items-center muted text-center px-6">{finished ? "No screen was captured on this run." : "Run the audit to see the page"}</div>
+          <div className="absolute inset-0 grid place-items-center muted text-center px-6">
+            {finished ? "No screen was captured on this run." : (
+              <div className="flex flex-col items-center gap-3">
+                <div>Run the audit to see the page</div>
+                <ul className="m-0 p-0 text-xs text-left flex flex-col gap-1" style={{ listStyle: "none", maxWidth: 520 }} aria-label="Pipeline: who does what">
+                  <li><strong>Muse Spark 1.3</strong> · Navigator (computer use), Seer (grounding), Comparator, Judge, Fixer: the model perceives and proposes.</li>
+                  <li><strong>Code</strong> · Capture, Verifier, Re-audit, Human gate: deterministic checks decide what counts; a finding exists only after the Verifier.</li>
+                  <li><strong>Gated tools</strong> · "audit this screen" and "finish the walk" are refused by code until their preconditions hold.</li>
+                </ul>
+              </div>
+            )}
+          </div>
         )}
         {shownPercepts.map((p, i) => <span key={`p${i}`} className="percept" style={pct(p.bbox)} aria-hidden="true" />)}
         {shown.map((f) => (

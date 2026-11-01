@@ -70,11 +70,14 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
             </>
           )}
         </div>
-        <div className="pill" role="group" aria-label="Run mode">
-          <button type="button" aria-pressed={mode === "replay"} onClick={() => onModeChange("replay")}>Replay</button>
-          <button type="button" aria-pressed={mode === "live"} onClick={() => onModeChange("live")} disabled={!canLive} title={canLive ? "Live: real model calls" : "Live needs MODEL_API_KEY on the server"}>
-            Live
-          </button>
+        <div className="flex items-center gap-2">
+          <div className="pill" role="group" aria-label="Run mode">
+            <button type="button" aria-pressed={mode === "replay"} onClick={() => onModeChange("replay")} title="Replay: a recorded run plays back; no model calls, no limit">Replay</button>
+            <button type="button" aria-pressed={mode === "live"} onClick={() => onModeChange("live")} disabled={!canLive} title={canLive ? "Live: real model calls against the demo store; a few runs per visitor per hour" : "Live needs a model key on the server; Replay works without one"}>
+              Live (rate-limited)
+            </button>
+          </div>
+          <span className="muted text-xs">{mode === "replay" ? "a recorded run, no model calls" : "real model calls; a few runs per visitor per hour"}</span>
         </div>
         <button type="button" className="btn-primary" onClick={() => { if (!running) onRun(); }} aria-disabled={running} data-running={running}>
           {running ? "Auditing…" : "Run the audit"}
@@ -90,7 +93,7 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
           </span>
           <span className="counter" title="Findings that passed the Verifier · candidates it rejected">
             <span className="muted">Parity</span> <strong style={{ color: "var(--ok)" }}>{run ? run.findings_verified : "—"}</strong> <span className="muted">verified</span>{" · "}
-            <strong style={{ color: "var(--bad)" }}>{run ? run.findings_rejected : "—"}</strong> <span className="muted">rejected</span>
+            <strong style={{ color: "var(--bad)" }}>{run ? run.findings_rejected : "—"}</strong> <span className="muted">rejected by the Verifier</span>
           </span>
           <span className="counter mono muted" title="Model cost and wall time for this run">
             {run ? `${fmtCost(run.cost_usd)} · ${running ? (run.mode === "replay" ? "replaying…" : fmtDuration(elapsed)) : run.mode === "replay" && run.duration_ms > 0 ? `recorded ${fmtDuration(run.duration_ms)}` : fmtDuration(run.duration_ms)}` : "— · —"}

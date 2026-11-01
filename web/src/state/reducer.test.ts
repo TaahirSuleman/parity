@@ -66,7 +66,7 @@ describe("agent timeline", () => {
     const s2 = reduce(s1, { type: "nav.actions", run_id: started.run!.id, at, turn: 2, actions: ["click"], n: 1 });
     const s3 = reduce(s2, { type: "agent.refused", run_id: started.run!.id, at, turn: 3, tool: "finish", args: {}, feedback: "call audit_view first" });
     expect(s3.timeline.map((r) => r.kind)).toEqual(["tool_call", "actions", "refused"]);
-    expect(s3.timeline[0].label).toContain("audit_view");
+    expect(s3.timeline[0].label).toMatch(/^audit this screen/);  // judge-facing wording, not the tool's identifier
     expect(s3.timeline[1].label).toContain("click");
     expect(s3.timeline[2].label).toContain("audit_view first");
     expect(s2.stage).toBe("navigator");
@@ -155,7 +155,7 @@ describe("pre-P4 QA: what the header and the selection show", () => {
 describe("safety checks on the timeline", () => {
   it("records an acknowledged routine check as a timeline row", () => {
     const s = reduce(play(events.filter((e) => e.type === "run.started")), { type: "nav.safety_check", run_id: "r", at: "2026-10-31T00:00:00Z", turn: 2, codes: ["computer_action_requires_confirmation"], acknowledged: true });
-    expect(s.timeline.at(-1)?.label).toMatch(/safety check acknowledged.*computer_action_requires_confirmation/);
+    expect(s.timeline.at(-1)?.label).toMatch(/safety check acknowledged.*confirm-to-proceed/);
   });
 });
 
@@ -173,5 +173,16 @@ describe("pickHero", () => {
     const early = f({ id: "a", step_index: 1, sighted_text: "trash icon", sr_role: "button", sr_name: "Close", judgement: { is_barrier: true, severity: "serious", wcag: [{ sc: "1.1.1", name: "" }], impact: "", model_meta: {} }, reaudit: { gap_closed: true, sr_name_before: "Close", sr_name_after: "Remove", comparator_still_flags: false } });
     const late = f({ ...early, id: "b", step_index: 3 });
     expect(pickHero([early, late])?.id).toBe("b");
+  });
+});
+
+describe("Task 24: timeline wording for judges", () => {
+  it("names the routine confirmation code in words and the gated tools by what they do", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const s = reduce(started, { type: "nav.safety_check", run_id: started.run!.id, at: "2026-10-31T00:00:02Z", turn: 2, codes: ["computer_action_requires_confirmation"], acknowledged: true, reason: "routine confirmation on the demo store" });
+    expect(s.timeline[s.timeline.length - 1].label).toMatch(/confirm-to-proceed/);
+    expect(s.timeline[s.timeline.length - 1].label).not.toMatch(/computer_action_requires_confirmation/);
+    const f = reduce(started, { type: "agent.tool_call", run_id: started.run!.id, at: "2026-10-31T00:00:03Z", turn: 3, tool: "finish", args: { summary: "Order confirmed" } });
+    expect(f.timeline[f.timeline.length - 1].label).toMatch(/^finish the walk: Order confirmed/);
   });
 });

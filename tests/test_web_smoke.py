@@ -228,3 +228,28 @@ async def test_spa_deep_link_serves_the_workbench_and_api_404s_stay_404(api):
     asset = re.search(r'(/assets/index-[^"]+\.js)', deep.text).group(1)
     assert (await client.get(asset)).status_code == 200
     assert (await client.get("/store/checkout.html")).status_code == 200
+
+
+async def test_screenshot_boxes_have_a_24px_hit_area(page, server_url):
+    """WCAG 2.5.8: a box drawn over a 12x6 px control is still a 24x24 target (the visible outline stays the element's size)."""
+    await page.set_viewport_size({"width": 1280, "height": 800})
+    await page.goto(server_url + "/?mock=hero")
+    await page.get_by_role("heading", name="Parity").wait_for()
+    misses = await page.evaluate(
+        """() => {
+            const bad = [];
+            for (const b of document.querySelectorAll('button.box')) {
+              const r = b.getBoundingClientRect();
+              if (r.width >= 24 && r.height >= 24) continue;
+              const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+              const ex = Math.max(8, (24 - r.width) / 2) - 2, ey = Math.max(8, (24 - r.height) / 2) - 2;  // 2px inside the halo
+              for (const [x, y] of [[cx, r.top - ey], [cx, r.bottom + ey], [r.left - ex, cy], [r.right + ex, cy]]) {
+                const hit = document.elementFromPoint(x, y);
+                // the halo must belong to a box: this one, or an overlapping neighbour's (dense screenshots cannot avoid overlap)
+                if (!hit || !hit.closest('button.box')) bad.push(`${b.getAttribute('aria-label')} @${Math.round(x)},${Math.round(y)} -> ${hit && hit.tagName}`);
+              }
+            }
+            return bad;
+        }"""
+    )
+    assert misses == [], misses

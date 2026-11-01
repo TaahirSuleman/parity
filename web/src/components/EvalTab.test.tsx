@@ -42,6 +42,13 @@ describe("EvalTab", () => {
     expect(screen.queryByText(/complian/i)).toBeNull();
   });
 
+  it("carries a ten-second architecture card and says what recall and precision mean", () => {
+    render(<EvalTab results={results} onReplay={() => {}} />);
+    expect(screen.getByRole("img", { name: /pipeline/i })).toHaveAttribute("src", "/architecture.png");
+    expect(screen.getByText(/Recall: the share of/)).toBeInTheDocument();
+    expect(screen.getByText(/Precision: the share of/)).toBeInTheDocument();
+  });
+
   it("reads the ablation sentence from the numbers, not from a script", () => {
     const flat = { ...results, configs: { ...results.configs, no_grounding: { runs: 3, total: { ...results.configs.no_grounding.total, recall: 0.81 } } } };
     render(<EvalTab results={flat} onReplay={() => {}} />);

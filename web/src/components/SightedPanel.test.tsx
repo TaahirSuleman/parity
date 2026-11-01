@@ -42,3 +42,14 @@ describe("SightedPanel badge", () => {
     expect(screen.getAllByText(/MUSE SPARK 1\.3/).length).toBeGreaterThan(0);
   });
 });
+
+describe("Task 24: idle legend", () => {
+  it("names the Meta models and the code in the pipeline before anything runs", () => {
+    render(<SightedPanel screenshotUrl={null} findings={[]} percepts={[]} selectedId={null} stage={null} model="muse-spark-1.3-contributor" timeline={[]} onSelect={() => {}} />);
+    const legend = screen.getByRole("list", { name: /pipeline/i });
+    expect(legend).toHaveTextContent(/Navigator/);
+    expect(legend).toHaveTextContent(/Muse Spark 1\.3/);
+    expect(legend).toHaveTextContent(/Verifier/);
+    expect(legend).toHaveTextContent(/code/);
+  });
+});

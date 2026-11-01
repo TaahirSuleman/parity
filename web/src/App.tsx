@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { ApiError, decide, getEval, getFlows, getHealth, getRun, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
+import { decide, getEval, getFlows, getHealth, getRun, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
 import type { EvalResults } from "./components/EvalTab";
 import { reconcileDecisions, submitDecision } from "./state/decisions";
+import { startRunMessage } from "./state/errors";
 import { runIdFromSearch, withRunParam } from "./state/location";
 import { shouldReset } from "./state/reducer";
 import { initialState, reduce, resetFor, select } from "./state/reducer";
@@ -76,8 +77,8 @@ export default function App() {
       window.history.replaceState(null, "", withRunParam(window.location.search, run_id) || window.location.pathname);
       closeRef.current = follow(run_id);
     } catch (e) {
-      const message = e instanceof ApiError ? `${e.detail} (HTTP ${e.status})` : String(e);
-      dispatch({ kind: "error", message });
+      const m = startRunMessage(e);
+      dispatch(m.kind === "notice" ? { kind: "notice", message: m.text } : { kind: "error", message: m.text });
     }
   }, [flow, state.mode, follow]);
 
@@ -96,7 +97,8 @@ export default function App() {
       window.history.replaceState(null, "", withRunParam(window.location.search, run_id) || window.location.pathname);
       closeRef.current = follow(run_id);
     } catch (e) {
-      dispatch({ kind: "error", message: e instanceof ApiError ? `${e.detail} (HTTP ${e.status})` : String(e) });
+      const m = startRunMessage(e);
+      dispatch(m.kind === "notice" ? { kind: "notice", message: m.text } : { kind: "error", message: m.text });
     }
   }, [follow]);
 

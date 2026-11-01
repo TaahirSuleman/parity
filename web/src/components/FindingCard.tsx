@@ -69,6 +69,14 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           ))}
           <li><CodeBadge what="code · verifier" /></li>
         </ul>
+        <details className="check-details text-xs muted mt-1" onClick={(e) => e.stopPropagation()}>
+          <summary className="cursor-pointer">Check details</summary>
+          <ul className="m-0 mt-1 pl-4">
+            {Object.entries(finding.verifier.checks).map(([name, c]) => (
+              <li key={name}><span className="mono">{CHECK_LABELS[name] ?? name}</span> — {c.detail}</li>
+            ))}
+          </ul>
+        </details>
         {j && (
           <div className="mt-2 flex items-center gap-2 flex-wrap text-sm">
             {j.wcag.length > 0 ? (

@@ -13,12 +13,14 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import ValidationError
 from fastapi.staticfiles import StaticFiles
 
 from parity import __version__
 from parity.api.events import EventBus
-from parity.api.routes import router
+from parity.api.routes import UNREADABLE, router
 from parity.config import Settings, load_settings
 from parity.meta.client import MetaClient, TraceRouter
 from parity.pipeline import browser
@@ -60,6 +62,36 @@ async def probe_models(client: MetaClient | None) -> bool:
         return False
 
 
+MAX_BODY_BYTES = 64 * 1024  # the largest API body is a decision (a 2,000-character reason); a 60 MB body took the instance to 362 MB
+
+
+class BodyLimit:
+    """Pure ASGI: a declared body over the limit is refused unread; an undeclared one is counted as it arrives."""
+
+    def __init__(self, app, max_bytes: int = MAX_BODY_BYTES) -> None:
+        self.app, self.max_bytes = app, max_bytes
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+        declared = dict(scope.get("headers") or ()).get(b"content-length")
+        if declared is not None and declared.strip().isdigit() and int(declared) > self.max_bytes:
+            response = JSONResponse(status_code=413, content={"detail": f"request body over {self.max_bytes // 1024} KB"})
+            return await response(scope, receive, send)
+        seen = 0
+
+        async def limited():
+            nonlocal seen
+            message = await receive()
+            if message["type"] == "http.request":
+                seen += len(message.get("body", b""))
+                if seen > self.max_bytes:
+                    raise HTTPException(413, f"request body over {self.max_bytes // 1024} KB")  # the route's body read raises; the usual handler answers
+            return message
+
+        await self.app(scope, limited, send)
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
     logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -68,7 +100,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI):
         st = app.state
         await st.index.init()
-        booted = await st.index.boot(st.bundle, replay_keep=settings.replay_keep)
+        booted = await st.index.boot(st.bundle, replay_keep=settings.replay_keep, replay_min_age_s=settings.replay_min_age_s)
         st.replay_for_flow, st.replay_ids = await discover_replays(st.replay_bundle)
         st.models_ok = await probe_models(st.client)
         log.info("boot: %d runs indexed, %d recovered, %d replay copies evicted, replays %s, storage %s, models_ok %s", booted["indexed"], len(booted["recovered"]),
@@ -82,6 +114,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await browser.shutdown()
 
     app = FastAPI(title="Parity", version=__version__, docs_url=None, redoc_url=None, lifespan=lifespan)
+    app.add_middleware(BodyLimit, max_bytes=MAX_BODY_BYTES)
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation_422(request, exc: RequestValidationError) -> JSONResponse:
+        # FastAPI's default echoes the offending input; `Infinity` or a lone surrogate there cannot be re-serialised (a 500)
+        return JSONResponse(status_code=422, content={"detail": [{"loc": list(e.get("loc", ())), "msg": str(e.get("msg", "")), "type": str(e.get("type", ""))} for e in exc.errors()]})
+
+    @app.exception_handler(ValidationError)
+    async def _unreadable_record(request, exc: ValidationError) -> JSONResponse:
+        log.error("%s %s: a stored record is unreadable: %s", request.method, request.url.path, str(exc).splitlines()[0])
+        return JSONResponse(status_code=500, content={"detail": UNREADABLE})
     st = app.state
     st.settings = settings
     st.bundle = RunBundle(make_blob_store(settings))
@@ -121,9 +164,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             # store page or a real file under static/ serves index.html. A missing file (favicon.ico) stays a 404.
             if path.startswith(("api/", "store/")) or path in ("api", "store"):
                 raise HTTPException(404)
-            candidate = (STATIC_DIR / path).resolve() if path else STATIC_DIR / "index.html"
-            if path and STATIC_DIR.resolve() in candidate.parents and candidate.is_file():
-                return FileResponse(candidate)
+            try:
+                candidate = (STATIC_DIR / path).resolve() if path else STATIC_DIR / "index.html"
+                if path and STATIC_DIR.resolve() in candidate.parents and candidate.is_file():
+                    return FileResponse(candidate)
+            except (OSError, ValueError):  # a NUL or a 2,000-character segment: no file can have that name, and no run link looks like it
+                raise HTTPException(404) from None
             if "." in path.rsplit("/", 1)[-1]:
                 raise HTTPException(404)
             return FileResponse(STATIC_DIR / "index.html")

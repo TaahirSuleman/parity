@@ -54,8 +54,8 @@ class RateLimiter:
         """Looks without allocating: a refused or probing request must not grow the limiter (forged addresses are free to send)."""
         now = self.clock()
         self._prune(self._global, DAY_S, now)
-        if len(self._global) >= self.global_per_day:
-            return Denied(retry_after_s=max(1, int(DAY_S - (now - self._global[0]))), scope="global")
+        if self.global_per_day <= 0 or len(self._global) >= self.global_per_day:  # a limit of 0 is "Live is off today"
+            return Denied(retry_after_s=max(1, int(DAY_S - (now - self._global[0]))) if self._global else DAY_S, scope="global")
         mine = self._per_ip.get(ip or "unknown")
         if mine is not None:
             self._prune(mine, HOUR_S, now)

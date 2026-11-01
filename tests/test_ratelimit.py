@@ -63,3 +63,12 @@ def test_denied_message_states_the_limit_only():
     rl = RateLimiter(per_ip_per_hour=0, global_per_day=10, clock=Clock())
     d = rl.take("a")
     assert isinstance(d, Denied) and "Replay" not in d.message and "try again" not in d.message.lower()
+
+
+def test_a_zero_or_negative_global_limit_refuses_without_crashing():
+    """PARITY_LIVE_GLOBAL_PER_DAY=0 is how an operator turns Live off for the day; it used to raise IndexError (a 500) instead of a 429."""
+    for limit in (0, -1):
+        limiter = RateLimiter(per_ip_per_hour=3, global_per_day=limit)
+        verdict = limiter.check("1.2.3.4")
+        assert not verdict.allowed and verdict.scope == "global" and verdict.retry_after_s >= 1
+        assert not limiter.take("1.2.3.4").allowed

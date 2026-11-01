@@ -140,3 +140,47 @@ async def test_boot_indexes_recovers_and_caps_replays_in_one_pass(tmp_path):
     assert (await bundle.load("20261101-100000-live")).run.status == RunStatus.failed
     assert (await bundle.load("20261101-100000-live")).events[-1].type == "run.failed"
     assert len(run_json_reads) <= 4, run_json_reads  # each bundle's run.json read once
+
+
+async def test_boot_rebuilds_the_index_from_scratch_and_orders_eviction_by_start_time(tmp_path):
+    """Rows for bundles that are gone disappear at boot (they listed runs whose detail was 404), and the newest copies are decided
+    by started_at, not by id (two ids minted in one second sort by their random suffix)."""
+    from datetime import timedelta
+
+    from parity.store.models import RunMode, now
+
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    await index.upsert_run(sample_run("ghost-no-bundle", RunStatus.done))
+    older, newer = sample_run("20261101-120000-ffff", RunStatus.done), sample_run("20261101-120000-0000", RunStatus.done)
+    for run, age in ((older, 10), (newer, 5)):
+        run.mode, run.replay_of, run.started_at = RunMode.replay, "hero-checkout", now() - timedelta(minutes=age)
+        await bundle.create(run)
+    try:
+        result = await index.boot(bundle, replay_keep=1, replay_min_age_s=0)
+        listed = {r.id for r in await index.list_runs()}
+    finally:
+        await index.close()
+    assert result["evicted"] == ["20261101-120000-ffff"] and listed == {"20261101-120000-0000"}, (result, listed)
+
+
+async def test_young_replay_copies_survive_the_cap_at_boot(tmp_path):
+    """A judge still reviewing a finished Replay must not lose it because twenty others clicked: beyond the cap only copies older
+    than replay_min_age_s are evicted."""
+    from datetime import timedelta
+
+    from parity.store.models import RunMode, now
+
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    for rid, age_min in (("20261101-090000-aaaa", 180), ("20261101-115000-bbbb", 10), ("20261101-115500-cccc", 5)):
+        run = sample_run(rid, RunStatus.done)
+        run.mode, run.replay_of, run.started_at, run.finished_at = RunMode.replay, "hero-checkout", now() - timedelta(minutes=age_min), now() - timedelta(minutes=age_min)
+        await bundle.create(run)
+    try:
+        result = await index.boot(bundle, replay_keep=1, replay_min_age_s=3600)
+    finally:
+        await index.close()
+    assert result["evicted"] == ["20261101-090000-aaaa"], result

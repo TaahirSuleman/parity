@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from datetime import datetime, timedelta
 from typing import Any
 from pathlib import Path
 
@@ -118,21 +119,26 @@ class RunIndex:
             count += 1
         return count
 
-    async def boot(self, bundle: RunBundle, *, replay_keep: int = 50) -> dict[str, Any]:
+    async def boot(self, bundle: RunBundle, *, replay_keep: int = 50, replay_min_age_s: int = 0) -> dict[str, Any]:
         """Everything boot needs from the bundles in ONE pass over them (a bucket read costs a round trip): index each run,
         fail the ones a restart interrupted (with a terminal event), and evict the oldest Replay copies beyond ``replay_keep``
         so a day of judges clicking Replay does not slow the next boot. Newest first, so the kept replays are the recent ones."""
         indexed, recovered, evicted = 0, [], []
-        replays_seen = 0
-        for run_id in sorted(await bundle.list_run_ids(), reverse=True):
+        await self.clear()  # a derived cache: rows for bundles that are gone would list runs whose detail is 404
+        runs: list[Run] = []
+        for run_id in await bundle.list_run_ids():
             try:
-                run = Run.model_validate_json(await bundle.store.get(keys.run(run_id)))  # one read decides eviction; the rest is loaded once
+                runs.append(Run.model_validate_json(await bundle.store.get(keys.run(run_id))))  # one read decides eviction; the rest is loaded once
             except Exception as exc:  # one corrupt bundle must not stop the server from booting
                 log.warning("boot skips unreadable bundle %s: %s", run_id, exc)
-                continue
+        runs.sort(key=lambda r: (r.started_at, r.id), reverse=True)  # newest first by start time (ids minted in one second sort by their random suffix)
+        cutoff = now() - timedelta(seconds=replay_min_age_s)
+        replays_seen = 0
+        for run in runs:
+            run_id = run.id
             if run.mode == RunMode.replay:
                 replays_seen += 1
-                if replays_seen > replay_keep:
+                if replays_seen > replay_keep and not (replay_min_age_s and (run.finished_at or run.started_at) > cutoff):
                     await bundle.delete_run(run_id)  # evicted without reading its screens, findings or logs
                     evicted.append(run_id)
                     continue
@@ -156,10 +162,22 @@ class RunIndex:
             indexed += 1
         return {"indexed": indexed, "recovered": sorted(recovered), "evicted": sorted(evicted)}
 
-    async def replay_ids_oldest_first(self) -> list[str]:
+    async def replay_copies_oldest_first(self) -> list[tuple[str, datetime, datetime | None]]:
+        """(id, started_at, finished_at) of every Replay copy, oldest start first: what eviction needs, without reading a bundle."""
         db = await self._conn()
-        async with db.execute("SELECT id FROM runs WHERE mode = ? ORDER BY started_at ASC, id ASC", (RunMode.replay.value,)) as cur:
-            return [row[0] for row in await cur.fetchall()]
+        async with db.execute("SELECT id, started_at, json FROM runs WHERE mode = ? ORDER BY started_at ASC, id ASC", (RunMode.replay.value,)) as cur:
+            rows = await cur.fetchall()
+        out = []
+        for run_id, started, raw in rows:
+            finished = json.loads(raw).get("finished_at")
+            out.append((run_id, datetime.fromisoformat(started), datetime.fromisoformat(finished) if finished else None))
+        return out
+
+    async def clear(self) -> None:
+        db = await self._conn()
+        for table in ("model_calls", "findings", "runs"):
+            await db.execute(f"DELETE FROM {table}")
+        await db.commit()
 
     async def delete_run(self, run_id: str) -> None:
         db = await self._conn()

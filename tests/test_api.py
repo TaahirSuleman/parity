@@ -1,3 +1,4 @@
+import re
 import json
 
 import httpx
@@ -56,8 +57,7 @@ async def test_get_run_detail_includes_trace(api):
     assert detail["run"]["id"] == run_id and detail["findings"][0]["sr_name"] == "Submit"
     assert detail["trace"][0]["stage"] == "comparator" and detail["trace"][0]["request_id"] == "req-1"
     assert detail["steps"][0]["screenshot"] == "steps/0/screenshot.png"
-    listed = (await client.get("/api/runs")).json()
-    assert [r["id"] for r in listed] == [run_id]
+    assert (await client.get("/api/health")).json()["runs_indexed"] == 1  # indexed; the list itself is not public
 
 
 async def test_screenshot_png_content_type(api):
@@ -158,7 +158,7 @@ async def test_decision_records_and_patch_contains_only_approved(api):
     assert (await client.post(f"/api/runs/{run_id}/findings/{fid}/decision", json={"decision": "reject", "reason": "changed my mind"})).status_code == 409
     detail = (await client.get(f"/api/runs/{run_id}")).json()
     assert detail["run"]["status"] == "done" and detail["findings"][0]["status"] == "approved"
-    assert [r["status"] for r in (await client.get("/api/runs")).json() if r["id"] == run_id] == ["done"]
+    assert (await client.get(f"/api/runs/{run_id}")).json()["run"]["status"] == "done"
 
 
 async def test_rejected_fix_leaves_no_patch(api):
@@ -185,11 +185,10 @@ async def test_public_run_responses_carry_no_ip_hash_or_internal_url(api):
     client, _ = api
     run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
     await client.get(f"/api/runs/{run_id}/events")
-    listed = (await client.get("/api/runs")).json()[0]
+    listed = (await client.get(f"/api/runs/{run_id}")).json()["run"]
     detail = (await client.get(f"/api/runs/{run_id}")).json()["run"]
     for body in (listed, detail):
         assert "client_ip_hash" not in body and "127.0.0.1" not in str(body.get("target_url", ""))
-    assert (await client.get("/api/runs?limit=-1")).status_code == 422
 
 
 async def test_eval_route_serves_the_latest_results(tmp_path, monkeypatch):
@@ -345,7 +344,7 @@ async def test_replay_start_caps_the_copies_kept(tmp_path):
     """Every Replay click copies a bundle; the cap applies when a Replay starts, not only at the next boot, so a day of judges cannot slow the next restart."""
     import httpx
 
-    app = await _app_with(tmp_path, PARITY_REPLAY_KEEP="1")
+    app = await _app_with(tmp_path, PARITY_REPLAY_KEEP="1", PARITY_REPLAY_MIN_AGE_S="0")
     async with app.router.lifespan_context(app):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             ids = []
@@ -363,3 +362,145 @@ async def test_asset_404_is_not_cached_for_a_year_and_head_root_is_allowed(api):
     missing = await client.get("/assets/index-nope.js")
     assert missing.status_code == 404 and "immutable" not in missing.headers.get("cache-control", "")
     assert (await client.head("/")).status_code == 200  # uptime checkers use HEAD
+
+
+async def test_run_and_finding_ids_are_validated_before_touching_storage(api):
+    """A 2,000-character id reached os.stat and raised 'File name too long' (a 500 that reset the connection). Ids are validated
+    at the API boundary: anything that is not a run id answers 404, for every route that takes one."""
+    client, _ = api
+    long_id = "a" * 2000
+    for path in (f"/api/runs/{long_id}", f"/api/runs/{long_id}/events", f"/api/runs/{long_id}/steps/0/screenshot.png", f"/api/runs/{long_id}/patch", f"/api/runs/{long_id}/verifier-off",
+                 "/api/runs/..%2F..%2Fetc", "/api/runs/run%00id", "/api/runs/x y"):
+        r = await client.get(path)
+        assert r.status_code == 404, (path[:60], r.status_code)
+    r = await client.post(f"/api/runs/{long_id}/findings/{long_id}/decision", json={"decision": "approve", "reason": "x"})
+    assert r.status_code == 404
+    r = await client.get("/api/runs/20261101-000000-abcd/steps/-1/screenshot.png")
+    assert r.status_code == 422  # a negative step is a malformed request, not a missing screenshot
+    r = await client.get("/api/runs/20261101-000000-abcd/steps/99999999999999999999/screenshot.png")
+    assert r.status_code == 422
+
+
+async def test_spa_catch_all_answers_404_for_paths_the_filesystem_cannot_name(api):
+    """GET /%00 and GET /<2,000 characters> reached Path.resolve()/is_file() and raised (a 500 that reset the connection).
+    Such a path is neither a static file nor a run link: 404."""
+    client, _ = api
+    for path in ("/%00", "/eval/%00", "/" + "a" * 2000, "/runs/" + "b" * 2000, "/store/%00"):
+        r = await client.get(path)
+        assert r.status_code == 404, (path[:40], r.status_code)
+    r = await client.get("/runs/20261101-000000-abcd")  # a real-looking deep link still opens the workbench
+    assert r.status_code == 200 and b"<!doctype html" in r.content.lower()
+
+
+async def test_replay_eviction_never_removes_a_replay_that_is_still_playing(tmp_path):
+    """With the cap at 1, a second Replay click used to delete the first copy while its events were still streaming (screenshots 404,
+    the detail route 404). A playing replay is exempt from eviction; it becomes evictable once its stream has ended."""
+    import httpx
+
+    app = await _app_with(tmp_path, PARITY_REPLAY_KEEP="1", PARITY_REPLAY_MIN_AGE_S="0")
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            first = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 400})).json()["run_id"]
+            second = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+            assert first in await app.state.bundle.list_run_ids(), "the playing replay was evicted"
+            assert (await client.get(f"/api/runs/{first}/steps/0/screenshot.png")).status_code == 200
+            await _finish(client, second)
+            await _finish(client, first)
+            third = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+            await _finish(client, third)
+            kept = await app.state.bundle.list_run_ids()
+    assert third in kept and first not in kept and second not in kept, kept
+
+
+async def test_oversized_request_bodies_are_refused_before_they_are_read(api):
+    """A 60 MB body took the instance from 13 to 362 MB and came back whole inside a 404. No API body is larger than a few KB."""
+    client, _ = api
+    big = b'{"flow_id":"checkout","mode":"replay","pad":"' + b"x" * (2 * 1024 * 1024) + b'"}'
+    r = await client.post("/api/runs", content=big, headers={"content-type": "application/json"})
+    assert r.status_code == 413 and r.json()["detail"]
+
+    async def chunks():  # no Content-Length: the body is counted as it arrives
+        for _ in range(40):
+            yield b"x" * 8192
+
+    r = await client.post("/api/runs", content=chunks(), headers={"content-type": "application/json"})
+    assert r.status_code == 413
+    r = await client.post("/api/runs", json={"flow_id": "f" * 5000, "mode": "replay"})
+    assert r.status_code == 404 and len(r.text) < 300, len(r.text)  # the unknown flow id is not echoed back whole
+
+
+async def test_validation_errors_stay_json_for_inputs_that_cannot_be_serialised(api):
+    """FastAPI's default 422 echoes the input; `Infinity` and a lone surrogate cannot be re-serialised, which made a 500."""
+    client, _ = api
+    r = await client.post("/api/runs", content=b'{"flow_id":"checkout","mode":"replay","pace_ms":Infinity}', headers={"content-type": "application/json"})
+    assert r.status_code == 422 and r.json()["detail"]
+    r = await client.post("/api/runs/20261101-000000-abcd/findings/x/decision", content=b'{"decision":"approve","reason":"\\ud800"}', headers={"content-type": "application/json"})
+    assert r.status_code == 422, r.status_code  # a reason that is not valid text is refused, not stored
+
+
+async def test_a_corrupt_stored_record_is_a_clean_500_not_a_traceback_or_a_422(api):
+    """A finding file that no longer parses is a server-side fault: one JSON 500 with a short detail, on the detail route and the
+    decision route alike (the decision route used to map pydantic's ValidationError, a ValueError, to a 422 full of internals)."""
+    client, app = api
+    run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+    await _finish(client, run_id)
+    findings_dir = app.state.settings.data_dir / "runs" / run_id / "findings"
+    first = sorted(findings_dir.glob("*.json"))[0]
+    first.write_text('{"id": "broken"')
+    for method, path, body in (("GET", f"/api/runs/{run_id}", None), ("POST", f"/api/runs/{run_id}/findings/{first.stem}/decision", {"decision": "reject", "reason": "x"})):
+        r = await client.request(method, path, json=body)
+        assert r.status_code == 500, (path, r.status_code)
+        assert r.headers["content-type"].startswith("application/json") and "unreadable" in r.json()["detail"] and "ValidationError" not in r.text
+
+
+async def test_eval_results_that_do_not_parse_are_a_404_not_a_500(tmp_path):
+    """The Eval tab treats 404 as 'no results yet'; a truncated or list-shaped latest.json is an operator error to log, not a crash."""
+    import httpx
+
+    results = tmp_path / "results"
+    results.mkdir()
+    for bad in ('{"configs": ', "[1, 2]", b"\xff\xfe".decode("latin-1")):
+        (results / "latest.json").write_text(bad)
+        app = await _app_with(tmp_path, PARITY_EVAL_DIR=str(results))
+        async with app.router.lifespan_context(app):
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                r = await client.get("/api/eval")
+                assert r.status_code == 404 and "unreadable" in r.json()["detail"], (bad[:10], r.status_code)
+
+
+async def test_run_listing_is_not_public(api):
+    """Run ids are the only capability a visitor holds over a run (a shared link shares the decisions, by design); a public list of
+    every id would let any visitor decide every other visitor's findings. The count stays in /api/health."""
+    client, _ = api
+    assert (await client.get("/api/runs")).status_code == 404
+    assert isinstance((await client.get("/api/health")).json()["runs_indexed"], int)
+
+
+async def test_generated_run_ids_carry_32_random_bits_and_never_reuse_an_existing_id(api, monkeypatch):
+    """Four hex digits collided in 0.55% of 30-id bursts and a collision merged two bundles. Ids now carry eight, and a start
+    that lands on an existing id draws again."""
+    from parity import replay
+
+    client, app = api
+    first = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+    assert re.fullmatch(r"\d{8}-\d{6}-[0-9a-f]{8}", first), first
+    await _finish(client, first)
+    draws = iter([first, first, "20261101-000000-0badf00d"])
+    monkeypatch.setattr(replay, "new_run_id", lambda: next(draws))
+    second = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"]
+    assert second == "20261101-000000-0badf00d"
+
+
+async def test_young_replay_copies_survive_the_cap_when_a_replay_starts(tmp_path):
+    """The same rule on the Replay-start path: with the cap at 1 and the default minimum age, three fresh copies all stay."""
+    import httpx
+
+    app = await _app_with(tmp_path, PARITY_REPLAY_KEEP="1")
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            ids = []
+            for _ in range(3):
+                ids.append((await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 0})).json()["run_id"])
+                await _finish(client, ids[-1])
+            kept = await app.state.bundle.list_run_ids()
+    assert set(ids) <= set(kept), (ids, kept)

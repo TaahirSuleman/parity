@@ -7,6 +7,7 @@ client library. Keys are relative paths like ``runs/<id>/run.json``; every objec
 from __future__ import annotations
 
 import asyncio
+import errno
 import os
 import shutil
 from pathlib import Path
@@ -33,6 +34,11 @@ class LocalBlobStore:
             raise ValueError(f"key escapes the store root: {key}")
         return path
 
+    @staticmethod
+    def _unstorable(exc: BaseException) -> bool:
+        """A key the filesystem cannot name (too long, an embedded NUL) is 'not there'; other OSErrors are real faults."""
+        return isinstance(exc, ValueError) or getattr(exc, "errno", None) in (errno.ENAMETOOLONG, errno.EINVAL, errno.ENOTDIR)
+
     async def put(self, key: str, data: bytes, content_type: str = "application/octet-stream") -> None:
         path = self._path(key)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -41,16 +47,31 @@ class LocalBlobStore:
         os.replace(tmp, path)
 
     async def get(self, key: str) -> bytes:
-        return self._path(key).read_bytes()
+        try:
+            return self._path(key).read_bytes()
+        except (OSError, ValueError) as exc:
+            if self._unstorable(exc):
+                raise FileNotFoundError(key) from None
+            raise
 
     async def exists(self, key: str) -> bool:
-        return self._path(key).is_file()
+        try:
+            return self._path(key).is_file()
+        except (OSError, ValueError) as exc:
+            if self._unstorable(exc):
+                return False
+            raise
 
     async def list(self, prefix: str) -> list[str]:
         base = self.root.resolve()
-        start = self._path(prefix.rstrip("/")) if prefix else base
-        if not start.exists():
-            return []
+        try:
+            start = self._path(prefix.rstrip("/")) if prefix else base
+            if not start.exists():
+                return []
+        except (OSError, ValueError) as exc:
+            if self._unstorable(exc):
+                return []
+            raise
         out: list[str] = []
         for p in start.rglob("*"):
             if p.is_file() and not p.name.endswith(".tmp"):

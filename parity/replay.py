@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import timedelta
 
 from parity.api.events import EventBus
 from parity.pipeline.runner import new_run_id
@@ -22,11 +23,30 @@ def _rewrite(text: str, source_id: str, new_id: str) -> str:
     return text.replace(source_id, new_id)
 
 
-async def evict_replay_copies(bundle: RunBundle, index, keep: int) -> list[str]:
-    """Delete the oldest Replay copies beyond ``keep`` (the index knows which runs are replays, so no bundle is read)."""
-    ids = await index.replay_ids_oldest_first()
+async def fresh_run_id(bundle: RunBundle) -> str:
+    """A new run id that no bundle holds yet: a collision would merge two runs into one bundle."""
+    for _ in range(16):
+        run_id = new_run_id()
+        if not await bundle.exists(run_id):
+            return run_id
+    raise RuntimeError("could not mint a free run id")
+
+
+async def evict_replay_copies(bundle: RunBundle, index, keep: int, bus: EventBus | None = None, min_age_s: int = 0) -> list[str]:
+    """Delete the oldest Replay copies beyond ``keep`` (the index knows which runs are replays, so no bundle is read).
+
+    A replay that is still streaming is never evicted, whatever its age: twenty judges clicking at once must not delete the
+    first judge's run from under its own publisher (screenshots 404, the detail route 404, the replay task dies on a KeyError).
+    Nor is a copy younger than ``min_age_s``: a judge still reviewing a finished Replay must not lose it to other judges' clicks.
+    """
+    rows = await index.replay_copies_oldest_first()
+    if bus is not None:
+        rows = [row for row in rows if not (bus.knows(row[0]) and not bus.is_finished(row[0]))]
+    cutoff = now() - timedelta(seconds=min_age_s)
     gone: list[str] = []
-    for run_id in ids[: max(0, len(ids) - keep)]:
+    for run_id, started_at, finished_at in rows[: max(0, len(rows) - keep)]:
+        if min_age_s and (finished_at or started_at) > cutoff:
+            continue
         try:
             await bundle.delete_run(run_id)
             await index.delete_run(run_id)
@@ -38,14 +58,14 @@ async def evict_replay_copies(bundle: RunBundle, index, keep: int) -> list[str]:
 
 async def start(
     source_id: str, source: RunBundle, bus: EventBus, bundle: RunBundle, index, *, pace_ms: int = DEFAULT_PACE_MS, run_id: str | None = None,
-    replay_keep: int | None = None,
+    replay_keep: int | None = None, replay_min_age_s: int = 0,
 ) -> Run:
     """Copy the source bundle into ``bundle`` under a new id and schedule the paced event replay. With ``replay_keep`` the
     oldest copies beyond it are evicted first, so boot cost stays bounded however often judges click Replay."""
     if replay_keep is not None:
-        await evict_replay_copies(bundle, index, max(0, replay_keep - 1))
+        await evict_replay_copies(bundle, index, max(0, replay_keep - 1), bus, replay_min_age_s)
     loaded = await source.load(source_id)
-    new_id = run_id or new_run_id()
+    new_id = run_id or await fresh_run_id(bundle)
     run = Run.model_validate_json(_rewrite(loaded.run.model_dump_json(), source_id, new_id))
     final_status = run.status
     run.mode = RunMode.replay

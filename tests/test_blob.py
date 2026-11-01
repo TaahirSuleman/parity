@@ -72,3 +72,16 @@ def test_make_blob_store_picks_backend(tmp_path):
     assert isinstance(local, LocalBlobStore)
     gcs = make_blob_store(load_settings(env={"PARITY_GCS_BUCKET": "b"}), gcs_client=_FakeGcsClient())
     assert isinstance(gcs, GcsBlobStore)
+
+
+async def test_local_store_treats_unstorable_keys_as_missing(tmp_path):
+    """A key the filesystem cannot even name (2,000 characters, an embedded NUL) is 'not there', never an OSError: the
+    API answers 404 for ids it validated, and the store must hold the same line for anything that slips past."""
+    from parity.store.blob import LocalBlobStore
+
+    store = LocalBlobStore(tmp_path)
+    for key in ("runs/" + "a" * 2000 + "/run.json", "runs/x\x00y/run.json"):
+        assert await store.exists(key) is False
+        with pytest.raises(FileNotFoundError):
+            await store.get(key)
+        assert await store.list("runs/" + "a" * 2000) == []

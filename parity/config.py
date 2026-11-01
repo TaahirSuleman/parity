@@ -45,6 +45,7 @@ class Settings:
     live_global_per_day: int = 40
     live_target_origins: str = "self"
     replay_keep: int = 20  # Replay copies kept (evicted oldest-first when a Replay starts and at boot); boot loads each kept copy once
+    replay_min_age_s: int = 7200  # beyond the cap, only copies older than this are evicted: a judge still reviewing one must not lose it
     trust_proxy: bool = False  # behind Cloud Run the visitor is the first X-Forwarded-For hop; a direct client's header is ignored
     log_level: str = "info"
 
@@ -106,6 +107,7 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         live_global_per_day=int(get("PARITY_LIVE_GLOBAL_PER_DAY", "40")),
         trust_proxy=_bool(get("PARITY_TRUST_PROXY", "0")),
         replay_keep=int(get("PARITY_REPLAY_KEEP", str(Settings.replay_keep))),
+        replay_min_age_s=int(get("PARITY_REPLAY_MIN_AGE_S", str(Settings.replay_min_age_s))),
         live_target_origins=get("PARITY_LIVE_TARGET_ORIGINS", "self"),
         log_level=get("LOG_LEVEL", "info"),
     )

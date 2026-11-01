@@ -29,7 +29,7 @@ PageFactory = Callable[[], Awaitable[Page]]
 
 
 def new_run_id() -> str:
-    return f"{datetime.now(UTC):%Y%m%d-%H%M%S}-{secrets.token_hex(2)}"
+    return f"{datetime.now(UTC):%Y%m%d-%H%M%S}-{secrets.token_hex(4)}"  # 16 bits collided in 0.55% of 30-id bursts and merged two bundles
 
 
 async def run_flow(

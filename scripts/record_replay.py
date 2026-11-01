@@ -30,6 +30,7 @@ def main() -> int:
     ap.add_argument("--name", default="hero-checkout")
     ap.add_argument("--flow", default="checkout")
     ap.add_argument("--min-rejected", type=int, default=1, help="re-run (up to 3 times) until the Verifier rejected at least this many candidates")
+    ap.add_argument("--timeout-s", type=int, default=1800, help="run deadline for the recording (the hosted default is 900 s; a full-store purchase walk with every fix re-audited needs longer)")
     args = ap.parse_args()
     base = load_settings()
     if not base.has_key:
@@ -43,6 +44,7 @@ def main() -> int:
         "MODEL_API_KEY": base.model_api_key, "PARITY_DATA_DIR": str(tmp / "data"), "PARITY_INDEX_PATH": str(tmp / "index.db"),
         # a fresh cache: the committed bundle must show real latency and cost, not cache hits
         "PARITY_CACHE_DIR": str(tmp / "cache"), "PARITY_REPLAY_DIR": str(tmp / "replay"), "PORT": str(port), "PARITY_DEFAULT_MODE": "live",
+        "PARITY_RUN_TIMEOUT_S": str(args.timeout_s),
     })
     server = uvicorn.Server(uvicorn.Config(create_app(settings), host="127.0.0.1", port=port, log_level="warning"))
     threading.Thread(target=server.run, daemon=True).start()
@@ -54,7 +56,7 @@ def main() -> int:
         started.raise_for_status()
         run_id = started.json()["run_id"]
         print(f"live run {run_id} started; streaming events…")
-        with httpx.stream("GET", f"{url}/api/runs/{run_id}/events", timeout=600) as stream:
+        with httpx.stream("GET", f"{url}/api/runs/{run_id}/events", timeout=args.timeout_s + 120) as stream:
             for line in stream.iter_lines():
                 if line.startswith("event:"):
                     kind = line[6:].strip()

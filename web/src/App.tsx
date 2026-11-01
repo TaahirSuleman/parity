@@ -1,25 +1,27 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { ApiError, decide, getEval, getFlows, getHealth, getRun, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
 import type { EvalResults } from "./components/EvalTab";
-import { submitDecision } from "./state/decisions";
+import { reconcileDecisions, submitDecision } from "./state/decisions";
 import { runIdFromSearch, withRunParam } from "./state/location";
 import { shouldReset } from "./state/reducer";
 import { initialState, reduce, resetFor, select } from "./state/reducer";
 import type { ParityEvent, RunMode, RunState } from "./state/types";
 import { Workbench } from "./Workbench";
 
-type Action = { kind: "event"; ev: ParityEvent } | { kind: "select"; id: string } | { kind: "reset"; mode: RunMode } | { kind: "error"; message: string };
+type Action = { kind: "event"; ev: ParityEvent } | { kind: "select"; id: string } | { kind: "reset"; mode: RunMode } | { kind: "error"; message: string } | { kind: "notice"; message: string | null };
 
 function appReducer(state: RunState, action: Action): RunState {
   switch (action.kind) {
     case "event":
-      return reduce(state, action.ev);
+      return { ...reduce(state, action.ev), notice: action.ev.type === "decision.recorded" ? null : state.notice };
     case "select":
       return select(state, action.id);
     case "reset":
       return resetFor(action.mode);
     case "error":
       return { ...state, phase: "failed", error: action.message };
+    case "notice":
+      return { ...state, notice: action.message };
   }
 }
 
@@ -33,6 +35,16 @@ export default function App() {
   const [view, setView] = useState<"workbench" | "eval">("workbench");
   const [evalResults, setEvalResults] = useState<EvalResults | null | undefined>(undefined);
   const flow = flows.find((f) => f.id === flowId) ?? flows[0];
+  // One subscription shape for every stream: events in; a notice (not a failure) when the stream drops; and when the run
+  // finishes, the decisions the server holds (made after the stream closed, or before a reload) are applied.
+  const follow = useCallback((runId: string) => streamRun(runId, (ev) => {
+    dispatch({ kind: "event", ev });
+    if (ev.type === "run.finished") void reconcileDecisions({ getRun }, runId, (d) => dispatch({ kind: "event", ev: d }));
+  }, (message) => dispatch({ kind: "notice", message })), []);
+  useEffect(() => {  // the header names the run on screen: a reloaded or linked run selects its own flow
+    const id = state.run?.flow_id;
+    if (id && flows.some((f) => f.id === id)) setFlowId(id);
+  }, [state.run?.flow_id, flows]);
 
   useEffect(() => {
     Promise.all([getHealth().catch(() => null), getFlows().catch(() => [] as FlowInfo[])]).then(([h, fl]) => {
@@ -46,11 +58,11 @@ export default function App() {
       const linked = runIdFromSearch(window.location.search);
       if (linked) {  // a shared or reloaded run: its history streams back in
         closeRef.current?.();
-        closeRef.current = streamRun(linked, (ev) => dispatch({ kind: "event", ev }), (message) => dispatch({ kind: "error", message }));
+        closeRef.current = follow(linked);
       }
     });
     return () => closeRef.current?.();
-  }, []);
+  }, [follow]);
 
   const onRun = useCallback(async () => {
     if (!flow) return;
@@ -61,12 +73,12 @@ export default function App() {
     try {
       const { run_id } = await startRun(flow.id, mode);
       window.history.replaceState(null, "", withRunParam(window.location.search, run_id) || window.location.pathname);
-      closeRef.current = streamRun(run_id, (ev) => dispatch({ kind: "event", ev }), (message) => dispatch({ kind: "error", message }));
+      closeRef.current = follow(run_id);
     } catch (e) {
       const message = e instanceof ApiError ? `${e.detail} (HTTP ${e.status})` : String(e);
       dispatch({ kind: "error", message });
     }
-  }, [flow, state.mode]);
+  }, [flow, state.mode, follow]);
 
   const onViewChange = useCallback((next: "workbench" | "eval") => {
     setView(next);
@@ -81,15 +93,16 @@ export default function App() {
     try {
       const { run_id } = await startRun(null, "replay", runId);
       window.history.replaceState(null, "", withRunParam(window.location.search, run_id) || window.location.pathname);
-      closeRef.current = streamRun(run_id, (ev) => dispatch({ kind: "event", ev }), (message) => dispatch({ kind: "error", message }));
+      closeRef.current = follow(run_id);
     } catch (e) {
       dispatch({ kind: "error", message: e instanceof ApiError ? `${e.detail} (HTTP ${e.status})` : String(e) });
     }
-  }, []);
+  }, [follow]);
 
   const onDecision = useCallback((id: string, decision: "approve" | "reject", reason: string) => {
     if (!state.run) return Promise.resolve();
-    return submitDecision({ decide, getRun }, state.run.id, id, decision, reason, (ev) => dispatch({ kind: "event", ev }), (message) => dispatch({ kind: "error", message }));
+    return submitDecision({ decide, getRun }, state.run.id, id, decision, reason, (ev) => dispatch({ kind: "event", ev }),
+      (message) => dispatch({ kind: "notice", message: `The decision could not be saved: ${message}. The run is unchanged; try again.` }));
   }, [state.run]);
 
   const lastStep = state.steps[state.steps.length - 1];
@@ -99,7 +112,7 @@ export default function App() {
   const canLive = Boolean(health?.has_key && health?.live_enabled);
   return (
     <Workbench
-      state={state} flows={flows} flowId={flow?.id ?? ""} onFlowChange={setFlowId} canLive={canLive} screenshotUrl={shot} model="muse-spark-1.3-contributor"
+      state={state} flows={flows} flowId={flow?.id ?? ""} onFlowChange={setFlowId} canLive={canLive} screenshotUrl={shot} model={state.models.navigator ?? state.models.comparator}
       onModeChange={(mode) => { if (!shouldReset(state, mode)) return; closeRef.current?.(); dispatch({ kind: "reset", mode }); }} onRun={onRun}
       onSelect={(id) => { setStepOverride(null); dispatch({ kind: "select", id }); }} onDecision={onDecision} stepIndex={stepIndex} onStepChange={setStepOverride}
       view={view} onViewChange={onViewChange} evalResults={evalResults ?? null} onReplayRun={onReplayRun}

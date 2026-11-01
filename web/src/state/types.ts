@@ -61,6 +61,7 @@ export interface RunState {
   stage: string | null; // last model-backed stage seen, for the sighted-panel badge
   percepts: { visible_text: string; kind: string; bbox: BBox }[];
   error: string | null;
+  notice?: string | null; // a transient message (a failed decision, an interrupted stream): shown, never fatal
 }
 
 export const MODEL_LABELS: Record<string, string> = {

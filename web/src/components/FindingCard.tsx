@@ -8,16 +8,20 @@ interface Props {
   selected: boolean;
   onSelect: (id: string) => void;
   onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void | Promise<void>;
+  screenLabel?: string; // "screen 3 · checkout" when the run has several screens
+  fixesExpected?: boolean; // false once no fix will follow (run over, or a read-only public sample)
+  comparatorModel?: string; // the model that re-ran the comparison on the patched page
 }
 
 function suggestedReason(finding: Finding): string {
   if (!finding.reaudit) return "";
+  const after = finding.reaudit.sr_name_after || "nothing";
   return finding.reaudit.gap_closed
-    ? `Re-audit: gap closed, the screen reader now says "${finding.reaudit.sr_name_after}"`
-    : `Re-audit: gap still open, the screen reader still says "${finding.reaudit.sr_name_after || "nothing"}"`;
+    ? `Re-audit: gap closed, the screen reader now says "${after}"`
+    : `Re-audit: name rule still open, the screen reader now says "${after}"`;
 }
 
-export function FindingCard({ finding, selected, onSelect, onDecision }: Props) {
+export function FindingCard({ finding, selected, onSelect, onDecision, screenLabel, fixesExpected = true, comparatorModel = "muse-spark-1.3-contributor" }: Props) {
   const j = finding.judgement;
   const quote = srQuote(finding);
   const [typed, setTyped] = useState<string | null>(null);
@@ -40,11 +44,11 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
     });
   };
   return (
-    <article className="card" data-selected={selected} aria-labelledby={headingId} onClick={() => onSelect(finding.id)}>
+    <article id={`card-${finding.id}`} className="card" data-selected={selected} aria-labelledby={headingId} onClick={() => onSelect(finding.id)}>
       <div>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-xs uppercase tracking-wider muted">Sighted user sees</div>
+            <div className="text-xs uppercase tracking-wider muted">Sighted user sees{screenLabel ? ` · ${screenLabel}` : ""}</div>
             <h3 id={headingId} className="font-semibold m-0" style={{ fontSize: 16 }}>
               <button ref={selectRef} type="button" className="card-select" aria-pressed={selected} onClick={(e) => { e.stopPropagation(); onSelect(finding.id); }}>{finding.sighted_text}</button>
             </h3>
@@ -81,20 +85,24 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
             <span className="mono">"{finding.reaudit.sr_name_before}" → "{finding.reaudit.sr_name_after}"</span>
             {finding.reaudit.gap_closed
               ? <span className="ml-2" style={{ color: "var(--ok)" }}>gap closed</span>
-              : <span className="ml-2" style={{ color: "var(--bad)" }}>name rule: still open</span>}
+              : finding.reaudit.comparator_still_flags === false
+                ? <span className="ml-2" style={{ color: "var(--warn)" }} title="The strict rule wants the visible text inside the new name; for an icon the visible text names a picture, so the comparator's verdict is the one to weigh.">
+                    name rule: still open — the visible text "{finding.sighted_text}" cannot match the new name; the comparator no longer flags it
+                  </span>
+                : <span className="ml-2" style={{ color: "var(--bad)" }}>name rule: still open</span>}
             <span className="ml-2"><CodeBadge what="code · re-audit" /></span>
             {finding.reaudit.comparator_still_flags !== null && (
               <span className="ml-2 inline-flex items-center gap-2">
                 <span style={{ color: finding.reaudit.comparator_still_flags ? "var(--bad)" : "var(--ok)" }}>
                   {finding.reaudit.comparator_still_flags ? "comparator: still flags it" : "comparator: no longer flags it"}
                 </span>
-                <MetaBadge model={String(finding.fix?.model_meta?.model ?? "muse-spark-1.3-contributor")} capability="comparison" />
+                <MetaBadge model={comparatorModel} capability="comparison" />
               </span>
             )}
           </div>
         )}
         {finding.decision && (
-          <div className="mt-2 text-sm" style={{ color: finding.decision.decision === "approve" ? "var(--ok)" : "var(--bad)" }}>
+          <div className="mt-2 text-sm" role="status" style={{ color: finding.decision.decision === "approve" ? "var(--ok)" : "var(--bad)" }}>
             {finding.decision.decision === "approve" ? "Approved" : "Rejected"} · {finding.decision.reason}
           </div>
         )}
@@ -108,7 +116,7 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
           {finding.fix.explanation && <p className="m-0 mt-1">{finding.fix.explanation}</p>}
           <details className="mt-1">
             <summary className="cursor-pointer muted">Diff</summary>
-            <pre className="diff mono" tabIndex={0} aria-label={`Unified diff for ${finding.sighted_text}`}>
+            <pre className="diff mono" tabIndex={0} role="region" aria-label={`Unified diff for ${finding.sighted_text}`}>
               {finding.fix.diff.split("\n").map((line, i) => (
                 <span key={i} className={line.startsWith("+") && !line.startsWith("+++") ? "diff-add" : line.startsWith("-") && !line.startsWith("---") ? "diff-del" : undefined}>{line}{"\n"}</span>
               ))}
@@ -121,14 +129,17 @@ export function FindingCard({ finding, selected, onSelect, onDecision }: Props) 
       {selected && !finding.decision && (
         <div className="flex items-center gap-2 px-1 py-2 flex-wrap">
           <label className="sr-only" htmlFor={reasonId}>Reason</label>
-          <input id={reasonId} className="btn-quiet fix-reason" value={reason} onChange={(e) => setTyped(e.target.value)} placeholder="Reason for the decision" disabled={!canDecide} />
+          <input id={reasonId} className="btn-quiet fix-reason" value={reason} onChange={(e) => setTyped(e.target.value)} onFocus={(e) => e.currentTarget.select()}
+            placeholder="Reason for the decision" disabled={!canDecide} />  {/* the suggestion is selected on focus: typing replaces it, a click mid-sentence does not splice into it */}
           <button type="button" className="btn-quiet" disabled={!(canApprove && hasReason)} onClick={() => act("approve")} title={canApprove ? "Approve the proposed fix" : "Approve needs a proposed fix"}>
             Approve fix
           </button>
           <button type="button" className="btn-quiet" disabled={!(canReject && hasReason)} onClick={() => act("reject")} title={finding.fix ? "Reject the proposed fix" : "Dismiss this finding (no fix was proposed)"}>
             Reject
           </button>
-          {!finding.fix && !finding.fix_note && <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>}
+          {!finding.fix && !finding.fix_note && (fixesExpected
+            ? <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>
+            : <span className="muted text-xs">No fix was proposed for this finding.</span>)}
         </div>
       )}
     </article>

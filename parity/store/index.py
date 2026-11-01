@@ -10,7 +10,7 @@ from pathlib import Path
 import aiosqlite
 
 from parity.store.bundle import RunBundle
-from parity.store.models import Finding, ModelCall, Run, RunStatus, now
+from parity.store.models import Event, Finding, ModelCall, Run, RunStatus, now
 
 log = logging.getLogger(__name__)
 
@@ -131,6 +131,9 @@ class RunIndex:
                 run.error = "interrupted by restart"
                 run.finished_at = now()
                 await bundle.write_run(run)
+                # the event log ends with a terminal event, or a browser opening the run's link streams the history and
+                # then reconnects forever waiting for an end that never comes
+                await bundle.append_event(run_id, Event(type="run.failed", run_id=run_id, data={"error": run.error}))
                 await self.upsert_run(run)
                 recovered.append(run_id)
         return recovered

@@ -24,11 +24,11 @@ def render(r: dict) -> str:
              f"labels sha256 `{str(r.get('labels_sha256', '?'))[:12]}`. A finding is scored under its element's id or the nearest id above it.", ""]
     cfgs = r.get("configs", {})
     axe = r.get("axe", {})
-    lines += ["## Parity vs axe-core (same labels)", "", "| System | Recall | Precision | Findings | FP on clean | Cost | Time |", "|---|---|---|---|---|---|---|"]
+    lines += ["## Parity vs axe-core (same labels)", "", "| System | Recall | Precision | Verified findings | FP on clean | Cost | Time |", "|---|---|---|---|---|---|---|"]
     for key in ("full", "screenshot_only", "tree_only", "no_grounding"):
         if key in cfgs:
             t = cfgs[key]["total"]
-            lines.append(f"| {CONFIG_LABELS[key]} | {pct(t['recall'])} | {pct(t['precision'])} | {t['n']:.0f} / {t['n_labels']} labels | {t['fp_on_clean']:.1f} | ${t['cost_usd']:.3f} | {t['seconds']:.0f} s |")
+            lines.append(f"| {CONFIG_LABELS[key]} | {pct(t['recall'])} | {pct(t['precision'])} | {t['n']:.0f} per run · {t['n_labels']} labels | {t['fp_on_clean']:.1f} | ${t['cost_usd']:.3f} | {t['seconds']:.0f} s |")
     if axe:
         lines.append(f"| axe-core 4.14 | {pct(axe.get('recall'))} | — | {axe.get('violations', 0)} violations | — | $0 | — |")
     if "full" in cfgs:

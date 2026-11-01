@@ -2,7 +2,7 @@
 
 ## Part 7: Lessons from Resilix (Gemini 3 Hackathon, not placed) against the 13 winners (v3)
 
-Full evidence is in `15-gemini3-postmortem-resilix-vs-winners.md`.
+Full evidence is in `learnings/15-gemini3-postmortem-resilix-vs-winners.md`.
 
 **What Resilix got right, and we keep:**
 - typed contracts;

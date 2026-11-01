@@ -1,7 +1,7 @@
 {
  "run_id": "hero-checkout",
  "index": 0,
- "url": "http://127.0.0.1:59199/store/checkout.html",
+ "url": "http://127.0.0.1:65491/store/checkout.html",
  "actions": [],
  "screenshot": "steps/0/screenshot.png",
  "ax_tree": "steps/0/ax.json",
@@ -11,6 +11,6 @@
   720
  ],
  "axe_violations": 0,
- "ax_nodes": 37,
- "captured_at": "2026-10-31T19:41:46.896704Z"
+ "ax_nodes": 47,
+ "captured_at": "2026-11-01T12:37:03.676513Z"
 }

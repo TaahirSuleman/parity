@@ -1,0 +1,56 @@
+{
+ "id": "hero-checkout-r03",
+ "run_id": "hero-checkout",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "Payment",
+  "sr_quote": "text, \"Payment\"",
+  "why_it_matters": "Blind user gets no indication that Payment is the current checkout step that sighted users see emphasized.",
+  "bbox": {
+   "x_min": 178,
+   "y_min": 551,
+   "x_max": 224,
+   "y_max": 572
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "text at body > main:nth-of-type(1) > section:nth-of-type(1) > p:nth-of-type(3) > label:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 82,
+   "css_path": "body > main:nth-of-type(1) > section:nth-of-type(1) > p:nth-of-type(3) > label:nth-of-type(1)",
+   "box_px": [
+    187,
+    406,
+    299,
+    421
+   ],
+   "outer_html": "<label for=\"order-note\" class=\"small\">Note for the courier</label>",
+   "dom_id": null
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+ }
+}

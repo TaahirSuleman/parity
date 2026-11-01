@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ApiError } from "../api";
-import { submitDecision } from "./decisions";
+import { reconcileDecisions, submitDecision } from "./decisions";
 import type { Finding, ParityEvent, Run } from "./types";
 
 const run = { id: "r1", status: "awaiting_review" } as Run;
@@ -34,5 +34,21 @@ describe("submitDecision", () => {
     await submitDecision({ decide: async () => { throw new ApiError(503, "down"); }, getRun: async () => { throw new Error("x"); } },
       "r1", "f1", "approve", "ok", () => {}, (m) => errors.push(m));
     expect(errors).toEqual(["down"]);
+  });
+});
+
+describe("reconcileDecisions", () => {
+  it("applies the decisions the server holds for a run (made after the stream closed, or before a reload)", async () => {
+    const events: ParityEvent[] = [];
+    const undecided = { id: "f2", status: "reaudited", decision: null } as unknown as Finding;
+    await reconcileDecisions({ getRun: async () => ({ run: { ...run, status: "done" }, findings: [decided, undecided], steps: [], rejected: [], trace: [] }) }, "r1", (ev) => events.push(ev));
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: "decision.recorded", finding_id: "f1", status: "approved", run_status: "done" });
+  });
+
+  it("is quiet when the run cannot be fetched", async () => {
+    const events: ParityEvent[] = [];
+    await reconcileDecisions({ getRun: async () => { throw new ApiError(503, "down"); } }, "r1", (ev) => events.push(ev));
+    expect(events).toEqual([]);
   });
 });

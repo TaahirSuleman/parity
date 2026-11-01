@@ -15,7 +15,7 @@ export function TraceDrawer({ calls, open, onToggle }: { calls: CallEvent[]; ope
         <span className="ml-auto text-xs muted">every call: model, request ID, tokens, latency, cost</span>
       </div>
       {open && (
-        <div id="trace-table" className="px-4 pb-3 overflow-x-auto" style={{ maxHeight: 240, overflowY: "auto" }} tabIndex={0} aria-label="Model calls">
+        <div id="trace-table" className="px-4 pb-3 overflow-x-auto" style={{ maxHeight: 240, overflowY: "auto" }} tabIndex={0} role="region" aria-label="Model calls">
           <table>
             <thead><tr><th>stage</th><th>model</th><th>request id</th><th>tokens</th><th>latency</th><th>cost</th><th>cache</th></tr></thead>
             <tbody>

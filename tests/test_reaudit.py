@@ -82,7 +82,7 @@ async def test_patched_page_cannot_reach_the_api(page, store_url):
     from parity.pipeline.reaudit import load_patched
 
     html = "<!doctype html><html><body><p>x</p><script>fetch('/api/health').then(r => { window.__api = r.status }).catch(() => { window.__api = 'blocked' })</script></body></html>"
-    async with load_patched(page, store_url + "checkout.html", html):
+    async with load_patched(page, store_url + "checkout.html", html) as page:  # noqa: PLR1704 - the sandbox page
         await page.wait_for_function("() => window.__api !== undefined")
         assert await page.evaluate("() => window.__api") == "blocked"
 
@@ -111,7 +111,7 @@ async def test_patched_page_cannot_reach_the_api_by_encoded_paths_or_forms(page,
             "const tries = {enc: '/%61pi/health', dbl: '//" + urlparse(store_url).netloc + "/api/health', up: '/store/../api/health'};"
             "Promise.all(Object.entries(tries).map(([k, u]) => fetch(u).then(r => { window.__r[k] = r.status }).catch(() => { window.__r[k] = 'blocked' })))"
             ".then(() => { window.__done = true });</script></body></html>")
-    async with load_patched(page, store_url + "checkout.html", html):
+    async with load_patched(page, store_url + "checkout.html", html) as page:  # noqa: PLR1704 - the sandbox page
         await page.wait_for_function("() => window.__done === true")
         results = await page.evaluate("() => window.__r")
         assert results == {"enc": "blocked", "dbl": "blocked", "up": "blocked"}, results
@@ -125,6 +125,22 @@ async def test_patched_page_is_served_with_a_csp_that_forbids_connections(page, 
 
     assert "connect-src 'none'" in SANDBOX_CSP and "form-action 'none'" in SANDBOX_CSP and "frame-src 'none'" in SANDBOX_CSP
     html = "<!doctype html><html><body><p>x</p><script>fetch('/store/style.css').then(r => { window.__css = r.status }).catch(() => { window.__css = 'blocked' })</script></body></html>"
-    async with load_patched(page, store_url + "checkout.html", html):
+    async with load_patched(page, store_url + "checkout.html", html) as page:  # noqa: PLR1704 - the sandbox page
         await page.wait_for_function("() => window.__css !== undefined")
         assert await page.evaluate("() => window.__css") == "blocked"  # even same-origin fetches are refused by the CSP
+
+
+async def test_patched_page_csp_holds_with_the_production_page_factory(store_url):
+    """The app's pages are created with bypass_csp (axe must inject into any public page); the re-audit sandbox must not inherit
+    that, or its Content-Security-Policy is decoration and a patched page could call the API."""
+    from parity.pipeline import browser
+    from parity.pipeline.reaudit import load_patched
+
+    page = await browser.new_page()
+    try:
+        html = "<!doctype html><html><body><p>x</p><script>fetch('/store/style.css').then(r => { window.__css = r.status }).catch(() => { window.__css = 'blocked' })</script></body></html>"
+        async with load_patched(page, store_url + "checkout.html", html) as patched:
+            await patched.wait_for_function("() => window.__css !== undefined")
+            assert await patched.evaluate("() => window.__css") == "blocked"
+    finally:
+        await page.context.close()

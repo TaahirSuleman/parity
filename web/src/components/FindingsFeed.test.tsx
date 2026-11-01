@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import hero from "../fixtures/hero.json";
 import type { Finding, Rejected } from "../state/types";
 import { FindingsFeed } from "./FindingsFeed";
@@ -27,5 +27,26 @@ describe("FindingsFeed without the Verifier", () => {
     expect(screen.getByText(/1 duplicate/i)).toBeInTheDocument();
     expect(screen.getByRole("listitem", { name: /would be reported: Delivery Free/i })).toBeInTheDocument();
     expect(screen.getByRole("listitem", { name: /duplicate: Pay R1,249/i })).toBeInTheDocument();
+  });
+});
+
+describe("FindingsFeed selection, notices and outcomes", () => {
+  it("scrolls the selected card into view when the selection changes", () => {
+    const spy = vi.fn();
+    Element.prototype.scrollIntoView = spy;
+    const { rerender } = render(<FindingsFeed findings={findings} rejected={[]} selectedId={null} phase="finished" error={null} onSelect={() => {}} />);
+    rerender(<FindingsFeed findings={findings} rejected={[]} selectedId={findings[2].id} phase="finished" error={null} onSelect={() => {}} />);
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it("shows a notice at the top as an alert instead of failing the run", () => {
+    render(<FindingsFeed findings={findings} rejected={[]} selectedId={null} phase="finished" error={null} notice="The decision could not be saved: network error. Try again." onSelect={() => {}} />);
+    expect(screen.getByRole("alert")).toHaveTextContent(/could not be saved/);
+  });
+
+  it("explains a walk the site stopped instead of saying no divergences were found", () => {
+    render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="finished" error={null} outcome="blocked by site: bot challenge" onSelect={() => {}} />);
+    expect(screen.getByRole("status")).toHaveTextContent(/stopped the walk before any screen was audited/i);
+    expect(screen.queryByText(/no divergences passed/i)).toBeNull();
   });
 });

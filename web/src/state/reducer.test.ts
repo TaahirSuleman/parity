@@ -158,3 +158,20 @@ describe("safety checks on the timeline", () => {
     expect(s.timeline.at(-1)?.label).toMatch(/safety check acknowledged.*computer_action_requires_confirmation/);
   });
 });
+
+describe("pickHero", () => {
+  const base = { run_id: "r", bbox: { x_min: 0, y_min: 0, x_max: 1, y_max: 1 }, element: { backend_id: 1, css_path: "x" }, verifier: { passed: true, checks: {} }, why_it_matters: "", status: "reaudited" } as const;
+  const f = (over: Record<string, unknown>) => ({ ...base, ...over }) as unknown as Parameters<typeof pickHero>[0][number];
+  it("opens on the strongest closed barrier on a control whose visible label and name disagree, not on a mislabelled image or a bare text", () => {
+    const text = f({ id: "a", step_index: 1, sighted_text: "Free", sr_role: "", sr_name: "", judgement: { is_barrier: true, severity: "serious", wcag: [{ sc: "1.1.1", name: "" }], impact: "", model_meta: {} }, reaudit: { gap_closed: true, sr_name_before: "", sr_name_after: "Free", comparator_still_flags: false } });
+    const image = f({ id: "b", step_index: 2, sighted_text: "SALE -20%", sr_role: "image", sr_name: "badge", judgement: { is_barrier: true, severity: "moderate", wcag: [{ sc: "1.1.1", name: "" }], impact: "", model_meta: {} }, reaudit: { gap_closed: true, sr_name_before: "badge", sr_name_after: "SALE -20%", comparator_still_flags: false } });
+    const pay = f({ id: "c", step_index: 2, sighted_text: "Pay R1,249", sr_role: "button", sr_name: "Submit", judgement: { is_barrier: true, severity: "serious", wcag: [{ sc: "2.5.3", name: "Label in Name" }], impact: "", model_meta: {} }, reaudit: { gap_closed: true, sr_name_before: "Submit", sr_name_after: "Pay R1,249", comparator_still_flags: false } });
+    expect(pickHero([text, image, pay])?.id).toBe("c");
+    expect(pickHero([pay, text, image])?.id).toBe("c");
+  });
+  it("breaks a tie between two controls towards the later screen (the flow's goal)", () => {
+    const early = f({ id: "a", step_index: 1, sighted_text: "trash icon", sr_role: "button", sr_name: "Close", judgement: { is_barrier: true, severity: "serious", wcag: [{ sc: "1.1.1", name: "" }], impact: "", model_meta: {} }, reaudit: { gap_closed: true, sr_name_before: "Close", sr_name_after: "Remove", comparator_still_flags: false } });
+    const late = f({ ...early, id: "b", step_index: 3 });
+    expect(pickHero([early, late])?.id).toBe("b");
+  });
+});

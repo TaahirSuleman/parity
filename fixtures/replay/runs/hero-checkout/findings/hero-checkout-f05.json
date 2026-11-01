@@ -3,35 +3,35 @@
  "run_id": "hero-checkout",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "trash icon",
+ "sighted_text": "Pay with wallet",
  "sr_role": "button",
- "sr_name": "Close",
- "why_it_matters": "Blind user hears a name that contradicts the visible trash/delete meaning and will misunderstand the button's action.",
+ "sr_name": "Button",
+ "why_it_matters": "Blind user hears only a generic name and cannot identify the wallet payment action.",
  "voice": null,
  "bbox": {
-  "x_min": 654,
-  "y_min": 538,
-  "x_max": 690,
-  "y_max": 605
+  "x_min": 635,
+  "y_min": 616,
+  "x_max": 746,
+  "y_max": 673
  },
  "element": {
-  "backend_id": 49,
-  "css_path": "button#f6",
+  "backend_id": 66,
+  "css_path": "button#express-pay",
   "box_px": [
-   837,
-   360,
-   883,
-   408
+   814,
+   416,
+   954,
+   457
   ],
-  "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-  "dom_id": "f6"
+  "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "dom_id": "express-pay"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f6"
+    "detail": "button at button#express-pay"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 49,
-   "css_path": "button#f6",
+   "backend_id": 66,
+   "css_path": "button#express-pay",
    "box_px": [
-    837,
-    360,
-    883,
-    408
+    814,
+    416,
+    954,
+    457
    ],
-   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "f6"
+   "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "express-pay"
   },
   "feedback": null
  },
@@ -69,36 +69,40 @@
   "severity": "serious",
   "wcag": [
    {
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   },
+   {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "User hears Close and cannot know the button does the trash/delete action, so will misunderstand and may activate the wrong function.",
+  "impact": "Screen-reader user hears only \"Button\" and cannot identify or confidently use the Pay with wallet payment option.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "141fb854-1dcb-4686-a2ad-6b0eeac38f39",
-   "response_id": "resp_6ae644e3eecc40ef994d4db8",
+   "request_id": "18b0ced6-3457-4d0a-b54e-e9cb628af1e3",
+   "response_id": "resp_6ae732dd759efa131c2a4809",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-  "after_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -29,7 +29,7 @@\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n-      <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n+      <button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>\n       <button id=\"c2\" class=\"ghost\">Save for later</button>\n     </div>\n   </section>\n",
-  "explanation": "Changed aria-label from Close to Delete so the accessible name matches the visible trash icon's delete action.",
+  "before_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button>",
+  "after_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -36,7 +36,7 @@\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n-      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n+      <button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button></p>\n   </section>\n </main>\n <script>\n",
+  "explanation": "Replaced the generic aria-label and empty-alt image-of-text with real text matching the visible label so the accessible name is Pay with wallet.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "d6f90ae2-5117-4b3c-ae70-6e8c6e0e2652",
-   "response_id": "resp_6ae644f66523dc2ebdb1408c",
+   "request_id": "e37e03f6-e3de-49bb-bc4a-e1eca4701dae",
+   "response_id": "resp_6ae732f66b566b06fcdf4b37",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": false,
-  "sr_name_before": "Close",
-  "sr_name_after": "Delete",
+  "gap_closed": true,
+  "sr_name_before": "Button",
+  "sr_name_after": "Pay with wallet",
   "comparator_still_flags": false
  },
  "decision": null

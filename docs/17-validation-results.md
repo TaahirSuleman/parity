@@ -61,21 +61,24 @@ via `scripts/variance_runs.py`; full data in `docs/variance.json`.
   4-wide and the second-signal comparator at effort low, the fix stage adds ~2.5 min to a live purchase run
   (575 s total, was 772 s). Replay stays the default for judges.
 - After the review fix pass the exported patch is rebuilt from the served source and `git apply --check`
-  passes on every file of both recorded runs (an id-less element is located by its css_path).
+  passes on every file of both recorded runs (an id-less element is located by its css_path). A patch applies to
+  the store the run was recorded on: the bundles recorded on 31 Oct predated store v2, so a judge's download no
+  longer applied to the repository (QA pass 2, docs/23 §6); both heroes were re-recorded on 1 Nov on store v2 and
+  the check repeated against the repository's own `store/` files.
 - Re-recorded again after the pre-P4 QA pass (docs/23): rejections are now only real refusals (the comparator's
   own repeats are no longer counted), the `Order SR-10428` text-fragment false positive is gone, and the agent's
   routine `computer_action_requires_confirmation` checks are acknowledged on our store and shown on the timeline.
 
 ## Eval on the seeded store (Phase 4, 1 Nov)
 
-Measured with `eval/harness.py` at commit `1e6caad` (labels sha256 `43b432f8abea`): 4 configurations × 3 runs × 4 pages, effort `medium`, judge `muse-spark-1.3`. The file is `eval/results/final.json`; `latest.md` is its rendering and the only number set the README, the Eval tab and the video quote. A finding is scored under its element's id or the nearest id above it; the labels never reach the agent (`tests/test_store_v2.py` checks `parity/` does not import `eval/`).
+Measured with `eval/harness.py` at commit `1e6caad` (labels sha256 `43b432f8abea`): 4 configurations × 3 runs × 4 pages, effort `medium`, judge `muse-spark-1.3`. The file is `eval/results/final.json`; `latest.md` is its rendering and the only number set the README, the Eval tab and the video quote. "Verified findings" is the mean number of findings that passed the Verifier per run (recall counts distinct labels found). A finding is scored under its element's id or the nearest id above it; the labels never reach the agent (`tests/test_store_v2.py` checks `parity/` does not import `eval/`).
 
-| System | Recall | Precision | Findings | FP on clean | Cost / page set | Time |
+| System | Recall | Precision | Verified findings | FP on clean | Cost / page set | Time |
 |---|---|---|---|---|---|---|
-| Parity (full) | 84% | 97% | 33 / 38 | 0.0 | $0.37 | 281 s |
-| screenshot only | 17% | 95% | 7 / 38 | 0.0 | $0.08 | 391 s |
-| tree only | 75% | 98% | 29 / 38 | 0.3 | $0.32 | 442 s |
-| no grounding | 82% | 95% | 33 / 38 | 0.7 | $0.36 | 428 s |
+| Parity (full) | 84% | 97% | 33 per run · 38 labels | 0.0 | $0.37 | 281 s |
+| screenshot only | 17% | 95% | 7 per run · 38 labels | 0.0 | $0.08 | 391 s |
+| tree only | 75% | 98% | 29 per run · 38 labels | 0.3 | $0.32 | 442 s |
+| no grounding | 82% | 95% | 33 per run · 38 labels | 0.7 | $0.36 | 428 s |
 | axe-core 4.14 | 0% | — | 0 violations | — | $0 | — |
 
 Per page (full): product 96% / 100% (16 of 16 found), cart 85% / 100% (8 of 9), checkout 74% / 95% (7 of 9), confirm 58% / 81% (3 of 4). Missed in every run — cart: `promo-input` (placeholder-as-label); checkout: `cvv` (placeholder-as-label), `step-payment` (state-visual-only); confirm: `status-packed` (state-visual-only).

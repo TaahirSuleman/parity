@@ -34,3 +34,11 @@ describe("SightedPanel withheld screenshot", () => {
     expect(screen.queryByRole("img", { name: /audited page/i })).toBeNull();
   });
 });
+
+describe("SightedPanel badge", () => {
+  it("credits the grounding model for the boxes once a run has findings, not only Chromium", () => {
+    render(<SightedPanel screenshotUrl="/shot.png" findings={[onStep2]} percepts={[]} selectedId={null} stage={null} model="muse-spark-1.3-contributor" timeline={[]}
+      steps={steps} stepIndex={2} onStepChange={() => {}} onSelect={() => {}} />);
+    expect(screen.getAllByText(/MUSE SPARK 1\.3/).length).toBeGreaterThan(0);
+  });
+});

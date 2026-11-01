@@ -82,6 +82,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.replay_for_flow = {}
     st.replay_ids = []
 
+    @app.middleware("http")
+    async def cache_policy(request, call_next):
+        # The SPA's assets carry a content hash and may be cached for a year; index.html must be revalidated every time, or a
+        # browser that cached it before a redeploy asks for an asset that no longer exists and shows a blank page.
+        response = await call_next(request)
+        path = request.url.path
+        if path.startswith("/assets/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif not path.startswith(("/api/", "/store/")) and response.headers.get("content-type", "").startswith("text/html"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
+
     app.include_router(router)
     app.mount("/store", StaticFiles(directory=STORE_DIR, html=True), name="store")
     if STATIC_DIR.exists():

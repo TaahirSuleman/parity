@@ -4,7 +4,7 @@
 1. `hackathon/00-constitution.md`: rules, rubric, hard constraints, calendar, submission form (amendments up to v1.3). **The constitution wins any conflict about rules.**
 2. `18-decision-and-development-plan.md`: Parity's scope, architecture, eval, day plan and video. **It wins any conflict about the product.**
 3. `17-validation-results.md`: what is proven on the live Meta API.
-3a. `19-design-spec.md`: modules, interfaces, data model, API, SSE, modes, Cloud Run deploy, eval harness, plus the 30 Oct decisions (D1–D7).
+3a. `19-design-spec.md`: modules, interfaces, data model, API, SSE, modes, Cloud Run deploy, eval harness, plus the 30 Oct decisions (D1–D8).
 3b. `20-implementation-plan.md`: phases P1–P6 as TDD tasks (P6 = Voice); the build follows it.
 4. `hackathon/01-event-pages-rules-and-submission-form.md`: verbatim rules, the submission form and judging stages.
 5. `hackathon/03-meta-ai-tooling-reference.md`: the full Meta API, models, Muse Code and cookbook reference. For quick, verified API formats, use the `meta-model-api` skill.

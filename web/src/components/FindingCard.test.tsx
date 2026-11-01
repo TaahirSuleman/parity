@@ -74,6 +74,15 @@ describe("FindingCard fix and decision", () => {
     expect(seen).toEqual([[fixed.id, "approve", "Price is now announced"]]);
   });
 
+  it("selects the suggested reason on focus, so typing replaces it instead of splicing into it", () => {
+    render(<FindingCard finding={fixed} selected={true} onSelect={() => {}} onDecision={() => {}} />);
+    const input = screen.getByRole("textbox", { name: /reason/i }) as HTMLInputElement;
+    expect(input.value.length).toBeGreaterThan(0);
+    input.setSelectionRange(5, 5); // a click lands the caret mid-sentence
+    fireEvent.focus(input);
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, input.value.length]);
+  });
+
   it("explains why a finding has no fix when the fixer refused", () => {
     render(<FindingCard finding={{ ...finding, fix: null, reaudit: null, fix_note: "snippet changes the element's tag from <img> to <button>" }} selected={true} onSelect={() => {}} />);
     expect(screen.getByText(/no fix proposed/i)).toBeInTheDocument();
@@ -150,5 +159,40 @@ describe("pre-P4 QA: the card as a screen-reader user meets it", () => {
     expect(select.textContent!.length).toBeLessThan(40);
     expect(select).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("list", { name: /verifier checks/i }).closest("button")).toBeNull();
+  });
+});
+
+describe("QA pass 2: re-audit wording, screen label, context copy", () => {
+  const closedByComparatorOnly: Finding = {
+    ...finding, status: "reaudited",
+    fix: { before_html: "<button aria-label='Close'>", after_html: "<button aria-label='Remove from cart'>", diff: "", explanation: "", model_meta: { model: "muse-spark-1.3-contributor" } },
+    reaudit: { gap_closed: false, sr_name_before: "Close", sr_name_after: "Remove from cart", comparator_still_flags: false },
+    sighted_text: "trash icon",
+  };
+  it("shows a name-rule miss that the comparator accepts as open-but-explained, not as a failed fix, and suggests an honest reason", () => {
+    render(<FindingCard finding={closedByComparatorOnly} selected={true} onSelect={() => {}} onDecision={() => {}} />);
+    const note = screen.getByText(/name rule/i);
+    expect(note).toHaveTextContent(/visible text .*icon.* cannot match/i);
+    expect(note).not.toHaveStyle({ color: "var(--bad)" });
+    const reason = screen.getByRole("textbox", { name: /reason/i }) as HTMLInputElement;
+    expect(reason.value).toMatch(/now says "Remove from cart"/);
+    expect(reason.value).not.toMatch(/still says/);
+  });
+
+  it("names the screen a finding belongs to when the run has several", () => {
+    render(<FindingCard finding={finding} selected={false} onSelect={() => {}} screenLabel="screen 3 · checkout" />);
+    expect(screen.getByText(/screen 3 · checkout/)).toBeInTheDocument();
+  });
+
+  it("does not promise a fix when none will come (a finished run, a read-only public sample)", () => {
+    const judgedOnly = { ...finding, fix: null, reaudit: null, fix_note: null } as Finding;
+    render(<FindingCard finding={judgedOnly} selected={true} onSelect={() => {}} onDecision={() => {}} fixesExpected={false} />);
+    expect(screen.queryByText(/re-audit follow once the judge is done/i)).toBeNull();
+  });
+
+  it("announces a recorded decision to assistive tech", () => {
+    const decided = { ...finding, status: "approved", decision: { decision: "approve", reason: "Real text now", decided_at: "2026-11-01T00:00:00Z" } } as Finding;
+    render(<FindingCard finding={decided} selected={true} onSelect={() => {}} />);
+    expect(screen.getByRole("status")).toHaveTextContent(/Approved · Real text now/);
   });
 });

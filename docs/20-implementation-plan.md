@@ -312,11 +312,12 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - Create `Dockerfile` (two stages per spec §12), `deploy/cloudrun.sh` (idempotent: enable APIs, create bucket, service account with `storage.objectAdmin` on that bucket and `secretAccessor` on the key secret, build, deploy with `PARITY_GCS_BUCKET` and no volume mount), `deploy/README.md` (first deploy, redeploy, teardown). Docker is not needed locally: Cloud Build builds the image.
 - App boot: `make_blob_store`, `recover_interrupted`, `index.rebuild`, then serve. `/api/health` adds `storage: "gcs" | "local"` and `runs_indexed`.
 - Verify: first deploy; `/api/health` returns `models_ok: true` and `storage: "gcs"`; run one Live audit; redeploy; the run and its decision are still listed and its screenshots load; Replay works from a private window on a phone.
+- Carried in from QA pass 2 (1 Nov, docs/23 §6): every Replay click copies a bundle and boot reads every bundle twice (recovery, then rebuild); on a bucket 100 replays ≈ 3,000 sequential object reads at boot. Before the first deploy: recovery reads `run.json` only, in one pass with the rebuild; replay copies are capped (evict the oldest `mode: replay` runs beyond N at boot). `index.html` is already `no-cache` and `/assets/*` immutable (done 1 Nov).
 - Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
   - SPA deep-link fallback: any non-`/api`, non-`/store` path that is not a file serves `index.html`, so a shared run link opens the workbench. Test: `GET /runs/<id>` returns the SPA; `/api/nope` still 404s.
 
 ### Task 23: README and submission text
-- `README.md`: one line pre-existing vs built this week; the hero; architecture diagram image (`docs/img/architecture.png`, exported from a Mermaid or Excalidraw source in `docs/img/`); "How it acts" (the model decides; allow-listed code acts); what is deterministic; run locally (`cp .env.example .env`, `make setup`, `make demo`); eval numbers from `eval/results/latest.md`; limits and honesty (no compliance claims). Form essays drafted in `docs/21-submission-text.md`.
+- `README.md`: one line pre-existing vs built this week; the hero; architecture diagram image (`docs/img/architecture.png`, exported from a Mermaid or Excalidraw source in `docs/img/`); "How it acts" (the model decides; allow-listed code acts); what is deterministic; run locally (`cp .env.example .env`, `make setup`, `make demo`); eval numbers from `eval/results/latest.md`; limits and honesty (no compliance claims; the prompts do not yet mark page text as untrusted — hosted Live is restricted to our store and public runs sit behind the read-only guard; model-facing tests answer from recorded stage responses). Form essays drafted in `docs/21-submission-text.md`.
 
 ### Task 24: UI polish for judges
 - Replay selected by default with a visible label; a "Live (rate-limited)" toggle; friendly 429; a ≤10 s architecture card in the Eval tab; keyboard focus order and visible focus rings in the workbench itself (it must pass axe too: add `test_workbench_axe_clean`).
@@ -324,6 +325,12 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
   - Already done in the hardening pass: workbench axe-clean in all three states; keyboard tab ring and visible focus rings (`test_workbench_is_keyboard_reachable_with_visible_focus`).
   - Finding card: one button for selection, not a button wrapping the whole card (invalid content model, very long accessible name). Test: the card's button name is the sighted text only.
   - Below 1280 px the three columns stack (sighted, screen reader, findings). Test: smoke test at 768 px with no horizontal scroll.
+- Carried in from QA pass 2 (1 Nov, docs/23 §6):
+  - Boxes drawn on the screenshot need a minimum 24×24 px hit area (WCAG 2.5.8) without changing the visible box; the sighted panel should take more of the width at 1280 px.
+  - Timeline wording for judges: `audit_view` → "audit this screen", `computer_action_requires_confirmation` → "confirm-to-proceed", "gated tool" explained once.
+  - Verifier check details and request ids are hover-only (`title`); expose them to keyboard and touch (a details row or a tooltip on focus).
+  - Idle state: one line saying what Parity is, that Replay is a recorded run with no model calls, and a legend of the Meta models in the pipeline; a glossary line for recall and precision on the Eval tab.
+  - "Rejected" means two things (the Verifier's rejected candidates in the header; a human's Reject on a card): rename one.
 
 ### Task 25: P5 close
 - **Pre-submission checklist (decided 31 Oct after the QA pass, docs/23 §5):**

@@ -166,7 +166,15 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
     for turn in range(1, max_turns + 1):
         state.turn = turn
         last = turn == max_turns
-        tools = tool_definitions(["finish"]) if (last and mode == "tools") else full_tools
+        if last and mode == "tools":
+            # Only finish is offered on the last turn when the pending output answers a function call (proven live). A request
+            # that answers a computer call must carry the same tool set as the turn that made it: without the computer tool the
+            # API answers 400 "computer_call_output input items are not supported", and with a reduced set 400 "invalid
+            # parameters" (both seen live, 1 Nov). The instructions still say to finish.
+            answers_computer = any(isinstance(i, dict) and i.get("type") == "computer_call_output" for i in input_items)
+            tools = full_tools if answers_computer else tool_definitions(["finish"])
+        else:
+            tools = full_tools
         if last and mode == "tools":
             # Only finish is offered now; its precondition must be satisfiable, so code audits the current screen.
             await _audit_if_new(ctx, state, page, "last turn: audited by code before finish")

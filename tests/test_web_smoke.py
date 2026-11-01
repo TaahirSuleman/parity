@@ -49,14 +49,15 @@ async def test_workbench_is_keyboard_reachable_with_visible_focus(page, server_u
                 if (!el || el === document.body) return null;
                 const s = getComputedStyle(el);
                 const visible = (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0) || s.boxShadow !== 'none';
-                return {tag: el.tagName, text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 40), visible};
+                const region = (el.tagName === 'SECTION' || el.getAttribute('role') === 'region') && !!(el.getAttribute('aria-label') || el.getAttribute('aria-labelledby'));
+                return {tag: el.tagName, text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 40), visible, region};
             }"""
         )
         if info is None:
             break  # wrapped past the last control
         ring.append(info)
     assert ring, "nothing on the workbench is focusable"
-    bad_tags = [r for r in ring if r["tag"] not in {"BUTTON", "SELECT", "A", "INPUT", "SUMMARY", "TEXTAREA"}]
+    bad_tags = [r for r in ring if r["tag"] not in {"BUTTON", "SELECT", "A", "INPUT", "SUMMARY", "TEXTAREA"} and not r.get("region")]  # a named scrollable region is a legitimate stop
     assert not bad_tags, bad_tags
     invisible = [r for r in ring if not r["visible"]]
     assert not invisible, f"focus is invisible on: {invisible}"
@@ -78,7 +79,7 @@ async def test_replay_approve_records_the_decision(page, server_url):
     await approve.wait_for()
     assert await page.get_by_label("Reason").input_value()
     await approve.click()
-    await page.get_by_text("Approved ·").wait_for(timeout=10000)
+    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=10000)
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('1 approved')", timeout=10000)
     assert "awaiting review" not in (await page.locator("header").inner_text()).lower()
 
@@ -144,16 +145,55 @@ async def test_columns_stack_below_1280(page, server_url):
     assert len(tops) == 3 and len(set(tops)) >= 2, tops  # not all three side by side
 
 
-async def test_run_link_reloads_the_run(page, server_url):
-    """A finished run has a URL: reloading it brings the findings and decisions back."""
+async def test_run_link_reloads_the_run_with_its_decisions(page, server_url):
+    """A finished run has a URL: reloading it brings the findings AND the decisions back (they are recorded after run.finished,
+    so a client that stops reading at the terminal event loses them), and the header names the run's own flow."""
+    await page.goto(server_url + "/")
+    await page.get_by_role("combobox", name="Flow").select_option("checkout")
+    await page.get_by_role("button", name="Replay").click()
+    await page.get_by_role("button", name="Run the audit").click()
+    card = page.get_by_role("button", name="Pay R1,249").first
+    await card.wait_for(timeout=30000)
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=60000)
+    await card.click()
+    await page.get_by_role("button", name="Approve fix").click()
+    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=10000)
+    assert "run=" in page.url
+    await page.reload()
+    await page.get_by_role("button", name="Pay R1,249").first.wait_for(timeout=30000)
+    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=30000)
+    await page.get_by_role("link", name=re.compile("fix.patch")).wait_for(timeout=10000)
+    assert await page.get_by_role("combobox", name="Flow").input_value() == "checkout"
+    assert "1 approved" in await page.locator("header").inner_text()
+
+
+async def test_finished_replay_is_axe_clean_at_768(page, server_url):
+    """The stacked layout after a run, with the trace open: scrollable panels must be reachable (axe scrollable-region-focusable)."""
+    from tests.test_store_pages import AXE
+
+    await page.set_viewport_size({"width": 768, "height": 900})
     await page.goto(server_url + "/")
     await page.get_by_role("button", name="Replay").click()
     await page.get_by_role("button", name="Run the audit").click()
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=60000)
-    assert "run=" in page.url
-    await page.reload()
-    await page.get_by_role("button", name="Pay R1,249").first.wait_for(timeout=30000)
-    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=30000)
+    await page.get_by_role("button", name="Pay R1,249").first.click()
+    await page.locator('button[aria-controls="trace-table"]').click()
+    await page.wait_for_timeout(400)
+    await page.add_script_tag(path=str(AXE))
+    result = await page.evaluate("axe.run(document, {resultTypes: ['violations']})")
+    assert [(v["id"], [n["target"] for n in v["nodes"]]) for v in result["violations"]] == []
+
+
+async def test_screenshot_keeps_its_shape_with_the_trace_open(page, server_url):
+    """The screenshot is the evidence: it must not be squashed when the trace drawer takes the bottom of a 720 px window."""
+    await page.set_viewport_size({"width": 1280, "height": 720})
+    await page.goto(server_url + "/?mock=hero")
+    await page.get_by_role("heading", name="Parity").wait_for()
+    await page.locator('button[aria-controls="trace-table"]').click()
+    await page.locator("#trace-table tbody tr").first.wait_for()
+    box = await page.get_by_role("img", name=re.compile("audited page")).bounding_box()
+    assert box and box["height"] >= 200, box
+    assert abs(box["width"] / box["height"] - 16 / 9) < 0.08, box
 
 
 async def test_eval_tab_shows_the_results_table(page, server_url):
@@ -161,3 +201,16 @@ async def test_eval_tab_shows_the_results_table(page, server_url):
     await page.get_by_role("button", name=re.compile(r"^Eval")).click()
     await page.get_by_role("heading", name=re.compile(r"Parity vs axe-core")).wait_for(timeout=10000)
     assert "seeded faults" in await page.locator("main").inner_text()
+
+
+async def test_index_html_is_never_cached_but_hashed_assets_are(api):
+    """After a redeploy a browser that cached index.html would load an asset that no longer exists (a blank page for the
+    judge who visited yesterday). The page itself is revalidated every time; the hashed assets may be cached for a year."""
+    import re
+
+    client, _ = api
+    home = await client.get("/")
+    assert home.status_code == 200 and "no-cache" in home.headers.get("cache-control", "")
+    asset = re.search(r'(/assets/index-[^"]+\.js)', home.text).group(1)
+    js = await client.get(asset)
+    assert js.status_code == 200 and "max-age=31536000" in js.headers.get("cache-control", "") and "immutable" in js.headers.get("cache-control", "")

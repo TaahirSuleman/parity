@@ -1,7 +1,8 @@
-import { useState } from "react";
-import type { Finding, Rejected, RunState } from "../state/types";
+import { useEffect, useState } from "react";
+import type { Finding, Rejected, RunState, Step } from "../state/types";
 import { FindingCard } from "./FindingCard";
 import { RejectedRow } from "./RejectedRow";
+import { screenName } from "./SightedPanel";
 
 interface Props {
   findings: Finding[];
@@ -12,10 +13,24 @@ interface Props {
   error: string | null;
   onSelect: (id: string) => void;
   onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void;
+  notice?: string | null; // a transient message (a failed decision, an interrupted stream): shown at the top, never fatal
+  outcome?: string | null; // the walk's own stop reason when the site or the guard ended it
+  steps?: Step[]; // to name the screen a card belongs to when there are several
+  fixesExpected?: boolean; // false once the run is over, or for a read-only public sample: no fix will follow
+  comparatorModel?: string;
 }
 
-export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow" }: Props) {
+export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow", notice = null, outcome = null, steps = [], fixesExpected = true, comparatorModel }: Props) {
   const [verifierOff, setVerifierOff] = useState(false);
+  useEffect(() => {  // the selected card is where the eye should be, whatever selected it (a box, a key, the run finishing)
+    if (!selectedId) return;
+    document.getElementById(`card-${selectedId}`)?.scrollIntoView?.({ block: "nearest" });
+  }, [selectedId]);
+  const screenLabel = (f: Finding) => {
+    if (steps.length < 2) return undefined;
+    const step = steps.find((s) => s.index === f.step_index);
+    return `screen ${f.step_index + 1}${step ? ` · ${screenName(step.url)}` : ""}`;
+  };
   const items: ({ kind: "f"; v: Finding } | { kind: "r"; v: Rejected })[] = [
     ...findings.map((v) => ({ kind: "f" as const, v })),
     ...rejected.map((v) => ({ kind: "r" as const, v })),
@@ -43,6 +58,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
           Without the Verifier
         </button>
       </div>
+      {notice && <p role="alert" className="m-0 px-3 py-2 text-sm" style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--line)", color: "var(--bad)" }}>{notice}</p>}
       {verifierOff && (
         <p className="m-0 px-3 py-2 text-sm" style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--line)" }} role="status">
           With the gate off this run would report {reported} finding{reported === 1 ? "" : "s"}: {falseCount} false report{falseCount === 1 ? "" : "s"} (the evidence did not hold), {dupCount} duplicate{dupCount === 1 ? "" : "s"}{axeCount ? `, ${axeCount} already reported by axe-core` : ""}.
@@ -52,7 +68,9 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
         <p className="muted m-0 p-5" role="status">
           {phase === "idle" && `Parity walks the ${flowName} as a sighted shopper and as a screen-reader user, then shows where the two differ. Run the audit to start.`}
           {phase === "running" && "Capturing the page and comparing what is seen with what is announced…"}
-          {phase === "finished" && "No divergences passed the verifier on this run."}
+          {phase === "finished" && (outcome
+            ? (steps.length === 0 ? `The site stopped the walk before any screen was audited: ${outcome}.` : `The walk ended early (${outcome}); no divergences passed the verifier on the screens it audited.`)
+            : "No divergences passed the verifier on this run.")}
           {phase === "failed" && (error ?? "The run failed.")}
         </p>
       )}
@@ -60,7 +78,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
         {items.map((it) =>
           it.kind === "f" ? (
             <div key={it.v.id} role="listitem">
-              <FindingCard finding={it.v} selected={it.v.id === selectedId} onSelect={onSelect} onDecision={onDecision} />
+              <FindingCard finding={it.v} selected={it.v.id === selectedId} onSelect={onSelect} onDecision={onDecision} screenLabel={screenLabel(it.v)} fixesExpected={fixesExpected} comparatorModel={comparatorModel} />
             </div>
           ) : (
             <RejectedRow key={it.v.id} rejected={it.v} asReported={verifierOff} kind={kindOf(it.v)} />

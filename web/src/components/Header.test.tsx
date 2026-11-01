@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { Header } from "./Header";
+import { act } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Header, fmtDuration } from "./Header";
 
 const flows = [
   { id: "checkout", name: "Checkout page", start_url: "/store/checkout.html", goal: "Pay", pages: ["checkout.html"], single_page: true },
@@ -55,5 +56,71 @@ describe("Header durations", () => {
       axe_violations: 0, findings_verified: 12, findings_rejected: 5, tokens: 0, cost_usd: 0.14, duration_ms: 574713 };
     render(<Header flows={[{ id: "purchase", name: "Purchase", single_page: false }]} flowId="purchase" onFlowChange={() => {}} run={run} mode="replay" canLive={false} running={false} onModeChange={() => {}} onRun={() => {}} />);
     expect(screen.getByText(/recorded 9 m 35 s/)).toBeInTheDocument();
+  });
+});
+
+describe("Header time readout", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("counts elapsed time while the run is in progress instead of showing 0 ms", () => {
+    vi.setSystemTime(new Date("2026-11-01T12:00:30Z"));
+    const run = { id: "r1", mode: "live" as const, flow_id: "checkout", goal: "", target_url: "", status: "running" as const, started_at: "2026-11-01T12:00:00Z",
+      axe_violations: 0, findings_verified: 0, findings_rejected: 0, tokens: 0, cost_usd: 0, duration_ms: 0 };
+    render(<Header flows={[{ id: "checkout", name: "Checkout", single_page: true }]} flowId="checkout" onFlowChange={() => {}} run={run} mode="live" canLive={true} running={true} onModeChange={() => {}} onRun={() => {}} />);
+    expect(screen.getByTitle(/model cost and wall time/i)).toHaveTextContent("30 s");
+    act(() => { vi.advanceTimersByTime(5000); });
+    expect(screen.getByTitle(/model cost and wall time/i)).toHaveTextContent("35 s");
+  });
+
+  it("does not count the recorded run's age while a Replay plays (its events carry the recorded timestamps)", () => {
+    vi.setSystemTime(new Date("2026-11-01T12:00:30Z"));
+    const run = { id: "r1", mode: "replay" as const, flow_id: "checkout", goal: "", target_url: "", status: "running" as const, started_at: "2026-10-31T09:00:00Z",
+      axe_violations: 0, findings_verified: 0, findings_rejected: 0, tokens: 0, cost_usd: 0, duration_ms: 0, replay_of: "hero-checkout" };
+    render(<Header flows={[{ id: "checkout", name: "Checkout", single_page: true }]} flowId="checkout" onFlowChange={() => {}} run={run} mode="replay" canLive={false} running={true} onModeChange={() => {}} onRun={() => {}} />);
+    const readout = screen.getByTitle(/model cost and wall time/i);
+    expect(readout).toHaveTextContent(/replaying/i);
+    expect(readout).not.toHaveTextContent(/\d+ m \d+ s/);
+  });
+
+  it("shows the recorded duration once the run has finished", () => {
+    const run = { id: "r1", mode: "live" as const, flow_id: "checkout", goal: "", target_url: "", status: "done" as const, started_at: "2026-11-01T12:00:00Z",
+      axe_violations: 0, findings_verified: 0, findings_rejected: 0, tokens: 0, cost_usd: 0, duration_ms: 153000 };
+    render(<Header flows={[{ id: "checkout", name: "Checkout", single_page: true }]} flowId="checkout" onFlowChange={() => {}} run={run} mode="live" canLive={true} running={false} onModeChange={() => {}} onRun={() => {}} />);
+    expect(screen.getByTitle(/model cost and wall time/i)).toHaveTextContent("2 m 33 s");
+  });
+});
+
+describe("QA pass 2: header honesty", () => {
+  const flowsMin = [{ id: "checkout", name: "Checkout", single_page: true }];
+  it("keeps focus on Run the audit while a run is going: the button is aria-disabled, not removed from the tab ring", () => {
+    const onRun = vi.fn();
+    const run = { id: "r1", mode: "live" as const, flow_id: "checkout", goal: "", target_url: "", status: "running" as const, started_at: "2026-11-01T12:00:00Z", axe_violations: 0, findings_verified: 0, findings_rejected: 0, tokens: 0, cost_usd: 0, duration_ms: 0 };
+    render(<Header flows={flowsMin} flowId="checkout" onFlowChange={() => {}} run={run} mode="live" canLive={true} running={true} onModeChange={() => {}} onRun={onRun} />);
+    const btn = screen.getByRole("button", { name: /auditing/i });
+    expect(btn).not.toBeDisabled();
+    expect(btn).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(btn);
+    expect(onRun).not.toHaveBeenCalled();
+  });
+
+  it("names a public sample by its site and hides the store's flow picker", () => {
+    const run = { id: "r1", mode: "replay" as const, flow_id: "public", goal: "Site A: Open the first book", target_url: "https://site-a.invalid/", status: "done" as const, started_at: "2026-11-01T12:00:00Z", axe_violations: 7, findings_verified: 6, findings_rejected: 0, tokens: 0, cost_usd: 0.11, duration_ms: 184000, replay_of: "public-a" };
+    render(<Header flows={flowsMin} flowId="checkout" onFlowChange={() => {}} run={run} mode="replay" canLive={false} running={false} onModeChange={() => {}} onRun={() => {}} />);
+    expect(screen.getByText(/Site A/)).toBeInTheDocument();
+    expect(screen.queryByText(/ShopRight/)).toBeNull();
+    expect(screen.queryByRole("combobox")).toBeNull();
+  });
+
+  it("shows dashes, not zeros, before anything has been measured", () => {
+    render(<Header flows={flowsMin} flowId="checkout" onFlowChange={() => {}} run={null} mode="replay" canLive={false} running={false} onModeChange={() => {}} onRun={() => {}} />);
+    expect(screen.getByTitle(/axe-core 4.14 violations/i)).toHaveTextContent("—");
+    expect(screen.getByTitle(/model cost and wall time/i)).toHaveTextContent("—");
+    expect(screen.queryByText("$0.0000")).toBeNull();
+  });
+
+  it("never prints 60 seconds", () => {
+    expect(fmtDuration(119600)).toBe("2 m 0 s");
+    expect(fmtDuration(153000)).toBe("2 m 33 s");
   });
 });

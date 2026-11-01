@@ -31,7 +31,7 @@ class Settings:
     eval_model: str = CONTRIBUTOR_SPARK
     voice_model: str = "muse-voice-transcribe-1.0"
     private: bool = False
-    run_timeout_s: int = 900  # a run that outlives this is failed; spec §15 says 10 min, a live purchase run takes ~9.5
+    run_timeout_s: int = 900  # a run that outlives this is failed; spec §15 caps a run at 15 min; a live purchase run takes ~9.5
     data_dir: Path = Path("./data")
     gcs_bucket: str = ""
     index_path: Path = Path("./data/index.db")

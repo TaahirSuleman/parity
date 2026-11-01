@@ -93,24 +93,31 @@ async def load_patched(page: Page, url: str, patched_html: str) -> AsyncIterator
         else:
             await route.abort("blockedbyclient")
 
-    await page.route("**/*", police)
+    # The app's pages bypass CSP so axe can be injected into any public page; the sandbox must not inherit that, or the
+    # Content-Security-Policy above is decoration. The patched page lives in a context of its own, closed afterwards.
+    browser = page.context.browser
+    context = await browser.new_context(viewport=page.viewport_size or {"width": 1280, "height": 720}) if browser is not None else None
+    sandbox = await context.new_page() if context is not None else page
+    await sandbox.route("**/*", police)
     try:
-        if _without_fragment(page.url) == document:
-            await page.goto("about:blank")  # a same-document (fragment) navigation makes no request, so nothing would be served
-        await page.goto(document, wait_until="load")
+        if _without_fragment(sandbox.url) == document:
+            await sandbox.goto("about:blank")  # a same-document (fragment) navigation makes no request, so nothing would be served
+        await sandbox.goto(document, wait_until="load")
         if served == 0:
             raise RuntimeError(f"the patched page was not served for {url}; the re-audit would have read the live page")
-        yield page
+        yield sandbox
     finally:
-        await page.unroute("**/*", police)
+        await sandbox.unroute("**/*", police)
+        if context is not None:
+            await context.close()
 
 
 async def reaudit(client, page_factory: PageFactory, page_html: str, url: str, fix: Fix, finding: Finding, run_id: str,
                   *, model: str, effort: str = "low") -> Reaudit:
     patched = apply_fix(page_html, finding.element, fix.after_html)
     page = await page_factory()
-    async with load_patched(page, url, patched):
-        cap = await capture(page, finding.step_index)
+    async with load_patched(page, url, patched) as sandbox:
+        cap = await capture(sandbox, finding.step_index)
         new_name = name_after(cap, finding)
         candidates = await compare(client, cap, [], run_id, model=model, effort=effort)
     still_flags = any(

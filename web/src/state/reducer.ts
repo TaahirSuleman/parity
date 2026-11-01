@@ -14,9 +14,15 @@ export function select(state: RunState, id: string | null): RunState {
 
 const SEVERITY_RANK: Record<string, number> = { critical: 4, serious: 3, moderate: 2, minor: 1, needs_review: 0 };
 
-/** The finding to open on: the strongest barrier whose fix the re-audit closed, else the strongest barrier. */
+const CONTROL_ROLES = new Set(["button", "link", "textbox", "searchbox", "checkbox", "radio", "combobox", "switch", "tab", "menuitem", "slider", "spinbutton"]);
+
+/** The finding to open on: the strongest barrier whose fix the re-audit closed; among equals, one on a control (an action a user
+ * takes) over an image or a bare text, one whose visible label and name disagree (Label in Name) over the rest, and the later
+ * screen (the flow's goal) over an earlier one. */
 export function pickHero(findings: Finding[]): Finding | undefined {
-  const score = (f: Finding) => (f.reaudit?.gap_closed ? 10 : 0) + (f.judgement?.is_barrier === false ? -5 : 0) + (SEVERITY_RANK[f.judgement?.severity ?? ""] ?? 0);
+  const score = (f: Finding) =>
+    (f.reaudit?.gap_closed ? 10 : 0) + (f.judgement?.is_barrier === false ? -5 : 0) + (SEVERITY_RANK[f.judgement?.severity ?? ""] ?? 0)
+    + (CONTROL_ROLES.has(f.sr_role ?? "") ? 3 : 0) + (f.judgement?.wcag?.some((w) => w.sc === "2.5.3") ? 1 : 0) + (f.step_index ?? 0) * 0.01;
   return [...findings].sort((a, b) => score(b) - score(a))[0];
 }
 
@@ -53,7 +59,7 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     case "nav.safety_check": {
       const codes = (ev.codes as string[] | undefined) ?? [];
       const reason = typeof ev.reason === "string" && ev.reason ? ev.reason : "on the store";  // the event says why it was acknowledged (store, or the public-site guard)
-      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged, ${reason}: ${codes.join(", ")}` };
+      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged (${reason}): ${codes.join(", ")}` };
       return { ...state, timeline: [...state.timeline, row] };
     }
     case "nav.blocked":
@@ -80,6 +86,8 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
       return { ...state, stage: "seer", percepts: (ev.percepts as RunState["percepts"] | undefined) ?? [] };
     case "comparator.candidates":
       return { ...state, stage: "comparator" };
+    case "comparator.unparseable":
+      return { ...state, timeline: [...state.timeline, { turn: 0, kind: "error", label: "comparator: the answer was not readable JSON; asked again", at: ev.at }] };
     case "verifier.result": {
       if (!run) return state;
       if (ev.passed === true && ev.finding) {

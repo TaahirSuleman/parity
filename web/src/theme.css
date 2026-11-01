@@ -31,7 +31,7 @@ button { font: inherit; color: inherit; }
 .badge {
   display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; background: var(--surface-2);
-  white-space: nowrap;
+  white-space: normal;  /* a badge wraps at its separators rather than being clipped by its container */
 }
 .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
 .badge.model::before { background: var(--focus); }
@@ -109,3 +109,5 @@ table.eval { border-collapse: collapse; font-size: 14px; width: 100%; }
 table.eval th, table.eval td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
 table.eval th[scope=col] { color: var(--muted); font-weight: 500; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
 table.eval tr[data-config=full] th, table.eval tr[data-config=full] td { font-weight: 700; }
+
+.btn-quiet[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }

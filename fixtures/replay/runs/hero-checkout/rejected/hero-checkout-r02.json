@@ -1,0 +1,56 @@
+{
+ "id": "hero-checkout-r02",
+ "run_id": "hero-checkout",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "Terms",
+  "sr_quote": "link, \"Click here\"",
+  "why_it_matters": "Blind user hears a generic link name that does not convey the link destination shown visually.",
+  "bbox": {
+   "x_min": 649,
+   "y_min": 491,
+   "x_max": 678,
+   "y_max": 510
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#f6"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 59,
+   "css_path": "button#f6",
+   "box_px": [
+    837,
+    360,
+    883,
+    408
+   ],
+   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "f6"
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+ }
+}

@@ -14,22 +14,24 @@ interface Props {
   stepIndex?: number | null; // the screen on show; boxes belong to it
   onStepChange?: (index: number) => void;
   onSelect: (id: string) => void;
+  finished?: boolean;
 }
 
-const screenName = (url: string) => (url.split("/").pop() || "page").replace(/\.html?$/, "").replace(/[-_]/g, " ");
+export const screenName = (url: string) => (url.split("/").pop() || "page").replace(/\.html?$/, "").replace(/[-_]/g, " ");
 
 function pct(b: BBox) {
   return { left: `${b.x_min / 10}%`, top: `${b.y_min / 10}%`, width: `${(b.x_max - b.x_min) / 10}%`, height: `${(b.y_max - b.y_min) / 10}%` };
 }
 
-export function stageBadge(stage: string | null, model: string) {
+export function stageBadge(stage: string | null, model: string, hasBoxes = false) {
   if (stage === "navigator") return <MetaBadge model={model} capability="computer use" />;
   if (stage === "seer") return <MetaBadge model={model} capability="grounding" />;
   if (stage === "comparator") return <MetaBadge model={model} capability="comparison" />;
+  if (hasBoxes) return <span className="inline-flex items-center gap-2"><CodeBadge what="Chromium · screenshot" /><MetaBadge model={model} capability="grounding" /></span>;  // the boxes are the model's
   return <CodeBadge what="Chromium · screenshot" />;
 }
 
-export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect }: Props) {
+export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect, finished = false }: Props) {
   const [withheld, setWithheld] = useState(false);  // the image did not load: an anonymised sample keeps screenshots only where a finding was verified
   useEffect(() => setWithheld(false), [screenshotUrl]);
   const shown = stepIndex === null ? findings : findings.filter((f) => f.step_index === stepIndex);
@@ -39,7 +41,7 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
     <section className="surface flex flex-col min-h-0 overflow-auto" aria-labelledby="sighted-h">
       <div className="flex items-center justify-between px-3 py-2 border-b hairline">
         <h2 id="sighted-h" className="text-xs uppercase tracking-wider muted font-medium m-0">Sighted</h2>
-        {stageBadge(stage, model)}
+        {stageBadge(stage, model, findings.length > 0)}
       </div>
       {steps.length > 1 && (
         <div className="flex items-center gap-1 px-3 pt-2 flex-wrap" role="group" aria-label="Screens of the flow">
@@ -51,13 +53,13 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
           ))}
         </div>
       )}
-      <div className="relative m-3" style={{ aspectRatio: "16 / 9", background: "var(--surface-2)", borderRadius: 4, overflow: "hidden" }}>
+      <div className="relative m-3" style={{ aspectRatio: "16 / 9", background: "var(--surface-2)", borderRadius: 4, overflow: "hidden", flexShrink: 0 }}>
         {screenshotUrl && withheld ? (
           <div className="absolute inset-0 grid place-items-center muted text-center px-6">Screenshot withheld for this screen: a third-party page's pixels are kept only where a finding was verified.</div>
         ) : screenshotUrl ? (
-          <img src={screenshotUrl} alt="The audited page as a sighted user sees it" className="block w-full h-full" onError={() => setWithheld(true)} />
+          <img src={screenshotUrl} alt="The audited page as a sighted user sees it" className="block w-full h-full" style={{ objectFit: "contain" }} onError={() => setWithheld(true)} />
         ) : (
-          <div className="absolute inset-0 grid place-items-center muted">Run the audit to see the page</div>
+          <div className="absolute inset-0 grid place-items-center muted text-center px-6">{finished ? "No screen was captured on this run." : "Run the audit to see the page"}</div>
         )}
         {shownPercepts.map((p, i) => <span key={`p${i}`} className="percept" style={pct(p.bbox)} aria-hidden="true" />)}
         {shown.map((f) => (

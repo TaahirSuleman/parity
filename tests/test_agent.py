@@ -542,3 +542,21 @@ async def test_last_turn_request_answers_the_pending_call_only(tmp_path, server_
     last = auditor_calls(client)[-1]
     assert [i.get("type") or i.get("role") for i in last["input"]] == ["function_call_output"]
     assert "last turn" in last["instructions"] and [t["name"] for t in last["tools"] if t.get("type") == "function"] == ["finish"]
+
+
+async def test_last_turn_keeps_the_computer_tool_when_it_answers_a_computer_call(tmp_path, server_url, page):
+    """Live HTTP 400s on a purchase run (1 Nov): "`computer_call_output` input items are not supported" without the computer
+    tool, then "invalid parameters" with a reduced tool set. A last turn that answers a computer call carries the same tools as
+    the turn that made it; the instructions carry the "finish now" notice."""
+    script = [turn(computer_call([{"type": "wait", "ms": 10}], "c1")), turn(function_call("finish", {"summary": "x"}, "c2"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory, max_turns=2)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    last = auditor_calls(client)[1]
+    assert last["input"][0]["type"] == "computer_call_output"
+    assert any(t.get("type") == "computer" for t in last["tools"]), [t.get("name", t.get("type")) for t in last["tools"]]
+    assert sorted(t.get("name") for t in last["tools"] if t.get("type") == "function") == ["audit_view", "finish"]  # the same set as the turn it answers

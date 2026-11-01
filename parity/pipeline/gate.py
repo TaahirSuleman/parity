@@ -11,6 +11,7 @@ finding with a proposed fix and no decision. The re-audit is evidence for the hu
 from __future__ import annotations
 
 import asyncio
+import time
 import logging
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
@@ -53,12 +54,19 @@ async def save_merged(ctx, finding: Finding) -> None:
         await ctx.save_finding(finding)
 
 
-async def fix_findings(ctx, page_factory: PageFactory) -> int:
+FIX_BUDGET_FRACTION = 0.8  # no fix or re-audit starts after this share of the run deadline: the run finishes with what it has
+BUDGET_REASON = "run time budget used up before this could start (the walk's evidence stands; approve or reject what was proposed)"
+
+
+async def fix_findings(ctx, page_factory: PageFactory, *, deadline: float | None = None, clock=time.perf_counter) -> int:
     """fixer (concurrently) then re-audit (one page, in order) for each barrier. Returns how many fixes
-    were proposed. Never fails the run: the walk's evidence stands even if this stage cannot run for one finding."""
+    were proposed. Never fails the run: the walk's evidence stands even if this stage cannot run for one finding,
+    and nothing new starts past ``deadline`` (a perf_counter time), so a long walk ends inside the run's budget
+    instead of being failed by it."""
     settings, run = ctx.settings, ctx.run
     barriers = [f for f in ctx.findings if f.judgement and f.judgement.is_barrier is True]
     gate = asyncio.Semaphore(FIXER_CONCURRENCY)
+    over_budget = (lambda: deadline is not None and clock() > deadline)
 
     async def propose(finding: Finding):
         cap = ctx.captures.get(finding.step_index)
@@ -67,6 +75,9 @@ async def fix_findings(ctx, page_factory: PageFactory) -> int:
             return finding, None
         try:
             async with gate:
+                if over_budget():
+                    await ctx.emit("fixer.rejected", {"finding_id": finding.id, "reason": BUDGET_REASON})
+                    return finding, None
                 return finding, await propose_fix(ctx.client, finding, cap, run.id, model=settings.model_for("fixer"))
         except (FixRejected, FixNotApplied) as exc:
             await ctx.emit("fixer.rejected", {"finding_id": finding.id, "reason": str(exc)})
@@ -88,6 +99,9 @@ async def fix_findings(ctx, page_factory: PageFactory) -> int:
         await ctx.emit("fixer.proposed", {"finding_id": finding.id, "diff": fix.diff, "fix": fix.model_dump(mode="json")})
         proposed += 1
         cap = ctx.captures[finding.step_index]
+        if over_budget():
+            await ctx.emit("reaudit.failed", {"finding_id": finding.id, "reason": BUDGET_REASON})
+            continue
         try:
             result = await reaudit(ctx.client, page_factory, cap.html, cap.url, fix, finding, run.id, model=settings.model_for("comparator"))
         except Exception as exc:  # a re-audit that cannot run leaves the fix unverified; the card says so

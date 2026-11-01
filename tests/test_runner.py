@@ -225,3 +225,25 @@ async def test_unparseable_comparator_answer_is_retried_once(tmp_path, server_ur
     assert "comparator.unparseable" in types and types.count("comparator.candidates") == 2
     prompts = [c["input"][0]["content"][0]["text"] for c in client.calls if "ACCESSIBILITY TREE:" in c["input"][0]["content"][0].get("text", "")]
     assert len(prompts) >= 2 and prompts[0] != prompts[1] and "not valid JSON" in prompts[1]  # a different request: not a cache replay of the bad answer
+
+
+async def test_cancelled_run_is_recorded_as_failed(tmp_path, server_url):
+    """A server shutdown (Cloud Run redeploy) cancels the task mid-run: the bundle must say failed with a terminal event, not done."""
+    import asyncio
+
+    started = asyncio.Event()
+
+    async def factory():
+        started.set()
+        await asyncio.sleep(3600)  # a model call or page load that never returns before the shutdown
+
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        task = asyncio.create_task(run_single_page(settings, client, bundle=bundle, bus=bus, index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory))
+        await started.wait()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        runs = await bundle.list_run_ids()
+        loaded = await bundle.load(runs[0])
+    assert loaded.run.status == RunStatus.failed and "cancel" in (loaded.run.error or "").lower()
+    assert loaded.events[-1].type == "run.failed"

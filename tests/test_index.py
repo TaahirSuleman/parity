@@ -79,3 +79,21 @@ async def test_recovery_skips_an_unreadable_bundle(tmp_path):
         assert await index.rebuild(bundle) >= 1
     finally:
         await index.close()
+
+
+async def test_recovery_leaves_a_terminal_event(store):
+    """A run cut off by a restart must end its event log with run.failed, or a browser opening its link streams the history
+    and then reconnects forever waiting for an end that never comes."""
+    from parity.store.models import Event
+
+    bundle, index = store
+    await bundle.create(sample_run("stuck", RunStatus.running))
+    bundle.add_event("stuck", Event(type="run.started", run_id="stuck", data={"flow_id": "checkout"}))
+    await bundle.flush("stuck")
+    await index.recover_interrupted(bundle)
+    events = (await bundle.load("stuck")).events
+    assert events[-1].type == "run.failed" and "interrupted by restart" in str(events[-1].data.get("error"))
+    # a bundle with no event log at all gets the same terminal line
+    await bundle.create(sample_run("silent", RunStatus.running))
+    await index.recover_interrupted(bundle)
+    assert [e.type for e in (await bundle.load("silent")).events] == ["run.failed"]

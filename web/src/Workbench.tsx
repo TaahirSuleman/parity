@@ -34,6 +34,10 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
   const pending = state.findings.filter((f) => f.fix && !f.decision).length;
   const [traceOpen, setTraceOpen] = useState(false);
   const selected = state.findings.find((f) => f.id === state.selectedFindingId) ?? null;
+  const isPublic = state.run?.flow_id === "public";
+  const outcome = state.agent && !state.agent.finished ? state.agent.summary : null;  // a walk the site or the guard stopped
+  const live = state.phase === "running" ? "Audit started: capturing the page and comparing what is seen with what is announced."
+    : state.phase === "finished" ? `Audit finished: ${state.run?.findings_verified ?? 0} verified findings.` : "";
   return (
     <div className="flex flex-col" style={{ height: "100vh" }}>
       <Header view={view} onViewChange={onViewChange} approved={approved} pending={pending} flows={flows} flowId={flowId} onFlowChange={onFlowChange} run={state.run} mode={state.mode} canLive={canLive} running={state.phase === "running"} onModeChange={onModeChange} onRun={onRun} />
@@ -42,11 +46,12 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
       ) : (
       <main className="flex-1 workbench-grid">
         <SightedPanel screenshotUrl={screenshotUrl} findings={state.findings} percepts={state.percepts} selectedId={state.selectedFindingId} stage={state.stage} model={state.models.navigator ?? model} timeline={state.timeline}
-          steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} />
+          steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} finished={state.phase === "finished"} />
         <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
-          flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} />
+          flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} notice={state.notice ?? null} outcome={outcome} steps={state.steps}
+          fixesExpected={state.phase === "running" && !isPublic} comparatorModel={state.models.comparator} />
         <ScreenReaderPanel finding={selected} />
-        <p className="sr-only" aria-live="polite">{state.phase === "finished" ? `Audit finished: ${state.run?.findings_verified ?? 0} verified findings.` : ""}</p>
+        <p className="sr-only" aria-live="polite">{live}</p>
       </main>
       )}
       <TraceDrawer calls={state.calls} open={traceOpen} onToggle={() => setTraceOpen((o) => !o)} />

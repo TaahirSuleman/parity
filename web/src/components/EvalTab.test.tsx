@@ -26,6 +26,9 @@ describe("EvalTab", () => {
     expect(full).toHaveTextContent("93%");
     expect(screen.getByRole("row", { name: /axe-core/i })).toHaveTextContent("0%");
     expect(screen.getByText(/37 seeded faults/)).toBeInTheDocument();
+    expect(screen.getByText(/1 Nov 2026/)).toBeInTheDocument(); // a date a judge can read, not an ISO timestamp
+    expect(screen.queryByText(/2026-11-01T10:00:00Z/)).toBeNull();
+    expect(full).toHaveTextContent("31 per run · 37 labels"); // n is verified findings per run, not labels found
     for (const label of ["screenshot only", "tree only", "no grounding"]) expect(screen.getByText(label)).toBeInTheDocument();
     const strip = screen.getByLabelText("Ablation strip");
     expect(strip).toHaveTextContent("Lower recall than full Parity: screenshot only, tree only, no grounding.");

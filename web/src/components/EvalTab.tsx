@@ -17,6 +17,11 @@ export interface EvalResults {
 
 const CONFIG_LABELS: Record<string, string> = { full: "Parity (full)", screenshot_only: "screenshot only", tree_only: "tree only", no_grounding: "no grounding" };
 const pct = (x: number | undefined) => (x === undefined || x === null ? "—" : `${Math.round(100 * x)}%`);
+const fmtWhen = (iso: string | undefined) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : `${d.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" })} UTC`;
+};
 
 /** What the ablation numbers say, and nothing more: which configurations recall less than full Parity, and which do not. */
 export function ablationSentence(keys: string[], configs: Record<string, { total: Total }>, fullRecall: number): string {
@@ -48,17 +53,17 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
           <h2 id="eval-main-h" className="m-0" style={{ fontSize: 16 }}>Parity vs axe-core, same labels</h2>
           <MetaBadge model={model} capability="seer · comparator" />
           <CodeBadge what="code · verifier" />
-          <span className="muted text-xs ml-auto">{results.n_faults ?? "?"} seeded faults · {results.n_clean ?? "?"} clean controls · {results.runs ?? configs.full?.runs ?? 1} run(s) per page · {results.updated_at ?? ""}</span>
+          <span className="muted text-xs ml-auto">{results.n_faults ?? "?"} seeded faults · {results.n_clean ?? "?"} clean controls · {results.runs ?? configs.full?.runs ?? 1} run(s) per page · {fmtWhen(results.updated_at)}</span>
         </div>
         <table className="eval mt-3">
-          <thead><tr><th scope="col">System</th><th scope="col">Recall</th><th scope="col">Precision</th><th scope="col">Findings</th><th scope="col">FP on clean</th><th scope="col">Cost / page set</th><th scope="col">Time</th></tr></thead>
+          <thead><tr><th scope="col">System</th><th scope="col">Recall</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">FP on clean</th><th scope="col">Cost / page set</th><th scope="col">Time</th></tr></thead>
           <tbody>
             {order.map((k) => {
               const t = configs[k].total;
               return (
                 <tr key={k} data-config={k}>
                   <th scope="row">{CONFIG_LABELS[k] ?? k}</th>
-                  <td>{pct(t.recall)}</td><td>{pct(t.precision)}</td><td>{Math.round(t.n)} / {t.n_labels}</td><td>{t.fp_on_clean.toFixed(1)}</td><td>{fmtCost(t.cost_usd)}</td><td>{fmtDuration(Math.round(t.seconds * 1000))}</td>
+                  <td>{pct(t.recall)}</td><td>{pct(t.precision)}</td><td>{Math.round(t.n)} per run · {t.n_labels} labels</td><td>{t.fp_on_clean.toFixed(1)}</td><td>{fmtCost(t.cost_usd)}</td><td>{fmtDuration(Math.round(t.seconds * 1000))}</td>
                 </tr>
               );
             })}
@@ -69,7 +74,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
           </tbody>
         </table>
         {full && order.length > 1 && (
-          <p className="text-sm mt-2 mb-0" aria-label="Ablation strip">
+          <p className="text-sm mt-2 mb-0" role="note" aria-label="Ablation strip">
             Ablations: {order.filter((k) => k !== "full").map((k) => `${CONFIG_LABELS[k]} recall ${pct(configs[k].total.recall)}`).join(" · ")} — full Parity {pct(full.recall)}.{" "}
             {ablationSentence(order.filter((k) => k !== "full"), configs, full.recall)}
           </p>

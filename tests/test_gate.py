@@ -284,3 +284,24 @@ async def test_run_deadline_fails_the_run_cleanly(tmp_path, server_url, page, mo
         await index.close()
     assert run.status == RunStatus.failed and "deadline" in (run.error or "").lower()
     assert loaded.events[-1].type == "run.failed"
+
+
+async def test_fix_stage_stops_starting_work_when_the_run_budget_is_nearly_used(tmp_path, server_url, page, monkeypatch):
+    """A live purchase walk on the full store verified 33 findings and the fix stage then ran the run into its 15-minute deadline,
+    which failed the run and lost everything. The fix stage must stop starting fixes and re-audits once the budget is nearly
+    used, so the run finishes with what it has."""
+    import parity.pipeline.gate as gate_mod
+
+    monkeypatch.setattr(gate_mod, "FIX_BUDGET_FRACTION", 0.0)  # the budget counts as spent the moment the fix stage starts
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["checkout"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and run.error is None and run.findings_verified >= 1
+    reasons = [e.data["reason"] for e in loaded.events if e.type == "fixer.rejected"]
+    assert reasons and all("time budget" in r for r in reasons), reasons
+    assert not [e for e in loaded.events if e.type == "fixer.proposed"]
+    assert loaded.events[-1].type == "run.finished"

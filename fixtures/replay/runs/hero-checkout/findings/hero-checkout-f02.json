@@ -3,43 +3,43 @@
  "run_id": "hero-checkout",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Total: R1,249.00",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "Blind user never hears the total amount due because it is rendered as pixels with no accessibility entry.",
+ "sighted_text": "red border indicating error on Card number field",
+ "sr_role": "textbox",
+ "sr_name": "Card number",
+ "why_it_matters": "Blind user receives no error or invalid announcement and does not know the card number is rejected.",
  "voice": null,
  "bbox": {
-  "x_min": 185,
-  "y_min": 419,
-  "x_max": 295,
-  "y_max": 461
+  "x_min": 524,
+  "y_min": 325,
+  "x_max": 855,
+  "y_max": 384
  },
  "element": {
-  "backend_id": 29,
-  "css_path": "canvas#f2",
+  "backend_id": 48,
+  "css_path": "input#card",
   "box_px": [
-   237,
-   302,
-   377,
-   332
+   673,
+   207,
+   1093,
+   248
   ],
-  "outer_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
-  "dom_id": "f2"
+  "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+  "dom_id": "card"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:canvas at canvas#f2"
+    "detail": "textbox at input#card"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -51,16 +51,16 @@
    }
   },
   "element": {
-   "backend_id": 29,
-   "css_path": "canvas#f2",
+   "backend_id": 48,
+   "css_path": "input#card",
    "box_px": [
-    237,
-    302,
-    377,
-    332
+    673,
+    207,
+    1093,
+    248
    ],
-   "outer_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
-   "dom_id": "f2"
+   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "card"
   },
   "feedback": null
  },
@@ -69,37 +69,41 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "3.3.1",
+    "name": "Error Identification"
+   },
+   {
+    "sc": "1.4.1",
+    "name": "Use of Color"
    }
   ],
-  "impact": "User hears 'Total:' with no amount and cannot confirm the total charge before paying.",
+  "impact": "The screen-reader user cannot know the card number field is flagged as invalid and will try to pay without correcting it.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "3677de11-d533-4a2e-b36f-413d54cd3852",
-   "response_id": "resp_6ae644c885167af5a38c4828",
+   "request_id": "7eec24f2-02e6-4632-8366-60fe6f86861b",
+   "response_id": "resp_6ae732d2bcaacbfc2f0f43f2",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas>",
-  "after_html": "<canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"Total: R1,249.00\">Total: R1,249.00</canvas>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -18,7 +18,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n-    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n+    <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"img\" aria-label=\"Total: R1,249.00\">Total: R1,249.00</canvas></p>\n     <p><a id=\"c1\" href=\"#returns\">Returns policy</a></p>\n   </section>\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n",
-  "explanation": "Changed role from presentation to img and added matching aria-label with fallback text so the canvas total is announced to screen readers.",
+  "before_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">",
+  "after_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\">",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -27,7 +27,7 @@\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n     <h2 id=\"pay-h\">Payment</h2>\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n-    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n+    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n",
+  "explanation": "Added aria-invalid=\"true\" so the red-border error visible to sighted users is announced as invalid to screen-reader users.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "9ff51e94-36a2-4070-b8e5-53d024b7d7bc",
-   "response_id": "resp_6ae644f4f0741401436341c8",
+   "request_id": "e366f4f6-4c74-40b4-831e-db4927758489",
+   "response_id": "resp_6ae732ea4960d39cff8b4435",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "Total: R1,249.00",
-  "comparator_still_flags": false
+  "gap_closed": false,
+  "sr_name_before": "Card number",
+  "sr_name_after": "Card number",
+  "comparator_still_flags": true
  },
  "decision": null
 }

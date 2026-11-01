@@ -18,6 +18,7 @@ from parity.flows import Flow
 from parity.meta.client import MetaError, TraceRouter
 from parity.pipeline import browser
 from parity.pipeline.audit import Ablation, RunContext, audit_view
+from parity.pipeline import gate as gate_stage
 from parity.pipeline.gate import fix_findings, is_pending, run_lock
 from parity.pipeline.guard import robots_allows
 from parity.store.bundle import RunBundle
@@ -75,7 +76,8 @@ async def run_flow(
           async def same_page() -> Page:
               return page
 
-          fixes = await fix_findings(ctx, same_page) if ctx.ablation.run_fixes and not public else 0  # a public site is never patched or re-fetched (§17)
+          # a public site is never patched or re-fetched (§17); nothing new starts past 80% of the deadline, so the run ends inside it
+          fixes = await fix_findings(ctx, same_page, deadline=t0 + settings.run_timeout_s * gate_stage.FIX_BUDGET_FRACTION) if ctx.ablation.run_fixes and not public else 0
           pending = await _settle(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
           await ctx.emit("run.finished", {
               "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
@@ -88,6 +90,13 @@ async def run_flow(
         log.error("run %s failed: %s", run.id, run.error)
         await _close(ctx, t0)
         await ctx.emit("run.failed", {"error": run.error})
+    except asyncio.CancelledError:  # a server shutdown mid-run (a redeploy): the bundle says so instead of settling as done
+        run.status = RunStatus.failed
+        run.error = "cancelled: the server shut down during the run"
+        log.error("run %s failed: %s", run.id, run.error)
+        await asyncio.shield(_close(ctx, t0))
+        await asyncio.shield(ctx.emit("run.failed", {"error": run.error}))
+        raise
     except MetaError as exc:
         run.status = RunStatus.failed
         run.error = f"Meta API error {exc.status}: {exc} (request_id {exc.request_id}, attempts {exc.attempts})"

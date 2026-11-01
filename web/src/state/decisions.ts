@@ -6,6 +6,16 @@ export interface DecisionApi {
   getRun: (runId: string) => Promise<RunDetail>;
 }
 
+/** Decisions the server holds for a run: made after its stream closed, or before a reload. Quiet on failure. */
+export async function reconcileDecisions(api: Pick<DecisionApi, "getRun">, runId: string, onEvent: (ev: ParityEvent) => void): Promise<void> {
+  try {
+    const detail = await api.getRun(runId);
+    for (const f of detail.findings) if (f.decision) onEvent(decisionEvent(runId, f, detail.run));
+  } catch {
+    /* the run itself is on screen; its decisions come back on the next reload */
+  }
+}
+
 export function decisionEvent(runId: string, finding: Finding, run: Run): ParityEvent {
   return { type: "decision.recorded", run_id: runId, at: new Date().toISOString(), finding_id: finding.id, decision: finding.decision, status: finding.status, run_status: run.status };
 }

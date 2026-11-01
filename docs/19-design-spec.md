@@ -31,7 +31,7 @@ parity/                 Python package (the agent + server)
   agent/loop.py tools.py  auditor agent loop and gated tool registry (§18.3)
   pipeline/audit.py     audit_view: capture → seer → comparator → verifier → judge for one screen
   pipeline/runner.py    orchestrates a run; emits events; writes the bundle
-  pipeline/navigator.py capture.py seer.py comparator.py verifier.py judge.py fixer.py reaudit.py
+  agent/loop.py (the navigator) · pipeline/capture.py seer.py comparator.py verifier.py judge.py fixer.py reaudit.py
   store/blob.py         BlobStore: LocalBlobStore | GcsBlobStore     store/bundle.py  run bundle over a BlobStore (truth)
   store/index.py        SQLite index (derived cache)                 store/models.py  pydantic types
   replay.py             replays a bundle as paced events
@@ -102,24 +102,24 @@ ModelCall  id, run_id, step_index?, stage, model, request_id, response_id, promp
 ### 5.1 Storage [D8]
 Two layers. Only the first holds data; the second can be deleted at any time.
 
-**Layer 1, run bundle (truth).** Keys: `runs/<run_id>/{run.json, steps/<n>/{step.json, screenshot.png, ax.json, axe.json}, findings/<id>.json, rejected/<id>.json, trace.jsonl, events.jsonl, fix.patch}`. Only `runner.py` and the decision route write it.
+**Layer 1, run bundle (truth).** Keys: `runs/<run_id>/{run.json, steps/<n>/{step.json, screenshot.png, ax.json, axe.json}, findings/<id>.json, rejected/<id>.json, trace.jsonl, events.jsonl, fix.patch}`. Written by the runner, the decision route, boot recovery (which appends a `run.failed` terminal event to an interrupted run) and the verifier-off report cache; Replay copies a bundle under a new id.
 - `BlobStore` interface: `put(key, data: bytes, content_type)`, `get(key) -> bytes`, `exists(key)`, `list(prefix) -> list[str]`. No append operation.
 - `LocalBlobStore(root)`: files under `PARITY_DATA_DIR` (default `./data`). Used by `make demo`, tests and the eval harness.
 - `GcsBlobStore(bucket, prefix)`: `google-cloud-storage` client, calls wrapped in `asyncio.to_thread`. Selected when `PARITY_GCS_BUCKET` is set.
 - Every object is written whole. `trace.jsonl` and `events.jsonl` are buffered in memory per run and rewritten as whole objects at the end of each stage, so a crash loses at most the current stage.
-- Write-once per key, and keys are per run, so two Cloud Run revisions overlapping during a deploy never write the same object.
+- One writer per run (`run.json` and the two logs are rewritten only by that writer), and keys are per run, so two Cloud Run revisions overlapping during a deploy never write the same object.
 - Committed Replay bundles live in the image under `PARITY_REPLAY_DIR` and are read through a `LocalBlobStore`; they never depend on the bucket.
 
 **Layer 2, SQLite index (derived cache).** File `PARITY_INDEX_PATH` (default `./data/index.db`; on Cloud Run `/tmp/index.db`), WAL, one process. Tables `runs`, `findings`, `model_calls` with the columns above (JSON blobs for nested parts). Used for listing runs, the trace drawer, the cost header and eval cost-per-page queries.
 - Every write goes to the bundle first, then the index. If the index write fails, the request still succeeds and a warning is logged.
-- At boot, `rebuild()` lists `runs/*/run.json`, loads each bundle and repopulates the index (≈1 s for a few hundred runs). `parity index rebuild` runs it by hand.
+- At boot, `rebuild()` lists `runs/*/run.json`, loads each bundle and repopulates the index (≈1 s for a few hundred runs on local disk; on a bucket each bundle costs several round trips and every Replay click adds a bundle, so Task 22 caps or evicts replay copies before the first deploy). `parity index rebuild` runs it by hand.
 - At boot, any run whose `run.json` says `running` or `queued` is marked `failed` with error `interrupted by restart`, in the bundle first.
 - Locally the index sits on real disk and survives restarts; on Cloud Run it sits on in-memory disk and is rebuilt on every start.
 
 ## 6. Meta client (`meta/client.py`)
 - httpx async, `Authorization: Bearer`, base from env. `POST /responses`; `GET /models` as the preflight.
 - **Cache:** key = sha256(model + canonical JSON body); `cache/<key>.json`. A hit costs $0 and is traced with `cache_hit=true`. Computer-use turns include `previous_response_id`, so they cache per turn.
-- **Retries:** 3 attempts with backoff 1 s, 3 s, 9 s on 5xx and network errors; the request ID (`x-request-id` header, else response `id`) and timestamp go into the trace and the log line for the dev.meta.ai/support report.
+- **Retries:** 5 attempts with backoff 1 s, 3 s, 9 s, 20 s on 429, 5xx and network errors; the request ID (`x-request-id` header, else response `id`) and timestamp go into the trace and the log line for the dev.meta.ai/support report.
 - **Trace:** one `ModelCall` per attempt, appended to `trace.jsonl` and the index, and emitted as a `model.call` event. Cost = tokens × `pricing.py`, per 1M tokens in / cached / out: Spark 1.3 $1.25 / $0.15 / $4.25; Spark 1.3 contributor $0.10 / $0.002 / $0.20; Wonder 1.0 $4.00 / $0.20 / $20.00. Voice Transcribe: $0.18 per audio hour.
 - `POST /asr/transcribe` (multipart, `audioEncoding: "WAV"`) is a second method, `transcribe(wav: bytes, keywords: list[str], stage, run_id) -> Transcript`, cached and traced the same way.
 
@@ -152,15 +152,15 @@ Expected cost per run with these roles: single page ≈ $0.01 (contributor) plus
 Static: `/store/*` demo store, `/` the SPA. Local one-command run: `make demo` (installs, builds, starts on :8080, opens the workbench).
 
 ## 8. SSE events (`{type, run_id, at, data}`)
-`run.started`, `nav.actions {turn, actions[]}`, `nav.blocked {turn, action, reason}`, `voice.transcribed {page, accuracy?}`, `step.captured {index, url, axe_violations, ax_nodes}`, `seer.done {index, percepts}`, `comparator.candidates {index, n, attempt}`, `verifier.result {candidate, passed, checks, finding_id?}`, `judge.result {finding_id, judgement}`, `fixer.proposed {finding_id, diff, fix}`, `fixer.rejected {finding_id, reason}` (snippet refused or fixer error; the finding keeps its evidence), `reaudit.result {finding_id, gap_closed, before, after, reaudit}`, `reaudit.failed {finding_id, reason}`, `model.call {stage, model, request_id, tokens, latency_ms, cost_usd, cache_hit}`, `decision.recorded {finding_id, decision, status, run_status, approved, pending}` (also appended to `events.jsonl` after the run, so a reload shows it), `run.finished {summary}`, `run.failed {error}`.
-Replay emits the same events from `events.jsonl` with 250 ms pacing (×1 or ×2 selectable); screenshots come from the bundle. Replay is labelled in the UI and in every event (`run.mode`).
+`run.started`, `nav.actions {turn, actions[]}`, `nav.blocked {turn, action, reason}`, `nav.safety_check {turn, codes, acknowledged, reason}`, `agent.tool_call {turn, tool, args, result}`, `agent.refused {turn, tool, feedback}`, `agent.tool_error {turn, tool, error}`, `voice.transcribed {page, accuracy?}`, `step.captured {index, url, axe_violations, ax_nodes}`, `seer.done {index, percepts}`, `comparator.candidates {index, n, attempt, parse_ok}`, `comparator.unparseable {index, attempt}`, `verifier.result {candidate, passed, checks, finding_id?}`, `judge.result {finding_id, judgement}`, `fixer.proposed {finding_id, diff, fix}`, `fixer.rejected {finding_id, reason}` (snippet refused or fixer error; the finding keeps its evidence), `reaudit.result {finding_id, gap_closed, before, after, reaudit}`, `reaudit.failed {finding_id, reason}`, `model.call {stage, model, request_id, tokens, latency_ms, cost_usd, cache_hit}`, `decision.recorded {finding_id, decision, status, run_status, approved, pending}` (also appended to `events.jsonl` after the run; the client applies the server's decisions from `GET /runs/{id}` when a run finishes or a run link opens, since the stream ends at the terminal event), `run.finished {summary}`, `run.failed {error}`.
+Replay emits the same events from `events.jsonl` with a fixed pacing (the ×1/×2 control was dropped); screenshots come from the bundle. Replay is labelled in the UI and in every event (`run.mode`).
 
 ## 9. Workbench (React SPA; designed around the hero)
 Layout at ≥1280 px: header, three columns, trace drawer.
 - **Header:** flow name and mode pill (**Live** / **Replay**), **Run the audit** button, axe-core badge (`axe-core · 0 violations`) beside the Parity counter (`Parity · 6 verified · 1 rejected`), cost and time for the run.
 - **Left, Sighted:** the latest screenshot with grounding boxes; the selected finding's box in green; percept boxes faint. Badge: *Muse Spark 1.3 · computer use* while navigating, *· grounding* when the Seer runs.
 - **Right, Screen reader:** large monospace line for the selected element: `button, "Submit"`; below it the price line `Price: not announced`. From P6: a **VoiceOver clip** player for the selected element's segment, with its Voice Transcribe transcript and a badge *Muse Voice Transcribe · real VoiceOver audio* (§16); hidden for pages without a recording. Badge: *Chrome accessibility tree (deterministic)*.
-- **Centre, Findings feed:** cards appear as `verifier.result` events arrive. A card shows the sighted crop, the screen-reader quote, the five verifier checks as green ticks, WCAG SC and severity (*Spark · judge*), the fix diff (*Spark · fixer*), the re-audit before/after (*code*), and **Approve** / **Reject** with a reason field. A rejected candidate renders as a red row with the failed check. Hero card: "Pay R1,249" vs `button, "Submit"`.
+- **Centre, Findings feed:** cards appear as `verifier.result` events arrive. A card shows the sighted crop, the screen-reader quote, the five verifier checks as green ticks, WCAG SC and severity (*Spark · judge*), the fix diff (*Spark · fixer*), the re-audit before/after (*code*), and **Approve** / **Reject** with a reason field. A rejected candidate renders as a red row with the failed check. On finish the feed opens on the strongest finding whose fix closed the gap, preferring a control over an image or a bare text and a Label-in-Name mismatch over the rest, and scrolls it into view: on the store that is "Pay R1,249" vs `button, "Submit"`.
 - **Trace drawer:** table of model calls (stage, model, request ID, tokens, latency, cost, cache hit). **Eval tab:** recall and precision table, axe baseline, ablation strip, cost and time per page.
 - Every model-backed element carries a badge naming the Meta model and the capability; deterministic steps say so.
 
@@ -169,7 +169,7 @@ No Figma. A written brief plus a static mock in the real stack, reviewed once by
 - **Brief** `docs/22-workbench-design.md`: visual direction, colour and type tokens, spacing scale, the three states (idle, running, hero selected), and what the UI must not do.
 - **Direction:** an instrument, not a dashboard. The page screenshot dominates; the screen-reader output is large monospace; colour carries meaning only (green verified, red rejected, amber needs review); neutral surfaces in light and dark; no gradients, glass, decorative cards, emoji or stock icons; badges read like instrument labels (`MUSE SPARK 1.3 · GROUNDING`).
 - **Mock:** `web/` components rendered from a hand-written hero fixture (`web/src/fixtures/hero.json`, shaped like spec §5 and §8), at 1280×720 and 1440×900. Screenshots go to the builder for one round of changes; Task 11 then wires the same components to SSE.
-- **The workbench is itself accessible:** landmarks, focus order, visible focus, contrast AA, findings announced via a polite live region; axe-clean (asserted in Task 24).
+- **The workbench is itself accessible:** landmarks, focus order, visible focus, contrast AA, run start, run end and each recorded decision announced via live regions; axe-clean (asserted in Task 24).
 
 ## 10. Demo store (`store/`)
 ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.html`. Checkout keeps the validated hero (`Pay R1,249` with `aria-label="Submit"`, canvas price, red-border error, "Click here" link, trash icon named "Close", alt="image" banner) and two clean controls. V2 adds faults to ~30 and clean controls to ~10, spread across pages, each with a stable `id`. Labels (`eval/labels.json`: page, element id, fault kind, description, clean=false|true) live outside `parity/`. The pages must stay at **0 axe-core violations**; a test asserts it.
@@ -192,19 +192,19 @@ ShopRight, 3 pages: `product.html`, `cart.html`, `checkout.html`, plus `confirm.
 - `harness.py --model muse-spark-1.3-contributor --pages product,cart,checkout [--no-screenshot|--no-tree|--no-grounding] --runs 3`: runs capture → seer → comparator → verifier per page, matches verified findings to labels by element id (a finding matches a label when its mapped node has the label's `id`), and writes `eval/results/<timestamp>.json`: per-page and total recall, precision, false positives on clean controls, axe-core recall on the same labels, tokens, cost and seconds per page.
 - Extra flags: `--effort low|medium|high` (effort sweep for seer and comparator), `--judge-model muse-spark-1.3|muse-wonder-1.0` (judge comparison: agreement of `is_barrier` with labels on verified findings, plus false positives on clean controls, cost per finding). The winners set the defaults in D6 and are recorded in the results file.
 - Contributor and standard Spark 1.3 are the same model, so a small check (one run per page on standard) confirms the contributor numbers transfer.
-- `ablations.py` runs the three ablations plus full Parity and writes one table. `--no-grounding` strips boxes before the Verifier, so `located` fails; precision drop is the measurement.
+- `ablations.py` runs the three ablations plus full Parity and writes one table. `--no-grounding` skips the Seer: the comparator boxes from the screenshot alone and the Verifier still gates every configuration; the change in recall and in false positives on clean controls is the measurement (measured 1 Nov: 82% / 95% vs full 84% / 97%).
 - Labels never enter prompts; a test asserts `eval` is not imported by `parity`.
 - Numbers in the README, video and form come from one results file (recipe rule L9).
 
 ## 14. Testing
 - **TDD (pytest):** verifier (table-driven on the hero capture), capture (against `store/checkout.html` served by Playwright; asserts 0 axe violations and the expected AX names), bundle and index round-trip, replay event order, rate limiter, eval matching, fixer diff application, re-audit `gap_closed` rule.
-- **Model-facing code:** `FakeMetaClient` returns fixtures from `tests/fixtures/meta/` keyed by prompt hash; the first live run records them. No live calls in tests.
+- **Model-facing code:** `FakeMetaClient` answers from `tests/fixtures/meta/`: an exact prompt-hash fixture when one exists, else the recorded answer for that stage (`stage_defaults`), else a scripted answer. The stage answers were recorded on the v1 checkout page; a prompt or request-shape regression is caught by the live smoke run and the eval, not by these tests (QA pass 2, 1 Nov). No live calls in tests.
 - **Frontend:** vitest for the event reducer (events → run state); a Playwright smoke test opens Replay and asserts the hero card text.
 - CI: GitHub Actions runs pytest and vitest on push.
 
 ## 15. Security and limits
 - The key is read from env only; logs redact `Authorization`. `.env` is git-ignored; the deny list in `.claude/settings.json` blocks reading it.
-- Live runs: allowed origins, 12 navigator turns, 60 s per model call, 10–15 min per run (`PARITY_RUN_TIMEOUT_S`, default 900 s; a live purchase run measures 8–9.5 min), one concurrent Live run per server (a queue of 1; others get 429).
+- Live runs: allowed origins, 12 navigator turns, 60 s per model call, 10–15 min per run (`PARITY_RUN_TIMEOUT_S`, default 900 s; a live purchase run measured 8–9.5 min on store v1 and verifies ~33 findings on store v2, whose fix stage alone outlasts the remainder), one concurrent Live run per server (a queue of 1; others get 429). **The fix stage starts nothing new past 80% of the deadline** (`gate.FIX_BUDGET_FRACTION`): fixes and re-audits that did not start are recorded per finding (`fixer.rejected` / `reaudit.failed` with the budget reason) and the run finishes inside its budget with what it has, instead of being failed by the deadline (1 Nov). Recorded replays may be made with a longer deadline (`record_replay.py --timeout-s`).
 - No "compliance" wording anywhere in the UI or docs; findings are evidence and every fix waits for a human.
 
 ## 18. Orchestration and the workshop comparison [D9, D10]

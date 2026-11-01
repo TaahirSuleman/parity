@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "Terms",
-  "sr_quote": "link, \"Click here\"",
-  "why_it_matters": "Blind user hears a generic link name that does not tell them the link goes to the Terms.",
+  "sighted_text": "Total: R1,249.00",
+  "sr_quote": "text, \"Total:\"",
+  "why_it_matters": "Blind user hears only Total without the amount and does not know what will be charged.",
   "bbox": {
-   "x_min": 648,
-   "y_min": 489,
-   "x_max": 680,
-   "y_max": 511
+   "x_min": 146,
+   "y_min": 462,
+   "x_max": 267,
+   "y_max": 491
   },
   "attempt": 1
  },
@@ -20,7 +20,7 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f6"
+    "detail": "link at a#returns-link"
    },
    "sr_quote_exact": {
     "passed": false,
@@ -40,16 +40,16 @@
    }
   },
   "element": {
-   "backend_id": 49,
-   "css_path": "button#f6",
+   "backend_id": 32,
+   "css_path": "a#returns-link",
    "box_px": [
-    837,
-    360,
-    883,
-    408
+    187,
+    340,
+    288,
+    357
    ],
-   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "f6"
+   "outer_html": "<a id=\"returns-link\" href=\"#returns\">Returns policy</a>",
+   "dom_id": "returns-link"
   },
   "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
  }

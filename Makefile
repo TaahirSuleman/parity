@@ -3,7 +3,7 @@ PORT ?= 8080
 
 .PHONY: setup venv web vendor-axe test test-web demo dev serve clean
 
-setup: venv web vendor-axe ## Install everything (brew toolchain, venv, Chromium, web deps)
+setup: venv web vendor-axe build-web ## Install everything (brew toolchain, venv, Chromium, web deps) and build the SPA
 	@echo "setup complete"
 
 venv:

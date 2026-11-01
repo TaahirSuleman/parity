@@ -67,7 +67,7 @@ Goal ("buy the headphones") ─► NAVIGATOR (Spark 1.3 computer use, truncation
   - screenshot only, without the AX tree;
   - AX tree only, without the screenshot;
   - with vs without grounding (precision drops when evidence can't be located);
-  - computer use vs a fixed script (it reaches flows the script can't).
+  - computer use vs a fixed script (it reaches flows the script can't) — not measured: the eval audits single pages; the agent walk is shown by the Purchase-flow replay instead (noted 1 Nov).
 
 ## 5. Workbench (designed first)
 - **Left:** a live screenshot stream from the Navigator, with grounding boxes.

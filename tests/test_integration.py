@@ -240,7 +240,14 @@ async def test_committed_replay_bundles_load_and_replay(tmp_path):
             health = (await client.get("/api/health")).json()
             assert health["replay_flows"]["checkout"] == "hero-checkout" and health["replay_flows"]["purchase"] == "hero-purchase"
             assert {"hero-checkout", "hero-purchase", "public-a", "public-b"} <= set(health["replay_runs"])  # public samples open by id
-            expected = {"checkout": (6, 1), "purchase": (11, 2)}  # verified, rejected (honest counts: repeats are no longer red rows)
+            import json as _json
+
+            replay_dir = Path(__file__).resolve().parents[1] / "fixtures" / "replay" / "runs"
+            expected = {}  # verified, rejected: the replay must reproduce the committed bundle's own counts (re-recorded 1 Nov on store v2)
+            for flow in ("checkout", "purchase"):
+                recorded = _json.loads((replay_dir / health["replay_flows"][flow] / "run.json").read_text())
+                expected[flow] = (recorded["findings_verified"], recorded["findings_rejected"])
+                assert expected[flow][0] >= 6 and expected[flow][1] >= 1, (flow, expected[flow])  # a rich demo: several findings and a red row
             for flow, (verified, rejected) in expected.items():
                 run_id = (await client.post("/api/runs", json={"flow_id": flow, "mode": "replay", "pace_ms": 0})).json()["run_id"]
                 events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)

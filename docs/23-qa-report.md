@@ -161,3 +161,106 @@ screenshot was served from the bucket. One Live run of the checkout page on the 
 pane (a fresh browser, no login) the hosted Replay opened on "Pay R1,249" vs `button, "Submit"`. Persistence across a redeploy is recorded in the ledger
 (the run, its decision and its screenshot re-read after the second deploy).
 
+
+## 7. Stress campaign — after Phase 5, before the recording (1 Nov 2026, evening)
+
+The whole app under load and under hostile input, before any further development: an adversarial backend tester (API fuzz, pipeline
+pieces, bundles, index, blob keys), a browser stress tester (viewports, dark mode, a keyboard-only journey, dropped streams, two tabs,
+rapid clicks, a server kill mid-replay, a long session), our own soak and concurrency script, and the same against the hosted instance.
+Every bug got a root cause, a failing test, a fix and a re-run of the repro.
+
+### 7.1 Load and concurrency (local, one process)
+
+- Soak: 60 sequential Replays; RSS 20 → 71 MB in the first twenty, then flat. Replay copies on disk capped at 20 as configured.
+- 20 Replays started at once: all 20 streams ended in `run.finished`, 0.4 s wall clock. 50 subscribers on one paced Replay: every stream
+  saw all 61 events and `run.finished`.
+- 10 racing decisions on one finding: exactly one 200 and nine 409; one decision persisted.
+- 150 half-open SSE connections held for 8 s: `/api/health` still answered in under 10 ms; RSS 81 MB; back to 80 MB after.
+- Boot with 20 kept copies and the model probe: under 2 s.
+- A failed Live run (the demo store unreachable) ends in `run.failed` within a second and frees the Live slot (the next POST is 202).
+
+### 7.2 Hosted (Cloud Run, the judges' URL)
+
+- 10 concurrent hosted Replays in 3.7 s, none bad; deep links and API 404s as designed; the fuzz list produced no 5xx.
+- A second Live POST while one runs: 429 with `retry_after_s: 60` and the Replay suggestion. The Live run itself finished: 7 verified,
+  $0.106, 164 s.
+
+### 7.3 Bugs found, root causes, fixes
+
+1. **Over-long or NUL-bearing run ids were a 500 that reset the connection.** `GET /api/runs/<2,000 characters>` went from the URL
+   straight into a filesystem path; `os.stat` raised `ENAMETOOLONG` (a NUL raised `ValueError`). Fix: run and finding ids are validated
+   at the API boundary (`^[A-Za-z0-9][A-Za-z0-9-]*$`, at most 80 characters, otherwise 404), a step index must be 0–999 (422), and the
+   local blob store treats a name the filesystem cannot hold as missing. Tests: ids are validated on every route that takes one; the
+   store answers "missing" for unstorable keys.
+2. **The SPA catch-all 500ed on `/%00`, `/eval/%00` and a 2,000-character path** (`Path.resolve` / `is_file` raised). Such a path is
+   neither a static file nor a run link: it is now a 404. This one was live on the hosted demo; the API-side one was masked there by the
+   bucket store. Test: the catch-all answers 404 for paths the filesystem cannot name, and a real-looking deep link still opens the workbench.
+3. **A Replay still playing could be evicted by a newer Replay start.** Eviction ranked copies by age only. With at least `PARITY_REPLAY_KEEP`
+   Replays in flight (twenty judges clicking at once), the oldest one's bundle was deleted mid-stream: its screenshots and detail route
+   went 404 and its publisher task died on a `KeyError`. Fix: eviction skips any run the event bus still has in flight; it becomes evictable
+   once its stream ends. Test: with the cap at 1, a second start leaves the first playing and serving screenshots; the third start, after
+   both finished, evicts them.
+4. **Request bodies had no size limit, and errors echoed the input.** A 60 MB body took the instance from 13 to 362 MB and came back
+   whole inside a 404; eight 30 MB bodies in flight peaked at 1 GB (Cloud Run allows 32 MB bodies and 20 concurrent requests on a 2 GiB
+   instance). Bodies are now refused over 64 KB (413, unread when declared, counted when not), and no error echoes a body.
+5. **FastAPI's own 422 became a 500 for `pace_ms: Infinity` or a lone surrogate in a reason**, because the default handler re-serialises
+   the offending input. A safe handler returns the error without the input; a reason that is not valid UTF-8 is refused.
+6. **A corrupt stored record was a 422 full of internals on the decision route and a traceback on the detail route.** Both are now one
+   JSON 500, "a stored record for this run is unreadable; see the server log".
+7. **`/api/eval` crashed on a truncated or list-shaped results file;** it is now a logged 404, which the Eval tab shows as "no results".
+8. **A global Live limit of 0 raised `IndexError`.** Setting `PARITY_LIVE_GLOBAL_PER_DAY=0` is how an operator turns Live off; it now answers 429.
+9. **Any visitor could list every run id and decide every other visitor's findings.** The public run list is gone (the count stays in
+   `/api/health`); a run id is the capability, and a shared link shares the decisions by design.
+10. **Run ids carried 16 random bits**: 0.55% of 30-id bursts collided, and a collision merged two bundles. Ids carry 32 bits, and a start
+    that lands on an existing id draws again.
+11. **Boot kept index rows for bundles that were gone** (runs whose detail was 404) **and ranked eviction by id**, which within one second is
+    random. The index is cleared and rebuilt, and eviction ranks by start time.
+12. **A finished Replay a judge was still reviewing could be evicted by twenty other judges' clicks** (Approve then returned 404 for ever).
+    Beyond the cap, only copies older than `PARITY_REPLAY_MIN_AGE_S` (two hours) are evicted; the message for a run that is gone says so.
+13. **A redeploy never finalised runs in flight.** uvicorn re-raises SIGTERM after its own graceful close, so background tasks never saw
+    `CancelledError`: a replay cut by a redeploy stayed `running` for ever with an event log that never ended, and a viewer reconnected
+    for ever. The app now tracks every run task, cancels and awaits them at shutdown (5 s), and the replay publisher records the
+    interruption and closes the log with `run.failed`.
+14. **The public-site guard let forms submit.** `"\n"`, `"\r"`, `"numpad enter"` and `"Shift+Enter"` are all Enter to the executor but were
+    not to the guard; a button labelled only by CSS `::before` (an empty accessible name) and labels such as "Complete purchase" or
+    "Place your order" passed. The guard now refuses every spelling of Enter and Space, unnamed buttons, and a wider list of
+    irreversible words after zero-width characters are stripped and the name is NFKC-normalised.
+15. **The fix validator accepted `formaction="https://evil.example"` and `<animate attributeName="href" values="javascript:…">`.** Form
+    destination attributes may not change from the original element, attributes may not repeat (browsers keep the first, the check
+    read the last), and SVG animation elements are refused.
+16. **A name ending in a quote mark (`Monitor 27"`) was rejected when quoted exactly**, because every quote character was stripped. One
+    wrapping pair is stripped; a quote mark inside the name stays.
+17. **Deeply nested brackets or a 5,000-digit number in a comparator answer failed the run** (only `JSONDecodeError` was caught). Any
+    unparseable answer is now treated alike.
+18. **The public-audit CLI stored `user:pw@` URL credentials in `run.json`** and printed the anonymise hint after a failed walk. Fixed.
+
+### 7.4 Workbench findings (browser stress) and what was done
+
+The browser pass held on axe-core (0 violations in every state, both themes, 1440/768/375), contrast, visible focus, no focus traps,
+the start and finish announcements, the run guard while a run is going, reloads at any moment, and a 30-replay session (DOM, listeners
+and heap flat). It found 21 issues; the four critical ones first:
+
+- **A double click on Run started two or three runs and mixed them into one feed** (14 verified in the feed, 7 in the header, boxes
+  drawn twice; approving a card from the other run returned 404). One start at a time: a start request in flight blocks a second click,
+  the Run button is taken while it is pending, and the reducer ignores events from another run and a second `run.started` over a running one.
+- **Site A and Site B played under "ShopRight · Checkout page".** The samples' `run.started` event still said `flow_id: public-<host>`
+  (run.json said `public`). The anonymiser now relabels the start event and the two committed samples were relabelled in place; the
+  workbench also tolerates the older spelling.
+- **A rejection in a second tab silently showed "Approved".** The 409 path still adopts the recorded decision, and now says that
+  another viewer decided first and that this rejection was not recorded.
+- **Eviction broke Approve and run links on a shared host** (see 7.3 item 12).
+
+Important: the layout collapsed at 200% zoom and on phones (`main` 85 px tall; the three panels 12 px slivers) — short or narrow
+viewports now scroll the page, with a 280 px floor per panel; after a server restart the "reconnecting" notice outlived `run.failed`
+and the failure was neither badged nor announced — notices clear on a terminal event, the header shows "failed", the live region says
+"Audit failed", and the failure line sits at the top of the feed; finishing a run stole a card the judge had picked (and the focus
+from its reason field) — a card the judge chose stays; "Replay Site A" and Run from the Eval tab left focus on `<body>` or stayed on
+Eval — a start switches to the workbench and focuses it; a bad or evicted `?run=` link and a failed flow list were silent — both
+produce a notice; a `reaudit.result` after an approval reset the status (the approved count and the patch link vanished mid-run) — a
+decided finding's status is never downgraded and approvals are counted by decision; `/runs/<id>` links opened an idle workbench — the
+SPA reads them now. Minor: the header row wraps at 320 px; the diff wraps and the reason field spans the card; a failed screenshot on
+our store no longer claims third-party pixels; no axe count before a screen is captured; no "blocked: blocked by site"; step tooltips
+show the path, not a local origin; "Diff" and "Check details" are named per finding; the boxes' tab order follows reading order
+(largest-lowest z-index keeps the hit test); the tab title follows the run's state; a favicon; no "0 ms"; "run"/"runs".
+Left for the user's VoiceOver pass: the length of the status read on load, two near-identical "capturing" announcements, "image, image"
+during the run, and whether a freshly inserted `role=status` is announced.

@@ -119,11 +119,9 @@ async def test_boot_recovery_fails_interrupted_runs(tmp_path):
     app = create_app(settings)
     async with app.router.lifespan_context(app):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-            listed = (await client.get("/api/runs")).json()
-            assert [r["id"] for r in listed] == ["crashed-run"]
-            assert listed[0]["status"] == "failed" and "interrupted" in listed[0]["error"]
+            assert (await client.get("/api/health")).json()["runs_indexed"] == 1
             detail = (await client.get("/api/runs/crashed-run")).json()
-            assert detail["run"]["status"] == "failed"
+            assert detail["run"]["status"] == "failed" and "interrupted" in detail["run"]["error"]
 
 
 async def test_sse_reconnect_mid_run_replays_full_history(api):

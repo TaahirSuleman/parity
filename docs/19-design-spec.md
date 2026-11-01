@@ -142,14 +142,17 @@ Expected cost per run with these roles: single page ≈ $0.01 (contributor) plus
 | GET | `/health` | `{ok, mode_default, live_enabled, models_ok, storage: "local"\|"gcs", runs_indexed}` |
 | GET | `/flows` | demo flows: `checkout` (single page), `purchase` (product → cart → checkout) |
 | POST | `/runs` | `{flow_id, mode}` → `{run_id}`. Live is rate-limited (429 with retry-after); Replay returns a new run id backed by the committed bundle. |
-| GET | `/runs` | list (index) |
-| GET | `/runs/{id}` | full run with findings and trace |
+| GET | `/runs/{id}` | full run with findings and trace. There is no public list of runs (1 Nov): a run id is the only capability a visitor holds over a run, so a shared link shares its decisions by design, and the count stays in `/health`. Ids are validated before storage (`^[A-Za-z0-9][A-Za-z0-9-]*$`, ≤ 80); anything else is 404. |
 | GET | `/runs/{id}/events` | SSE stream; replays `events.jsonl` first, then live events |
 | GET | `/runs/{id}/steps/{n}/screenshot.png` | PNG |
 | POST | `/runs/{id}/findings/{fid}/decision` | `{decision, reason}` |
 | GET | `/runs/{id}/patch` | `fix.patch` for approved fixes |
 | GET | `/eval` | latest `eval/results/*.json` summary and ablations |
-Static: `/store/*` demo store, `/` the SPA. Local one-command run: `make demo` (installs, builds, starts on :8080, opens the workbench).
+Static: `/store/*` demo store, `/` the SPA (`/runs/{id}` and `?run={id}` open a run). Local one-command run: `make demo` (installs, builds, starts on :8080, opens the workbench).
+Hardening from the stress pass (1 Nov, docs/23 §7): request bodies over 64 KB are refused (413) and no error echoes a body; validation errors never
+re-serialise the input; a stored record that no longer parses is one JSON 500. Replay copies: a copy that is still streaming, or younger than
+`PARITY_REPLAY_MIN_AGE_S` (2 h), is never evicted; beyond `PARITY_REPLAY_KEEP` (20) only older ones go, at a Replay start and at boot. Shutdown cancels and
+awaits every run task (5 s) so a redeploy leaves `run.failed` behind; uvicorn gets a 3 s graceful close.
 
 ## 8. SSE events (`{type, run_id, at, data}`)
 `run.started`, `nav.actions {turn, actions[]}`, `nav.blocked {turn, action, reason}`, `nav.safety_check {turn, codes, acknowledged, reason}`, `agent.tool_call {turn, tool, args, result}`, `agent.refused {turn, tool, feedback}`, `agent.tool_error {turn, tool, error}`, `voice.transcribed {page, accuracy?}`, `step.captured {index, url, axe_violations, ax_nodes}`, `seer.done {index, percepts}`, `comparator.candidates {index, n, attempt, parse_ok}`, `comparator.unparseable {index, attempt}`, `verifier.result {candidate, passed, checks, finding_id?}`, `judge.result {finding_id, judgement}`, `fixer.proposed {finding_id, diff, fix}`, `fixer.rejected {finding_id, reason}` (snippet refused or fixer error; the finding keeps its evidence), `reaudit.result {finding_id, gap_closed, before, after, reaudit}`, `reaudit.failed {finding_id, reason}`, `model.call {stage, model, request_id, tokens, latency_ms, cost_usd, cache_hit}`, `decision.recorded {finding_id, decision, status, run_status, approved, pending}` (also appended to `events.jsonl` after the run; the client applies the server's decisions from `GET /runs/{id}` when a run finishes or a run link opens, since the stream ends at the terminal event), `run.finished {summary}`, `run.failed {error}`.

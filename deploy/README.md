@@ -19,7 +19,9 @@ the model key in Secret Manager. Spec: docs/19 §12. Docker is not needed on you
 
 The service URL: `https://parity-u7lcbbxuia-uc.a.run.app` (project parity-hackathon-2026). Runs, decisions and screenshots live in the bucket, so they survive a
 redeploy; the SQLite index and the model-response cache are rebuilt in `/tmp`. Boot reads each bundle once and evicts the oldest
-Replay copies beyond `PARITY_REPLAY_KEEP` (default 50).
+Replay copies beyond `PARITY_REPLAY_KEEP` (default 20), except copies younger than `PARITY_REPLAY_MIN_AGE_S` (default two hours): a judge
+still reviewing a finished Replay never loses it to other judges' clicks. A redeploy sends SIGTERM; the app cancels runs in flight and
+records them as failed within Cloud Run's 10 s.
 
 ## Teardown
 `deploy/cloudrun.sh teardown` deletes the service, the image repo, the bucket (all runs), the secret and the service account.

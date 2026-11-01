@@ -58,8 +58,8 @@ export default function App() {
       setHealth(h);
       const fl = flOrNull ?? [];
       setFlows(fl);
-      if (flOrNull === null) dispatch({ kind: "notice", message: "The list of flows could not be loaded from the server; reload the page to try again." });
       if (h) dispatch({ kind: "reset", mode: h.has_key && h.live_enabled && h.mode_default === "live" ? "live" : "replay" });
+      if (flOrNull === null) dispatch({ kind: "notice", message: "The list of flows could not be loaded from the server; reload the page to try again." });  // after the reset, which clears notices
       // Default to the single-page checkout replay: it reaches the hero finding in seconds and always carries it; the
       // multi-page agent walk (longer, and its findings vary with where the agent scrolls) is one pick away.
       const replayable = fl.filter((f) => h?.replay_flows?.[f.id]);

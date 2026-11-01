@@ -175,10 +175,30 @@ def anonymise(src: Path, dest: Path, *, letter: str, host: str, names: list[str]
     run_path = dest / "run.json"
     if run_path.exists():
         run = json.loads(run_path.read_text())
-        run["goal"] = f"Site {letter.upper()}: {run.get('goal', '')}".strip()
+        run["goal"] = _site_goal(site, run.get("goal", ""))
         run["flow_id"] = "public"  # every public sample shares one flow id; the Eval tab opens them by run id
         run_path.write_text(json.dumps(run, indent=1) + "\n")
+    events_path = dest / "events.jsonl"
+    if events_path.exists():  # the workbench reads the start event, not run.json: it must say the same
+        lines = []
+        for line in events_path.read_text().splitlines():
+            try:
+                event = json.loads(line)
+            except ValueError:
+                lines.append(line)
+                continue
+            if event.get("type") == "run.started":
+                data = event.setdefault("data", {})
+                data["flow_id"], data["flow_name"], data["goal"] = "public", site, _site_goal(site, data.get("goal", ""))
+                line = json.dumps(event, separators=(",", ":"), ensure_ascii=False)
+            lines.append(line)
+        events_path.write_text("\n".join(lines) + "\n")
     return dest
+
+
+def _site_goal(site: str, goal: str) -> str:
+    goal = (goal or "").strip()
+    return goal if goal.startswith(f"{site}:") else f"{site}: {goal}".strip()
 
 
 def _boxes_px(src: Path, step: int, findings: list[dict]) -> list[tuple[int, int, int, int]]:

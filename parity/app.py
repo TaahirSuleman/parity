@@ -62,6 +62,7 @@ async def probe_models(client: MetaClient | None) -> bool:
         return False
 
 
+SHUTDOWN_BUDGET_S = 5  # Cloud Run allows 10 s after SIGTERM; uvicorn's own graceful close (Dockerfile) takes up to 3 of them
 MAX_BODY_BYTES = 64 * 1024  # the largest API body is a decision (a 2,000-character reason); a 60 MB body took the instance to 362 MB
 
 
@@ -108,6 +109,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             yield
         finally:
+            # uvicorn re-raises SIGTERM after its own graceful shutdown; background tasks never see CancelledError unless we send it.
+            # Each run task's cancel handler records `failed: the server shut down` and closes the event log with run.failed.
+            pending = [t for t in st.tasks if not t.done()]
+            for task in pending:
+                task.cancel()
+            if pending:
+                _, still = await asyncio.wait(pending, timeout=SHUTDOWN_BUDGET_S)
+                if still:
+                    log.warning("%d run task(s) did not finish within the %ss shutdown budget", len(still), SHUTDOWN_BUDGET_S)
             await st.index.close()
             if st.client is not None:
                 await st.client.aclose()
@@ -134,6 +144,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.trace = TraceRouter()
     st.client = MetaClient(settings, cache_dir=settings.cache_dir, trace=st.trace) if settings.has_key else None
     st.live_lock = asyncio.Lock()
+    st.tasks: set[asyncio.Task] = set()  # every Live and Replay task in flight
     st.limiter = RateLimiter(settings.live_per_ip_per_hour, settings.live_global_per_day)
     st.last_live_run = None  # the newest Live run id, for the finishing-run grace in POST /runs
     st.self_base_url = f"http://127.0.0.1:{settings.port}"

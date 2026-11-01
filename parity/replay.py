@@ -58,7 +58,7 @@ async def evict_replay_copies(bundle: RunBundle, index, keep: int, bus: EventBus
 
 async def start(
     source_id: str, source: RunBundle, bus: EventBus, bundle: RunBundle, index, *, pace_ms: int = DEFAULT_PACE_MS, run_id: str | None = None,
-    replay_keep: int | None = None, replay_min_age_s: int = 0,
+    replay_keep: int | None = None, replay_min_age_s: int = 0, tasks: set[asyncio.Task] | None = None,
 ) -> Run:
     """Copy the source bundle into ``bundle`` under a new id and schedule the paced event replay. With ``replay_keep`` the
     oldest copies beyond it are evicted first, so boot cost stays bounded however often judges click Replay."""
@@ -106,7 +106,10 @@ async def start(
 
     events = [Event.model_validate_json(_rewrite(e.model_dump_json(), source_id, new_id)) for e in loaded.events]
     bus.open(new_id)  # subscribers that connect before the first replayed event attach live
-    asyncio.create_task(_publish(run, final_status, events, bus, bundle, index, pace_ms), name=f"replay-{new_id}")
+    task = asyncio.create_task(_publish(run, final_status, events, bus, bundle, index, pace_ms), name=f"replay-{new_id}")
+    if tasks is not None:  # the app cancels and awaits these at shutdown; uvicorn alone would leave them to die mid-write
+        tasks.add(task)
+        task.add_done_callback(tasks.discard)
     return run
 
 
@@ -140,6 +143,19 @@ async def _publish(run: Run, final_status: RunStatus, events: list[Event], bus: 
             bus.publish(run.id, event)
             if pace_ms and i < len(events) - 1:
                 await asyncio.sleep(pace_ms / 1000)
+    except asyncio.CancelledError:  # a server shutdown (a redeploy) mid-replay: the record says so instead of staying `running` for ever
+        if not finalized:
+            run.status, run.error, run.finished_at = RunStatus.failed, "cancelled: the server shut down during the replay; start it again", now()
+            failed = Event(type="run.failed", run_id=run.id, data={"error": run.error, "run_id": run.id, "mode": "replay"})
+            bundle.add_event(run.id, failed)
+            await asyncio.shield(bundle.write_run(run))
+            try:
+                await asyncio.shield(index.upsert_run(run))
+            except Exception as exc:
+                log.warning("index upsert failed for replay %s: %s", run.id, exc)
+            bus.publish(run.id, failed)
+            finalized = True
+        raise
     finally:
         from parity.pipeline.gate import run_lock
 

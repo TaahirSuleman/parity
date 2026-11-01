@@ -234,3 +234,18 @@ def test_irreversible_labels_cover_the_common_checkout_words():
         assert isinstance(guard_action({"type": "click", "x": 1, "y": 1}, node("button", name), None), Blocked), name
     for name in ("Add to cart", "Continue shopping", "Apply filters", "Cancel", "Show more", "Search"):
         assert guard_action({"type": "click", "x": 1, "y": 1}, node("button", name), None).allowed, name
+
+
+async def test_anonymise_relabels_the_start_event_as_well_as_run_json(tmp_path):
+    """run.json said flow_id "public" but the run.started event still carried "public-<host>" and the bare goal: the workbench
+    reads the event, so Site A played under the store's own header ("ShopRight · Checkout page")."""
+    src = tmp_path / "20261031-225149-ab12"
+    src.mkdir()
+    (src / "run.json").write_text(json.dumps({"id": src.name, "flow_id": "public-shop.example", "goal": "Open the first book.", "status": "done"}))
+    (src / "events.jsonl").write_text(json.dumps({"type": "run.started", "run_id": src.name, "at": "t", "data": {"flow_id": "public-shop.example", "flow_name": "Public: shop.example", "goal": "Open the first book.", "mode": "live", "target_url": "https://shop.example/"}}) + "\n"
+                                      + json.dumps({"type": "run.finished", "run_id": src.name, "at": "t", "data": {}}) + "\n")
+    dest = anonymise(src, tmp_path / "public-a", letter="A", host="shop.example")
+    started = json.loads((dest / "events.jsonl").read_text().splitlines()[0])
+    assert started["data"]["flow_id"] == "public" and started["data"]["flow_name"] == "Site A" and started["data"]["goal"] == "Site A: Open the first book."
+    assert "shop.example" not in (dest / "events.jsonl").read_text()
+    assert json.loads((dest / "run.json").read_text())["goal"] == "Site A: Open the first book."

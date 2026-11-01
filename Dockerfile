@@ -23,4 +23,4 @@ COPY --from=web /src/web/node_modules/axe-core/axe.min.js parity/vendor/axe.min.
 # Editable install: the app resolves store/, fixtures/ and eval/ relative to its own source tree.
 RUN pip install -e . && python -c "import parity, playwright; print('parity', parity.__version__)"
 EXPOSE 8080
-CMD ["sh", "-c", "uvicorn parity.app:create_app --factory --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "uvicorn parity.app:create_app --factory --host 0.0.0.0 --port ${PORT:-8080} --timeout-graceful-shutdown 3"]

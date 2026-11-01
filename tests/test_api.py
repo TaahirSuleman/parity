@@ -1,3 +1,4 @@
+import asyncio
 import re
 import json
 
@@ -504,3 +505,23 @@ async def test_young_replay_copies_survive_the_cap_when_a_replay_starts(tmp_path
                 await _finish(client, ids[-1])
             kept = await app.state.bundle.list_run_ids()
     assert set(ids) <= set(kept), (ids, kept)
+
+
+async def test_shutdown_finalises_runs_still_in_flight(tmp_path):
+    """uvicorn re-raises SIGTERM after its graceful shutdown, so background tasks never see CancelledError on their own: a replay cut
+    by a redeploy stayed `running` for ever with an event log that never ends. The lifespan now cancels and awaits every run task,
+    which leaves run.json failed and the log closed with run.failed."""
+    import httpx
+
+    from parity.store.models import RunStatus
+
+    app = await _app_with(tmp_path)
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 2000})).json()["run_id"]
+            await asyncio.sleep(0.05)
+            assert app.state.tasks, "the replay task is tracked"
+    loaded = await app.state.bundle.load(run_id)
+    assert loaded.run.status == RunStatus.failed and "shut down" in (loaded.run.error or ""), (loaded.run.status, loaded.run.error)
+    assert loaded.events and loaded.events[-1].type == "run.failed", [e.type for e in loaded.events][-3:]
+    assert not app.state.tasks

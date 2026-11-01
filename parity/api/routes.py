@@ -98,7 +98,7 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         if req.replay_of not in st.replay_ids:
             raise HTTPException(404, f"no recorded run {req.replay_of!r}")
         run = await replay.start(req.replay_of, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms, replay_keep=st.settings.replay_keep,
-                                 replay_min_age_s=st.settings.replay_min_age_s)
+                                 replay_min_age_s=st.settings.replay_min_age_s, tasks=st.tasks)
         return {"run_id": run.id, "mode": run.mode, "replay_of": req.replay_of}
     flow = FLOWS.get(req.flow_id or "")
     if flow is None:
@@ -108,7 +108,7 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         if source_id is None:
             raise HTTPException(404, f"no replay bundle recorded for flow {flow.id!r}")
         run = await replay.start(source_id, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms, replay_keep=st.settings.replay_keep,
-                                 replay_min_age_s=st.settings.replay_min_age_s)
+                                 replay_min_age_s=st.settings.replay_min_age_s, tasks=st.tasks)
         return {"run_id": run.id, "mode": run.mode, "replay_of": source_id}
     if not st.settings.live_enabled:
         raise HTTPException(403, "Live mode is disabled on this server; use Replay")
@@ -138,7 +138,9 @@ async def start_run(req: RunRequest, request: Request) -> dict:
     run_id = await replay.fresh_run_id(st.bundle)
     st.last_live_run = run_id
     st.bus.open(run_id)  # subscribers that connect before run.started attach live instead of reading an empty log
-    asyncio.create_task(_live(st, flow, run_id, ip_hash), name=f"live-{run_id}")
+    task = asyncio.create_task(_live(st, flow, run_id, ip_hash), name=f"live-{run_id}")
+    st.tasks.add(task)  # cancelled and awaited at shutdown, so a redeploy leaves run.failed behind, not a run that is `running` for ever
+    task.add_done_callback(st.tasks.discard)
     return {"run_id": run_id, "mode": "live"}
 
 

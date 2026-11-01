@@ -5,7 +5,7 @@ async def main():
     log=[]; t0=time.time()
     async with async_playwright() as p:
         b=await p.chromium.launch(); pg=await b.new_page(viewport={"width":1280,"height":720})
-        await pg.goto("file:///home/claude/meta-validation/a11y/checkout.html")
+        await pg.goto("file:///path/to/parity/store/checkout.html")
         shot=lambda: pg.screenshot()
         img="data:image/png;base64,"+base64.b64encode(await shot()).decode()
         body={"model":"muse-spark-1.3","tools":[{"type":"computer"}],"reasoning":{"effort":"low"},"truncation":"auto",

@@ -3,7 +3,7 @@ from playwright.async_api import async_playwright
 async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch(); pg=await b.new_page(viewport={"width":1280,"height":720})
-        await pg.goto("file:///home/claude/meta-validation/a11y/checkout.html")
+        await pg.goto("file:///path/to/parity/store/checkout.html")
         await pg.add_script_tag(path="node_modules/axe-core/axe.min.js")
         r=await pg.evaluate("axe.run(document,{resultTypes:['violations']})")
         await pg.screenshot(path="checkout.png")

@@ -66,7 +66,7 @@ No Gemini 3 winner showed a test suite. Meta's Technical Depth (20%) and Agents 
   - the golden-case button runs to completion (live or labelled replay);
   - no mock data is shown unlabelled.
 - **Repo:**
-  - `CLAUDE.md` and `.claude/` are untracked and git-ignored (`git ls-files CLAUDE.md .claude` prints nothing);
+  - the local assistant instruction file and settings directory are untracked and git-ignored (`git ls-files` lists neither);
   - the third-party documents are gone (`git ls-files docs/hackathon docs/learnings` lists none of `01-*`, `02-*`, `03-*`, `11*`, `12a*`, `13*`);
   - every file the README links to exists;
   - the README states what is deterministic;

@@ -6,16 +6,14 @@
 3. `17-validation-results.md`: what is proven on the live Meta API.
 3a. `19-design-spec.md`: modules, interfaces, data model, API, SSE, modes, Cloud Run deploy, eval harness, plus the 30 Oct decisions (D1–D8).
 3b. `20-implementation-plan.md`: phases P1–P6 as TDD tasks (P6 = Voice); the build follows it.
-4. `hackathon/01-event-pages-rules-and-submission-form.md`: verbatim rules, the submission form and judging stages.
-5. `hackathon/03-meta-ai-tooling-reference.md`: the full Meta API, models, Muse Code and cookbook reference. For quick, verified API formats, use the `meta-model-api` skill.
+4. The organisers' own documents (rules and submission form, kickoff transcript, tooling reference, workshop transcripts) were working copies and are kept outside this repository; the constitution summarises what they require.
 6. `submission-checklist.md` + `learnings/04-winning-recipe.md` §4.4 and Part 7: video storyboard and cold-review checklist.
 7. `14-build-playbook-verifiable-agents.md` + `learnings/12-workshop-learnings.md`: Meta's verifiable-agent patterns. Learn from them; never copy workshop code.
 
 **Context (why decisions were made; consult, don't re-litigate):**
-- `hackathon/02-kickoff-stream-transcript.md`: organisers' guidance.
 - `learnings/06-artefact-standard.md`: honesty tags and quality bar.
 - `learnings/15-gemini3-postmortem-resilix-vs-winners.md`: why demo-first, perceptual, workbench UI.
-- `learnings/11`, `12a`, `13`: workshop transcripts and repo analysis.
+- `learnings/12-workshop-learnings.md`: what Meta's verifiable-agent workshop taught (the transcripts themselves are not in the repo).
 
 **Archive (superseded options and research; historical only):** `archive/`.
 - 05: problem research.

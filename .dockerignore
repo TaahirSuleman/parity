@@ -1,8 +1,5 @@
-.git
-.venv
-.superpowers
-.claude
-.pytest_cache
+.*
+!.dockerignore
 __pycache__
 *.pyc
 node_modules

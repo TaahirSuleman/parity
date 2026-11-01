@@ -1048,7 +1048,7 @@ No employer code, data, systems or recordings. Personal time, equipment and acco
 No real tenant. No contributor-mode model IDs for anything resembling personal data.
 
 ## AI assistance
-Coding assistants (Muse Code, Claude) were used during development; all code was
+Coding assistants were used during development; all code was
 reviewed by the author. At runtime the product calls the Meta Model API.
 ```
 

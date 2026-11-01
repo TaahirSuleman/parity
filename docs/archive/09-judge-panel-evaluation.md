@@ -42,7 +42,7 @@ With those three changes the panel's risk-adjusted Callback forecast rises from 
 - **core:** the main loop works, but one or two Meta capabilities are demoted or faked, and the eval is smaller;
 - **degraded:** fragments only, a mostly replayed demo and few numbers.
 
-The probabilities come from the component tables in §2–4. Scenario scores and arithmetic are reproducible: `/tmp/claude-0/-home-claude/82f7caf2-63a2-50cf-b3ad-c322e4e09092/scratchpad/scores.py`.
+The probabilities come from the component tables in §2–4. Scenario scores and arithmetic are reproducible: a local scratch script (`scores.py`, not committed).
 
 **Calibration.** In a field of thousands of Indie entries:
 - **7** means a competent, multimodal agent with numbers.

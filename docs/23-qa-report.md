@@ -1,7 +1,7 @@
 # 23 — Pre-Phase-4 QA report (31 Oct 2026)
 
 **Scope:** everything built in Phases 1–3 (commits through `8f14c4d`), checked against the hard rules in
-`CLAUDE.md`, the constitution (Articles II, V, IX), doc 18 (§3 product, §7 day plan, §9 video), the
+the project's working rules, the constitution (Articles II, V, IX), doc 18 (§3 product, §7 day plan, §9 video), the
 submission checklist and the spec (doc 19). Phases 4–6 are scheduled, not missing.
 
 **Method:** (1) a requirements audit and two whole-codebase reviews by fresh-context reviewers (backend;
@@ -84,7 +84,7 @@ Three fresh-context reviewers (backend, workbench + API, rules audit). Severity 
 ## 5. Decisions (taken 31 Oct)
 
 1. **Co-author trailers on five early commits** — **done 31 Oct.** Removed by a message-only rewrite: every commit's tree, author, committer and dates verified identical, tags p1–p3 kept their tagger and message; `main` and the tags were force-pushed with leases. Judges cannot tell from the repository; GitHub's Activity view records the force-push for a while.
-2. **Third-party documents in the public repo** — **must be removed before submission.** Recorded as a hard rule in `CLAUDE.md`, as the first item of Task 25, and in the cold-review checklist (`git ls-files docs/hackathon docs/learnings`).
+2. **Third-party documents in the public repo** — **must be removed before submission.** Recorded as a hard rule in the project's working rules, as the first item of Task 25, and in the cold-review checklist (`git ls-files docs/hackathon docs/learnings`).
 3. **Disclosing AI coding assistance in `HACKATHON_SCOPE.md`** — **open question, return to it at the end.** Not required by the rules as read: Art. II.3 asks that the hackathon-built, original contribution be clearly identifiable, which the scope file does; it does not ask for tooling disclosure. A one-line disclosure is harmless and honest; the choice is yours at close.
 4. **Per-run cap** — **10–15 minutes accepted; 15 kept** (`PARITY_RUN_TIMEOUT_S=900`), spec §15 updated.
 

@@ -34,3 +34,17 @@ def test_no_compliance_claims_where_a_judge_reads():
             if re.search(r"complian|conformant|certif", line, re.I) and not re.search(r"\b(not|no|never|nothing|neither)\b[^.]{0,60}(complian|conformant|certif)", line, re.I):
                 offenders.append(f"{path.relative_to(ROOT)}: {line.strip()[:100]}")
     assert offenders == [], offenders
+
+
+def test_readme_and_docs_map_links_resolve():
+    """The cold review's rule: every file the README (and the docs map) links to exists."""
+    missing = []
+    for doc in (ROOT / "README.md", ROOT / "docs" / "README.md"):
+        text = doc.read_text()
+        for target in re.findall(r"\]\(([^)#\s]+)", text) + re.findall(r"`((?:docs|eval|deploy|store|parity|web|fixtures)/[^`\s]+\.[a-z]+)`", text):
+            if target.startswith(("http://", "https://")):
+                continue
+            path = (doc.parent / target) if not target.startswith(("docs/", "eval/", "deploy/", "store/", "parity/", "web/", "fixtures/")) else ROOT / target
+            if not path.exists():
+                missing.append(f"{doc.relative_to(ROOT)} -> {target}")
+    assert missing == [], missing

@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from parity.meta.client import ListTraceSink, MetaResponse, TraceSink, Usage, cache_key, text_of
+from parity.meta.client import ListTraceSink, MetaResponse, TraceSink, Usage, cache_key, text_of, MetaTranscript, transcribe_key
 from parity.store.models import ModelCall
 
 
@@ -55,6 +55,27 @@ class FakeMetaClient:
             )
         )
         return MetaResponse(raw, text_of(raw), str(raw.get("id", "")), raw.get("_request_id", ""), usage, True, 0)
+
+    async def transcribe(self, audio: bytes, *, keywords: list[str] | tuple[str, ...] = (), mode: str = "PUSH_TO_TALK", run_id: str,
+                         step_index: int | None = None, stage: str = "voice") -> MetaTranscript:
+        """A transcription served from a fixture named by transcribe_key, exactly as the real client caches it."""
+        request = {"model": "muse-voice-transcribe-1.0", "audioEncoding": "WAV", "mode": mode, "keywords": list(keywords)}
+        self.calls.append(request)
+        for probe in (request["model"], stage):
+            if probe in self.errors:
+                raise self.errors[probe]
+        key = transcribe_key(request, audio)
+        path = self.fixture_dir / f"{key}.json"
+        if stage in self.script and self.script[stage]:
+            raw = dict(self.script[stage].pop(0))
+        elif not path.exists():
+            raise KeyError(f"no transcribe fixture: expected {path.name} in {self.fixture_dir}")
+        else:
+            raw = json.loads(path.read_text())
+        await self.trace.record(ModelCall(id=f"fake-{len(self.calls)}", run_id=run_id, step_index=step_index, stage=stage, model=request["model"],
+                                          request_id=raw.get("_request_id", ""), prompt_sha256=key, cache_hit=True, http_status=200))
+        return MetaTranscript(raw, str(raw.get("transcript") or ""), list(raw.get("turns") or []), int(raw.get("audioDurationMs") or 0),
+                              raw.get("_request_id", ""), True, 0, request["model"])
 
     async def aclose(self) -> None:
         return None

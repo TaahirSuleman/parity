@@ -24,7 +24,7 @@ from typing import Any, Protocol
 import httpx
 
 from parity.config import STANDARD_SPARK, Settings, load_settings
-from parity.meta.pricing import cost_usd
+from parity.meta.pricing import asr_cost_usd, cost_usd
 from parity.store.models import ModelCall
 
 log = logging.getLogger(__name__)
@@ -110,6 +110,23 @@ def canonical(body: dict[str, Any]) -> bytes:
 def cache_key(body: dict[str, Any]) -> str:
     """SHA-256 of model + canonical body; also the fixture file name used by FakeMetaClient."""
     return hashlib.sha256(str(body.get("model", "")).encode() + canonical(body)).hexdigest()
+
+
+def transcribe_key(request: dict[str, Any], audio: bytes) -> str:
+    """SHA-256 of model + canonical request + the audio's own SHA-256: the cache and fixture name of one transcription."""
+    return hashlib.sha256(str(request.get("model", "")).encode() + canonical(request) + hashlib.sha256(audio).hexdigest().encode()).hexdigest()
+
+
+@dataclass
+class MetaTranscript:
+    raw: dict[str, Any]
+    transcript: str
+    turns: list[dict[str, Any]]
+    duration_ms: int
+    request_id: str
+    cache_hit: bool
+    latency_ms: int
+    model: str = ""
 
 
 def text_of(raw: dict[str, Any]) -> str:
@@ -212,6 +229,60 @@ class MetaClient:
             if raw is not None:
                 return MetaResponse(raw, text_of(raw), call.response_id, request_id, usage, False, latency_ms)
 
+            log.warning("meta %s attempt %d failed: status=%s request_id=%s", stage, attempt, status, request_id)
+            last_error = MetaError(error or "unknown error", status=status, request_id=request_id, attempts=attempt)
+            retryable = status is None or status >= 500 or status == 429
+            if not retryable or attempt == MAX_ATTEMPTS:
+                raise last_error
+            await self._sleep(RETRY_SLEEPS[attempt - 1])
+        raise last_error  # pragma: no cover
+
+    async def transcribe(self, audio: bytes, *, keywords: list[str] | tuple[str, ...] = (), mode: str = "PUSH_TO_TALK", run_id: str,
+                         step_index: int | None = None, stage: str = "voice") -> MetaTranscript:
+        """Voice Transcribe (skill meta-model-api): multipart ``request`` (JSON) + ``audio`` (WAV, 16 kHz mono 16-bit) to
+        /asr/transcribe. Cached by the request and the audio's hash; traced with the ASR price per hour of audio."""
+        model = self.settings.model_for("voice")
+        request = {"model": model, "audioEncoding": "WAV", "mode": mode, "keywords": list(keywords)}
+        key = transcribe_key(request, audio)
+        cached = self._read_cache(key)
+        if cached is not None:
+            call = ModelCall(id=uuid.uuid4().hex, run_id=run_id, step_index=step_index, stage=stage, model=model, request_id=cached.get("_request_id", ""),
+                             prompt_sha256=key, cache_hit=True, latency_ms=0, cost_usd=0.0, http_status=200)
+            await self.trace.record(call)
+            return MetaTranscript(cached, str(cached.get("transcript") or ""), list(cached.get("turns") or []), int(cached.get("audioDurationMs") or 0),
+                                  call.request_id, True, 0, model)
+        headers = {"Authorization": f"Bearer {self.settings.model_api_key}", "Accept": "application/json"}  # httpx sets the multipart boundary
+        files = {"request": (None, json.dumps(request), "application/json"), "audio": ("clip.wav", audio, "audio/wav")}
+        last_error: MetaError | None = None
+        for attempt in range(1, MAX_ATTEMPTS + 1):
+            t0 = time.perf_counter()
+            status: int | None = None
+            request_id = ""
+            error: str | None = None
+            raw: dict[str, Any] | None = None
+            try:
+                r = await self._http.post(f"{self._base}/asr/transcribe", files=files, headers=headers)
+                status = r.status_code
+                request_id = r.headers.get("x-request-id", "")
+                if status >= 400:
+                    error = self._scrub(f"HTTP {status}: {r.text[:500]}")
+                else:
+                    raw = r.json()
+            except httpx.HTTPError as exc:
+                error = self._scrub(f"transport: {type(exc).__name__}: {exc}")
+            latency_ms = max(1, math.ceil((time.perf_counter() - t0) * 1000))
+            duration_ms = int((raw or {}).get("audioDurationMs") or 0)
+            call = ModelCall(id=uuid.uuid4().hex, run_id=run_id, step_index=step_index, stage=stage, model=model, request_id=request_id, prompt_sha256=key,
+                             cache_hit=False, latency_ms=latency_ms, cost_usd=asr_cost_usd(duration_ms) if raw is not None else 0.0,
+                             http_status=status, error=error, attempt=attempt)
+            if raw is not None:
+                raw["_request_id"] = request_id
+                self._write_cache(key, raw)
+            await self.trace.record(call)
+            log.info("meta %s model=%s request_id=%s status=%s audio=%dms latency=%dms cost=$%.4f%s", stage, model, request_id or "-", status, duration_ms,
+                     latency_ms, call.cost_usd, f" error={call.error}" if call.error else "")
+            if raw is not None:
+                return MetaTranscript(raw, str(raw.get("transcript") or ""), list(raw.get("turns") or []), duration_ms, request_id, False, latency_ms, model)
             log.warning("meta %s attempt %d failed: status=%s request_id=%s", stage, attempt, status, request_id)
             last_error = MetaError(error or "unknown error", status=status, request_id=request_id, attempts=attempt)
             retryable = status is None or status >= 500 or status == 429

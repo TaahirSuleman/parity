@@ -215,3 +215,26 @@ def test_default_call_timeout_covers_a_long_comparator_answer(tmp_path):
     assert CALL_TIMEOUT_S == 120
     client = MetaClient(load_settings(env={"MODEL_API_KEY": "k", "PARITY_DATA_DIR": str(tmp_path)}), cache_dir=tmp_path / "c", trace=TraceRouter())
     assert client._http.timeout.read == 120
+
+
+async def test_transcribe_posts_multipart_then_serves_the_cache(tmp_path):
+    from parity.meta.pricing import asr_cost_usd
+
+    seen = {}
+
+    def handler(request, n):
+        seen.update(url=str(request.url), content_type=request.headers.get("content-type", ""), body=request.content, auth=request.headers.get("authorization"))
+        return httpx.Response(200, json={"transcript": "Submit, button", "audioDurationMs": 1500, "turns": [{"turnId": 1, "startMs": 0, "endMs": 1500, "transcript": "Submit, button"}]},
+                              headers={"x-request-id": "req-asr"})
+
+    client, calls, trace, _ = make_client(tmp_path, handler)
+    wav = b"RIFF\x00\x00\x00\x00WAVEfake-pcm"
+    t = await client.transcribe(wav, keywords=["Submit"], run_id="r1")
+    assert seen["url"].endswith("/asr/transcribe") and seen["content_type"].startswith("multipart/form-data") and seen["auth"] == f"Bearer {KEY}"
+    assert b'name="request"' in seen["body"] and b"PUSH_TO_TALK" in seen["body"] and b"WAV" in seen["body"] and b"muse-voice-transcribe-1.0" in seen["body"]
+    assert b'name="audio"' in seen["body"] and wav in seen["body"]
+    assert t.transcript == "Submit, button" and t.duration_ms == 1500 and t.turns[0]["startMs"] == 0 and t.request_id == "req-asr" and t.cache_hit is False
+    call = trace.calls[-1]
+    assert call.stage == "voice" and call.model == "muse-voice-transcribe-1.0" and call.request_id == "req-asr" and call.cost_usd == pytest.approx(asr_cost_usd(1500))
+    again = await client.transcribe(wav, keywords=["Submit"], run_id="r1")
+    assert again.cache_hit is True and len(calls) == 1 and trace.calls[-1].cache_hit is True and trace.calls[-1].cost_usd == 0.0

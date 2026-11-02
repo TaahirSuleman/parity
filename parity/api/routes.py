@@ -22,6 +22,7 @@ from parity.pipeline.gate import ConflictError, decide
 from parity.pipeline.runner import VisitorRequest, run_flow
 from parity.pipeline.urlpolicy import MAX_URL_LEN, READ_ONLY_GOAL, Refusal, check_url
 from parity.ratelimit import Closed
+from parity.store.bundle import keys
 from parity.store.models import RunMode, now
 from parity.verifier_off import verifier_off
 
@@ -267,6 +268,8 @@ async def run_detail(run_id: RunId, request: Request) -> dict:
     try:
         loaded = await request.app.state.bundle.load(run_id)
     except KeyError:
+        if await request.app.state.bundle.store.exists(keys.summary(run_id)):  # a visitor-URL run past its 24 hours (spec §19.3.4)
+            raise HTTPException(410, replay.EXPIRED) from None
         raise HTTPException(404, "unknown run") from None
     return {
         "run": public_run(loaded.run), "steps": [s.model_dump(mode="json") for s in loaded.steps],

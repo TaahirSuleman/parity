@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parity audit policy</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; padding: 32px 16px 64px; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1b1f24; background: #fff; }
+    main { max-width: 42rem; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+    h2 { font-size: 1.1rem; margin: 1.75rem 0 .5rem; }
+    p, li { margin: .35rem 0; }
+    ul { padding-left: 1.25rem; }
+    a { color: #0b57d0; }
+    .lede { color: #4b5563; margin-bottom: 1rem; }
+    @media (prefers-color-scheme: dark) { body { color: #e6e9ee; background: #111418; } .lede { color: #a3acb8; } a { color: #8ab4f8; } }
+  </style>
+</head>
+<body>
+<main id="main">
+  <h1>How Parity audits a page you choose</h1>
+  <p class="lede">Parity compares what a sighted visitor sees on a page with what a screen-reader user is told, and shows the evidence for each gap it finds. This page says what it does on a page it does not serve, what it keeps, and whom to write to.</p>
+
+  <h2>What Parity does on your page</h2>
+  <ul>
+    <li>It reads the page as a visitor would, in a headless browser, from the address a visitor typed into the workbench.</li>
+    <li>It never submits a form, never signs in, never types into password, card, email or phone fields, and never clicks anything that looks like paying, ordering, subscribing or deleting. Code decides this before any action runs; a model cannot talk its way past it.</li>
+    <li>It honours <code>robots.txt</code>: a page it disallows is not fetched. Cookie banners are never accepted on the visitor's behalf.</li>
+    <li>It makes one run per origin at a time, waits a second between page loads, and identifies itself as <code>Parity/&lt;version&gt;</code> with a link to this page in its user agent.</li>
+    <li>It proposes no changes to a page it does not serve. Its findings are evidence for a person to read, not a verdict on the page or its owner.</li>
+  </ul>
+
+  <h2>What is kept, and for how long</h2>
+  <ul>
+    <li>A screenshot of the audited screen, its accessibility tree, the axe-core results and the findings, for <strong>__RETENTION_HOURS__ hours</strong>. They are visible only to whoever holds the run link; nothing is listed anywhere.</li>
+    <li>After __RETENTION_HOURS__ hours every file holding page content is deleted. A small summary stays: the site's origin, the outcome, the counts, the cost and the time, so the day's spending can be checked.</li>
+    <li>Nothing from a page a visitor chose enters Parity's public samples or its evaluation.</li>
+    <li>The visitor affirms, before a run starts, that the page is public and that they may audit it; the time of that affirmation is stored with the run.</li>
+  </ul>
+
+  <h2>Opting out, and takedown</h2>
+  <p>If you would rather Parity did not read your site, write to <a href="mailto:__CONTACT__">__CONTACT__</a> and the host joins the deny list; every later request for it is refused with "This site asked not to be audited." The same address handles a takedown: name the run link or the site, and the run's content is deleted ahead of the __RETENTION_HOURS__-hour limit.</p>
+
+  <h2>Limits</h2>
+  <p>Each run has a cost ceiling and a time limit, each origin has a few runs a day, and the field closes for the day when its budget is spent. Sites behind bot challenges or logins end the run early, and the workbench says so.</p>
+
+  <p class="lede">Parity is a hackathon project. Its findings are evidence to read, never a claim about a page's standing under any rule.</p>
+</main>
+</body>
+</html>

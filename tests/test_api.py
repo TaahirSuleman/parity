@@ -736,3 +736,23 @@ async def test_health_reports_open_url_and_the_suggested_pages(tmp_path):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=nokey), base_url="http://test") as client:
             h = (await client.get("/api/health")).json()
             assert h["open_url"] is False and h["suggested_urls"] == [] and h["external_closed_today"] is False
+
+
+async def test_policy_page_names_the_contact_and_the_retention(tmp_path):
+    """Spec §19.3.4: GET /audit-policy says what Parity does on a page it does not serve, what it keeps and for how long, how a host
+    opts out, and whom to write to; the contact comes from settings and defaults to the repository author's address."""
+    import httpx
+
+    async def page_text(app):
+        async with app.router.lifespan_context(app):
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+                r = await client.get("/audit-policy")
+                assert r.status_code == 200 and r.headers["content-type"].startswith("text/html") and r.headers.get("cache-control") == "no-cache"
+                return r.text
+
+    body = await page_text(await _app_with(tmp_path, PARITY_CONTACT_EMAIL="policy@example.test"))
+    assert "policy@example.test" in body and "tai.suleman" not in body
+    for phrase in ("24 hours", "robots.txt", "never submits", "never signs in", "one run per origin", "deny list", "takedown", "public samples", "evaluation", "run link"):
+        assert phrase in body, phrase
+    assert "complian" not in body.lower() and '<html lang="en"' in body and "<h1" in body
+    assert "tai.suleman@gmail.com" in await page_text(await _app_with(tmp_path / "default"))

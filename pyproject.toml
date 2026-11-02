@@ -35,7 +35,7 @@ parity = "parity.cli:main"
 include = ["parity*"]
 
 [tool.setuptools.package-data]
-parity = ["vendor/*", "static/**/*", "meta/prompts/*"]
+parity = ["vendor/*", "static/**/*", "meta/prompts/*", "pages/*"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -7,8 +7,9 @@ No model calls, no key. Ids inside the bundle embed the source run id, so a text
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 from parity.api.events import EventBus
 from parity.pipeline.runner import new_run_id
@@ -18,6 +19,9 @@ from parity.store.models import Event, Finding, ModelCall, Rejected, Run, RunMod
 
 log = logging.getLogger(__name__)
 DEFAULT_PACE_MS = 250
+EXTERNAL_RETENTION_S = 86_400  # pages visitors chose are kept for 24 hours (spec §19.3.4)
+EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
+EXPIRED = "This audit has expired: pages you choose are kept for 24 hours."
 
 
 def _rewrite(text: str, source_id: str, new_id: str) -> str:
@@ -54,6 +58,38 @@ async def evict_replay_copies(bundle: RunBundle, index, keep: int, bus: EventBus
             gone.append(run_id)
         except Exception as exc:
             log.warning("could not evict replay copy %s: %s", run_id, exc)
+    return gone
+
+
+async def evict_external(bundle: RunBundle, index, max_age_s: int = EXTERNAL_RETENTION_S) -> list[str]:
+    """Retention for pages visitors chose, enforced rather than promised (spec §19.3.4): every file holding page content
+    (screenshots, trees, axe results, page source, findings, rejected rows, events, the trace, run.json) goes from bundles
+    with ``source == "visitor-url"`` whose run ended more than ``max_age_s`` ago; ``summary.json`` stays (origin, outcome,
+    counts, cost, seconds, consent) so the day's spend and the stats survive. The index row goes with the run: a summary is
+    not a run. A run still going is never touched."""
+    cutoff = now() - timedelta(seconds=max_age_s)
+    gone: list[str] = []
+    for run in await index.external_runs_since(EPOCH):
+        if run.status in (RunStatus.running, RunStatus.queued) or (run.finished_at or run.started_at) > cutoff:
+            continue
+        try:
+            outcome = run.status.value
+            for event in await bundle.events(run.id):
+                if event.type == "run.finished" and isinstance(event.data.get("agent"), dict) and event.data["agent"].get("summary"):
+                    outcome = str(event.data["agent"]["summary"])
+            summary = {
+                "id": run.id, "source": run.source, "origin": run.origin, "status": run.status.value, "outcome": outcome,
+                "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected, "axe_violations": run.axe_violations,
+                "tokens": run.tokens, "cost_usd": run.cost_usd, "duration_ms": run.duration_ms, "screens": run.screens,
+                "consent_at": run.consent_at.isoformat() if run.consent_at else None, "started_at": run.started_at.isoformat(),
+                "finished_at": run.finished_at.isoformat() if run.finished_at else None, "evicted_at": now().isoformat(),
+            }
+            await bundle.delete_run(run.id)
+            await bundle.store.put(keys.summary(run.id), json.dumps(summary, indent=1).encode(), "application/json")
+            await index.delete_run(run.id)
+            gone.append(run.id)
+        except Exception as exc:
+            log.warning("could not evict visitor run %s: %s", run.id, exc)
     return gone
 
 

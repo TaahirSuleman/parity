@@ -15,11 +15,13 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import ValidationError
 from fastapi.staticfiles import StaticFiles
 
-from parity import __version__
+from html import escape
+
+from parity import __version__, replay
 from parity.store import blob
 from parity.api.events import EventBus
 from parity.api.routes import UNREADABLE, router
@@ -35,6 +37,8 @@ log = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parent.parent
 STORE_DIR = ROOT / "store"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+PAGES_DIR = Path(__file__).resolve().parent / "pages"  # pages the app serves itself (the audit policy); static/ is the SPA build and is emptied by every build
+EXTERNAL_EVICT_INTERVAL_S = 3600  # retention for pages visitors chose is enforced at boot and hourly (spec §19.3.4)
 
 
 async def discover_replays(replay_bundle: RunBundle) -> tuple[dict[str, str], list[str]]:
@@ -65,6 +69,18 @@ async def probe_models(client: MetaClient | None) -> bool:
 
 
 SHUTDOWN_BUDGET_S = 5  # Cloud Run allows 10 s after SIGTERM; uvicorn's own graceful close (Dockerfile) takes up to 3 of them
+
+
+async def evict_external_hourly(st, interval_s: int = EXTERNAL_EVICT_INTERVAL_S) -> None:
+    """Every hour, delete the page content of visitor-URL runs older than a day; a failure is logged and the next hour tries again."""
+    while True:
+        await asyncio.sleep(interval_s)
+        try:
+            gone = await replay.evict_external(st.bundle, st.index)
+            if gone:
+                log.info("retention: evicted %d visitor run(s) older than 24 h: %s", len(gone), gone)
+        except Exception:
+            log.exception("retention sweep failed; the next one runs in %s s", interval_s)
 MAX_BODY_BYTES = 64 * 1024  # the largest API body is a decision (a 2,000-character reason); a 60 MB body took the instance to 362 MB
 
 
@@ -106,8 +122,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         st = app.state
         await st.index.init()
         booted = await st.index.boot(st.bundle, replay_keep=settings.replay_keep, replay_min_age_s=settings.replay_min_age_s)
+        expired = await replay.evict_external(st.bundle, st.index)  # after the index is rebuilt: it is what names the visitor runs
+        st.sweep = asyncio.create_task(evict_external_hourly(st), name="evict-external")  # beside st.tasks, which is runs in flight
         st.replay_for_flow, st.replay_ids = await discover_replays(st.replay_bundle)
         st.models_ok = await probe_models(st.client)
+        if expired:
+            log.info("retention: evicted %d visitor run(s) older than 24 h at boot: %s", len(expired), expired)
         log.info("boot: %d runs indexed, %d recovered, %d replay copies evicted, replays %s, storage %s, models_ok %s", booted["indexed"], len(booted["recovered"]),
                  len(booted["evicted"]), st.replay_ids, "gcs" if settings.gcs_bucket else "local", st.models_ok)
         try:
@@ -115,6 +135,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         finally:
             # uvicorn re-raises SIGTERM after its own graceful shutdown; background tasks never see CancelledError unless we send it.
             # Each run task's cancel handler records `failed: the server shut down` and closes the event log with run.failed.
+            if st.sweep is not None:
+                st.sweep.cancel()
             pending = [t for t in st.tasks if not t.done()]
             for task in pending:
                 task.cancel()
@@ -149,6 +171,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.client = MetaClient(settings, cache_dir=settings.cache_dir, trace=st.trace) if settings.has_key else None
     st.live_lock = asyncio.Lock()
     st.tasks: set[asyncio.Task] = set()  # every Live and Replay task in flight
+    st.sweep: asyncio.Task | None = None  # the hourly retention sweep (spec §19.3.4), started at boot
     st.limiter = RateLimiter(settings.live_per_ip_per_hour, settings.live_global_per_day)
     st.budget = ExternalBudget(settings.external_run_usd, settings.external_daily_usd, settings.external_per_origin_per_day)  # pages visitors choose (spec §19.3.3)
     st.resolver = None  # the URL policy's DNS lookup; tests inject one
@@ -172,6 +195,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return response
 
     app.include_router(router)
+
+    @app.get("/audit-policy", include_in_schema=False)
+    async def audit_policy() -> HTMLResponse:
+        # Spec §19.3.4: what Parity does on a page it does not serve, what it keeps, the opt-out and the takedown contact
+        template = (PAGES_DIR / "audit-policy.html").read_text(encoding="utf-8")
+        hours = str(replay.EXTERNAL_RETENTION_S // 3600)
+        return HTMLResponse(template.replace("__CONTACT__", escape(settings.contact_email)).replace("__RETENTION_HOURS__", hours))
+
     app.mount("/store", StaticFiles(directory=STORE_DIR, html=True), name="store")
     if STATIC_DIR.exists():
         app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")

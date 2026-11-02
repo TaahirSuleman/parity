@@ -64,6 +64,10 @@ class keys:
     def patch(run_id: str) -> str:
         return f"runs/{run_id}/fix.patch"
 
+    @staticmethod
+    def summary(run_id: str) -> str:
+        return f"runs/{run_id}/summary.json"  # all that stays of a visitor-URL run after 24 hours (spec §19.3.4)
+
 
 @dataclass
 class LoadedRun:

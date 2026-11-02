@@ -525,3 +525,30 @@ async def test_shutdown_finalises_runs_still_in_flight(tmp_path):
     assert loaded.run.status == RunStatus.failed and "shut down" in (loaded.run.error or ""), (loaded.run.status, loaded.run.error)
     assert loaded.events and loaded.events[-1].type == "run.failed", [e.type for e in loaded.events][-3:]
     assert not app.state.tasks
+
+
+async def test_voice_focuslog_is_absent_unless_enabled(api):
+    """The recording kit's endpoint exists only in dev (PARITY_VOICE_FOCUSLOG=1); the hosted app answers 404 to all of it."""
+    client, _ = api
+    entry = {"t_ms": 1700000000123, "dom_id": "f5", "event": "focusin"}
+    assert (await client.post("/api/voice/focuslog", json=entry)).status_code == 404
+    assert (await client.get("/api/voice/focuslog")).status_code == 404
+    assert (await client.delete("/api/voice/focuslog")).status_code == 404
+
+
+async def test_voice_focuslog_records_lists_and_clears_entries(tmp_path):
+    import httpx
+
+    app = await _app_with(tmp_path, PARITY_VOICE_FOCUSLOG="1")
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            assert (await client.get("/api/voice/focuslog")).json() == {"entries": []}
+            first = {"t_ms": 1700000000123, "dom_id": "name", "event": "focusin"}
+            second = {"t_ms": 1700000002456, "dom_id": "step-payment", "event": "activedescendant"}
+            assert (await client.post("/api/voice/focuslog", json=first)).status_code == 200
+            assert (await client.post("/api/voice/focuslog", json=second)).json() == {"count": 2}
+            assert (await client.get("/api/voice/focuslog")).json() == {"entries": [first, second]}
+            assert (await client.post("/api/voice/focuslog", json={"t_ms": 1, "dom_id": "x", "event": "click"})).status_code == 422
+            assert (await client.post("/api/voice/focuslog", json={"t_ms": -1, "dom_id": "x", "event": "focusin"})).status_code == 422
+            assert (await client.delete("/api/voice/focuslog")).json() == {"cleared": 2}
+            assert (await client.get("/api/voice/focuslog")).json() == {"entries": []}

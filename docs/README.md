@@ -6,6 +6,7 @@
 3. `17-validation-results.md`: what is proven on the live Meta API.
 3a. `19-design-spec.md`: modules, interfaces, data model, API, SSE, modes, Cloud Run deploy, eval harness, plus the 30 Oct decisions (D1–D8).
 3b. `20-implementation-plan.md`: phases P1–P6 as TDD tasks (P6 = Voice); the build follows it.
+3c. `voice-recording.md`: the recording kit for P6 (BlackHole, the focus logger, the captions poller, what to press).
 4. The organisers' own documents (rules and submission form, kickoff transcript, tooling reference, workshop transcripts) were working copies and are kept outside this repository; the constitution summarises what they require.
 6. `submission-checklist.md` + `learnings/04-winning-recipe.md` §4.4 and Part 7: video storyboard and cold-review checklist.
 7. `14-build-playbook-verifiable-agents.md` + `learnings/12-workshop-learnings.md`: Meta's verifiable-agent patterns. Learn from them; never copy workshop code.

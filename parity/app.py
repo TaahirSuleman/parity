@@ -155,6 +155,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.replay_for_flow = {}
     st.replay_ids = []
     st.models_ok = False
+    st.voice_focuslog: list[dict] = []  # focus stops posted by scripts/vo_focus_logger.js during a VoiceOver recording (dev only)
 
     @app.middleware("http")
     async def cache_policy(request, call_next):

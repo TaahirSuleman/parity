@@ -74,6 +74,17 @@ class DecisionRequest(BaseModel):
         return value
 
 
+class FocusEntry(BaseModel):
+    """One focus or VoiceOver-cursor stop posted by scripts/vo_focus_logger.js during a recording (spec §16; dev only)."""
+
+    t_ms: int = Field(ge=0)  # epoch ms on the recording Mac: the clock the captions poller and the WAV's start share
+    dom_id: str = Field(min_length=1, max_length=300)
+    event: Literal["focusin", "activedescendant"] = "focusin"
+
+
+FOCUSLOG_MAX = 10_000
+
+
 @router.get("/health")
 async def health(request: Request) -> dict:
     st = request.app.state
@@ -274,3 +285,31 @@ async def eval_results(request: Request) -> dict:
         raise HTTPException(404, "eval results unreadable: see the server log") from None
     body["public"] = extra
     return body
+
+
+def _focuslog(request: Request) -> list[dict]:
+    st = request.app.state
+    if not st.settings.voice_focuslog:
+        raise HTTPException(404, "the voice recording kit is off (PARITY_VOICE_FOCUSLOG=1 enables it for a local recording)")
+    return st.voice_focuslog
+
+
+@router.post("/voice/focuslog")
+async def voice_focuslog_add(entry: FocusEntry, request: Request) -> dict:
+    log = _focuslog(request)
+    log.append(entry.model_dump())
+    del log[:-FOCUSLOG_MAX]
+    return {"count": len(log)}
+
+
+@router.get("/voice/focuslog")
+async def voice_focuslog_list(request: Request) -> dict:
+    return {"entries": list(_focuslog(request))}
+
+
+@router.delete("/voice/focuslog")
+async def voice_focuslog_clear(request: Request) -> dict:
+    log = _focuslog(request)
+    cleared = len(log)
+    log.clear()
+    return {"cleared": cleared}

@@ -1,0 +1,1156 @@
+{
+ "source": "W3C WAI Before and After Demonstration (BAD), https://www.w3.org/WAI/demos/bad/ : the four 'before' pages' own numbered barrier annotations (annot_01..NN) and the four repaired 'after' pages' annotations, transcribed on 2 Nov 2026. Titles quoted; descriptions paraphrased.",
+ "copyright": "Copyright © 2012 W3C® (MIT, ERCIM, Keio). The BAD pages are used read-only under the W3C Document License; this notice travels with every file that quotes them.",
+ "scope": {
+  "rule": "in_scope is decided by kind (doc 19 §19.1), never by what Parity found: perceptual gaps between what a sighted user sees and what a screen reader announces are in scope; structure, presentation and keyboard barriers are counted and reported, never claimed.",
+  "in_scope_kinds": [
+   "alt-missing",
+   "alt-meaningless",
+   "alt-verbose",
+   "alt-placeholder",
+   "alt-incorrect",
+   "title-only-name",
+   "link-image-no-name",
+   "link-nondescriptive",
+   "form-unlabelled"
+  ],
+  "out_of_scope_kinds": [
+   "link-visual",
+   "reading-order",
+   "list-markup",
+   "heading-markup",
+   "font",
+   "column-spacing",
+   "emphasis-markup",
+   "deprecated-markup",
+   "table-structure",
+   "contrast",
+   "abbreviations",
+   "text-presentation",
+   "form-instructions",
+   "form-grouping",
+   "select-keyboard"
+  ]
+ },
+ "anchors": "src: an image file name inside the element's outer HTML; text: normalised equality with the element's visible text or the finding's sighted text; html: a substring of the element's outer HTML; css: a fragment of the element's css path. A label matched by several findings counts once.",
+ "rows": [
+  {
+   "page": "bad/before/home.html",
+   "id": "home-01",
+   "kind": "alt-verbose",
+   "w3c": "01: Image with incorrect text alternative",
+   "description": "The site logo, an image of text, has an alt of several sentences describing the artwork instead of the words in it (F30).",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "top_logo.gif"
+   },
+   "clean": false,
+   "counterpart": "after-home-01"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-02",
+   "kind": "alt-missing",
+   "w3c": "02: Image without any text alternative",
+   "description": "The concert teaser photo has no alt attribute at all (F65).",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "teaser_right1.jpg"
+   },
+   "clean": false,
+   "counterpart": "after-home-02"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-03",
+   "kind": "link-visual",
+   "w3c": "03: Link not visually distinct",
+   "description": "The news headline link looks like a heading, so sighted readers may not recognise it as a link.",
+   "sc": [
+    "1.4.8",
+    "2.4",
+    "3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Heat wave linked to temperatures"
+   },
+   "clean": false,
+   "counterpart": "after-home-03"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-04",
+   "kind": "title-only-name",
+   "w3c": "04: Image with inadequate text alternative",
+   "description": "A CSS background image carries its only text alternative in title=\"image\", which neither describes it nor reaches most readers (F3, F30).",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "BrainInJar.jpg"
+   },
+   "clean": false,
+   "counterpart": "after-home-04"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-05",
+   "kind": "link-nondescriptive",
+   "w3c": "05: Link text is not descriptive",
+   "description": "The link text \"Read More...\" does not say what the link leads to (F63, F84).",
+   "sc": [
+    "2.4.4",
+    "2.4.9"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "text": "Read More..."
+   },
+   "clean": false,
+   "counterpart": "after-home-05"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-06",
+   "kind": "reading-order",
+   "w3c": "06: Reading sequence not meaningful",
+   "description": "Three story columns are one run of text in the markup, so they read as a single sentence (F1, F2).",
+   "sc": [
+    "1.3.1",
+    "1.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"story\""
+   },
+   "clean": false,
+   "counterpart": "after-home-06"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-07",
+   "kind": "link-image-no-name",
+   "w3c": "07: Link with image has empty text alternative",
+   "description": "The \"more\" arrow links contain only an image with alt=\"\", so the links have no name (F89); three such links on the page.",
+   "sc": [
+    "2.4.4",
+    "2.4.9",
+    "4.1.2"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "morearrow.gif"
+   },
+   "clean": false,
+   "no_counterpart": true,
+   "note": "W3C did not number the repaired 'full story' links on the after page."
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-08",
+   "kind": "alt-meaningless",
+   "w3c": "08: Decorative image without empty text alternative",
+   "description": "The list bullet images have alt=\"bullet\", noise for a screen reader where an empty alt belongs (F39).",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "list_bullets.gif"
+   },
+   "clean": false,
+   "counterpart": "after-home-09"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-09",
+   "kind": "list-markup",
+   "w3c": "09: List not marked up as such",
+   "description": "\"Killer bees\" and \"Onions\" look like a list but are not marked up as one (F2).",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Killer bees."
+   },
+   "clean": false,
+   "counterpart": "after-home-08"
+  },
+  {
+   "page": "bad/before/home.html",
+   "id": "home-10",
+   "kind": "alt-placeholder",
+   "w3c": "10: Image with incorrect text alternative",
+   "description": "The hotline number is an image whose alt is the placeholder \"1234 56789\" (F20, F30, F71).",
+   "sc": [
+    "1.1.1",
+    "4.1.2"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "telefon_white_bg.gif"
+   },
+   "clean": false,
+   "counterpart": "after-home-10"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-01",
+   "kind": "heading-markup",
+   "w3c": "01: Heading not marked up as such",
+   "description": "\"Heat wave linked to temperatures\" is styled as a heading but is a paragraph in the markup (F2).",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Heat wave linked to temperatures"
+   },
+   "clean": false,
+   "counterpart": "after-news-02"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-02",
+   "kind": "font",
+   "w3c": "02: Font difficult to read",
+   "description": "Body text is set in a serif font, which is harder to read on screen.",
+   "sc": [
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Citylights News"
+   },
+   "clean": false,
+   "counterpart": "after-news-03"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-03",
+   "kind": "column-spacing",
+   "w3c": "03: Columns too close together",
+   "description": "The two main text columns need more space between them.",
+   "sc": [
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Man Gets Nine Months in Violin Case"
+   },
+   "clean": false,
+   "counterpart": "after-news-01"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-04",
+   "kind": "reading-order",
+   "w3c": "04: Reading sequence not meaningful",
+   "description": "\"Your Shout\" belongs to the violin story visually but follows \"Tough Wahoonie\" in the markup (F1).",
+   "sc": [
+    "1.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Your Shout"
+   },
+   "clean": false,
+   "counterpart": "after-news-04"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-05",
+   "kind": "link-nondescriptive",
+   "w3c": "05: Link purpose unclear",
+   "description": "A linked photo has alt \"picture of Clara F.\", which describes the picture and not the link's purpose.",
+   "sc": [
+    "2.4.4",
+    "2.4.9"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "smzappa2.jpg"
+   },
+   "clean": false,
+   "counterpart": "after-news-05"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-06",
+   "kind": "link-visual",
+   "w3c": "06: Link not visually distinct",
+   "description": "\"the way that air conditioning works\" is a link with no cue but colour (F73).",
+   "sc": [
+    "1.4.1",
+    "1.4.8",
+    "2.4",
+    "3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "the way that air conditioning works"
+   },
+   "clean": false,
+   "counterpart": "after-news-06"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-07",
+   "kind": "emphasis-markup",
+   "w3c": "07: Emphasized text not marked up as such",
+   "description": "Italic styling stands in for the em element (F2).",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "but also hot air that's ducted away to the outside"
+   },
+   "clean": false,
+   "counterpart": "after-news-07"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-08",
+   "kind": "deprecated-markup",
+   "w3c": "08: Text with deprecated markup",
+   "description": "\"Return To Sender\" is formatted with the font element and the align attribute.",
+   "sc": [
+    "4.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Return To Sender"
+   },
+   "clean": false,
+   "counterpart": "after-news-08"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-09",
+   "kind": "alt-missing",
+   "w3c": "09: Diagram representation unclear",
+   "description": "The brain-donations chart has alt=\"\" and no text alternative anywhere, so its figures are lost (F30).",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "chart1.jpg"
+   },
+   "clean": false,
+   "counterpart": "after-news-09"
+  },
+  {
+   "page": "bad/before/news.html",
+   "id": "news-10",
+   "kind": "alt-verbose",
+   "w3c": "10: Image with incorrect text alternative",
+   "description": "The photo's alt tells a story the picture does not show, information that should be text for everyone (F30).",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "blanca.jpg"
+   },
+   "clean": false,
+   "counterpart": "after-news-10"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-01",
+   "kind": "alt-missing",
+   "w3c": "01: Image of text without text alternative used as a heading",
+   "description": "The \"Ticket Offers\" heading is an image of text with no alt and no heading markup (F71, F2).",
+   "sc": [
+    "1.1.1",
+    "1.3.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "headline_ticket_offers.gif"
+   },
+   "clean": false,
+   "counterpart": "after-tickets-01"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-02",
+   "kind": "table-structure",
+   "w3c": "02: Table column headings not marked up",
+   "description": "The concert-dates table shows its headers by colour only, with no th and no caption (F43, F2).",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "concert dates"
+   },
+   "clean": false,
+   "counterpart": "after-tickets-02"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-03",
+   "kind": "emphasis-markup",
+   "w3c": "03: Using CSS to convey semantic meaning",
+   "description": "\"special deals\" is bold by CSS rather than the strong element (F2).",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "special deals"
+   },
+   "clean": false,
+   "counterpart": "after-tickets-03"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-04",
+   "kind": "alt-incorrect",
+   "w3c": "04: Image of text with incorrect text alternative",
+   "description": "The hotline image shows \"(1) 269 M-U-S-I-C\" but its alt says \"music line phone number\" (F30).",
+   "sc": [
+    "1.1.1",
+    "1.4.4",
+    "1.4.5"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "telefon_lightgrey_bg.gif"
+   },
+   "clean": false,
+   "counterpart": "after-tickets-04"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-05",
+   "kind": "table-structure",
+   "w3c": "05: Data table without semantic structure",
+   "description": "The price table has no caption and no header cells associated with its data cells.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"prices\""
+   },
+   "clean": false,
+   "counterpart": "after-tickets-05"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-06",
+   "kind": "contrast",
+   "w3c": "06: Insufficient color contrast",
+   "description": "Header text #41545D on #A9B8BF is below the contrast minimum.",
+   "sc": [
+    "1.4.3",
+    "1.4.6"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "ADULT"
+   },
+   "clean": false,
+   "counterpart": "after-tickets-07"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-07",
+   "kind": "abbreviations",
+   "w3c": "07: Acronyms used to indicate seat options are not explained",
+   "description": "\"FS\", \"RS\", \"DC\" and \"ST\" are never expanded.",
+   "sc": [
+    "3.1.4"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "FS"
+   },
+   "clean": false,
+   "counterpart": "after-tickets-06"
+  },
+  {
+   "page": "bad/before/tickets.html",
+   "id": "tickets-08",
+   "kind": "text-presentation",
+   "w3c": "08: No semantic markup and text is hard to read",
+   "description": "The terms are an unmarked heading and list in justified, underlined capitals with tight leading (F88).",
+   "sc": [
+    "1.3.1",
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Citylights Terms and Conditions"
+   },
+   "clean": false,
+   "counterpart": "after-tickets-08"
+  },
+  {
+   "page": "bad/before/survey.html",
+   "id": "survey-01",
+   "kind": "form-instructions",
+   "w3c": "01: Instructions necessary for form completion are missing",
+   "description": "Nothing says which fields are required.",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "This Week's Survey: More city parks - a pain or a gain?"
+   },
+   "clean": false,
+   "counterpart": "after-survey-01"
+  },
+  {
+   "page": "bad/before/survey.html",
+   "id": "survey-02",
+   "kind": "form-grouping",
+   "w3c": "02: Radio buttons not grouped within the code",
+   "description": "The park radio buttons have no fieldset or legend.",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Which is your favorite city park?"
+   },
+   "clean": false,
+   "counterpart": "after-survey-02"
+  },
+  {
+   "page": "bad/before/survey.html",
+   "id": "survey-03",
+   "kind": "form-unlabelled",
+   "w3c": "03: Radio button is not associated with its label",
+   "description": "The park radio buttons are not associated with their visible labels; a screen reader announces each as an unnamed radio button.",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "html": "type=\"radio\" name=\"res\""
+   },
+   "clean": false,
+   "counterpart": "after-survey-03"
+  },
+  {
+   "page": "bad/before/survey.html",
+   "id": "survey-04",
+   "kind": "form-unlabelled",
+   "w3c": "04: Select box is missing caption",
+   "description": "The city select has no label and no title, so it is announced without a name.",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "html": "<select name=\"cc\">"
+   },
+   "clean": false,
+   "counterpart": "after-survey-04"
+  },
+  {
+   "page": "bad/before/survey.html",
+   "id": "survey-05",
+   "kind": "select-keyboard",
+   "w3c": "05: Select box not easily usable by keyboard",
+   "description": "The long city list is ungrouped and sorted by country, which hinders keyboard selection.",
+   "sc": [
+    "2.1.1",
+    "2.4.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "<option>Afghanistan, Kabul</option>"
+   },
+   "clean": false,
+   "counterpart": "after-survey-05"
+  },
+  {
+   "page": "bad/before/survey.html",
+   "id": "survey-06",
+   "kind": "reading-order",
+   "w3c": "06: Reading sequence not meaningful",
+   "description": "The newsletter fields are laid out in a table so labels and inputs are read out of order; W3C notes the fields are also not associated with their labels (F49).",
+   "sc": [
+    "1.3.2",
+    "2.4.3",
+    "3.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "name=\"em\""
+   },
+   "clean": false,
+   "counterpart": "after-survey-06",
+   "note": "A finding on the unlabelled newsletter inputs lands here and is counted as out of scope, not as a hit: the numbered barrier is the sequence."
+  },
+  {
+   "page": "bad/before/survey.html",
+   "id": "survey-07",
+   "kind": "reading-order",
+   "w3c": "07: Reading sequence not meaningful",
+   "description": "Last week's results use paragraphs where table cells belong, so the figures read in the wrong order (F43, F2).",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "love it"
+   },
+   "clean": false,
+   "counterpart": "after-survey-07"
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-01",
+   "kind": "alt-verbose",
+   "w3c": "01: Text alternative matches the graphical text",
+   "description": "The logo's alt is the words in the image.",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "toplogo.png"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-02",
+   "kind": "alt-missing",
+   "w3c": "02: Picture with text alternative",
+   "description": "The teaser photo has a short descriptive alt.",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "teaser_right1.jpg"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-03",
+   "kind": "link-visual",
+   "w3c": "03: Links highlighted when they receive focus",
+   "description": "Headline links change colour on focus and hover.",
+   "sc": [
+    "2.4.7"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Heat wave linked to temperatures"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-04",
+   "kind": "title-only-name",
+   "w3c": "04: Image with 'null' text alternative",
+   "description": "The decorative photo is an img with alt=\"\".",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "BrainInJar.jpg"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-05",
+   "kind": "link-nondescriptive",
+   "w3c": "05: Link text indicates the link purpose",
+   "description": "\"Buy Tickets\" says where the link goes.",
+   "sc": [
+    "2.4.4",
+    "2.4.9"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "text": "Buy Tickets"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-06",
+   "kind": "reading-order",
+   "w3c": "06: Using CSS rather than tables for layout",
+   "description": "Each news item is its own block.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"news\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-07",
+   "kind": "link-visual",
+   "w3c": "07: Links with distinctive appearance",
+   "description": "Links are underlined and coloured.",
+   "sc": [
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Killer Bees"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-08",
+   "kind": "list-markup",
+   "w3c": "08: List marked up as such",
+   "description": "The \"Elsewhere\" links are a ul.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"elsewhere\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-09",
+   "kind": "alt-meaningless",
+   "w3c": "09: List bullet displayed using CSS",
+   "description": "The bullet is a CSS background, not an img.",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "text": "Onions"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/home.html",
+   "id": "after-home-10",
+   "kind": "alt-placeholder",
+   "w3c": "10: Phone number provided as text",
+   "description": "The hotline number is text, in digits and letters.",
+   "sc": [
+    "1.4.4",
+    "1.4.5",
+    "1.4.8"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "text": "Artichoke advice telephone hotline: (1) 269 24653 / (1) 269 C-H-O-K-E"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-01",
+   "kind": "column-spacing",
+   "w3c": "01: Increased spacing",
+   "description": "Column and line spacing are increased.",
+   "sc": [
+    "1.4.4",
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"col-right\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-02",
+   "kind": "heading-markup",
+   "w3c": "02: Page organized using headings",
+   "description": "The story title is an h2.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Heat wave linked to temperatures"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-03",
+   "kind": "font",
+   "w3c": "03: Font easier to read",
+   "description": "Body text is sans-serif.",
+   "sc": [
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Tough Wahoonie"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-04",
+   "kind": "reading-order",
+   "w3c": "04: Meaningful reading sequence",
+   "description": "\"Your Shout\" follows its story in the markup too.",
+   "sc": [
+    "1.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Your Shout"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-05",
+   "kind": "link-nondescriptive",
+   "w3c": "05: Text alternative describes link purpose",
+   "description": "The linked photo's alt is \"Clara F.'s website\".",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "smzappa2.jpg"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-06",
+   "kind": "link-visual",
+   "w3c": "06: Link visually distinct",
+   "description": "The link is underlined with sufficient contrast.",
+   "sc": [
+    "1.4.1",
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "the way that air conditioning works"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-07",
+   "kind": "emphasis-markup",
+   "w3c": "07: Emphasized text marked up as such",
+   "description": "The phrase is an em element.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "but also hot air that's ducted away to the outside"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-08",
+   "kind": "deprecated-markup",
+   "w3c": "08: Valid markup",
+   "description": "\"Return To Sender\" is an h3.",
+   "sc": [
+    "4.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Return To Sender"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-09",
+   "kind": "alt-missing",
+   "w3c": "09: Illustrative diagram representation",
+   "description": "The chart's alt carries its figures.",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "chart1.png"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/news.html",
+   "id": "after-news-10",
+   "kind": "alt-verbose",
+   "w3c": "10: Image with appropriate text alternative",
+   "description": "The photo's alt describes the picture; the story is text beside it.",
+   "sc": [
+    "1.1.1"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "src": "blanca.jpg"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-01",
+   "kind": "alt-missing",
+   "w3c": "01: Heading marked up as such",
+   "description": "\"Citylights Ticket Offers\" is an h1 styled with CSS.",
+   "sc": [
+    "1.3.1",
+    "1.4.5"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "text": "Citylights Ticket Offers"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-02",
+   "kind": "table-structure",
+   "w3c": "02: Table headers have been marked up as such",
+   "description": "The dates table has th cells with scope and a caption.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Concert Dates"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-03",
+   "kind": "emphasis-markup",
+   "w3c": "03: Using structure to convey semantic meaning",
+   "description": "\"special deals\" is a strong element.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "special deals"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-04",
+   "kind": "alt-incorrect",
+   "w3c": "04: Phone number provided as text",
+   "description": "The hotline number is text, in digits and letters.",
+   "sc": [
+    "1.4.4",
+    "1.4.5",
+    "1.4.8"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "text": "(1) 269 68742 / (1) 269 M-U-S-I-C"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-05",
+   "kind": "table-structure",
+   "w3c": "05: Table data has been properly structured",
+   "description": "The price table has a caption, a summary and id/headers associations.",
+   "sc": [
+    "1.1.1",
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"sfdtable\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-06",
+   "kind": "abbreviations",
+   "w3c": "06: Seat options are spelt out in full",
+   "description": "\"Front Seats\", \"Rear Seats\" and so on replace the acronyms.",
+   "sc": [
+    "3.1.4",
+    "3.1.5"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Front Seats"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-07",
+   "kind": "contrast",
+   "w3c": "07: Sufficient color contrast to increase readability",
+   "description": "Header text is #000000 on #c0c0c0.",
+   "sc": [
+    "1.4.6"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"datahead\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/tickets.html",
+   "id": "after-tickets-08",
+   "kind": "text-presentation",
+   "w3c": "08: Text is marked up semantically and is easier to read",
+   "description": "The terms are an h2 and an ordered list.",
+   "sc": [
+    "1.3.1",
+    "1.4.8"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Citylights Terms and Conditions"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/survey.html",
+   "id": "after-survey-01",
+   "kind": "form-instructions",
+   "w3c": "01: Form instructions provided",
+   "description": "\"Fields are required if not otherwise noted.\" opens the form.",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Fields are required if not otherwise noted."
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/survey.html",
+   "id": "after-survey-02",
+   "kind": "form-grouping",
+   "w3c": "02: Radio buttons are grouped within the code",
+   "description": "The park radios sit in a fieldset with a legend.",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "text": "Favorite Park"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/survey.html",
+   "id": "after-survey-03",
+   "kind": "form-unlabelled",
+   "w3c": "03: Radio button is associated with its label",
+   "description": "Each park radio has a label element.",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "html": "id=\"nn\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/survey.html",
+   "id": "after-survey-04",
+   "kind": "form-unlabelled",
+   "w3c": "04: Select box has title",
+   "description": "The city select has title=\"cities of the world\".",
+   "sc": [
+    "3.3.2"
+   ],
+   "in_scope": true,
+   "anchor": {
+    "html": "<select name=\"cc\" id=\"cc\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/survey.html",
+   "id": "after-survey-05",
+   "kind": "select-keyboard",
+   "w3c": "05: Select box with improved keyboard usability",
+   "description": "Cities are grouped by letter and sorted by city.",
+   "sc": [
+    "2.1.1",
+    "2.4.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "<optgroup label=\"A\">"
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/survey.html",
+   "id": "after-survey-06",
+   "kind": "reading-order",
+   "w3c": "06: Meaningful reading sequence",
+   "description": "Newsletter labels and inputs are in reading order and associated.",
+   "sc": [
+    "1.3.2"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "id=\"namenewsletter\""
+   },
+   "clean": true
+  },
+  {
+   "page": "bad/after/survey.html",
+   "id": "after-survey-07",
+   "kind": "reading-order",
+   "w3c": "07: Table data has been properly structured",
+   "description": "Last week's results use th and td cells.",
+   "sc": [
+    "1.3.1"
+   ],
+   "in_scope": false,
+   "anchor": {
+    "html": "class=\"qtable\""
+   },
+   "clean": true
+  }
+ ]
+}

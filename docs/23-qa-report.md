@@ -377,7 +377,7 @@ Cold judge, UX and UI (ranked by effect on the score; the three essentials and t
 
 - Every fix above has a test that failed before the change and passed after it (the Python ones in `tests/test_demo_path.py` and
   `tests/test_store_latency.py`; the web ones in `App.test.tsx`, `hero.test.ts`, `FindingCard.test.tsx`, `ScreenReaderPanel.test.tsx`,
-  `EvalTab.test.tsx`, `Header.test.tsx`, `reducer.test.ts`). The Python suite is green on the rebuilt bundle (0 tests, including the Playwright
+  `EvalTab.test.tsx`, `Header.test.tsx`, `reducer.test.ts`). The Python suite is green on the rebuilt bundle (344 tests: the 339 of the stress pass plus the five added here, including the Playwright
   smoke suite with its axe checks in light and dark, and the docs checks); vitest is 101 of 101; `tsc` is clean; the web bundle builds.
 - Not yet verified on the hosted app: the replay-start and run-load timings after the bounded gathers, the 80-slot concurrency, and the UI changes
   as a judge sees them. They need a redeploy (≈7 min), then the walk in 8.1 again; the numbers go here when it has run.

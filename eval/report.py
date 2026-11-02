@@ -56,10 +56,12 @@ def render(r: dict) -> str:
                   f"alternatives, names, link text, unlabelled controls); the other {e['out_of_scope_count']} (structure, presentation, keyboard) are counted, "
                   f"never claimed. Precision counts a finding on an in-scope barrier as right and every finding on a repaired page as wrong; findings on "
                   f"elements W3C did not annotate are reported, not scored.", "",
-                  "| System | In-scope recall | Precision | Findings per run | On repaired pages | On out-of-scope barriers | Unlabelled | Cost | Time |",
-                  "|---|---|---|---|---|---|---|---|---|",
-                  f"| Parity (full) | {pct(e['in_scope_recall'])} | {pct(e['precision'])} | {e['n']:.0f} | {e['fp_on_after_pages']:.1f} | {e['out_of_scope_hits']:.1f} | {e['unlabelled_on_before']:.1f} | ${e['cost_usd']:.3f} | {e['seconds']:.0f} s |",
-                  f"| axe-core 4.14 | {pct(e['axe_recall'])} | — | {e['axe']['violations']} violations | — | {len(e['axe']['out_of_scope'])} | — | $0 | — |",
+                  "| System | In-scope recall | Beyond axe-core | Precision | Findings per run | On repaired pages | On out-of-scope barriers | Unlabelled | Cost | Time |",
+                  "|---|---|---|---|---|---|---|---|---|---|",
+                  f"| Parity (full) | {pct(e['in_scope_recall'])} | {pct(e.get('recall_beyond_axe'))} | {pct(e['precision'])} | {e['n']:.0f} | {e['fp_on_after_pages']:.1f} | {e['out_of_scope_hits']:.1f} | {e['unlabelled_on_before']:.1f} | ${e['cost_usd']:.3f} | {e['seconds']:.0f} s |",
+                  f"| axe-core 4.14 | {pct(e['axe_recall'])} | — | — | {e['axe']['violations']} violations | — | {len(e['axe']['out_of_scope'])} | — | $0 | — |",
+                  "", f"The Verifier drops what axe-core already reports, by design: {e.get('n_beyond_axe', '?')} of the {e['n_in_scope']} in-scope barriers are ones axe-core does not "
+                  f"report, and \"Beyond axe-core\" is Parity's recall on those; Parity and axe-core together reach {pct(e.get('union_recall'))} of the in-scope barriers.",
                   "", "| Page | In-scope hits / labels | Found in every run | Findings | Cost | Time |", "|---|---|---|---|---|---|"]
         for page, v in e["per_page"].items():
             lines.append(f"| {page} | {len(v['hits'])} / {v['n_in_scope']} | {len(v.get('hits_every_run', []))} | {v['n']:.1f} | ${v['cost_usd']:.3f} | {v['seconds']:.0f} s |")

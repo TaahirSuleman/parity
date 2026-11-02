@@ -120,3 +120,14 @@ def test_axe_baseline_scored_by_the_same_anchor():
     assert out["violations"] == 3 and out["out_of_scope"] == {"home-09"}
     clean = axe_baseline([AxeViolation(id="x", targets=["img"], htmls=['<img src="../img/toplogo.png" alt="...">'])], AFTER_HOME)
     assert clean["on_clean"] == ["img"] and clean["recall"] == 0.0
+
+
+def test_beyond_axe_recall_scores_parity_on_what_axe_misses():
+    """The Verifier defers to axe-core by design (not_axe), so the block also says how Parity does on the in-scope barriers axe misses, and their union."""
+    from eval.harness import beyond_axe
+
+    home = match_external([F("a", el(outer_html='<img src="../img/top_logo.gif">')), F("b", el(outer_html='<img src="../img/teaser_right1.jpg">'))], HOME)
+    in_scope = {"home-01", "home-02", "home-04", "home-05", "home-07", "home-08", "home-10"}
+    b = beyond_axe({"bad/before/home.html": [home]}, axe_hits={"home-02", "home-07"}, in_scope_ids=in_scope)
+    assert b["n_beyond_axe"] == 5 and b["recall_beyond_axe"] == 1 / 5 and b["union_recall"] == 3 / 7
+    assert beyond_axe({}, axe_hits=set(), in_scope_ids=set()) == {"n_beyond_axe": 0, "recall_beyond_axe": 0.0, "union_recall": 0.0}

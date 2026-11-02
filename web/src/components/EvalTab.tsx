@@ -10,6 +10,7 @@ export interface External {
   model?: string; runs: number; n_in_scope: number; out_of_scope_count: number; n_clean: number;
   in_scope_recall: number; precision: number; n: number; fp_on_after_pages: number; out_of_scope_hits: number; unlabelled_on_before: number;
   axe_recall: number; axe?: { violations?: number; out_of_scope?: string[] }; cost_usd: number; seconds: number; attribution?: string;
+  recall_beyond_axe?: number; union_recall?: number; n_beyond_axe?: number;
 }
 export interface EvalResults {
   updated_at?: string; model?: string; judge_model?: string; n_faults?: number; n_clean?: number; runs?: number;
@@ -97,16 +98,16 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
             <span className="muted text-xs ml-auto">8 pages on www.w3.org, read-only · {results.external.runs} {results.external.runs === 1 ? "run" : "runs"} per page</span>
           </div>
           <table className="eval mt-3">
-            <thead><tr><th scope="col">System</th><th scope="col">In-scope recall</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">On repaired pages</th><th scope="col">On out-of-scope barriers</th><th scope="col">Cost / 8 pages</th><th scope="col">Time / 8 pages</th></tr></thead>
+            <thead><tr><th scope="col">System</th><th scope="col">In-scope recall</th><th scope="col">Beyond axe-core</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">On repaired pages</th><th scope="col">On out-of-scope barriers</th><th scope="col">Cost / 8 pages</th><th scope="col">Time / 8 pages</th></tr></thead>
             <tbody>
               <tr data-config="external-full">
                 <th scope="row">Parity (full)</th>
-                <td>{pct(results.external.in_scope_recall)}</td><td>{pct(results.external.precision)}</td><td>{Math.round(results.external.n)} per run · {results.external.n_in_scope} in-scope labels</td>
+                <td>{pct(results.external.in_scope_recall)}</td><td>{pct(results.external.recall_beyond_axe)}</td><td>{pct(results.external.precision)}</td><td>{Math.round(results.external.n)} per run · {results.external.n_in_scope} in-scope labels</td>
                 <td>{results.external.fp_on_after_pages.toFixed(1)}</td><td>{results.external.out_of_scope_hits.toFixed(1)}</td><td>{fmtCost(results.external.cost_usd)}</td><td>{fmtDuration(Math.round(results.external.seconds * 1000))}</td>
               </tr>
               <tr data-config="external-axe">
                 <th scope="row">axe-core 4.14</th>
-                <td>{pct(results.external.axe_recall)}</td><td>—</td><td>{results.external.axe?.violations ?? 0} violations</td><td>—</td><td>{(results.external.axe?.out_of_scope ?? []).length}</td><td>$0</td><td>—</td>
+                <td>{pct(results.external.axe_recall)}</td><td>—</td><td>—</td><td>{results.external.axe?.violations ?? 0} violations</td><td>—</td><td>{(results.external.axe?.out_of_scope ?? []).length}</td><td>$0</td><td>—</td>
               </tr>
             </tbody>
           </table>
@@ -114,7 +115,10 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
             Subset stated: {results.external.n_in_scope} of W3C's {results.external.n_in_scope + results.external.out_of_scope_count} numbered barriers on the four "before" pages are in Parity's scope by kind
             (text alternatives, names, link text, unlabelled controls); the other {results.external.out_of_scope_count} (structure, presentation, keyboard) are counted, never claimed.
             Precision counts a finding on an in-scope barrier as right and every finding on a repaired "after" page as wrong; findings on elements W3C did not annotate
-            ({results.external.unlabelled_on_before.toFixed(1)} per run) are reported, not scored. {results.external.attribution ?? "W3C WAI Before and After Demonstration, W3C Document License; audited read-only"}.
+            ({results.external.unlabelled_on_before.toFixed(1)} per run) are reported, not scored.
+            {results.external.n_beyond_axe !== undefined && (
+              <> The Verifier drops what axe-core already reports, by design: {results.external.n_beyond_axe} of the {results.external.n_in_scope} in-scope barriers are ones axe-core does not report, and "Beyond axe-core" is Parity's recall on those; together they reach {pct(results.external.union_recall)}.</>
+            )} {results.external.attribution ?? "W3C WAI Before and After Demonstration, W3C Document License; audited read-only"}.
           </p>
         </section>
       ) : (

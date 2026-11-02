@@ -78,6 +78,7 @@ describe("EvalTab external pages (W3C BAD, Phase 6b)", () => {
     model: "muse-spark-1.3-contributor", runs: 2, n_in_scope: 14, out_of_scope_count: 21, n_clean: 35,
     in_scope_recall: 0.5, precision: 0.8, n: 20, fp_on_after_pages: 1.5, out_of_scope_hits: 2, unlabelled_on_before: 6,
     axe_recall: 0.21, axe: { violations: 40, out_of_scope: ["home-09"] }, cost_usd: 1.4, seconds: 900,
+    recall_beyond_axe: 0.45, union_recall: 0.64, n_beyond_axe: 11,
     attribution: "W3C WAI Before and After Demonstration, Copyright © 2012 W3C® (MIT, ERCIM, Keio), W3C Document License; audited read-only",
   };
 
@@ -88,8 +89,12 @@ describe("EvalTab external pages (W3C BAD, Phase 6b)", () => {
     expect(full).toHaveTextContent("50%");
     expect(full).toHaveTextContent("80%");
     expect(full).toHaveTextContent("20 per run");
-    expect(within(section).getByRole("row", { name: /axe-core/i })).toHaveTextContent("21%");
+    expect(within(section).getByRole("row", { name: /^axe-core 4\.14/i })).toHaveTextContent("21%");
+    expect(within(section).getByRole("columnheader", { name: /beyond axe-core/i })).toBeInTheDocument();
+    expect(full).toHaveTextContent("45%");
     const note = screen.getByLabelText("External scope note");
+    expect(note).toHaveTextContent(/11 of the 14 in-scope barriers are ones axe-core does not report/);
+    expect(note).toHaveTextContent(/together they reach 64%/);
     expect(note).toHaveTextContent("14 of W3C's 35 numbered barriers");
     expect(note).toHaveTextContent(/counted, never claimed/);
     expect(note).toHaveTextContent(/W3C Document License/);

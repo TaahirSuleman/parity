@@ -229,6 +229,19 @@ def external_metrics(by_page: dict[str, list[ExternalMatches]]) -> dict[str, Any
             "n_in_scope": n_in_scope, "out_of_scope_count": out_count, "n_clean": n_clean, "runs": runs}
 
 
+def beyond_axe(by_page: dict[str, list[ExternalMatches]], axe_hits: set[str], in_scope_ids: set[str]) -> dict[str, Any]:
+    """Parity's recall on the in-scope barriers axe-core does not report (the Verifier's not_axe check hands those to axe by
+    design), and the recall of Parity and axe together; means over runs."""
+    beyond = in_scope_ids - axe_hits
+    runs = max((len(v) for v in by_page.values()), default=0)
+    rb, ru = [], []
+    for i in range(runs):
+        hits = set().union(*[v[i].hits for v in by_page.values() if i < len(v)])
+        rb.append(len(hits - axe_hits) / len(beyond) if beyond else 0.0)
+        ru.append(len(hits | axe_hits) / len(in_scope_ids) if in_scope_ids else 0.0)
+    return {"n_beyond_axe": len(beyond), "recall_beyond_axe": mean(rb), "union_recall": mean(ru)}
+
+
 def axe_baseline(violations: list[AxeViolation], labels: list[dict]) -> dict[str, Any]:
     """What axe-core finds on the same labels, each flagged node scored by label_for over its selector and its HTML. Recall is
     over the fault labels in scope (every store label is)."""
@@ -381,10 +394,11 @@ async def run_external(*, client_factory, runs: int, data_dir: Path, settings: S
         await index.close()
     totals = external_metrics(by_page)
     n_in = totals["n_in_scope"]
+    in_scope_all = {r["id"] for r in labels if not r["clean"] and r["in_scope"] and r["page"] in pages}
     return {
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "model": settings.model_for("comparator"), "judge_model": settings.model_for("judge"),
         "effort": effort, "runs": runs, "pages": list(pages), "origin": base_url, "attribution": EXTERNAL_ATTRIBUTION, "labels": "eval/labels_external.json",
-        "labels_sha256": hashlib.sha256(Path(labels_path).read_bytes()).hexdigest(), **totals,
+        "labels_sha256": hashlib.sha256(Path(labels_path).read_bytes()).hexdigest(), **totals, **beyond_axe(by_page, axe_hits, in_scope_all),
         "axe_recall": len(axe_hits) / n_in if n_in else 0.0,
         "axe": {"violations": axe_viol, "hits": sorted(axe_hits), "out_of_scope": sorted(axe_oos), "per_page": axe_per_page},
         "cost_usd": sum(v["cost_usd"] for v in per_page.values()), "seconds": sum(v["seconds"] for v in per_page.values()), "per_page": per_page,

@@ -409,7 +409,9 @@ Cold judge, UX and UI (ranked by effect on the score; the three essentials and t
   byte-range serving of `/store/voice/*.wav`) are pushed with their tests (the synthetic hero bundle carries a segment so the smoke test proves the
   replay path). The recording itself, the hero re-record and the G-V figure wait for the builder's clip.
 - **VoiceOver pass (docs/24) fixes:** the run announcement is `aria-live="assertive"` and atomic; a recorded decision is announced through a
-  screen-reader-only alert (`RunState.lastDecision`); the idle framing paragraph is no longer a live region (`a447b8b`).
+  screen-reader-only alert (`RunState.lastDecision`); the idle framing paragraph is no longer a live region (`a447b8b`). Verified on the hosted app at ≈00:58 SAST
+  after its deploy: the assertive, atomic region announces "Audit started…" at once and "Audit finished: 7 verified findings." 17 s into a Replay; the idle
+  framing carries no status role (headless Chromium; the page must be hydrated before the clicks, `networkidle` not `load`).
 
 ### 9.2 A red CI nobody noticed
 - Every push from `eed59be` (Task 26, 23:05 SAST) to `2826191` failed CI: two kit tests run `scripts/vo_captions.sh` through `/bin/zsh`, which the

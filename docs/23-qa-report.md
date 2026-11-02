@@ -389,3 +389,33 @@ Cold judge, UX and UI (ranked by effect on the score; the three essentials and t
   Actions, Workload Identity Federation, no stored key; deploy/README.md). The first run failed on `PERMISSION_DENIED` acting as the Cloud Build
   service account and counted `deploy/README.md` as app; both fixed (actAs granted, any `.md` is docs-only).
 - Spend this gate: one hosted Live run, $0.10.
+
+## 9. Track A of Phase 6/6b: the external benchmark, Voice, and a red CI (3 Nov 2026, 00:00–01:00 SAST)
+
+### 9.1 What ran, first-hand
+- **W3C BAD benchmark (Task 26E.3):** `python -m eval.harness --external --runs 2`, 16 of 16 runs `done`, $0.165, 1,031 s, from 23:58 to 00:15 SAST, after a one-page
+  probe ($0.047, 181 s) had sized it. In-scope recall 14% (2 of 14, the same two in every run: the CSS background image named only by `title="image"` on
+  home, the phone-number image on tickets whose alt is "music line phone number"); beyond axe-core 22% (2 of 9); axe-core 36% (5 of 14); together 50%;
+  precision 34% with 4.0 findings per run on the repaired pages (the three `alt=""` photos on the repaired home page, a heading the Seer read as
+  "Tough Wahoone", the tickets nav item with its hidden "Accessible" span). On the before pages the Verifier rejected 7–12 candidates per run as
+  `not_axe` (axe reports the BAD faults: missing alt, unlabelled radios and select, empty image links) and 2–5 as `diverges` (the name equals the
+  visible text). Labels fixed before the run (`eval/labels_external.json`, 70 rows, 14 in scope by kind) and not changed after it.
+- **Hosted verification (revision from `37c6bc0`, ≈00:45 SAST):** `/api/eval` carries the `external` block; the Eval tab shows "External pages
+  (W3C BAD), labels we did not write", the Beyond axe-core column, "14 of W3C's 35 numbered barriers" and the W3C licence line (headless Chromium);
+  a checkout Replay through the API streams 61 events from `run.started` to `run.finished` with seven findings and no Voice block (the hero bundle is
+  not re-recorded yet).
+- **Voice (Tasks 26–28):** the recording kit (`scripts/vo_*`, `docs/voice-recording.md`), transcription and alignment (`parity/voice.py`), and the
+  pipeline and UI (`attach_voice` after the judges, the panel's segment player with the real-audio badge and G-V wording, the card's agreement line,
+  byte-range serving of `/store/voice/*.wav`) are pushed with their tests (the synthetic hero bundle carries a segment so the smoke test proves the
+  replay path). The recording itself, the hero re-record and the G-V figure wait for the builder's clip.
+- **VoiceOver pass (docs/24) fixes:** the run announcement is `aria-live="assertive"` and atomic; a recorded decision is announced through a
+  screen-reader-only alert (`RunState.lastDecision`); the idle framing paragraph is no longer a live region (`a447b8b`).
+
+### 9.2 A red CI nobody noticed
+- Every push from `eed59be` (Task 26, 23:05 SAST) to `2826191` failed CI: two kit tests run `scripts/vo_captions.sh` through `/bin/zsh`, which the
+  Linux runner lacks. Because the deploy job needs green suites, **the hosted app stayed at the pre-Task-26 revision for two hours** while the
+  commits said otherwise. Fixed in `37c6bc0` (the two macOS-only tests skip without zsh); the first green run deployed everything at once.
+- Separately, `0782b7c` was pushed on a suite with two red integration tests (the stream tests count the synthetic bundle's events, 8 → 9 with
+  `voice.transcribed`): the background wrapper reported its trailing echo's exit code, and the first fix chained `pytest | tail && git push`, which
+  hid the second failure. Fixed in `6b8ad03` and `839c393`. Rule since then: a push is gated on pytest's own return code, read from the log.
+- Spend this section: $0.21 of model calls (the probe and the run).

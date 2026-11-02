@@ -20,6 +20,7 @@ from parity.pipeline.comparator import compare
 from parity.pipeline.judge import judge
 from parity.pipeline.seer import see
 from parity.pipeline.verifier import NOT_ANNOUNCED, locate, normalise, verify
+from parity.voice import attach_voice
 from parity.store.bundle import RunBundle
 from parity.store.models import Capture, Event, Finding, FindingStatus, Judgement, ModelCall, Rejected, Run, Severity, Step
 
@@ -207,6 +208,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
         await ctx.emit("judge.result", {"finding_id": finding.id, "judgement": judgement.model_dump(mode="json")})
 
     await asyncio.gather(*(judge_one(f) for f in new_findings if not ctx.over_budget))  # findings are judged independently: no reason to wait in line
+    await attach_voice(ctx, cap, new_findings, step_index)  # spec §16: real VoiceOver audio as evidence on the recorded store pages
 
     run.findings_verified = len(ctx.findings)
     run.findings_rejected = len(ctx.rejected)

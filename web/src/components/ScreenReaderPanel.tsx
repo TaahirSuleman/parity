@@ -6,7 +6,17 @@ export function srQuote(f: Pick<Finding, "sr_role" | "sr_name">): string | null 
   return `${f.sr_role}, "${f.sr_name}"`;
 }
 
-export function ScreenReaderPanel({ finding }: { finding: Finding | null }) {
+export const VOICE_GATE = 0.9; // spec §16 G-V: at or above it Voice is primary evidence, below it corroboration with the accuracy beside it
+
+export function voiceStanding(accuracy: number | null | undefined): string {
+  if (accuracy === null || accuracy === undefined) return "Transcript word accuracy not measured on this clip; corroboration only.";
+  const pct = `${Math.round(100 * accuracy)}%`;
+  return accuracy >= VOICE_GATE
+    ? `Primary evidence: real VoiceOver audio, transcript word accuracy ${pct} against what VoiceOver spoke.`
+    : `Corroboration: transcript word accuracy ${pct} against what VoiceOver spoke, below the 90% gate; the accessibility tree stays the evidence.`;
+}
+
+export function ScreenReaderPanel({ finding, voiceAccuracy }: { finding: Finding | null; voiceAccuracy?: number | null }) {
   const quote = finding ? srQuote(finding) : null;
   return (
     <section className="surface flex flex-col min-h-0 overflow-auto" aria-labelledby="sr-h" tabIndex={0}>
@@ -37,11 +47,15 @@ export function ScreenReaderPanel({ finding }: { finding: Finding | null }) {
               </p>
             )}
             {finding.voice && (
-              <div>
-                <div className="text-xs uppercase tracking-wider muted mb-1">VoiceOver</div>
-                <audio controls src={`/store/voice/${finding.voice.clip_key}#t=${finding.voice.start_ms / 1000},${finding.voice.end_ms / 1000}`} />
+              <div aria-label="VoiceOver evidence">
+                <div className="text-xs uppercase tracking-wider muted mb-1">VoiceOver, recorded on this page</div>
+                <audio controls preload="metadata" aria-label="VoiceOver reading this element" src={`/store/voice/${finding.voice.clip_key}#t=${finding.voice.start_ms / 1000},${finding.voice.end_ms / 1000}`} />
                 <div className="mono text-sm mt-1">{finding.voice.transcript}</div>
-                <MetaBadge model="muse-voice-transcribe-1.0" capability="real VoiceOver audio" />
+                <div className="text-sm mt-1">
+                  <span aria-hidden="true">{finding.voice.agrees ? "✓" : "✗"}</span> {finding.voice.agrees ? "Transcript agrees with the accessibility tree" : "Transcript differs from the accessibility tree"}
+                </div>
+                <div className="mt-1"><MetaBadge model="muse-voice-transcribe-1.0" capability="real VoiceOver audio" /></div>
+                <p className="text-xs muted mt-1 mb-0">{voiceStanding(voiceAccuracy)} Recorded store pages only: Live runs on the hosted app do not run VoiceOver.</p>
               </div>
             )}
           </>

@@ -65,6 +65,15 @@ How to read it: the accessibility tree carries most of the recall; the screensho
 
 **Real-world sample** (read-only, anonymised, CLI only): Site A, two screens, six verified findings (five CSS-drawn star ratings that announce nothing; axe reports none of them). Site B: a bot challenge in front of the first page ended the run before anything was sent to a model.
 
+**External pages we did not write (W3C BAD).** The four "before" pages of the W3C WAI [Before and After Demonstration](https://www.w3.org/WAI/demos/bad/) and their four repaired "after" pages, audited read-only on www.w3.org, scored against the pages' own numbered annotations ([eval/labels_external.json](eval/labels_external.json), W3C Document License). **The subset, stated:** 14 of W3C's 35 barriers are in Parity's scope by kind (text alternatives, names, link text, unlabelled controls); the other 21 (structure, presentation, keyboard) are counted and never claimed. Precision counts a finding on an in-scope barrier as right and every finding on a repaired page as wrong. Two runs per page, 3 Nov ([eval/results/external-bad-2runs.json](eval/results/external-bad-2runs.json)).
+
+| System | In-scope recall | Beyond axe-core | Precision | Findings per run | On repaired pages | Cost / 8 pages | Time |
+|---|---|---|---|---|---|---|---|
+| Parity (full) | 14% (2 of 14) | 22% (2 of 9) | 34% | 7 | 4.0 | $0.17 | 1,031 s |
+| axe-core 4.14 | 36% (5 of 14) | — | — | 38 violations | — | $0 | — |
+
+What the numbers say: Parity found two in-scope barriers in every run, both invisible to axe-core (a CSS background image named only by `title="image"`, and an image of a phone number whose alt reads "music line phone number"). The other candidates it proposed on these pages, about nine per page, were rejected by the Verifier because axe-core already reports them (missing alt, unlabelled radios and a select, empty image links) or because the announced name equals the visible text; that is Parity's own definition of a finding, so "Beyond axe-core" is its recall on the nine in-scope barriers axe-core misses, and Parity and axe-core together reach 7 of 14. The four false alarms per run on the repaired pages are three photos W3C marks decorative (`alt=""`) that Parity reports as pictures a sighted user sees and a screen reader skips, a heading the Seer misread by one letter, and a navigation item with hidden "Accessible" text; they count against precision by construction. Eight pages, two runs each: a small sample, shown as such in the Eval tab.
+
 ## Observability
 
 Every run is a bundle on disk (or in a Cloud Storage bucket): `run.json`, each screen's screenshot, accessibility tree, axe result and served source, each finding and rejected candidate, `trace.jsonl` (every model call) and `events.jsonl` (what the workbench streamed). Replay plays a committed bundle back; a run's URL reopens it with its decisions. The SQLite index is a cache rebuilt at boot.

@@ -65,8 +65,13 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
         <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
           flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} notice={state.notice ?? null} outcome={outcome} steps={state.steps}
           fixesExpected={state.phase === "running" && !readOnly} comparatorModel={state.models.comparator} />
-        <ScreenReaderPanel finding={selected} />
-        <p className="sr-only" aria-live="polite">{live}</p>
+        <ScreenReaderPanel finding={selected} voiceAccuracy={state.voice?.accuracy} />
+        <p className="sr-only" aria-live="assertive" aria-atomic="true">{live}</p>
+        {state.lastDecision && (
+          <p className="sr-only" role="alert" key={`${state.lastDecision.finding_id}-${state.lastDecision.at}`}>
+            {state.lastDecision.decision === "approve" ? "Approved" : "Rejected"} · {state.lastDecision.reason}
+          </p>
+        )}
       </main>
       )}
       <TraceDrawer calls={state.calls} open={traceOpen} onToggle={() => setTraceOpen((o) => !o)} />

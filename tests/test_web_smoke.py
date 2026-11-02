@@ -79,7 +79,7 @@ async def test_replay_approve_records_the_decision(page, server_url):
     await approve.wait_for()
     assert await page.get_by_label("Reason").input_value()
     await approve.click()
-    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=10000)
+    await page.get_by_role("status").filter(has_text=re.compile(r"^Approved ·")).wait_for(timeout=10000)
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('1 approved')", timeout=10000)
     assert "awaiting review" not in (await page.locator("header").inner_text()).lower()
 
@@ -157,11 +157,11 @@ async def test_run_link_reloads_the_run_with_its_decisions(page, server_url):
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=60000)
     await card.click()
     await page.get_by_role("button", name="Approve fix").click()
-    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=10000)
+    await page.get_by_role("status").filter(has_text=re.compile(r"^Approved ·")).wait_for(timeout=10000)
     assert "run=" in page.url
     await page.reload()
     await page.get_by_role("button", name="Pay R1,249").first.wait_for(timeout=30000)
-    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=30000)
+    await page.get_by_role("status").filter(has_text=re.compile(r"^Approved ·")).wait_for(timeout=30000)
     await page.get_by_role("link", name=re.compile("fix.patch")).wait_for(timeout=10000)
     assert await page.get_by_role("combobox", name="Flow").input_value() == "checkout"
     assert "1 approved" in await page.locator("header").inner_text()
@@ -313,3 +313,24 @@ async def test_url_field_audits_the_w3c_home_page(page, url_server):
     header = await page.locator("header").inner_text()
     assert "www.w3.org" in header and "audited read-only at a visitor's request" in header and "ShopRight" not in header
     assert "A fix and its re-audit follow" not in await page.locator("main").inner_text()
+
+
+async def test_hero_card_has_an_audio_element_with_a_time_fragment(page, server_url):
+    """Spec §16, Task 28: selecting the hero finding in Replay plays its VoiceOver segment (#t=start,end on the page's clip), shows the
+    Voice Transcribe transcript with the real-audio badge, and says whether the transcript agrees with the tree."""
+    await page.goto(server_url + "/")
+    await page.get_by_role("button", name="Replay").click()
+    await page.get_by_role("button", name="Run the audit").click()
+    card = page.get_by_role("button", name="Pay R1,249").first
+    await card.wait_for(timeout=30000)
+    await card.click()
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('0 violations')", timeout=30000)
+    panel = page.locator("section[aria-labelledby='sr-h']")
+    audio = panel.locator("audio")
+    await audio.wait_for(timeout=10000)
+    src = await audio.get_attribute("src")
+    assert re.fullmatch(r"/store/voice/checkout\.wav#t=\d+(\.\d+)?,\d+(\.\d+)?", src or ""), src
+    text = await panel.inner_text()
+    assert "Submit, button" in text and "MUSE VOICE TRANSCRIBE" in text and "agrees with the accessibility tree" in text
+    assert "Primary evidence" in text or "Corroboration" in text
+    assert await page.get_by_text("VoiceOver transcript agrees", exact=False).count() >= 1  # the card line beside the five checks

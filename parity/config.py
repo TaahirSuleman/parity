@@ -70,6 +70,8 @@ class Settings:
     replay_min_age_s: int = 7200  # beyond the cap, only copies older than this are evicted: a judge still reviewing one must not lose it
     trust_proxy: bool = False  # behind Cloud Run the visitor is the right-most X-Forwarded-For hop (the front end appends the address it saw); a direct client's header is ignored
     log_level: str = "info"
+    voice_focuslog: bool = False  # the recording kit's focus-log endpoint (scripts/vo_record.py); dev only, never on the hosted app
+    voice_dir: Path = Path(__file__).resolve().parents[1] / "store" / "voice"  # the recorded clips and their sidecars (spec §16)
 
     def model_for(self, stage: str) -> str:
         """The only place a pipeline stage learns which model ID to call."""
@@ -141,4 +143,6 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         external_per_origin_per_day=int(get("PARITY_EXTERNAL_PER_ORIGIN_PER_DAY", str(Settings.external_per_origin_per_day))),
         external_timeout_s=int(get("PARITY_EXTERNAL_TIMEOUT_S", str(Settings.external_timeout_s))),
         log_level=get("LOG_LEVEL", "info"),
+        voice_focuslog=_bool(get("PARITY_VOICE_FOCUSLOG", "0")),
+        voice_dir=Path(get("PARITY_VOICE_DIR", str(Settings.voice_dir))),
     )

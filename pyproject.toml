@@ -27,6 +27,9 @@ dev = [
   "pytest>=9.2,<10",
   "pytest-asyncio>=1.4,<2",
 ]
+voice = [
+  "sounddevice>=0.5,<1",  # the recording kit (scripts/vo_record.py) reads the loopback device; PortAudio ships inside the wheel
+]
 
 [project.scripts]
 parity = "parity.cli:main"

@@ -244,3 +244,26 @@ describe("run.started on a page the visitor chose (Task 26F.6)", () => {
     expect(store.run?.source).toBe("flow");
   });
 });
+
+describe("Voice (P6)", () => {
+  it("voice.transcribed attaches the segment to each finding it names and keeps the page accuracy", () => {
+    const base = play(events.filter((e) => ["run.started", "step.captured", "verifier.result"].includes(e.type)));
+    const hero = base.findings.find((f) => f.sr_name === "Submit")!;
+    const segment = { clip_key: "checkout.wav", start_ms: 7200, end_ms: 10000, transcript: "Submit, button", agrees: true };
+    const next = reduce(base, { type: "voice.transcribed", run_id: base.run!.id, at: "t", page: "checkout", accuracy: 0.93, clip_key: "checkout.wav", findings: { [hero.id]: segment } } as unknown as ParityEvent);
+    expect(next.voice).toEqual({ page: "checkout", accuracy: 0.93, clip_key: "checkout.wav" });
+    expect(next.findings.find((f) => f.id === hero.id)!.voice).toEqual(segment);
+    expect(next.findings.filter((f) => f.id !== hero.id).every((f) => !f.voice)).toBe(true);
+    expect(next.stage).toBe("voice");
+  });
+});
+
+describe("decision announcements (docs/24 Question D)", () => {
+  it("decision.recorded remembers the latest decision for the announcer", () => {
+    const base = play(events);
+    const f = base.findings[0];
+    const next = reduce(base, { type: "decision.recorded", run_id: base.run!.id, at: "t9", finding_id: f.id, decision: { decision: "reject", reason: "Not a barrier here", decided_at: "t9" }, status: "rejected" } as unknown as ParityEvent);
+    expect(next.lastDecision).toEqual({ finding_id: f.id, decision: "reject", reason: "Not a barrier here", at: "t9" });
+    expect(initialState.lastDecision).toBeNull();
+  });
+});

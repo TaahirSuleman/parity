@@ -73,6 +73,11 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           ))}
           <li><CodeBadge what="code · verifier" /></li>
         </ul>
+        {finding.voice && (
+          <p className="text-xs mt-1 mb-0" aria-label="VoiceOver evidence">
+            <span aria-hidden="true">{finding.voice.agrees ? "✓" : "✗"}</span> VoiceOver transcript {finding.voice.agrees ? "agrees" : "differs"}: “{finding.voice.transcript}”
+          </p>
+        )}
         <details className="check-details text-xs muted mt-1" onClick={(e) => e.stopPropagation()}>
           <summary className="cursor-pointer" aria-label={`Check details for ${finding.sighted_text}`}>Check details</summary>
           <ul className="m-0 mt-1 pl-4">

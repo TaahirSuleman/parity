@@ -14,7 +14,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
+import html
 import json
+import re
 import socket
 import sys
 import tempfile
@@ -39,10 +42,16 @@ from parity.store import bundle as bundle_mod  # noqa: E402
 from parity.store.blob import LocalBlobStore  # noqa: E402
 from parity.store.bundle import RunBundle  # noqa: E402
 from parity.store.index import RunIndex  # noqa: E402
-from parity.store.models import AxeViolation, AxNode, Capture, Finding, Judgement, Severity  # noqa: E402
+from parity.store.models import AxeViolation, AxNode, Capture, Element, Finding, Judgement, Severity  # noqa: E402
 
 LABELS_PATH = ROOT / "eval" / "labels.json"
 RESULTS_DIR = ROOT / "eval" / "results"
+# External benchmark (doc 19 §19.1): the W3C WAI Before and After Demonstration, audited read-only on www.w3.org.
+EXTERNAL_LABELS_PATH = ROOT / "eval" / "labels_external.json"
+EXTERNAL_ORIGIN = "https://www.w3.org"
+EXTERNAL_BASE_PATH = "/WAI/demos/"
+EXTERNAL_PAGES = [f"bad/{side}/{name}.html" for side in ("before", "after") for name in ("home", "news", "tickets", "survey")]
+EXTERNAL_ATTRIBUTION = "W3C WAI Before and After Demonstration, Copyright © 2012 W3C® (MIT, ERCIM, Keio), W3C Document License; audited read-only"
 PAGES = ["product.html", "cart.html", "checkout.html", "confirm.html"]
 CONFIGS: dict[str, dict[str, bool]] = {
     "full": {},
@@ -55,7 +64,9 @@ CONFIGS: dict[str, dict[str, bool]] = {
 # --- labels, matching, arithmetic (pure) ---------------------------------------------------------------
 
 def load_labels(path: Path = LABELS_PATH) -> list[dict]:
-    return json.loads(Path(path).read_text())
+    """The store labels are a list; the external file is an object whose ``rows`` sit under the W3C notice."""
+    doc = json.loads(Path(path).read_text())
+    return doc["rows"] if isinstance(doc, dict) else doc
 
 
 def labels_for(labels: list[dict], page: str) -> list[dict]:
@@ -83,13 +94,47 @@ def label_id_of(element) -> str | None:
     return ids[-1] if ids else None
 
 
+_WS = re.compile(r"\s+")
+_TAG = re.compile(r"<[^>]+>")
+
+
+def _norm(text: str) -> str:
+    return _WS.sub(" ", html.unescape(text or "")).strip().lower()
+
+
+def label_for(element, sighted_text: str, labels: list[dict]) -> str | None:
+    """The label a finding is scored under (spec §13, §19.1): the element's own id, or the nearest id above it, when that is a
+    label; otherwise the first label whose anchor the element satisfies, ``src`` and ``html`` (substrings of the outer HTML)
+    before ``text`` (normalised equality with the element's own text or the sighted text) before ``css`` (a fragment of the
+    css path). The axe baseline is scored by the same function."""
+    ids = {r["id"] for r in labels}
+    dom_id = label_id_of(element)
+    if dom_id in ids:
+        return dom_id
+    outer = element.outer_html or ""
+    texts = {_norm(_TAG.sub(" ", outer)), _norm(sighted_text)} - {""}
+    css_path = element.css_path or ""
+    for kind in ("src", "html", "text", "css"):
+        for r in labels:
+            value = (r.get("anchor") or {}).get(kind)
+            if not value:
+                continue
+            if kind in ("src", "html") and value in outer:
+                return r["id"]
+            if kind == "text" and _norm(value) in texts:
+                return r["id"]
+            if kind == "css" and value in css_path:
+                return r["id"]
+    return None
+
+
 def match(findings: list, labels: list[dict]) -> Matches:
-    """A verified finding matches a label when its located element carries the label's id (spec §13)."""
+    """A verified finding matches a label when its located element carries the label's id (spec §13) or satisfies its anchor (§19.1)."""
     faults = {r["id"] for r in labels if not r["clean"]}
     clean = {r["id"] for r in labels if r["clean"]}
     m = Matches(set(), set(), [], [], len(findings), len(faults))
     for f in findings:
-        dom_id = label_id_of(f.element)
+        dom_id = label_for(f.element, getattr(f, "sighted_text", ""), labels)
         if dom_id in faults:
             m.hits.add(dom_id)
             m.matched += 1
@@ -115,24 +160,108 @@ def metrics(m: Matches) -> dict[str, Any]:
 
 
 def _ids_in(target: str) -> list[str]:
-    import re
-
     return re.findall(r"#([A-Za-z][\w-]*)", target)
 
 
+@dataclass
+class ExternalMatches:
+    """One run of one W3C page against its labels (§19.1): in-scope barriers are the only recall target; out-of-scope
+    barriers are counted; every finding on a repaired ('after') page is a false positive by construction."""
+
+    hits: set[str]  # in-scope fault labels found
+    out_of_scope_hits: set[str]  # out-of-scope fault labels a finding landed on
+    on_clean: list[str]  # finding ids on labelled repaired elements
+    unlabelled: list[str]  # finding ids on nothing W3C annotated: reported, never scored
+    n_findings: int
+    n_in_scope: int
+    n_out_of_scope: int
+    n_clean: int
+    matched: int = 0  # findings on in-scope fault labels (precision's numerator)
+    out_of_scope_findings: int = 0
+    fp: int = 0  # findings on a repaired page
+    by_finding: dict[str, str | None] = field(default_factory=dict)
+
+
+def match_external(findings: list, labels: list[dict]) -> ExternalMatches:
+    in_scope = {r["id"] for r in labels if not r["clean"] and r["in_scope"]}
+    out_scope = {r["id"] for r in labels if not r["clean"] and not r["in_scope"]}
+    clean = {r["id"] for r in labels if r["clean"]}
+    repaired_page = bool(clean) and not in_scope and not out_scope
+    m = ExternalMatches(set(), set(), [], [], len(findings), len(in_scope), len(out_scope), len(clean))
+    for f in findings:
+        lid = label_for(f.element, getattr(f, "sighted_text", ""), labels)
+        m.by_finding[f.id] = lid
+        if lid in in_scope:
+            m.hits.add(lid)
+            m.matched += 1
+        elif lid in out_scope:
+            m.out_of_scope_hits.add(lid)
+            m.out_of_scope_findings += 1
+        elif lid in clean:
+            m.on_clean.append(f.id)
+        else:
+            m.unlabelled.append(f.id)
+    if repaired_page:
+        m.fp = len(findings)
+    return m
+
+
+def external_metrics(by_page: dict[str, list[ExternalMatches]]) -> dict[str, Any]:
+    """Totals over the pages, means over runs (run i of every page scored together). Recall is over the in-scope barriers of
+    the before pages; precision counts findings on in-scope barriers as right and every finding on a repaired page as wrong."""
+    runs = max((len(v) for v in by_page.values()), default=0)
+    before = {p: v for p, v in by_page.items() if "/before/" in p}
+    n_in_scope = sum(v[0].n_in_scope for v in before.values() if v)
+    out_count = sum(v[0].n_out_of_scope for v in before.values() if v)
+    n_clean = sum(v[0].n_clean for v in by_page.values() if v)
+    rows = []
+    for i in range(runs):
+        ms = {p: v[i] for p, v in by_page.items() if i < len(v)}
+        hits = set().union(*[m.hits for m in ms.values()]) if ms else set()
+        matched = sum(m.matched for m in ms.values())
+        fp = sum(m.fp for m in ms.values())
+        rows.append({"recall": len(hits) / n_in_scope if n_in_scope else 0.0, "precision": matched / (matched + fp) if matched + fp else 0.0,
+                     "fp": fp, "oos": sum(m.out_of_scope_findings for m in ms.values()), "n": sum(m.n_findings for m in ms.values()),
+                     "unlabelled": sum(len(m.unlabelled) for p, m in ms.items() if "/before/" in p)})
+    return {"in_scope_recall": mean([r["recall"] for r in rows]), "precision": mean([r["precision"] for r in rows]),
+            "fp_on_after_pages": mean([r["fp"] for r in rows]), "out_of_scope_hits": mean([r["oos"] for r in rows]),
+            "unlabelled_on_before": mean([r["unlabelled"] for r in rows]), "n": mean([r["n"] for r in rows]),
+            "n_in_scope": n_in_scope, "out_of_scope_count": out_count, "n_clean": n_clean, "runs": runs}
+
+
+def beyond_axe(by_page: dict[str, list[ExternalMatches]], axe_hits: set[str], in_scope_ids: set[str]) -> dict[str, Any]:
+    """Parity's recall on the in-scope barriers axe-core does not report (the Verifier's not_axe check hands those to axe by
+    design), and the recall of Parity and axe together; means over runs."""
+    beyond = in_scope_ids - axe_hits
+    runs = max((len(v) for v in by_page.values()), default=0)
+    rb, ru = [], []
+    for i in range(runs):
+        hits = set().union(*[v[i].hits for v in by_page.values() if i < len(v)])
+        rb.append(len(hits - axe_hits) / len(beyond) if beyond else 0.0)
+        ru.append(len(hits | axe_hits) / len(in_scope_ids) if in_scope_ids else 0.0)
+    return {"n_beyond_axe": len(beyond), "recall_beyond_axe": mean(rb), "union_recall": mean(ru)}
+
+
 def axe_baseline(violations: list[AxeViolation], labels: list[dict]) -> dict[str, Any]:
-    """What axe-core finds on the same labels: the rule engine's recall on seeded faults."""
-    faults = {r["id"] for r in labels if not r["clean"]}
+    """What axe-core finds on the same labels, each flagged node scored by label_for over its selector and its HTML. Recall is
+    over the fault labels in scope (every store label is)."""
+    faults = {r["id"] for r in labels if not r["clean"] and r.get("in_scope", True)}
+    out_scope = {r["id"] for r in labels if not r["clean"] and not r.get("in_scope", True)}
     clean = {r["id"] for r in labels if r["clean"]}
     hits: set[str] = set()
+    out_of_scope: set[str] = set()
     on_clean: list[str] = []
     for v in violations:
-        for target in v.targets:
-            ids = set(_ids_in(target))
-            hits |= ids & faults
-            if ids & clean:
+        htmls = list(v.htmls) + [""] * (len(v.targets) - len(v.htmls))
+        for target, snippet in zip(v.targets, htmls):
+            lid = label_for(Element(backend_id=0, css_path=target, outer_html=snippet or None), "", labels)
+            if lid in faults:
+                hits.add(lid)
+            elif lid in out_scope:
+                out_of_scope.add(lid)
+            elif lid in clean:
                 on_clean.append(target)
-    return {"hits": hits, "recall": len(hits) / len(faults) if faults else 0.0, "violations": len(violations), "on_clean": on_clean}
+    return {"hits": hits, "recall": len(hits) / len(faults) if faults else 0.0, "violations": len(violations), "on_clean": on_clean, "out_of_scope": out_of_scope}
 
 
 def judge_agreement(findings: list, labels: list[dict], judge_cost_usd: float) -> dict[str, Any]:
@@ -200,6 +329,80 @@ async def capture_from_bundle(bundle: RunBundle, run_id: str, step: int, url: st
                   silent_nodes=[AxNode.model_validate(n) for n in ax.get("silent_nodes", [])])
     cap.screenshot_png = await bundle.read_screenshot(run_id, step)
     return cap
+
+
+def external_page_flow(page: str) -> Flow:
+    """One W3C BAD page as a single-screen, read-only flow: the survey's goal says not to submit (§19.2)."""
+    name = page.removeprefix("bad/").removesuffix(".html").replace("/", "-")
+    return Flow(id=f"external-{name}", name=f"W3C BAD {name}", start_url=EXTERNAL_BASE_PATH + page,
+                goal="Audit this page as a sighted user and as a screen-reader user. Read only: fill in nothing and submit nothing.",
+                pages=(page,), single_page=True)
+
+
+async def run_external(*, client_factory, runs: int, data_dir: Path, settings: Settings, labels_path: Path = EXTERNAL_LABELS_PATH,
+                       effort: str = "medium", pages: list[str] = EXTERNAL_PAGES, base_url: str = EXTERNAL_ORIGIN, page_factory=None,
+                       log=print) -> dict[str, Any]:
+    """Audit the W3C BAD pages `runs` times each, read-only, no fixes; score by the external labels; return the `external` block."""
+    labels = load_labels(labels_path)
+    bundle = RunBundle(LocalBlobStore(Path(data_dir)))
+    index = RunIndex(Path(data_dir) / "index.db")
+    await index.init()
+    bus = EventBus(bundle)
+    kwargs: dict[str, Any] = {"page_factory": page_factory} if page_factory is not None else {}
+    by_page: dict[str, list[ExternalMatches]] = {}
+    per_page: dict[str, Any] = {}
+    axe_hits: set[str] = set()
+    axe_oos: set[str] = set()
+    axe_viol = 0
+    axe_per_page: dict[str, Any] = {}
+    try:
+        for page in pages:
+            page_labels = labels_for(labels, page)
+            in_scope_ids = {r["id"] for r in page_labels if not r["clean"] and r["in_scope"]}
+            page_runs: list[dict[str, Any]] = []
+            for r in range(runs):
+                c = client_factory(r)
+                t0 = time.perf_counter()
+                run = await run_flow(settings, c, bus, bundle, index, external_page_flow(page), base_url=base_url,
+                                     ablation=Ablation(effort=effort, run_fixes=False), public=True, **kwargs)
+                loaded = await bundle.load(run.id)
+                m = match_external(loaded.findings, page_labels)
+                by_page.setdefault(page, []).append(m)
+                row = {"hits": sorted(m.hits), "out_of_scope_hits": sorted(m.out_of_scope_hits), "on_clean": len(m.on_clean), "unlabelled": len(m.unlabelled),
+                       "fp": m.fp, "n": m.n_findings, "tokens": run.tokens, "cost_usd": run.cost_usd,
+                       "seconds": max(run.duration_ms / 1000, time.perf_counter() - t0), "run_id": run.id, "status": run.status, "error": run.error}
+                page_runs.append(row)
+                log(f"  [external] {page} run {r + 1}/{runs}: hits={len(m.hits)}/{m.n_in_scope} oos={m.out_of_scope_findings} fp={m.fp} "
+                    f"unlabelled={len(m.unlabelled)} n={m.n_findings} ${run.cost_usd:.3f} {row['seconds']:.0f}s {run.status}")
+                if r == 0:  # the axe baseline from the first run's own scan of the page
+                    raw = json.loads((await bundle.store.get(bundle_mod.keys.axe(run.id, 0))).decode())
+                    viol = [AxeViolation.model_validate(v) for v in (raw if isinstance(raw, list) else raw.get("violations", []))]
+                    b = axe_baseline(viol, page_labels)
+                    axe_per_page[page] = {"recall": b["recall"], "violations": b["violations"], "hits": sorted(b["hits"]),
+                                          "out_of_scope": sorted(b["out_of_scope"]), "on_clean": len(b["on_clean"])}
+                    axe_hits |= b["hits"]
+                    axe_oos |= b["out_of_scope"]
+                    axe_viol += b["violations"]
+            hits_union = set().union(*[set(x["hits"]) for x in page_runs])
+            per_page[page] = {
+                "n_in_scope": len(in_scope_ids), "hits": sorted(hits_union), "hits_every_run": sorted(set.intersection(*[set(x["hits"]) for x in page_runs])),
+                "missed": sorted(in_scope_ids - hits_union), "n": mean([x["n"] for x in page_runs]), "fp": mean([x["fp"] for x in page_runs]),
+                "unlabelled": mean([x["unlabelled"] for x in page_runs]), "tokens": mean([x["tokens"] for x in page_runs]),
+                "cost_usd": mean([x["cost_usd"] for x in page_runs]), "seconds": mean([x["seconds"] for x in page_runs]), "runs": page_runs,
+            }
+    finally:
+        await index.close()
+    totals = external_metrics(by_page)
+    n_in = totals["n_in_scope"]
+    in_scope_all = {r["id"] for r in labels if not r["clean"] and r["in_scope"] and r["page"] in pages}
+    return {
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "model": settings.model_for("comparator"), "judge_model": settings.model_for("judge"),
+        "effort": effort, "runs": runs, "pages": list(pages), "origin": base_url, "attribution": EXTERNAL_ATTRIBUTION, "labels": "eval/labels_external.json",
+        "labels_sha256": hashlib.sha256(Path(labels_path).read_bytes()).hexdigest(), **totals, **beyond_axe(by_page, axe_hits, in_scope_all),
+        "axe_recall": len(axe_hits) / n_in if n_in else 0.0,
+        "axe": {"violations": axe_viol, "hits": sorted(axe_hits), "out_of_scope": sorted(axe_oos), "per_page": axe_per_page},
+        "cost_usd": sum(v["cost_usd"] for v in per_page.values()), "seconds": sum(v["seconds"] for v in per_page.values()), "per_page": per_page,
+    }
 
 
 async def run_eval(*, client=None, client_factory=None, base_url: str, pages: list[str], runs: int, configs: list[str], data_dir: Path,
@@ -387,6 +590,12 @@ def _serve(settings: Settings):
     return server, f"http://127.0.0.1:{port}"
 
 
+def _factory_for(settings: Settings, work: Path, tag: str = "main"):
+    def client_factory(run_index: int, trace=None):  # a fresh cache per invocation and run: variance is measured, not replayed
+        return MetaClient(settings, cache_dir=work / f"cache-{tag}-{run_index}", trace=trace or TraceRouter())
+    return client_factory
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default=None, help="PARITY_MODEL for the run (default: settings)")
@@ -402,6 +611,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--effort-sweep", action="store_true", help="low, medium and high, one run each, full configuration")
     ap.add_argument("--standard-check", action="store_true", help="one full run on standard muse-spark-1.3")
     ap.add_argument("--name", default=None, help="results file name (default: timestamp)")
+    ap.add_argument("--external", action="store_true", help="the W3C BAD benchmark (doc 19 §19.1): its eight pages, --runs each, read-only; writes latest.json['external']")
     args = ap.parse_args(argv)
     base = load_settings()
     if not base.has_key:
@@ -417,6 +627,20 @@ def main(argv: list[str] | None = None) -> int:
                           needs_full=bool(args.effort_sweep or args.standard_check or args.compare_judge))
     stamp = args.name or datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
 
+    if args.external:
+        async def go_external() -> int:
+            work = Path(tempfile.mkdtemp(prefix="parity-eval-ext-"))
+            settings = load_settings(env={**env, "PARITY_DATA_DIR": str(work / "data")})
+            ext_pages = EXTERNAL_PAGES if args.pages == ",".join(PAGES) else [p for p in pages if p in EXTERNAL_PAGES]  # --pages names BAD pages here
+            print(f"external: model={settings.model_for('comparator')} judge={settings.model_for('judge')} effort={args.effort} pages={ext_pages} runs={args.runs} origin={EXTERNAL_ORIGIN}")
+            ext = await run_external(client_factory=_factory_for(settings, work, "external"), runs=args.runs, data_dir=work / "data", settings=settings, effort=args.effort, pages=ext_pages)
+            path = write_results({"generated_at": ext["generated_at"], **provenance(), "external": ext}, name=f"external-{stamp}")
+            print(f"wrote {path.relative_to(ROOT)} and refreshed latest.json / latest.md")
+            print(f"  external: in_scope_recall={ext['in_scope_recall']:.2f} precision={ext['precision']:.2f} n={ext['n']:.0f} fp_after={ext['fp_on_after_pages']:.1f} "
+                  f"oos={ext['out_of_scope_hits']:.1f} unlabelled={ext['unlabelled_on_before']:.1f} axe_recall={ext['axe_recall']:.2f} ${ext['cost_usd']:.3f} {ext['seconds']:.0f}s")
+            return 0
+        return asyncio.run(go_external())
+
     async def go() -> int:
         server, base_url = _serve(base)
         work = Path(tempfile.mkdtemp(prefix="parity-eval-"))
@@ -425,9 +649,7 @@ def main(argv: list[str] | None = None) -> int:
                 return load_settings(env={**env, **(extra or {}), "PARITY_DATA_DIR": str(work / "data")})
 
             def factory_for(settings: Settings, tag: str = "main"):
-                def client_factory(run_index: int, trace=None):  # a fresh cache per invocation and run: variance is measured, not replayed
-                    return MetaClient(settings, cache_dir=work / f"cache-{tag}-{run_index}", trace=trace or TraceRouter())
-                return client_factory
+                return _factory_for(settings, work, tag)
 
             settings = make_settings()
             print(f"model={settings.model_for('comparator')} judge={settings.model_for('judge')} effort={args.effort} pages={pages} runs={args.runs} configs={configs}")

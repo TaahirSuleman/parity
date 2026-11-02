@@ -5,6 +5,13 @@ interface Total { recall: number; precision: number; fp_on_clean: number; n: num
 interface JudgeRow { agreement: number; needs_review_rate: number; cost_per_finding: number; n: number }
 interface SweepRow { recall: number; precision: number; cost_usd: number; seconds: number }
 export interface PublicSample { name: string; run_id: string; pages: number; verified: number; rejected: number; status?: string; note?: string }
+/** The W3C BAD benchmark block (doc 19 §19.1): recall over the barriers in Parity's scope by kind, precision against the repaired pages. */
+export interface External {
+  model?: string; runs: number; n_in_scope: number; out_of_scope_count: number; n_clean: number;
+  in_scope_recall: number; precision: number; n: number; fp_on_after_pages: number; out_of_scope_hits: number; unlabelled_on_before: number;
+  axe_recall: number; axe?: { violations?: number; out_of_scope?: string[] }; cost_usd: number; seconds: number; attribution?: string;
+  recall_beyond_axe?: number; union_recall?: number; n_beyond_axe?: number;
+}
 export interface EvalResults {
   updated_at?: string; model?: string; judge_model?: string; n_faults?: number; n_clean?: number; runs?: number;
   configs?: Record<string, { runs?: number; total: Total }>;
@@ -13,6 +20,7 @@ export interface EvalResults {
   effort_sweep?: Record<string, SweepRow>;
   standard_tier_check?: { model: string } & SweepRow;
   public?: PublicSample[];
+  external?: External;
 }
 
 const CONFIG_LABELS: Record<string, string> = { full: "Parity (full)", screenshot_only: "screenshot only", tree_only: "tree only", no_grounding: "no grounding" };
@@ -81,6 +89,41 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
           </p>
         )}
       </section>
+      {results.external ? (
+        <section className="surface p-4" aria-labelledby="eval-external-h">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 id="eval-external-h" className="m-0" style={{ fontSize: 16 }}>External pages (W3C BAD), labels we did not write</h2>
+            <MetaBadge model={results.external.model ?? model} capability="seer · comparator" />
+            <CodeBadge what="code · verifier" />
+            <span className="muted text-xs ml-auto">8 pages on www.w3.org, read-only · {results.external.runs} {results.external.runs === 1 ? "run" : "runs"} per page</span>
+          </div>
+          <table className="eval mt-3">
+            <thead><tr><th scope="col">System</th><th scope="col">In-scope recall</th><th scope="col">Beyond axe-core</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">On repaired pages</th><th scope="col">On out-of-scope barriers</th><th scope="col">Cost / 8 pages</th><th scope="col">Time / 8 pages</th></tr></thead>
+            <tbody>
+              <tr data-config="external-full">
+                <th scope="row">Parity (full)</th>
+                <td>{pct(results.external.in_scope_recall)}</td><td>{pct(results.external.recall_beyond_axe)}</td><td>{pct(results.external.precision)}</td><td>{Math.round(results.external.n)} per run · {results.external.n_in_scope} in-scope labels</td>
+                <td>{results.external.fp_on_after_pages.toFixed(1)}</td><td>{results.external.out_of_scope_hits.toFixed(1)}</td><td>{fmtCost(results.external.cost_usd)}</td><td>{fmtDuration(Math.round(results.external.seconds * 1000))}</td>
+              </tr>
+              <tr data-config="external-axe">
+                <th scope="row">axe-core 4.14</th>
+                <td>{pct(results.external.axe_recall)}</td><td>—</td><td>—</td><td>{results.external.axe?.violations ?? 0} violations</td><td>—</td><td>{(results.external.axe?.out_of_scope ?? []).length}</td><td>$0</td><td>—</td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="text-sm mt-2 mb-0 muted" role="note" aria-label="External scope note">
+            Subset stated: {results.external.n_in_scope} of W3C's {results.external.n_in_scope + results.external.out_of_scope_count} numbered barriers on the four "before" pages are in Parity's scope by kind
+            (text alternatives, names, link text, unlabelled controls); the other {results.external.out_of_scope_count} (structure, presentation, keyboard) are counted, never claimed.
+            Precision counts a finding on an in-scope barrier as right and every finding on a repaired "after" page as wrong; findings on elements W3C did not annotate
+            ({results.external.unlabelled_on_before.toFixed(1)} per run) are reported, not scored.
+            {results.external.n_beyond_axe !== undefined && (
+              <> The Verifier drops what axe-core already reports, by design: {results.external.n_beyond_axe} of the {results.external.n_in_scope} in-scope barriers are ones axe-core does not report, and "Beyond axe-core" is Parity's recall on those; together they reach {pct(results.external.union_recall)}.</>
+            )} {results.external.attribution ?? "W3C WAI Before and After Demonstration, W3C Document License; audited read-only"}.
+          </p>
+        </section>
+      ) : (
+        <p className="muted text-sm m-0 px-1">External pages (W3C BAD): not run yet; no number is claimed.</p>
+      )}
       <section className="surface p-4" aria-labelledby="eval-arch-h">
         <h2 id="eval-arch-h" className="m-0" style={{ fontSize: 16 }}>How Parity works, in ten seconds</h2>
         <img src="/architecture.png" alt="Parity's pipeline: per screen, the Navigator walks, Capture records, the Seer grounds, the Comparator compares and the Verifier checks; per verified finding, the Judge rates, the Fixer proposes, the Re-audit confirms and a human decides" className="block w-full mt-2" style={{ maxWidth: 1100, height: "auto", border: "1px solid var(--line)", borderRadius: 6 }} />

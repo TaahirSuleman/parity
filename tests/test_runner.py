@@ -446,3 +446,74 @@ async def test_injected_instruction_is_quoted_not_obeyed(tmp_path, fixture_url, 
         assert RULE in body
         assert all(any(m.start() <= h < m.end() for m in spans.finditer(body)) for h in [m.start() for m in re.finditer(re.escape(sentence), body)])
     assert all(RULE in str(c.get("instructions", "")) for c in auditor_calls(client))  # the agent's instructions carry it on every turn
+
+
+# --- Voice (spec §16, Task 28) ----------------------------------------------------------------------------
+
+async def _events_of(tmp_path, run_id: str) -> list[dict]:
+    return [json.loads(line) for line in (tmp_path / "data" / "runs" / run_id / "events.jsonl").read_text().splitlines() if line.strip()]
+
+
+async def test_voice_attaches_to_findings_when_the_page_has_a_clip(tmp_path, server_url, page):
+    """After verify, a finding whose element had focus during the recording gets the VoiceOver segment, its transcript and the agreement check."""
+    from tests.test_voice import TURNS, _recording
+
+    async def factory():
+        return page
+
+    voice_dir = tmp_path / "voice"
+    _recording(voice_dir)  # checkout.wav, stops name → card → f5, captions
+    raw = {"transcript": " ".join(t["transcript"] for t in TURNS), "audioDurationMs": 10000, "turns": TURNS, "_request_id": "req-asr-9"}
+    client = FakeMetaClient(META, trace=TraceRouter(), stage_defaults=stage_defaults(), script={"voice": [raw]})  # routed to the run, so the voice call lands in the bundle's trace
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_VOICE_DIR": str(voice_dir)})
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        run = await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory)
+    finally:
+        await index.close()
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    loaded = await bundle.load(run.id)
+    hero = next(f for f in loaded.findings if f.sr_name == "Submit")
+    assert hero.element.dom_id == "f5"
+    assert hero.voice is not None and hero.voice.clip_key == "checkout.wav" and (hero.voice.start_ms, hero.voice.end_ms) == (7200, 10000)
+    assert hero.voice.transcript == "Submit, button Close, button" and hero.voice.agrees is True
+    assert all(f.voice is None for f in loaded.findings if f.element.dom_id not in ("name", "card", "f5"))
+    ev = next(e for e in await _events_of(tmp_path, run.id) if e["type"] == "voice.transcribed")
+    assert ev["data"]["page"] == "checkout" and ev["data"]["accuracy"] == 1.0 and ev["data"]["clip_key"] == "checkout.wav"
+    assert ev["data"]["findings"][hero.id]["agrees"] is True and ev["data"]["findings"][hero.id]["start_ms"] == 7200
+    voice_calls = [t for t in loaded.trace if t.stage == "voice"]
+    assert len(voice_calls) == 1 and voice_calls[0].model == "muse-voice-transcribe-1.0" and voice_calls[0].request_id == "req-asr-9"
+    request = next(c for c in client.calls if c.get("audioEncoding") == "WAV")
+    assert request["mode"] == "PUSH_TO_TALK" and "Submit" in request["keywords"]  # the page's AX names bias the transcriber
+
+
+async def test_voice_is_skipped_without_a_clip_and_on_public_pages(tmp_path, server_url, page):
+    from tests.test_voice import TURNS, _recording
+
+    async def factory():
+        return page
+
+    async def run_with(voice_dir, *, public: bool):
+        raw = {"transcript": "x", "audioDurationMs": 10000, "turns": TURNS, "_request_id": "req-asr-x"}
+        client = FakeMetaClient(META, stage_defaults=stage_defaults(), script={"voice": [raw]})
+        settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_VOICE_DIR": str(voice_dir)})
+        bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+        index = RunIndex(tmp_path / "index.db")
+        await index.init()
+        try:
+            run = await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url,
+                                        page_factory=factory, public=public)
+        finally:
+            await index.close()
+        loaded = await bundle.load(run.id)
+        return run, loaded, [e["type"] for e in await _events_of(tmp_path, run.id)]
+
+    run, loaded, types = await run_with(tmp_path / "no-voice", public=False)  # the page was never recorded
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review) and "voice.transcribed" not in types
+    assert all(f.voice is None for f in loaded.findings) and not any(t.stage == "voice" for t in loaded.trace)
+    voice_dir = tmp_path / "voice"
+    _recording(voice_dir)
+    run, loaded, types = await run_with(voice_dir, public=True)  # a site we do not own never gets our store's clip
+    assert "voice.transcribed" not in types and all(f.voice is None for f in loaded.findings)

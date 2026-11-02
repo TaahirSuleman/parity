@@ -5,7 +5,7 @@ user actually hears. This pass does. Do it on the hosted demo, in Safari, with V
 Record what VoiceOver said (VO+Shift+C copies the last phrase to the clipboard), what you expected, and a verdict:
 **blocks** (a judge could not do the step), **confusing** (doable, but wrong or noisy), **cosmetic**, or **ok**.
 
-**Status (Mon 2 Nov):** not a gate for Phase 6 (doc 20 Phase 6b note; docs/25 §2 and §6). The agent runs sections 1–12 in Chrome through the Claude in
+**Status (Mon 2 Nov, 23:35 SAST): the pass has run** (Heard and Verdict below; method §6 of docs/25; three findings, all announcements: the load paragraph re-read on every flow change, the finish and the decision drowned by the quote region and the focus move). Not a gate for Phase 6 (doc 20 Phase 6b note; docs/25 §2 and §6). The agent runs sections 1–12 in Chrome through the Claude in
 Chrome extension and reads each phrase back from VoiceOver's scripting interface; the rotor rows are checked against the accessibility tree.
 The user answers Questions A–D by ear. Fixes land after Task 28.
 
@@ -13,112 +13,112 @@ The user answers Questions A–D by ear. Fixes land after Task 28.
 
 | # | Step | Done |
 |---|---|---|
-| 0.1 | macOS: System Settings → Keyboard → **Keyboard navigation** on. Safari → Settings → Advanced → **Press Tab to highlight each item on a webpage** on. | |
-| 0.2 | VoiceOver Utility (System Settings → Accessibility → VoiceOver → "Open VoiceOver Utility…", or VO+F8 while VoiceOver is on): leave Verbosity at default; Web → Navigation: "Navigate webpages by: DOM order" (not "Grouping items"), so what you hear matches the document; Web → Page Loading: keep "Speak webpage summary" on and "Automatically speak the webpage" off, so Question A measures our page and not VoiceOver's own read-all; Commanders → Quick Nav: "Enable Quick Nav" off (pressing Left Arrow and Right Arrow together also toggles it; VoiceOver says "Quick Nav on/off"). | |
-| 0.3 | Keys: VO = Control+Option. VO+Right/Left reads the next/previous item; VO+Space activates; VO+U opens the rotor (Left/Right changes list: Headings, Landmarks, Form Controls, Links, Tables); VO+Shift+Down interacts with a group/table/list, VO+Shift+Up leaves it; VO+A reads from here on; Control stops speech; VO+Shift+C copies the last phrase. | |
-| 0.4 | Open a new Safari window at `https://parity-u7lcbbxuia-uc.a.run.app/` and turn VoiceOver on (Cmd+F5). Keep a notes file open for the verbatim phrases. | |
+| 0.1 | macOS: System Settings → Keyboard → **Keyboard navigation** on. Safari → Settings → Advanced → **Press Tab to highlight each item on a webpage** on. | Done (Chrome; the pass ran there) |
+| 0.2 | VoiceOver Utility (System Settings → Accessibility → VoiceOver → "Open VoiceOver Utility…", or VO+F8 while VoiceOver is on): leave Verbosity at default; Web → Navigation: "Navigate webpages by: DOM order" (not "Grouping items"), so what you hear matches the document; Web → Page Loading: keep "Speak webpage summary" on and "Automatically speak the webpage" off, so Question A measures our page and not VoiceOver's own read-all; Commanders → Quick Nav: "Enable Quick Nav" off (pressing Left Arrow and Right Arrow together also toggles it; VoiceOver says "Quick Nav on/off"). | Done |
+| 0.3 | Keys: VO = Control+Option. VO+Right/Left reads the next/previous item; VO+Space activates; VO+U opens the rotor (Left/Right changes list: Headings, Landmarks, Form Controls, Links, Tables); VO+Shift+Down interacts with a group/table/list, VO+Shift+Up leaves it; VO+A reads from here on; Control stops speech; VO+Shift+C copies the last phrase. | — |
+| 0.4 | Open a new Safari window at `https://parity-u7lcbbxuia-uc.a.run.app/` and turn VoiceOver on (Cmd+F5). Keep a notes file open for the verbatim phrases. | Chrome, driven by the extension; Safari untouched (its grant is read-only) |
 
 ## 1. Idle page (nothing run yet)
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 1.1 | Note what VoiceOver says as the page loads, before you press anything. | Window title "Parity"; a short orientation. **Question A:** is a long status paragraph read on load? Copy it verbatim and say whether it helps or is noise. | | |
-| 1.2 | Press Tab repeatedly from the top. | Order: "Flow" pop-up button (Checkout page) → "Replay" button, pressed → "Live (rate-limited)" button, not pressed → "Run the audit" button → "Eval" button → the trace toggle at the bottom ("0 model calls"). No unlabelled stop. | | |
-| 1.3 | VO+U → Headings. | Parity (1); Sighted (2); Findings (2); Screen reader (2). Names make sense; no empty heading. | | |
-| 1.4 | VO+U → Landmarks. | banner; main. | | |
-| 1.5 | VO+U → Form Controls. | Flow; Replay; Live (rate-limited); Run the audit; Eval; trace toggle. Nothing named just "button". | | |
-| 1.6 | VO+Right through the main area. | The idle framing is readable: what Parity does, "Run the audit to see the page" in the Sighted panel, the empty feed text, the screen-reader panel's empty text. | | |
+| 1.1 | Note what VoiceOver says as the page loads, before you press anything. | Window title "Parity"; a short orientation. **Question A:** is a long status paragraph read on load? Copy it verbatim and say whether it helps or is noise. | On load: the whole status paragraph, verbatim ("Parity walks the Checkout page as a sighted shopper … Run the audit to start.", ≈60 words). It is read again, in full, every time the Flow pop-up changes ("Parity walks the Purchase flow …"). | confusing · Question A |
+| 1.2 | Press Tab repeatedly from the top. | Order: "Flow" pop-up button (Checkout page) → "Replay" button, pressed → "Live (rate-limited)" button, not pressed → "Run the audit" button → "Eval" button → the trace toggle at the bottom ("0 model calls"). No unlabelled stop. | "Checkout page Flow menu pop up collapsed button banner" → "Replay selected toggle button Run mode group" → "Live (rate-limited) toggle button" → "Run the audit button banner" → "Eval toggle button" → "Without the Verifier off switch FINDINGS region" → "main SCREEN READER region" (the Screen reader panel is a focus stop) → "0 model calls · 0 tokens · $0.0000 collapsed button TRACE region". | ok (the panel stop is cosmetic: a scrollable region) |
+| 1.3 | VO+U → Headings. | Parity (1); Sighted (2); Findings (2); Screen reader (2). Names make sense; no empty heading. | H1 Parity; H2 Sighted, Findings, Screen reader, Trace (tree). | ok |
+| 1.4 | VO+U → Landmarks. | banner; main. | banner, main (tree). | ok |
+| 1.5 | VO+U → Form Controls. | Flow; Replay; Live (rate-limited); Run the audit; Eval; trace toggle. Nothing named just "button". | Flow; Replay; Live (rate-limited); Run the audit; Eval; Without the Verifier; the trace toggle. No control named only "button" (0 bare names in the DOM). | ok |
+| 1.6 | VO+Right through the main area. | The idle framing is readable: what Parity does, "Run the audit to see the page" in the Sighted panel, the empty feed text, the screen-reader panel's empty text. | Checked in the tree, not with VO+Right: the status text, "Run the audit to see the page", the empty feed text, "Select a finding to see what a screen reader announces for it." | ok |
 
 ## 2. Start a Replay by keyboard (Checkout page)
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 2.1 | Tab to "Run the audit", press VO+Space (or Space). | Immediately: "Audit started: capturing the page and comparing what is seen with what is announced." The button now reads "Auditing…" and is dimmed. **Question B:** is the start announced once or twice (two near-identical "capturing" phrases)? | | |
-| 2.2 | Do nothing for ~15 s and listen. | **Question C:** list every phrase spoken during the run. The script heard `image, "image"` and `button, "Submit"` (the screen-reader quote of the selected finding). Say whether hearing the quote when the selection moves is useful or noise. | | |
-| 2.3 | At the end. | "Audit finished: 7 verified findings." Where is the VoiceOver cursor and the keyboard focus now (VO+F3 describes the item)? The run is announced, "Run the audit" is enabled again. | | |
-| 2.4 | Press Cmd+L and read the address. | It ends in `?run=<id>`: the run is reloadable and shareable. | | |
+| 2.1 | Tab to "Run the audit", press VO+Space (or Space). | Immediately: "Audit started: capturing the page and comparing what is seen with what is announced." The button now reads "Auditing…" and is dimmed. **Question B:** is the start announced once or twice (two near-identical "capturing" phrases)? | Space on the button: "Auditing… dimmed button", then "main" (focus moves), then one status: on the Checkout replay "Capturing the page and comparing what is seen with what is announced…"; on Purchase and Site A "Audit started: capturing the page and comparing what is seen with what is announced." Once each. | ok · Question B: once (two different texts between flows) |
+| 2.2 | Do nothing for ~15 s and listen. | **Question C:** list every phrase spoken during the run. The script heard `image, "image"` and `button, "Submit"` (the screen-reader quote of the selected finding). Say whether hearing the quote when the selection moves is useful or noise. | Nothing for the whole run; at the end one phrase, `button, "Submit"` (the Screen reader panel's quote as the hero is selected). | Question C |
+| 2.3 | At the end. | "Audit finished: 7 verified findings." Where is the VoiceOver cursor and the keyboard focus now (VO+F3 describes the item)? The run is announced, "Run the audit" is enabled again. | "Audit finished: 7 verified findings." was in the live region but was never spoken: the quote region updated in the same instant and VoiceOver spoke that instead. On Site A, where no quote changes, "Audit finished: 6 verified findings." was spoken. Focus after the run: the main area. "Run the audit" enabled again. | confusing (make the finish an alert, or delay the quote region) |
+| 2.4 | Press Cmd+L and read the address. | It ends in `?run=<id>`: the run is reloadable and shareable. | `?run=20261102-212413-1efede2b`. | ok |
 
 ## 3. The findings feed
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 3.1 | VO+Right into the feed; VO+Shift+Down to interact with the list. | "Findings" heading; "7 verified · 3 rejected by the Verifier"; "Without the Verifier" toggle; a list of 7 items. | | |
-| 3.2 | Read the first card (the hero, "Pay R1,249") item by item. | "Sighted user sees"; heading level 3 "Pay R1,249", a pressed button (it is selected); severity ("serious" or similar); "Screen reader gets" then `button, "Submit"`; list "Verifier checks" with each check "…: passed"; "Check details for Pay R1,249" disclosure; WCAG line ("WCAG 2.5.3 Label in Name"); the judge badge names a Muse model; "Re-audit" with before → after and "gap closed"; "Proposed fix" with the fixer badge and the explanation; "Diff for Pay R1,249" disclosure. | | |
-| 3.3 | Open "Check details" and "Diff" (VO+Space on each). | The details list reads check by check. The diff is a region "Unified diff for Pay R1,249" you can Tab into and read line by line (added lines, removed lines). | | |
-| 3.4 | Move to a card that is not selected and press its heading button. | It becomes pressed; the Sighted panel's box and the Screen-reader panel follow it (check with VO+Right; note anything announced automatically). | | |
-| 3.5 | Find the three rejected rows. | Each says what the model proposed and which check failed, as evidence the Verifier is real; they do not read like findings. | | |
-| 3.6 | Press "Without the Verifier". | The feed shows what would have been reported without the gate; the switch state is announced; press again to go back. | | |
+| 3.1 | VO+Right into the feed; VO+Shift+Down to interact with the list. | "Findings" heading; "7 verified · 3 rejected by the Verifier"; "Without the Verifier" toggle; a list of 7 items. | "Without the Verifier off switch FINDINGS region", then the cards: "50% OFF TODAY toggle button 50% OFF TODAY article", … Header: "Parity 7 verified · 3 rejected by the Verifier". | ok |
+| 3.2 | Read the first card (the hero, "Pay R1,249") item by item. | "Sighted user sees"; heading level 3 "Pay R1,249", a pressed button (it is selected); severity ("serious" or similar); "Screen reader gets" then `button, "Submit"`; list "Verifier checks" with each check "…: passed"; "Check details for Pay R1,249" disclosure; WCAG line ("WCAG 2.5.3 Label in Name"); the judge badge names a Muse model; "Re-audit" with before → after and "gap closed"; "Proposed fix" with the fixer badge and the explanation; "Diff for Pay R1,249" disclosure. | By tree (card order since 2 Nov): Sighted user sees → Screen reader gets → Found by (Muse badge) → the five checks → Check details → WCAG + judge badge → Proposed fix + fixer badge → Diff → Re-audit → reason → Approve fix / Reject. | ok |
+| 3.3 | Open "Check details" and "Diff" (VO+Space on each). | The details list reads check by check. The diff is a region "Unified diff for Pay R1,249" you can Tab into and read line by line (added lines, removed lines). | "Check details for 50% OFF TODAY collapsed disclosure triangle, group"; "Diff for 50% OFF TODAY collapsed disclosure triangle, group" (named per card). Not opened by keyboard in this pass. | ok |
+| 3.4 | Move to a card that is not selected and press its heading button. | It becomes pressed; the Sighted panel's box and the Screen-reader panel follow it (check with VO+Right; note anything announced automatically). | Not done by keyboard (the pass selected only the hero). | — |
+| 3.5 | Find the three rejected rows. | Each says what the model proposed and which check failed, as evidence the Verifier is real; they do not read like findings. | "Rejected by the verifier · CODE · VERIFIER · Total: R1,249.00 · claimed text, "Total:" · failed: exact quote · quote the exact role and accessible name …" (tree). Reads as evidence, not as a finding. | ok |
+| 3.6 | Press "Without the Verifier". | The feed shows what would have been reported without the gate; the switch state is announced; press again to go back. | Not pressed. | — |
 
 ## 4. Decide a finding (the human gate)
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 4.1 | On the selected card, Tab to the reason field. | "Reason, edit text" with the suggested text ("Gap closed: now says …") read out; the text is selected so typing replaces it. | | |
-| 4.2 | Tab to "Approve" and press it. | The Approve/Reject controls disappear; focus stays on this card's heading button (not the top of the page); **Question D:** is "Approved · <reason>" announced? The header now says "1 approved · 6 to review" and a "Download fix.patch" link exists. | | |
-| 4.3 | Select another card, type a reason, press "Reject". | "Rejected · <reason>" announced; counts update. | | |
-| 4.4 | Reload (Cmd+R). | Same run, both decisions still shown; nothing re-announces the whole run as new beyond the page load. | | |
-| 4.5 | Tab to "Download fix.patch". | A link named "Download fix.patch"; activating it downloads `parity-<id>.patch`. | | |
+| 4.1 | On the selected card, Tab to the reason field. | "Reason, edit text" with the suggested text ("Gap closed: now says …") read out; the text is selected so typing replaces it. | "Gap closed: now says "Pay R1,249" contents selected Reason edit text" (the suggestion is selected; typing replaces it). | ok |
+| 4.2 | Tab to "Approve" and press it. | The Approve/Reject controls disappear; focus stays on this card's heading button (not the top of the page); **Question D:** is "Approved · <reason>" announced? The header now says "1 approved · 6 to review" and a "Download fix.patch" link exists. | "Approve fix button" → on Space: "Approve the proposed fix" (the button's title) → "Pay R1,249 selected toggle button" (focus back on the card's heading). "Approved · Gap closed: now says …" is in a status region but was not spoken. Header: "1 approved · 6 to review"; the patch link exists. | confusing · Question D: not announced |
+| 4.3 | Select another card, type a reason, press "Reject". | "Rejected · <reason>" announced; counts update. | Not done. | — |
+| 4.4 | Reload (Cmd+R). | Same run, both decisions still shown; nothing re-announces the whole run as new beyond the page load. | Not done (decisions persist: docs/23 §7). | — |
+| 4.5 | Tab to "Download fix.patch". | A link named "Download fix.patch"; activating it downloads `parity-<id>.patch`. | The link's accessible name is "The approved fixes as one git patch" (aria-label), not "Download fix.patch". | cosmetic |
 
 ## 5. Header counters
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 5.1 | VO+Right across the header after the run. | "axe-core 0 violations"; "Parity 7 verified · 3 rejected by the Verifier"; "$0.0901 · recorded 4 m 42 s"; "replay"; "awaiting review"; "1 approved · 6 to review". Each makes sense without its tooltip (tooltips are not read). | | |
+| 5.1 | VO+Right across the header after the run. | "axe-core 0 violations"; "Parity 7 verified · 3 rejected by the Verifier"; "$0.0901 · recorded 4 m 42 s"; "replay"; "awaiting review"; "1 approved · 6 to review". Each makes sense without its tooltip (tooltips are not read). | By tree: "axe-core 0 violations"; "Parity 7 verified · 3 rejected by the Verifier"; "$0.09 · recorded 4 m 42 s"; "replay"; "awaiting review"; "1 approved · 6 to review". | ok |
 
 ## 6. Sighted panel
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 6.1 | VO+Right onto the screenshot. | Image, "The audited page as a sighted user sees it". | | |
-| 6.2 | Tab through the boxes drawn on it. | Buttons "Finding: sighted user sees <text>", pressed for the selected one, in reading order (top to bottom, left to right). Pressing one selects that card. | | |
-| 6.3 | Note anything else announced in the panel. | The grounding badge names a Muse model; the faint outlines (percepts) are not announced. | | |
+| 6.1 | VO+Right onto the screenshot. | Image, "The audited page as a sighted user sees it". | alt "The audited page as a sighted user sees it". | ok |
+| 6.2 | Tab through the boxes drawn on it. | Buttons "Finding: sighted user sees <text>", pressed for the selected one, in reading order (top to bottom, left to right). Pressing one selects that card. | "Finding: sighted user sees 50% OFF TODAY toggle button SIGHTED region" → "… red border indicating error on Card number field toggle button" → "… Total: R1,249.00" → "… Terms" → "… Pay R1,249 selected toggle button" → "… trash icon" → "… Pay with wallet". Reading order. | ok |
+| 6.3 | Note anything else announced in the panel. | The grounding badge names a Muse model; the faint outlines (percepts) are not announced. | Not walked. | — |
 
 ## 7. Screen-reader panel
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 7.1 | VO+Right through the right-hand panel with the hero selected. | The quote `button, "Submit"` and a short explanation of what a screen-reader user gets for the sighted text "Pay R1,249". | | |
-| 7.2 | Select a different card and listen without moving. | **Question C again:** does the panel speak on its own when the selection changes, and should it? | | |
+| 7.1 | VO+Right through the right-hand panel with the hero selected. | The quote `button, "Submit"` and a short explanation of what a screen-reader user gets for the sighted text "Pay R1,249". | By tree (order changed 2 Nov): "ON SCREEN Pay R1,249 · ANNOUNCED button, "Submit" · User hears only generic Submit and cannot tell at the point of action that it will pay R1,249. · MUSE SPARK 1.3 · JUDGE". | ok |
+| 7.2 | Select a different card and listen without moving. | **Question C again:** does the panel speak on its own when the selection changes, and should it? | The panel's quote is an aria-live region: it speaks on its own when the selection changes (2.2), and it is what masked the finish (2.3). | Question C |
 
 ## 8. Trace drawer
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 8.1 | Tab to the trace toggle ("24 model calls · 109,371 tokens · $0.0901") and open it. | A table; VO+Shift+Down to interact, VO+arrows move by cell and read the column header (stage, model, request id, tokens, latency, cost, cache hit). | | |
+| 8.1 | Tab to the trace toggle ("24 model calls · 109,371 tokens · $0.0901") and open it. | A table; VO+Shift+Down to interact, VO+arrows move by cell and read the column header (stage, model, request id, tokens, latency, cost, cache hit). | "24 model calls · 109,371 tokens · $0.09 expanded button"; a real table, 25 rows, column headers stage / model / request id / tokens / latency / cost / cache (tree). Cell-by-cell reading not tested. | ok |
 
 ## 9. Eval tab and a public sample
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 9.1 | Press "Eval". | The view changes; headings for the results table, the ablations, the judge comparison, the architecture card, the glossary and the public samples. | | |
-| 9.2 | Interact with the results table. | Column headers read with each cell; the "full" row is the headline; numbers read as percentages/dollars sensibly. | | |
-| 9.3 | Press "Replay Site A". | The view switches back to the workbench, focus lands in the main area (not on the page body), "Audit started…" is announced, the header says "Site A · read-only sample" (never "ShopRight"). | | |
-| 9.4 | After it finishes, read a Site A card. | Verified findings for a third-party page; no fix or re-audit is promised; the screenshot message, where one is withheld, says why. | | |
+| 9.1 | Press "Eval". | The view changes; headings for the results table, the ablations, the judge comparison, the architecture card, the glossary and the public samples. | "Eval selected toggle button banner"; headings: Parity vs axe-core, same labels; How Parity works, in ten seconds; Judge comparison; Reasoning effort; Real-world sample. No glossary heading. | ok |
+| 9.2 | Interact with the results table. | Column headers read with each cell; the "full" row is the headline; numbers read as percentages/dollars sensibly. | Tables have column headers (System / Recall / Precision / Verified findings / False alarms on clean / Cost / 3 pages / Time / 3 pages) (tree); cell reading not tested. | ok |
+| 9.3 | Press "Replay Site A". | The view switches back to the workbench, focus lands in the main area (not on the page body), "Audit started…" is announced, the header says "Site A · read-only sample" (never "ShopRight"). | Focus lands on main ("main"), "Audit started: capturing …", header "Site A · read-only sample", then "Audit finished: 6 verified findings." | ok |
+| 9.4 | After it finishes, read a Site A card. | Verified findings for a third-party page; no fix or re-audit is promised; the screenshot message, where one is withheld, says why. | First card "3 out of 5 stars / — not announced —", Found by badge, five checks; "No fix was proposed for this finding." | ok |
 
 ## 10. Purchase flow (the agent walk)
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 10.1 | Open the "Flow" pop-up (VO+Space), choose "Purchase flow (agent)", press "Run the audit". | The start announcement; during the ~20 s the timeline rows appear in the Sighted panel ("computer: …", "audit this screen: …"); note whether they are spoken automatically (they should not flood you). | | |
-| 10.2 | After it finishes. | "Screens of the flow" group with four pressed-state buttons ("1 · product" …); 35 findings, each "Diff for …" and "Check details for …" named by its own text; the outcome line ("finished: …") is readable. | | |
+| 10.1 | Open the "Flow" pop-up (VO+Space), choose "Purchase flow (agent)", press "Run the audit". | The start announcement; during the ~20 s the timeline rows appear in the Sighted panel ("computer: …", "audit this screen: …"); note whether they are spoken automatically (they should not flood you). | Changing the Flow re-reads the whole status paragraph (1.1). Start: "Auditing… dimmed button", "main", "Audit started …". During the 71 s walk nothing is spoken: the timeline rows do not flood. | ok |
+| 10.2 | After it finishes. | "Screens of the flow" group with four pressed-state buttons ("1 · product" …); 35 findings, each "Diff for …" and "Check details for …" named by its own text; the outcome line ("finished: …") is readable. | Four screen buttons, "3 · checkout" pressed; 35 cards with named "Diff for …" and "Check details for …"; the outcome line "t9 finished: Bought noise-cancelling headphones …" readable (tree). At the end only `button, "Submit"` was spoken; no "Audit finished" (as 2.3). | confusing (same cause as 2.3) |
 
 ## 11. Notices and errors
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 11.1 | Open `https://parity-u7lcbbxuia-uc.a.run.app/?run=nope`. | On load, an alert: "The linked run is not on this server any more: Replay copies are kept for a limited time. Start a new Replay." | | |
-| 11.2 | Optional, costs about $0.10: press "Live (rate-limited)", then "Run the audit", and within a few seconds press "Run the audit" again in a second tab. | The second tab gets an alert: "Live is busy or rate-limited: a Live run is already in progress… or watch a Replay…". The first tab's run finishes in 4–5 minutes with 7 verified findings; the fixer and re-audit badges name Muse models. | | |
-| 11.3 | Zoom Safari to 200% (Cmd+Plus until 200%) with a run on screen. | The page scrolls; nothing is clipped; VoiceOver order is unchanged. Reset with Cmd+0. | | |
+| 11.1 | Open `https://parity-u7lcbbxuia-uc.a.run.app/?run=nope`. | On load, an alert: "The linked run is not on this server any more: Replay copies are kept for a limited time. Start a new Replay." | "The linked run is not on this server any more: Replay copies are kept for a limited time. Start a new Replay." spoken on load. | ok |
+| 11.2 | Optional, costs about $0.10: press "Live (rate-limited)", then "Run the audit", and within a few seconds press "Run the audit" again in a second tab. | The second tab gets an alert: "Live is busy or rate-limited: a Live run is already in progress… or watch a Replay…". The first tab's run finishes in 4–5 minutes with 7 verified findings; the fixer and re-audit badges name Muse models. | Skipped (costs a Live run). | — |
+| 11.3 | Zoom Safari to 200% (Cmd+Plus until 200%) with a run on screen. | The page scrolls; nothing is clipped; VoiceOver order is unchanged. Reset with Cmd+0. | Skipped (zoom cannot be driven through the extension; the stress pass covered 200%). | — |
 
 ## 12. Final sweep with a finished run on screen
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 12.1 | VO+U → Form Controls. | No control named only "button", "link" or "edit text"; nothing you cannot tell apart. | | |
-| 12.2 | VO+U → Headings. | Levels nest: 1 (Parity) → 2 (panels) → 3 (findings). | | |
-| 12.3 | VO+U → Links. | "Download fix.patch" (after an approval) and the Eval tab's links; nothing bare. | | |
-| 12.4 | VO+A from the top of the main area. | The read-all order tells the story a sighted judge sees: the page, the findings, the decisions. Note anything read out of place. | | |
-| 12.5 | Repeat 2.1–2.3 and 4.2 in Chrome with VoiceOver. | Same announcements; note any difference. | | |
+| 12.1 | VO+U → Form Controls. | No control named only "button", "link" or "edit text"; nothing you cannot tell apart. | 0 controls named only "button", "link" or "edit text" (DOM). | ok |
+| 12.2 | VO+U → Headings. | Levels nest: 1 (Parity) → 2 (panels) → 3 (findings). | H1 → H2 (panels) → H3 (findings) (tree). | ok |
+| 12.3 | VO+U → Links. | "Download fix.patch" (after an approval) and the Eval tab's links; nothing bare. | One link after an approval, named "The approved fixes as one git patch"; the Eval tab has no links. | ok |
+| 12.4 | VO+A from the top of the main area. | The read-all order tells the story a sighted judge sees: the page, the findings, the decisions. Note anything read out of place. | Not done (VO+A cannot be sent). | — |
+| 12.5 | Repeat 2.1–2.3 and 4.2 in Chrome with VoiceOver. | Same announcements; note any difference. | The whole pass ran in Chrome; Safari was not driven (read-only grant). | — |
 
 ## 13. What to send back
 

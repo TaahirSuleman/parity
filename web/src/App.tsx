@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { ApiError, decide, getEval, getFlows, getHealth, getRun, screenshotUrl, startRun, streamRun, type FlowInfo, type Health } from "./api";
+import { ApiError, decide, getEval, getFlows, getHealth, getRun, screenshotUrl, startRun, startUrlRun, streamRun, type FlowInfo, type Health, type UrlRunRequest } from "./api";
 import type { EvalResults } from "./components/EvalTab";
 import { reconcileDecisions, submitDecision } from "./state/decisions";
 import { startRunMessage } from "./state/errors";
@@ -37,6 +37,9 @@ export default function App() {
   const [flowId, setFlowId] = useState<string>("");
   const [stepOverride, setStepOverride] = useState<number | null>(null); // a screen picked on the step strip
   const [view, setView] = useState<"workbench" | "eval">("workbench");
+  const [urlMode, setUrlMode] = useState(false);  // "Live on a page you choose" (spec §19.3.6)
+  const [urlRefusal, setUrlRefusal] = useState<string | null>(null);  // the server's one sentence, shown in the panel
+  const [closedToday, setClosedToday] = useState(false);
   const [evalResults, setEvalResults] = useState<EvalResults | null | undefined>(undefined);
   const flow = flows.find((f) => f.id === flowId) ?? flows[0];
   // One subscription shape for every stream: events in; a notice (not a failure) when the stream drops; and when the run
@@ -57,6 +60,7 @@ export default function App() {
   useEffect(() => {
     Promise.all([getHealth().catch(() => null), getFlows().catch(() => null)]).then(([h, flOrNull]) => {
       setHealth(h);
+      setClosedToday(Boolean(h?.external_closed_today));
       const fl = flOrNull ?? [];
       setFlows(fl);
       if (h) dispatch({ kind: "reset", mode: h.has_key && h.live_enabled && h.mode_default === "live" ? "live" : "replay" });
@@ -81,7 +85,7 @@ export default function App() {
   }, [follow]);
 
   const focusMain = () => requestAnimationFrame(() => document.getElementById("main")?.focus());  // the Eval view may unmount under the button
-  const begin = useCallback(async (start: () => Promise<{ run_id: string }>, mode: RunMode) => {
+  const begin = useCallback(async (start: () => Promise<{ run_id: string }>, mode: RunMode, onError?: (e: unknown) => boolean) => {
     if (startingRef.current || state.phase === "running") return;  // one run at a time: a double click, or a click while a slow start is pending
     startingRef.current = true;
     beganRef.current += 1;
@@ -96,8 +100,10 @@ export default function App() {
       closeRef.current = follow(run_id);  // the button stays taken until this run's first event (or its stream failing) clears it below
       focusMain();
     } catch (e) {
-      const m = startRunMessage(e);
-      dispatch(m.kind === "notice" ? { kind: "notice", message: m.text } : { kind: "error", message: m.text });
+      if (!onError?.(e)) {
+        const m = startRunMessage(e);
+        dispatch(m.kind === "notice" ? { kind: "notice", message: m.text } : { kind: "error", message: m.text });
+      }
       startingRef.current = false;
       setStarting(false);
     }
@@ -116,6 +122,29 @@ export default function App() {
     }
     void begin(() => startRun(flow.id, state.mode), state.mode);
   }, [flow, state.mode, begin]);
+
+  const switchMode = useCallback((mode: RunMode) => {
+    if (!shouldReset(state, mode)) return;
+    closeRef.current?.();
+    dispatch({ kind: "reset", mode });
+  }, [state]);
+  const onUrlModeChange = useCallback((on: boolean) => {
+    setUrlMode(on);
+    setUrlRefusal(null);
+    if (on) switchMode("live");
+  }, [switchMode]);
+  const onUrlRun = useCallback((req: UrlRunRequest) => {
+    setUrlRefusal(null);
+    void begin(() => startUrlRun(req), "live", (e) => {
+      // a refused address, the switch off, or the day's budget spent: the panel says it in the server's words; the run is not "failed"
+      if (e instanceof ApiError && (e.status === 422 || e.status === 403 || e.status === 503)) {
+        setUrlRefusal(e.detail);
+        if (e.status === 503 && /closed for today/i.test(e.detail)) setClosedToday(true);
+        return true;
+      }
+      return false;
+    });
+  }, [begin]);
 
   const onViewChange = useCallback((next: "workbench" | "eval") => {
     setView(next);
@@ -138,10 +167,12 @@ export default function App() {
   const stepIndex = stepOverride ?? (state.phase === "running" ? lastStep?.index : selectedFinding?.step_index ?? lastStep?.index) ?? null;
   const shot = state.run && stepIndex !== null ? screenshotUrl(state.run.id, stepIndex) : null;
   const canLive = Boolean(health?.has_key && health?.live_enabled && health?.models_ok !== false);  // a key the models reject is no Live
+  const openUrl = canLive && Boolean(health?.open_url) && !closedToday;  // the third mode is hidden when the server does not offer it or the day is spent
   return (
     <Workbench
       state={state} flows={flows} flowId={flow?.id ?? ""} onFlowChange={setFlowId} canLive={canLive} screenshotUrl={shot} model={state.models.navigator ?? state.models.comparator}
-      onModeChange={(mode) => { if (!shouldReset(state, mode)) return; closeRef.current?.(); dispatch({ kind: "reset", mode }); }} onRun={onRun}
+      onModeChange={switchMode} onRun={onRun}
+      urlMode={urlMode} openUrl={openUrl} onUrlModeChange={onUrlModeChange} onUrlRun={onUrlRun} suggestedUrls={health?.suggested_urls ?? []} closedToday={closedToday} urlRefusal={urlRefusal}
       onSelect={(id) => { setStepOverride(null); dispatch({ kind: "select", id }); }} onDecision={onDecision} stepIndex={stepIndex} onStepChange={setStepOverride}
       view={view} onViewChange={onViewChange} evalResults={evalResults ?? null} onReplayRun={onReplayRun} starting={starting}
     />

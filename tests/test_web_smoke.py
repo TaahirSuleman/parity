@@ -255,3 +255,61 @@ async def test_screenshot_boxes_have_a_24px_hit_area(page, server_url):
         }"""
     )
     assert misses == [], misses
+
+
+@pytest.fixture(scope="module")
+def url_server(tmp_path_factory):
+    """The served app with the visitor-URL mode on and a fake model: the page is real (the W3C demo), the model is recorded."""
+    import asyncio
+    import socket
+    import threading
+    import time
+
+    import uvicorn
+
+    from parity.app import create_app
+    from parity.config import load_settings
+    from parity.meta.fake import FakeMetaClient
+    from tests.helpers import make_replay_bundle
+    from tests.test_runner import META, stage_defaults
+
+    root = tmp_path_factory.mktemp("parity-url")
+    asyncio.run(make_replay_bundle(root / "replay"))
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    settings = load_settings(env={"PARITY_DATA_DIR": str(root / "data"), "PARITY_CACHE_DIR": str(root / "cache"), "PARITY_INDEX_PATH": str(root / "index.db"),
+                                  "PARITY_REPLAY_DIR": str(root / "replay"), "PORT": str(port), "PARITY_OPEN_URL": "1",
+                                  "MODEL_API_KEY": "sk-test-smoke"})  # the UI offers Live only with a key on the server; the client is the fake below
+    app = create_app(settings)
+    app.state.client = FakeMetaClient(META, trace=app.state.trace, stage_defaults=stage_defaults())
+    server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning"))
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+    deadline = time.time() + 10
+    while not server.started and time.time() < deadline:
+        time.sleep(0.05)
+    assert server.started, "uvicorn did not start"
+    yield f"http://127.0.0.1:{port}"
+    server.should_exit = True
+    thread.join(timeout=10)
+
+
+async def test_url_field_audits_the_w3c_home_page(page, url_server):
+    """Spec §19.3.7: the W3C BAD home page through the field, end to end: a private address is refused in words first, then the
+    real page is audited read-only, the header names www.w3.org, and the run ends with the notice in words."""
+    await page.goto(url_server + "/")
+    await page.get_by_role("button", name="Live on a page you choose").click()
+    field = page.get_by_role("textbox", name="Page address")
+    await field.fill("http://localhost/private")
+    await page.get_by_role("checkbox", name="This page is public and I may audit it.").check()
+    await page.get_by_role("button", name="Audit this page").click()
+    await page.get_by_role("alert").wait_for(timeout=15000)
+    assert "This address is not public." in await page.get_by_role("alert").inner_text()
+    await field.fill("https://www.w3.org/WAI/demos/bad/before/home.html")
+    await page.get_by_role("button", name="Audit this page").click()
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('www.w3.org')", timeout=60000)
+    await page.wait_for_function("() => /Audit finished|No divergences|ended early|stopped the walk/.test(document.querySelector('main')?.textContent || '')", timeout=180000)
+    header = await page.locator("header").inner_text()
+    assert "www.w3.org" in header and "audited read-only at a visitor's request" in header and "ShopRight" not in header
+    assert "A fix and its re-audit follow" not in await page.locator("main").inner_text()

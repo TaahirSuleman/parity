@@ -25,13 +25,15 @@ Tests: `make test` (pytest, including browser smoke tests) and `make test-web` (
 
 axe-core reports **0 violations** on the demo checkout. Parity's Replay then shows seven verified findings on that page. The one it opens on: a sighted shopper sees a button that says **Pay R1,249**; a screen reader announces **button, "Submit"**. Five green ticks say why that is a finding and not a guess: the box landed on a real element, the quoted role and name equal the accessibility tree exactly, the visible text differs from the name, axe does not already report it, and it is not a duplicate. The judge rates it serious (WCAG 2.5.3, Label in Name), the fixer proposes a one-line change, the re-audit loads the patched page in a sandbox and the screen reader now says "Pay R1,249". You approve it with a reason, and **Download fix.patch** gives you a diff that applies to `store/`.
 
+**Live on a page you choose** (hosted, third mode in the header): type a public address, affirm it is public and yours to audit, and Parity audits that screen as a visitor would see it, read-only, with no fixer and no re-audit. A private or internal address is refused in one sentence; robots.txt is honoured; a bot wall or a login ends the run as `blocked by site` and the workbench says so. Four W3C "Before and After Demonstration" pages are also offered as flows.
+
 The Purchase flow (one pick away) is the agent walk: Muse Spark's computer use takes the store from product to order confirmation in nine turns, auditing each screen on the way (35 verified findings over four screens in the recorded run).
 
 ## Architecture
 
 ![Parity's pipeline: Navigator, Capture, Seer, Comparator, Verifier per screen; Judge, Fixer, Re-audit, Human gate, Run bundle per finding](docs/img/architecture.png)
 
-**How it acts.** The model decides; allow-listed code acts. Muse Spark's computer-use output is a list of actions; a small executor runs only the kinds it knows (click, type, key, scroll, wait, screenshot) and only inside the allowed origin. Two function tools are gated by code: `finish` is refused, with feedback, until the current screen has been audited (after three refusals the finish is forced and marked as such); `audit_view` is answered once per screen, so a repeat costs nothing; and on the last turn code audits the screen itself before offering `finish`. On a third-party site (CLI only, never from the hosted app) a read-only guard refuses anything that looks like a purchase, a sign-up or a form submission, and a bot wall ends the run as `blocked by site`.
+**How it acts.** The model decides; allow-listed code acts. Muse Spark's computer-use output is a list of actions; a small executor runs only the kinds it knows (click, type, key, scroll, wait, screenshot) and only inside the allowed origin. Two function tools are gated by code: `finish` is refused, with feedback, until the current screen has been audited (after three refusals the finish is forced and marked as such); `audit_view` is answered once per screen, so a repeat costs nothing; and on the last turn code audits the screen itself before offering `finish`. On a page Parity does not serve (the W3C demo pages, a page a visitor chooses, a CLI audit) a read-only guard refuses anything that looks like a purchase, a sign-up, a consent click or a form submission, the browser re-checks every request it makes against the URL policy (redirects included), and a bot wall ends the run as `blocked by site`.
 
 **What is deterministic.** Capture (screenshot, Chrome's accessibility tree with boxes, axe-core), the Verifier's five checks, the re-audit's name rule, the human gate, the patch export, the Replay, and the eval's matching are code. A finding cannot exist without passing the Verifier, and nothing is applied to a page without a human approving it.
 
@@ -84,7 +86,8 @@ Every run is a bundle on disk (or in a Cloud Storage bucket): `run.json`, each s
 
 - Findings are evidence, **not a conformance claim**, and no fix is applied without a human; Parity never reports "compliant".
 - The eval runs on our own store with faults chosen to pass axe; it says nothing about axe in general, and n is small.
-- The prompts do not yet mark page text as untrusted. Hosted Live mode is restricted to our own store; public sites are audited only from the command line, behind the read-only guard.
+- Page text reaches the models inside `page_data` delimiters with a one-sentence rule, and the guard refuses irreversible actions whatever a page says; a model that obeys a page still cannot buy, submit or sign in.
+- Hosted Live runs the store flows, the W3C demo pages and one public page a visitor chooses ("Live on a page you choose"): read-only, one screen by default, no fixes, a cost cap per run and per day, page content deleted after 24 hours. The policy, the opt-out and the takedown contact are at `/audit-policy`.
 - Model-facing tests answer from recorded stage responses, not prompt-keyed fixtures; the live smoke run and the eval are the prompt-regression checks.
 - One Live run at a time, a few per visitor per hour, a 15-minute cap per run; Replay is unlimited.
 

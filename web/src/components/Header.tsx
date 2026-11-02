@@ -3,6 +3,12 @@ import { isPublicRun, type Run, type RunMode } from "../state/types";
 
 export interface FlowOption { id: string; name: string; single_page: boolean; public?: boolean; attribution?: string; start_url?: string }
 
+/** The host of a page the visitor chose, from the run record; null for any other run. */
+export function visitorHost(run: Run | null): string | null {
+  if (run?.source !== "visitor-url" || !run.origin) return null;
+  try { return new URL(run.origin).hostname; } catch { return null; }
+}
+
 /** The host an external flow audits ("www.w3.org"), or null for a store flow. */
 export function externalHost(flow: FlowOption | undefined): string | null {
   if (!flow?.public || !flow.start_url) return null;
@@ -24,6 +30,9 @@ interface Props {
   screens?: number; // screens captured so far: with none, there is no axe count to show
   onModeChange: (mode: RunMode) => void;
   onRun: () => void;
+  urlMode?: boolean; // "Live on a page you choose" is selected: the panel below holds the address and the button
+  openUrl?: boolean; // the server offers the field (open, a key present, not closed for today)
+  onUrlModeChange?: (on: boolean) => void;
 }
 
 export function fmtCost(usd: number): string {
@@ -55,14 +64,17 @@ function useElapsed(startedAt: string | undefined, running: boolean): number {
   return running && startedAt ? Math.max(0, now - new Date(startedAt).getTime()) : 0;
 }
 
-export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, screens, onModeChange, onRun, approved = 0, pending = 0, view = "workbench", onViewChange }: Props) {
+export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, screens, onModeChange, onRun, approved = 0, pending = 0, view = "workbench", onViewChange, urlMode = false, openUrl = false, onUrlModeChange }: Props) {
   const axe = run?.axe_violations ?? 0;
   const elapsed = useElapsed(run?.started_at, running && !!run);
   const isPublic = isPublicRun(run);
   const audited = screens === undefined || screens > 0;
   const replay = run?.mode === "replay";
   const current = flows.find((f) => f.id === flowId);
-  const host = externalHost(current);  // a page we do not serve: the header names its site, never the store
+  const visitor = visitorHost(run);  // a page the visitor chose: named from the run, never from the picker
+  const host = visitor ?? (urlMode ? null : externalHost(current));  // a page we do not serve: the header names its site, never the store
+  const attribution = visitor ? run?.attribution || null : !urlMode && externalHost(current) ? current?.attribution || null : null;
+  const chooseMode = (next: RunMode) => { onUrlModeChange?.(false); onModeChange(next); };
   const external = flows.filter((f) => f.public);
   const store = flows.filter((f) => !f.public);
   const option = (f: FlowOption) => <option key={f.id} value={f.id}>{f.name}{f.single_page ? "" : " (agent)"}</option>;
@@ -74,7 +86,9 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
           <h1 className="font-semibold tracking-tight m-0" style={{ fontSize: 15 }}>Parity</h1>
           <span className="muted">·</span>
           {isPublic ? (
-            <span title="A public site audited read-only from the command line and anonymised; the hosted app never audits third-party sites">{siteLabel(run)} · read-only sample</span>
+            <span title="A public site audited read-only from the command line and anonymised">{siteLabel(run)} · read-only sample</span>
+          ) : urlMode || visitor ? (
+            <span>{host ?? "a page you choose"} ·</span>
           ) : (
             <>
               <span>{host ?? "ShopRight"} ·</span>
@@ -92,16 +106,23 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
         </div>
         <div className="flex items-center gap-2">
           <div className="pill" role="group" aria-label="Run mode">
-            <button type="button" aria-pressed={mode === "replay"} onClick={() => onModeChange("replay")} title="Replay: a recorded run plays back; no model calls, no limit">Replay</button>
-            <button type="button" aria-pressed={mode === "live"} onClick={() => onModeChange("live")} disabled={!canLive} title={canLive ? "Live: real model calls on the selected page; a few runs per visitor per hour" : "Live needs a model key on the server; Replay works without one"}>
+            <button type="button" aria-pressed={mode === "replay" && !urlMode} onClick={() => chooseMode("replay")} title="Replay: a recorded run plays back; no model calls, no limit">Replay</button>
+            <button type="button" aria-pressed={mode === "live" && !urlMode} onClick={() => chooseMode("live")} disabled={!canLive} title={canLive ? "Live: real model calls on the selected page; a few runs per visitor per hour" : "Live needs a model key on the server; Replay works without one"}>
               Live (rate-limited)
             </button>
+            {openUrl && (
+              <button type="button" aria-pressed={urlMode} onClick={() => onUrlModeChange?.(true)} disabled={!canLive} title="Live on a page you choose: a public address, audited read-only as a visitor would see it; one screen by default; no fixes; kept for 24 hours">
+                Live on a page you choose
+              </button>
+            )}
           </div>
-          <span className="muted text-xs">{mode === "replay" ? "a recorded run, no model calls" : flows.find((f) => f.id === flowId)?.single_page === false ? "real model calls; the agent walk takes about 10 minutes; a few runs per visitor per hour" : "real model calls; a few runs per visitor per hour"}</span>
+          <span className="muted text-xs">{urlMode ? "real model calls on the page you choose, read-only; a few runs per visitor per hour" : mode === "replay" ? "a recorded run, no model calls" : flows.find((f) => f.id === flowId)?.single_page === false ? "real model calls; the agent walk takes about 10 minutes; a few runs per visitor per hour" : "real model calls; a few runs per visitor per hour"}</span>
         </div>
-        <button type="button" className="btn-primary" onClick={() => { if (!running) onRun(); }} aria-disabled={running} data-running={running}>
-          {running ? "Auditing…" : "Run the audit"}
-        </button>
+        {!urlMode && (
+          <button type="button" className="btn-primary" onClick={() => { if (!running) onRun(); }} aria-disabled={running} data-running={running}>
+            {running ? "Auditing…" : "Run the audit"}
+          </button>
+        )}
         {onViewChange && (
           <button type="button" className="btn-quiet" aria-pressed={view === "eval"} onClick={() => onViewChange(view === "eval" ? "workbench" : "eval")} title="Recall and precision against the seeded labels, the ablations, the judge comparison and the real-world sample">
             Eval
@@ -127,8 +148,8 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
           {run && approved > 0 && <a className="btn-quiet" style={{ padding: "3px 8px", textDecoration: "none" }} href={`/api/runs/${run.id}/patch`} download={`parity-${run.id}.patch`} title="The approved fixes as one git patch">Download fix.patch</a>}
         </div>
       </div>
-      {host && current?.attribution && !isPublic && (
-        <p className="muted text-xs m-0 px-4 pb-2" data-testid="attribution">{current.attribution}</p>
+      {attribution && !isPublic && (
+        <p className="muted text-xs m-0 px-4 pb-2" data-testid="attribution">{attribution}</p>
       )}
       {running && <div className="progress" aria-hidden="true" />}
     </header>

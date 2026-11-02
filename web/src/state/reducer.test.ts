@@ -229,3 +229,18 @@ describe("safety-check rows are the guard's, not the model's", () => {
     expect(row?.kind).toBe("safety");
   });
 });
+
+describe("run.started on a page the visitor chose (Task 26F.6)", () => {
+  it("keeps public, the attribution, the source and the origin on the run", () => {
+    const ev: ParityEvent = { type: "run.started", run_id: "r9", at: "2026-11-03T08:00:00Z", flow_id: "url-1a2b3c4d", mode: "live", goal: "Read", target_url: "https://www.w3.org/WAI/demos/bad/before/home.html",
+      single_page: true, public: true, attribution: "www.w3.org · audited read-only at a visitor's request", source: "visitor-url", origin: "https://www.w3.org" };
+    const state = reduce(initialState, ev);
+    expect(state.run?.public).toBe(true);
+    expect(state.run?.attribution).toBe("www.w3.org · audited read-only at a visitor's request");
+    expect(state.run?.source).toBe("visitor-url");
+    expect(state.run?.origin).toBe("https://www.w3.org");
+    const store = reduce(initialState, { type: "run.started", run_id: "r1", at: "t", flow_id: "checkout", mode: "replay" });
+    expect(store.run?.public).toBe(false);
+    expect(store.run?.source).toBe("flow");
+  });
+});

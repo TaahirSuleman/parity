@@ -1,6 +1,10 @@
 import type { Finding, ParityEvent, Run, RunMode } from "./state/types";
 
-export interface Health { ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; models_ok?: boolean; replay_runs: string[]; replay_flows: Record<string, string>; version: string }
+export interface Health {
+  ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; models_ok?: boolean; replay_runs: string[]; replay_flows: Record<string, string>; version: string;
+  open_url?: boolean; suggested_urls?: string[]; external_closed_today?: boolean; // "Live on a page you choose" (spec §19.3)
+}
+export interface UrlRunRequest { url: string; screens: 1 | 3; consent: boolean; hint?: string }
 export interface FlowInfo { id: string; name: string; start_url: string; goal: string; pages: string[]; single_page: boolean; public: boolean; attribution: string }
 
 export interface ErrorBody { error?: string; retry_after_s?: number; suggestion?: string; detail?: string }
@@ -29,6 +33,10 @@ export const getFlows = () => fetch("/api/flows").then((r) => json<FlowInfo[]>(r
 export const startRun = (flowId: string | null, mode: RunMode, replayOf?: string) =>
   fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(replayOf ? { mode: "replay", replay_of: replayOf } : { flow_id: flowId, mode }) }).then((r) =>
     json<{ run_id: string; mode: RunMode; replay_of?: string }>(r),
+  );
+export const startUrlRun = (req: UrlRunRequest) =>
+  fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: req.url, mode: "live", screens: req.screens, consent: req.consent, hint: req.hint || undefined }) }).then((r) =>
+    json<{ run_id: string; mode: RunMode }>(r),
   );
 export interface RunDetail { run: Run; findings: Finding[]; steps: unknown[]; rejected: unknown[]; trace: unknown[] }
 export const getRun = (runId: string) => fetch(`/api/runs/${runId}`).then((r) => json<RunDetail>(r));

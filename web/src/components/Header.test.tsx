@@ -201,3 +201,44 @@ describe("Header external flows (Task 26E.4)", () => {
     expect(screen.queryByText(/www\.w3\.org/)).toBeNull();
   });
 });
+
+describe("Header, a page the visitor chose (Task 26F.6)", () => {
+  const visitor = { id: "r9", mode: "live" as const, flow_id: "url-1a2b3c4d", goal: "", target_url: "/WAI/demos/bad/before/home.html", status: "running" as const, started_at: "2026-11-03T08:00:00Z",
+    axe_violations: 0, findings_verified: 0, findings_rejected: 0, tokens: 0, cost_usd: 0, duration_ms: 0, source: "visitor-url" as const, origin: "https://www.w3.org", public: true,
+    attribution: "www.w3.org · audited read-only at a visitor's request" };
+  const props = { flows, flowId: "checkout", onFlowChange: () => {}, mode: "live" as const, canLive: true, running: true, onModeChange: () => {}, onRun: () => {} };
+
+  it("names the host of a page the visitor chose, never the store, and shows the attribution line", () => {
+    render(<Header {...props} run={visitor} urlMode openUrl onUrlModeChange={() => {}} />);
+    expect(screen.getByText("www.w3.org ·")).toBeInTheDocument();  // the site label
+    expect(screen.queryByText(/ShopRight/)).toBeNull();
+    expect(screen.queryByRole("combobox")).toBeNull();  // no flow to pick: the page is the visitor's
+    expect(screen.getByTestId("attribution")).toHaveTextContent("www.w3.org · audited read-only at a visitor's request");
+  });
+
+  it("offers the third mode only when the server offers the field, and marks it pressed", () => {
+    const onUrlModeChange = vi.fn();
+    const { unmount } = render(<Header {...props} run={null} running={false} openUrl onUrlModeChange={onUrlModeChange} />);
+    const button = screen.getByRole("button", { name: /Live on a page you choose/ });
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(button);
+    expect(onUrlModeChange).toHaveBeenCalledWith(true);
+    unmount();
+    render(<Header {...props} run={null} running={false} urlMode openUrl onUrlModeChange={onUrlModeChange} />);
+    expect(screen.getByRole("button", { name: /Live on a page you choose/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /^Replay/ })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByRole("button", { name: /Run the audit/ })).toBeNull();  // the panel below has the button
+    expect(screen.getByText("a page you choose ·")).toBeInTheDocument();
+  });
+
+  it("hides the third mode when the server does not offer it", () => {
+    render(<Header {...props} run={null} running={false} openUrl={false} onUrlModeChange={() => {}} />);
+    expect(screen.queryByRole("button", { name: /Live on a page you choose/ })).toBeNull();
+  });
+
+  it("no longer claims the hosted app never audits third-party sites", () => {
+    const sample = { id: "r1", mode: "replay" as const, flow_id: "public", goal: "Site A: Open the first book", target_url: "https://site-a.invalid/", status: "done" as const, started_at: "2026-11-01T12:00:00Z", axe_violations: 7, findings_verified: 6, findings_rejected: 0, tokens: 0, cost_usd: 0.11, duration_ms: 184000, replay_of: "public-a" };
+    render(<Header {...props} run={sample} mode="replay" running={false} />);
+    expect(screen.getByText(/Site A · read-only sample/)).not.toHaveAttribute("title", expect.stringMatching(/never audits/));
+  });
+});

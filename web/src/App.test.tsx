@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import App from "./App";
 
@@ -78,4 +78,45 @@ it("Live is offered only when the server can reach the models", async () => {
   render(<App />);
   await waitFor(() => expect(screen.getByRole("option", { name: "Checkout page" })).toBeInTheDocument());
   expect(screen.getByRole("button", { name: /Live/ })).toBeDisabled();
+});
+
+function serveUrlMode(answer: (body: Record<string, unknown>) => Promise<Response>) {
+  const posts: Record<string, unknown>[] = [];
+  globalThis.fetch = vi.fn((url: string, init?: RequestInit) => {
+    if (url === "/api/health") return ok(health({ open_url: true, suggested_urls: ["https://a.example/"], external_closed_today: false }));
+    if (url === "/api/flows") return ok(flows);
+    if (url === "/api/runs" && init?.method === "POST") { const body = JSON.parse(String(init.body)) as Record<string, unknown>; posts.push(body); return answer(body); }
+    return ok(runDetail("url-run-1"));
+  }) as unknown as typeof fetch;
+  return posts;
+}
+
+it("Live on a page you choose: the field, consent and the request body; the header names the host once the run starts", async () => {
+  const posts = serveUrlMode(() => ok({ run_id: "url-run-1", mode: "live" }));
+  render(<App />);
+  await waitFor(() => expect(screen.getByRole("button", { name: /Live on a page you choose/ })).toBeInTheDocument());
+  await act(async () => { screen.getByRole("button", { name: /Live on a page you choose/ }).click(); });
+  const field = screen.getByRole("textbox", { name: /page address/i });
+  await act(async () => { fireEvent.change(field, { target: { value: "https://www.w3.org/WAI/demos/bad/before/home.html" } }); });
+  await act(async () => { fireEvent.click(screen.getByRole("checkbox", { name: /public and I may audit it/i })); });
+  await act(async () => { screen.getByRole("button", { name: /audit this page/i }).click(); });
+  await waitFor(() => expect(posts).toHaveLength(1));
+  expect(posts[0]).toMatchObject({ url: "https://www.w3.org/WAI/demos/bad/before/home.html", mode: "live", screens: 1, consent: true });
+  await waitFor(() => expect(stream("url-run-1")).toBeDefined());
+  act(() => { stream("url-run-1")!.emit("run.started", { run_id: "url-run-1", mode: "live", flow_id: "url-1a2b3c4d", public: true, source: "visitor-url", origin: "https://www.w3.org", attribution: "www.w3.org · audited read-only at a visitor's request", target_url: "https://www.w3.org/WAI/demos/bad/before/home.html" }); });
+  await waitFor(() => expect(screen.getByRole("banner")).toHaveTextContent("www.w3.org"));
+  expect(screen.getByRole("banner")).not.toHaveTextContent("ShopRight");
+});
+
+it("a refused address is shown verbatim in the panel, and the run is not marked failed", async () => {
+  serveUrlMode(() => Promise.resolve(new Response(JSON.stringify({ detail: "This address is not public." }), { status: 422, headers: { "Content-Type": "application/json" } })));
+  render(<App />);
+  await waitFor(() => expect(screen.getByRole("button", { name: /Live on a page you choose/ })).toBeInTheDocument());
+  await act(async () => { screen.getByRole("button", { name: /Live on a page you choose/ }).click(); });
+  await act(async () => { fireEvent.change(screen.getByRole("textbox", { name: /page address/i }), { target: { value: "http://localhost/x" } }); });
+  await act(async () => { fireEvent.click(screen.getByRole("checkbox", { name: /public and I may audit it/i })); });
+  await act(async () => { screen.getByRole("button", { name: /audit this page/i }).click(); });
+  await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("This address is not public."));
+  expect(document.title).not.toMatch(/failed/);
+  expect(screen.getByRole("button", { name: /audit this page/i })).toBeEnabled();  // a second try is one click away
 });

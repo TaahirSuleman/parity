@@ -68,7 +68,7 @@ async def run_flow(
         router.bind(run.id, ctx.record_call)
     await ctx.emit("run.started", {"flow_id": flow.id, "flow_name": flow.name, "goal": flow.goal, "mode": mode, "target_url": run.target_url,
                                    "single_page": flow.single_page, "agent_mode": None if flow.single_page else agent_mode,
-                                   "public": public, "attribution": flow.attribution,
+                                   "public": public, "attribution": flow.attribution, "source": run.source, "origin": run.origin,
                                    "model": settings.model_for("comparator"), "judge_model": settings.model_for("judge"),
                                    "navigator_model": None if flow.single_page else settings.model_for("navigator")})
     t0 = time.perf_counter()

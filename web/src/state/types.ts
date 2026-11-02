@@ -34,6 +34,7 @@ export interface Step { run_id: string; index: number; url: string; screenshot: 
 export interface Run {
   id: string; mode: RunMode; flow_id: string; goal: string; target_url: string; status: RunStatus; started_at: string; finished_at?: string | null;
   axe_violations: number; findings_verified: number; findings_rejected: number; tokens: number; cost_usd: number; duration_ms: number; error?: string | null; replay_of?: string | null;
+  source?: "flow" | "visitor-url"; origin?: string; public?: boolean; attribution?: string; // a page we do not serve: whose it is, and that it is read-only (spec §19.2, §19.3)
 }
 
 /** One SSE event as the API sends it: the event's data fields plus type, run_id and at. */

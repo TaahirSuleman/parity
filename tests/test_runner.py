@@ -338,6 +338,8 @@ async def test_external_run_ends_at_cost_cap(tmp_path, server_url, page):
     finished = next(e for e in loaded.events if e.type == "run.finished").data
     assert finished["agent"]["summary"] == "cost cap reached" and finished["fixes_proposed"] == 0 and finished["findings_verified"] == 0
     assert loaded.run.source == "visitor-url" and loaded.run.origin == server_url and loaded.run.screens == 1 and loaded.run.consent_at is not None
+    started = next(e for e in loaded.events if e.type == "run.started").data
+    assert started["source"] == "visitor-url" and started["origin"] == server_url and started["public"] is True  # the workbench names the host from this
     assert len(loaded.steps) == 1  # the screen was captured before the cap was known
 
 

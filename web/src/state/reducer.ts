@@ -54,6 +54,7 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
         id: ev.run_id, mode, flow_id: String(ev.flow_id ?? ""), goal: String(ev.goal ?? ""), target_url: String(ev.target_url ?? ""),
         status: "running", started_at: ev.at, finished_at: null, axe_violations: 0, findings_verified: 0, findings_rejected: 0,
         tokens: 0, cost_usd: 0, duration_ms: 0, error: null, replay_of: (ev.replay_of as string | undefined) ?? null,
+        public: Boolean(ev.public), attribution: String(ev.attribution ?? ""), source: (ev.source as Run["source"] | undefined) ?? "flow", origin: String(ev.origin ?? ""),
       };
       const models = {
         navigator: (ev.navigator_model as string | null | undefined) ?? null,

@@ -55,3 +55,34 @@ describe("Workbench external runs (Task 26E.4)", () => {
     expect(container.textContent).toMatch(/A fix and its re-audit follow/);
   });
 });
+
+describe("Workbench outcomes for a page the visitor chose (Task 26F.6)", () => {
+  const finishedRun = { ...running.run!, status: "done" as const, flow_id: "url-1a2b3c4d", mode: "live" as const };
+
+  it("shows the outcome notice for blocked by site", () => {
+    const state: RunState = { ...running, phase: "finished", run: finishedRun, steps: [], agent: { turns: 0, finished: false, finish_forced: false, summary: "blocked by site: bot challenge" } };
+    const { container } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={true} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    expect(container.textContent).toMatch(/blocked by site: bot challenge/);
+  });
+
+  it("names the reason when a run ended early but still has findings", async () => {
+    const hero = (await import("./fixtures/hero.json")).default as unknown as { events: import("./state/types").ParityEvent[] };
+    const { reduce } = await import("./state/reducer");
+    const finished = hero.events.reduce(reduce, initialState);
+    const state: RunState = { ...finished, run: { ...finished.run!, flow_id: "url-1a2b3c4d" }, agent: { turns: 0, finished: false, finish_forced: false, summary: "cost cap reached" } };
+    const { container } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={true} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    expect(container.textContent).toMatch(/ended early: cost cap reached/);
+  });
+
+  it("renders the URL panel in that mode and never expects a fix on a visitor's page", async () => {
+    const hero = (await import("./fixtures/hero.json")).default as unknown as { events: import("./state/types").ParityEvent[] };
+    const { reduce } = await import("./state/reducer");
+    const finished = hero.events.reduce(reduce, initialState);
+    const finding = { ...finished.findings[0], fix: null, reaudit: null, fix_note: null, decision: null };
+    const state: RunState = { ...running, run: { ...running.run!, mode: "live", flow_id: "url-1a2b3c4d", public: true, source: "visitor-url", origin: "https://www.w3.org" }, findings: [finding], selectedFindingId: finding.id };
+    const { container } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={true} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}}
+      urlMode openUrl onUrlModeChange={() => {}} onUrlRun={() => {}} suggestedUrls={[]} closedToday={false} urlRefusal={null} />);
+    expect(container.textContent).toMatch(/No fix was proposed/);
+    expect(container.querySelector("input[type=url]")).not.toBeNull();
+  });
+});

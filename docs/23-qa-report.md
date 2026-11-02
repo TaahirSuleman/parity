@@ -379,6 +379,13 @@ Cold judge, UX and UI (ranked by effect on the score; the three essentials and t
   `tests/test_store_latency.py`; the web ones in `App.test.tsx`, `hero.test.ts`, `FindingCard.test.tsx`, `ScreenReaderPanel.test.tsx`,
   `EvalTab.test.tsx`, `Header.test.tsx`, `reducer.test.ts`). The Python suite is green on the rebuilt bundle (344 tests: the 339 of the stress pass plus the five added here, including the Playwright
   smoke suite with its axe checks in light and dark, and the docs checks); vitest is 101 of 101; `tsc` is clean; the web bundle builds.
-- Not yet verified on the hosted app: the replay-start and run-load timings after the bounded gathers, the 80-slot concurrency, and the UI changes
-  as a judge sees them. They need a redeploy (≈7 min), then the walk in 8.1 again; the numbers go here when it has run.
+- Redeployed as revision `parity-00005` from `64d98c6` (2 Nov ≈21:50 SAST): health `storage: gcs`, `models_ok: true`, concurrency 80; the
+  2,000-character run link answers 404 on Linux now. Replay start on the hosted app: Purchase **5.9 s → 2.5 s**, Checkout 1.9 → 2.4 s (network noise
+  of ±0.5 s from here); `GET /api/runs/<purchase>` 2.7 → 2.0 s. Less than the arithmetic promised: the remaining time is the handful of sequential
+  calls around the gathers (exists, run.json, the list, the trace and event logs, the index) plus ≈0.5 s of network; good enough for the demo,
+  noted for later. In the browser on the new revision the Purchase replay ends on "Pay R1,249" with the card reading Found by → Proposed fix →
+  Re-audit → "Gap closed: now says "Pay R1,249"" → **Approve fix** as the filled button, model badges in blue, counters at 20 px.
+- Continuous deployment (the user's ask after the gate): every push to `main` that changes the app now deploys after both suites pass (GitHub
+  Actions, Workload Identity Federation, no stored key; deploy/README.md). The first run failed on `PERMISSION_DENIED` acting as the Cloud Build
+  service account and counted `deploy/README.md` as app; both fixed (actAs granted, any `.md` is docs-only).
 - Spend this gate: one hosted Live run, $0.10.

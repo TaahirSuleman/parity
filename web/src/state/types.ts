@@ -59,7 +59,8 @@ export interface RunState {
   mode: RunMode;
   phase: "idle" | "running" | "finished" | "failed";
   stage: string | null; // last model-backed stage seen, for the sighted-panel badge
-  voice?: { page: string; accuracy: number | null; clip_key: string } | null; // the page's VoiceOver clip once transcribed (spec §16); G-V is decided on accuracy
+  voice?: { page: string; accuracy: number | null; clip_key: string } | null;
+  lastDecision?: { finding_id: string; decision: "approve" | "reject"; reason: string; at: string } | null; // announced as an alert: focus returns to the card, so its own status line is never spoken (docs/24) // the page's VoiceOver clip once transcribed (spec §16); G-V is decided on accuracy
   percepts: { visible_text: string; kind: string; bbox: BBox }[];
   error: string | null;
   notice?: string | null; // a transient message (a failed decision, an interrupted stream): shown, never fatal

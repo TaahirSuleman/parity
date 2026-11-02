@@ -1,7 +1,7 @@
 import type { CallEvent, Finding, ParityEvent, Rejected, Run, RunMode, RunState, Step, TimelineRow, VoiceEvidence } from "./types";
 
 export const initialState: RunState = {
-  run: null, timeline: [], agent: null, models: { navigator: null, comparator: "muse-spark-1.3-contributor", judge: "muse-spark-1.3" }, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null, voice: null,
+  run: null, timeline: [], agent: null, models: { navigator: null, comparator: "muse-spark-1.3-contributor", judge: "muse-spark-1.3" }, steps: [], findings: [], rejected: [], calls: [], selectedFindingId: null, mode: "replay", phase: "idle", stage: null, percepts: [], error: null, voice: null, lastDecision: null,
 };
 
 export function resetFor(mode: RunMode): RunState {
@@ -138,7 +138,8 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
       return { ...patchFinding(state, String(ev.finding_id), { reaudit_note: String(ev.reason ?? "") }), stage: "reaudit" };
     case "decision.recorded": {
       const decision = ev.decision as Finding["decision"];
-      const next = patchFinding(state, String(ev.finding_id), { decision, status: decision?.decision === "approve" ? "approved" : "rejected" });
+      const patched = patchFinding(state, String(ev.finding_id), { decision, status: decision?.decision === "approve" ? "approved" : "rejected" });
+      const next = { ...patched, lastDecision: decision ? { finding_id: String(ev.finding_id), decision: decision.decision, reason: decision.reason ?? "", at: ev.at } : patched.lastDecision ?? null };
       const runStatus = ev.run_status as Run["status"] | undefined;
       return runStatus && next.run ? { ...next, run: { ...next.run, status: runStatus } } : next;
     }

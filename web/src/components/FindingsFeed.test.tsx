@@ -54,9 +54,9 @@ describe("FindingsFeed selection, notices and outcomes", () => {
 describe("Task 24: the idle state frames the product", () => {
   it("says what Parity is and that Replay is a recorded run with no model calls", () => {
     render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="idle" error={null} onSelect={() => {}} flowName="Checkout page" />);
-    const status = screen.getByRole("status");
-    expect(status).toHaveTextContent(/sighted .* screen-reader/i);
-    expect(status).toHaveTextContent(/Replay plays a recorded run.*no model calls/i);
+    const framing = screen.getByText(/Run the audit to start/); // a plain paragraph since the VoiceOver pass: a flow change must not re-read it
+    expect(framing).toHaveTextContent(/sighted .* screen-reader/i);
+    expect(framing).toHaveTextContent(/Replay plays a recorded run.*no model calls/i);
   });
 });
 
@@ -69,5 +69,16 @@ describe("FindingsFeed notices (stress pass)", () => {
     Element.prototype.scrollIntoView = spy;
     render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="idle" error={null} onSelect={() => {}} notice="Live is busy or rate-limited: try again in 30 min." />);
     expect(spy).toHaveBeenCalled();
+  });
+});
+
+describe("live regions after the VoiceOver pass (docs/24 1.1, 10.1)", () => {
+  it("keeps the idle framing out of the live region so changing the flow does not re-read it, while the running message stays live", () => {
+    const idle = render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="idle" error={null} onSelect={() => {}} flowName="Checkout page" />);
+    expect(screen.getByText(/Run the audit to start/)).toBeInTheDocument();
+    expect(screen.queryByRole("status")).toBeNull();
+    idle.unmount();
+    render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="running" error={null} onSelect={() => {}} flowName="Checkout page" />);
+    expect(screen.getByRole("status")).toHaveTextContent(/Capturing the page/);
   });
 });

@@ -79,7 +79,7 @@ async def test_replay_approve_records_the_decision(page, server_url):
     await approve.wait_for()
     assert await page.get_by_label("Reason").input_value()
     await approve.click()
-    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=10000)
+    await page.get_by_role("status").filter(has_text=re.compile(r"^Approved ·")).wait_for(timeout=10000)
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('1 approved')", timeout=10000)
     assert "awaiting review" not in (await page.locator("header").inner_text()).lower()
 
@@ -157,11 +157,11 @@ async def test_run_link_reloads_the_run_with_its_decisions(page, server_url):
     await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('awaiting review')", timeout=60000)
     await card.click()
     await page.get_by_role("button", name="Approve fix").click()
-    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=10000)
+    await page.get_by_role("status").filter(has_text=re.compile(r"^Approved ·")).wait_for(timeout=10000)
     assert "run=" in page.url
     await page.reload()
     await page.get_by_role("button", name="Pay R1,249").first.wait_for(timeout=30000)
-    await page.get_by_text(re.compile(r"^Approved ·")).wait_for(timeout=30000)
+    await page.get_by_role("status").filter(has_text=re.compile(r"^Approved ·")).wait_for(timeout=30000)
     await page.get_by_role("link", name=re.compile("fix.patch")).wait_for(timeout=10000)
     assert await page.get_by_role("combobox", name="Flow").input_value() == "checkout"
     assert "1 approved" in await page.locator("header").inner_text()

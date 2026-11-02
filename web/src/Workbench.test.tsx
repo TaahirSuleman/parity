@@ -10,7 +10,7 @@ const running: RunState = { ...initialState, phase: "running", run: { id: "r1", 
 describe("Workbench announcements", () => {
   it("tells assistive tech that the audit has started, not only that it finished", () => {
     const { container } = render(<Workbench state={running} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={false} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
-    const live = container.querySelector("[aria-live=polite]");
+    const live = container.querySelector("[aria-live=assertive]"); // assertive: the quote region updates in the same instant and must not drown it (docs/24 2.3)
     expect(live?.textContent).toMatch(/audit started/i);
   });
 });
@@ -28,6 +28,15 @@ describe("Workbench (stress pass)", () => {
     unmount();
     const failed: RunState = { ...running, phase: "failed", error: "interrupted by restart", run: { ...running.run!, status: "failed" } };
     const second = render(<Workbench state={failed} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={false} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
-    expect(second.container.querySelector("[aria-live=polite]")?.textContent).toMatch(/audit failed/i);
+    expect(second.container.querySelector("[aria-live=assertive]")?.textContent).toMatch(/audit failed/i);
+  });
+});
+
+describe("Workbench announcements after the VoiceOver pass (docs/24)", () => {
+  it("announces a recorded decision as an alert, since focus moves back to the card and the card's status line is never spoken", () => {
+    const state: RunState = { ...running, phase: "finished", lastDecision: { finding_id: "r1-f01", decision: "approve", reason: "Gap closed: now says Pay R1,249", at: "t1" } };
+    const { container } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={false} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    expect(container.querySelector("[role=alert]")?.textContent).toMatch(/^Approved · Gap closed: now says Pay R1,249$/);
+    expect(container.querySelector("[aria-live=assertive]")?.getAttribute("aria-atomic")).toBe("true");
   });
 });

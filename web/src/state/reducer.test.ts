@@ -242,3 +242,13 @@ describe("Voice (P6)", () => {
     expect(next.stage).toBe("voice");
   });
 });
+
+describe("decision announcements (docs/24 Question D)", () => {
+  it("decision.recorded remembers the latest decision for the announcer", () => {
+    const base = play(events);
+    const f = base.findings[0];
+    const next = reduce(base, { type: "decision.recorded", run_id: base.run!.id, at: "t9", finding_id: f.id, decision: { decision: "reject", reason: "Not a barrier here", decided_at: "t9" }, status: "rejected" } as unknown as ParityEvent);
+    expect(next.lastDecision).toEqual({ finding_id: f.id, decision: "reject", reason: "Not a barrier here", at: "t9" });
+    expect(initialState.lastDecision).toBeNull();
+  });
+});

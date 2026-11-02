@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from parity.meta.client import ListTraceSink, MetaResponse, TraceSink, Usage, cache_key, text_of
+from parity.meta.pricing import cost_usd
 from parity.store.models import ModelCall
 
 
@@ -52,6 +53,7 @@ class FakeMetaClient:
                 response_id=str(raw.get("id", "")), prompt_sha256=key, cache_hit=True,
                 input_tokens=usage.input_tokens, cached_tokens=usage.cached_tokens, output_tokens=usage.output_tokens,
                 total_tokens=usage.total_tokens, http_status=200,
+                cost_usd=cost_usd(str(body.get("model", "")), usage.input_tokens, usage.cached_tokens, usage.output_tokens),  # priced like a live call, so cost caps are testable
             )
         )
         return MetaResponse(raw, text_of(raw), str(raw.get("id", "")), raw.get("_request_id", ""), usage, True, 0)

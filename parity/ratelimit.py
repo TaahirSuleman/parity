@@ -9,7 +9,8 @@ from __future__ import annotations
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Callable, Literal
+from datetime import UTC, datetime, timedelta
+from typing import Any, Callable, Literal
 
 HOUR_S = 3600
 DAY_S = 86400
@@ -73,3 +74,54 @@ class RateLimiter:
             self._global.append(now)
             self._per_ip.setdefault(ip or "unknown", deque()).append(now)
         return verdict
+
+
+@dataclass(frozen=True)
+class Closed:
+    """A visitor-URL run refused by the day's caps (spec §19.3.3)."""
+
+    scope: Literal["day", "origin"]
+    retry_after_s: int
+    allowed: bool = False
+
+    @property
+    def message(self) -> str:
+        if self.scope == "day":
+            return "closed for today: the day's budget for pages visitors choose is spent"
+        return "this site has had its runs for today; try another page, or come back tomorrow"
+
+
+def _day_start(now: datetime) -> datetime:
+    return now.astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+@dataclass(frozen=True)
+class ExternalBudget:
+    """Caps on pages visitors choose, on top of the Live limits: per run (the runner ends the run at it), per UTC day for
+    everyone, and per origin per day. The day's runs are read from the index, so they survive a restart."""
+
+    run_usd: float
+    daily_usd: float
+    per_origin_per_day: int
+
+    def run_exhausted(self, cost_usd: float) -> bool:
+        return cost_usd >= self.run_usd
+
+    async def _today(self, index: Any, now: datetime | None) -> list[Any]:
+        return await index.external_runs_since(_day_start(now or datetime.now(UTC)))
+
+    async def spent_today(self, index: Any, *, now: datetime | None = None) -> float:
+        return float(sum(r.cost_usd for r in await self._today(index, now)))
+
+    async def day_closed(self, index: Any, *, now: datetime | None = None) -> bool:
+        return await self.spent_today(index, now=now) >= self.daily_usd
+
+    async def check(self, index: Any, origin: str, *, now: datetime | None = None) -> Allowed | Closed:
+        now = now or datetime.now(UTC)
+        runs = await self._today(index, now)
+        until_midnight = max(1, int((_day_start(now) + timedelta(days=1) - now.astimezone(UTC)).total_seconds()))
+        if sum(r.cost_usd for r in runs) >= self.daily_usd:
+            return Closed(scope="day", retry_after_s=until_midnight)
+        if sum(1 for r in runs if r.origin == origin) >= self.per_origin_per_day:
+            return Closed(scope="origin", retry_after_s=until_midnight)
+        return Allowed()

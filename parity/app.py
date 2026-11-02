@@ -26,7 +26,7 @@ from parity.api.routes import UNREADABLE, router
 from parity.config import Settings, load_settings
 from parity.meta.client import MetaClient, TraceRouter
 from parity.pipeline import browser
-from parity.ratelimit import RateLimiter
+from parity.ratelimit import ExternalBudget, RateLimiter
 from parity.store.blob import LocalBlobStore, make_blob_store
 from parity.store.bundle import RunBundle
 from parity.store.index import RunIndex
@@ -150,6 +150,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.live_lock = asyncio.Lock()
     st.tasks: set[asyncio.Task] = set()  # every Live and Replay task in flight
     st.limiter = RateLimiter(settings.live_per_ip_per_hour, settings.live_global_per_day)
+    st.budget = ExternalBudget(settings.external_run_usd, settings.external_daily_usd, settings.external_per_origin_per_day)  # pages visitors choose (spec §19.3.3)
+    st.resolver = None  # the URL policy's DNS lookup; tests inject one
+    st.robots = None  # the URL policy's robots.txt check; tests inject one
     st.last_live_run = None  # the newest Live run id, for the finishing-run grace in POST /runs
     st.self_base_url = f"http://127.0.0.1:{settings.port}"
     st.replay_for_flow = {}

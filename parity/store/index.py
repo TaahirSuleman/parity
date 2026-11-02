@@ -173,6 +173,14 @@ class RunIndex:
             out.append((run_id, datetime.fromisoformat(started), datetime.fromisoformat(finished) if finished else None))
         return out
 
+    async def external_runs_since(self, since: datetime) -> list[Run]:
+        """Visitor-URL runs started at or after ``since``, oldest first: what the daily caps sum (spec §19.3.3), from the index alone."""
+        db = await self._conn()
+        async with db.execute("SELECT json FROM runs WHERE started_at >= ? ORDER BY started_at ASC, id ASC", (since.isoformat(),)) as cur:
+            rows = await cur.fetchall()
+        runs = [Run.model_validate_json(raw) for (raw,) in rows]
+        return [r for r in runs if r.source == "visitor-url"]
+
     async def clear(self) -> None:
         db = await self._conn()
         for table in ("model_calls", "findings", "runs"):

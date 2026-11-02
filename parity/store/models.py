@@ -272,6 +272,10 @@ class Run(Strict):
     client_ip_hash: str = ""
     error: str | None = None
     replay_of: str | None = None  # source run id when mode == replay
+    source: Literal["flow", "visitor-url"] = "flow"  # a bundled or external flow, or a page a visitor chose (spec §19.3.2)
+    origin: str = ""  # the visitor page's scheme://host; the caps count by it
+    consent_at: datetime | None = None  # when the visitor affirmed the page is public and theirs to audit
+    screens: int | None = None  # screens the visitor asked for (1 or 3)
 
 
 class Event(Strict):

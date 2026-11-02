@@ -67,6 +67,11 @@ class RunContext:
     captures: dict[int, Capture] = field(default_factory=dict)  # per step, for the fixer and the re-audit after the walk
     public: bool = False  # a site we do not own: read-only guard on every action, robots.txt honoured (spec §17)
     agent: Any = None  # AgentState while the auditor agent runs
+    cost_cap_usd: float | None = None  # a visitor-URL run's ceiling (spec §19.3.3): past it, no stage sends another call
+
+    @property
+    def over_budget(self) -> bool:
+        return self.cost_cap_usd is not None and self.run.cost_usd >= self.cost_cap_usd
 
     async def emit(self, type: str, data: dict[str, Any] | None = None) -> Event:
         event = Event(type=type, run_id=self.run.id, data=data or {})
@@ -125,7 +130,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     await ctx.emit("step.captured", {"index": step_index, "url": cap.url, "axe_violations": len(cap.axe_violations), "ax_nodes": len(cap.ax_nodes), "reason": reason})
 
     percepts = []
-    if ctx.ablation.use_grounding and ctx.ablation.use_screenshot:
+    if ctx.ablation.use_grounding and ctx.ablation.use_screenshot and not ctx.over_budget:
         percepts = await see(ctx.client, cap, run.id, model=settings.model_for("seer"), effort=ctx.ablation.effort)
     await ctx.emit("seer.done", {"index": step_index, "percepts": [p.model_dump(mode="json") for p in percepts]})
     await ctx.bundle.flush(run.id)  # per stage, not per screen: a crash mid-screen keeps what the seer saw
@@ -135,7 +140,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     feedback: list[str] | None = None
     seen: set[tuple[str, str | None]] = set()
     unparseable_retry = False
-    for attempt in range(1, MAX_COMPARATOR_ATTEMPTS + 1):
+    for attempt in (range(1, MAX_COMPARATOR_ATTEMPTS + 1) if not ctx.over_budget else ()):  # past the cap the screen is kept, not compared
         candidates = await compare(
             ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
             use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree, unparseable_retry=unparseable_retry,
@@ -201,7 +206,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
         await ctx.save_finding(finding)
         await ctx.emit("judge.result", {"finding_id": finding.id, "judgement": judgement.model_dump(mode="json")})
 
-    await asyncio.gather(*(judge_one(f) for f in new_findings))  # findings are judged independently: no reason to wait in line
+    await asyncio.gather(*(judge_one(f) for f in new_findings if not ctx.over_budget))  # findings are judged independently: no reason to wait in line
 
     run.findings_verified = len(ctx.findings)
     run.findings_rejected = len(ctx.rejected)

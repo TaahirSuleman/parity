@@ -309,3 +309,92 @@ async def test_external_flow_runs_public_and_never_fixes(tmp_path, server_url, p
     started = next(e for e in loaded.events if e.type == "run.started")
     assert started.data["public"] is True and started.data["attribution"] == "W3C test attribution"
     assert next(e for e in loaded.events if e.type == "run.finished").data["fixes_proposed"] == 0
+
+
+def _public_flow(start_url: str, *, single_page: bool = True):
+    from parity.flows import Flow
+
+    return Flow(id="url-test", name="Page: test", start_url=start_url, goal="read", pages=("x",), single_page=single_page, public=True,
+                attribution="test · audited read-only at a visitor's request")
+
+
+async def test_external_run_ends_at_cost_cap(tmp_path, server_url, page):
+    """Spec §19.3.3: a visitor-URL run ends cleanly, done with reason "cost cap reached", once its model cost passes the cap:
+    here after the seer, so the comparator and the judge are never sent; the run record carries the visitor fields."""
+    from parity.pipeline.runner import VisitorRequest, run_flow
+    from parity.store.models import now
+
+    async def page_factory(**kwargs):
+        return page
+
+    flow = _public_flow(f"{server_url}/store/checkout.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=page_factory,
+                             visitor=VisitorRequest(origin=server_url, consent_at=now(), screens=1), cost_cap_usd=0.0000001)
+        calls = await index.calls_for(run.id)
+    assert run.status == RunStatus.done and run.error is None and run.cost_usd > 0, run.error
+    assert [c.stage for c in calls] == ["seer"]  # the first call passed the cap; nothing more was sent
+    loaded = await bundle.load(run.id)
+    finished = next(e for e in loaded.events if e.type == "run.finished").data
+    assert finished["agent"]["summary"] == "cost cap reached" and finished["fixes_proposed"] == 0 and finished["findings_verified"] == 0
+    assert loaded.run.source == "visitor-url" and loaded.run.origin == server_url and loaded.run.screens == 1 and loaded.run.consent_at is not None
+    assert len(loaded.steps) == 1  # the screen was captured before the cap was known
+
+
+async def test_single_page_public_run_ends_at_a_bot_wall_before_any_model_call(tmp_path, server_url, page):
+    """Spec §17: a bot wall ends a one-screen public run as 'blocked by site' before anything is sent to a model."""
+    from parity.pipeline.runner import run_flow
+    from tests.test_agent import WALL_HTML
+
+    await page.route("**/store/wall.html", lambda route: route.fulfill(status=200, content_type="text/html", body=WALL_HTML))
+
+    async def page_factory(**kwargs):
+        return page
+
+    flow = _public_flow(f"{server_url}/store/wall.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=page_factory)
+    assert run.status == RunStatus.done and run.error is None and client.calls == []
+    loaded = await bundle.load(run.id)
+    assert not loaded.steps
+    assert next(e for e in loaded.events if e.type == "nav.blocked").data["reason"] == "blocked by site: bot challenge"
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "blocked by site: bot challenge"
+
+
+async def test_public_run_whose_site_does_not_answer_ends_done_with_the_reason(tmp_path, page):
+    """A site that refuses the connection is an outcome a judge may hit, not a failure of ours: done, with the network error named."""
+    from parity.pipeline.runner import run_flow
+
+    async def page_factory(**kwargs):
+        return page
+
+    import socket
+
+    with socket.socket() as sock:  # a port nothing listens on (Chromium refuses the well-known low ports before connecting)
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    flow = _public_flow(f"http://localhost:{port}/")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=f"http://localhost:{port}", page_factory=page_factory)
+    assert run.status == RunStatus.done and run.error is None and client.calls == []
+    loaded = await bundle.load(run.id)
+    summary = next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"]
+    assert summary == "the site did not answer: net::ERR_CONNECTION_REFUSED"
+    assert next(e for e in loaded.events if e.type == "nav.blocked").data["reason"] == summary
+
+
+async def test_public_run_whose_start_the_guard_aborts_ends_done_as_not_public(tmp_path, server_url, page):
+    """DNS rebinding between the route's check and the browser's: the guard aborts the start navigation and the run says why."""
+    from parity.pipeline.runner import run_flow
+
+    await page.route("**/*", lambda route: route.abort("blockedbyclient"))
+
+    async def page_factory(**kwargs):
+        return page
+
+    flow = _public_flow(f"{server_url}/store/checkout.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=page_factory)
+    assert run.status == RunStatus.done and run.error is None and client.calls == []
+    loaded = await bundle.load(run.id)
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "This address is not public."

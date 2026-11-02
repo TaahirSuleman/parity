@@ -142,7 +142,7 @@ async def _audit_if_new(ctx: RunContext, state: AgentState, page: Page, reason: 
     state.audited[key] = {"screen": key, "verified": [b.__dict__ for b in summary.verified], "rejected": summary.rejected, "axe_violations": summary.axe_violations}
 
 
-async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12, mode: AgentMode = "tools") -> AgentResult:
+async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12, mode: AgentMode = "tools", max_screens: int | None = None) -> AgentResult:
     state = AgentState()
     ctx.agent = state
     ctx.page = page
@@ -164,6 +164,12 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
     previous: str | None = None
     turns = 0
     for turn in range(1, max_turns + 1):
+        if ctx.over_budget:  # a visitor-URL run's cost cap (spec §19.3.3): the walk ends cleanly before another call
+            state.summary = "cost cap reached"
+            return AgentResult(turns, False, False, state.summary)
+        if max_screens is not None and state.step_count >= max_screens:  # the visitor asked for this many screens: finished, not cut off
+            state.summary = f"{state.step_count} screens audited: the limit for this run"
+            return AgentResult(turns, True, False, state.summary)
         state.turn = turn
         last = turn == max_turns
         if last and mode == "tools":

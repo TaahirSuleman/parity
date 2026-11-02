@@ -585,3 +585,27 @@ async def test_a_refused_consent_click_is_dropped_and_the_walk_goes_on(tmp_path,
     assert finished["finished"] is True and finished["turns"] == 3  # the walk went on after the refused click
     actions = next(e.data for e in loaded.events if e.type == "nav.actions")
     assert actions["executed"] == 0 and actions["dropped"] == 1  # the click was never made: nothing was accepted on the visitor's behalf
+
+
+async def test_a_visitor_walk_stops_after_its_screens(tmp_path, fixture_url, page):
+    """Spec §19.3.2, "up to three screens on request": the walk ends, finished, once max_screens screens are audited, before
+    the model is asked for another turn."""
+    from parity.flows import Flow
+
+    link1 = await centre(page, f"{fixture_url}/hop1.html", "#next")
+    link2 = await centre(page, f"{fixture_url}/hop2.html", "#next")
+    script = [turn(function_call("audit_view", {"reason": "first"}, "c1")), turn(computer_call([{"type": "click", **link1}], "c2")),
+              turn(function_call("audit_view", {"reason": "second"}, "c3")), turn(computer_call([{"type": "click", **link2}], "c4")),
+              turn(function_call("audit_view", {"reason": "third"}, "c5")), turn(function_call("finish", {"summary": "x"}, "c6"))]
+
+    async def factory(**kwargs):
+        return page
+
+    flow = Flow(id="url-hops", name="hops", start_url=f"{fixture_url}/hop1.html", goal="browse", pages=("hop1.html",), single_page=False, public=True)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=factory, max_screens=2)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done, run.error
+    assert len(loaded.steps) == 2 and len(auditor_calls(client)) == 3  # two screens audited in three turns; the fourth turn was never asked for
+    result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
+    assert result["finished"] is True and result["finish_forced"] is False and result["summary"] == "2 screens audited: the limit for this run"

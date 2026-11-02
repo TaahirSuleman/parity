@@ -184,3 +184,20 @@ async def test_young_replay_copies_survive_the_cap_at_boot(tmp_path):
     finally:
         await index.close()
     assert result["evicted"] == ["20261101-090000-aaaa"], result
+
+
+async def test_external_runs_since_lists_the_visitor_runs_of_the_window(store):
+    """The daily caps (spec §19.3.3) read the visitor-URL runs of the day from the index, never from the bundles."""
+    from datetime import timedelta
+
+    from parity.store.models import Run, RunMode, now
+
+    _, index = store
+    t = now()
+    today = Run(id="v-today", mode=RunMode.live, flow_id="url-a", source="visitor-url", origin="https://a.example", cost_usd=0.2, started_at=t - timedelta(hours=1))
+    old = Run(id="v-old", mode=RunMode.live, flow_id="url-a", source="visitor-url", origin="https://a.example", cost_usd=0.3, started_at=t - timedelta(days=2))
+    for run in (sample_run("store-1"), today, old):
+        await index.upsert_run(run)
+    rows = await index.external_runs_since(t - timedelta(days=1))
+    assert [r.id for r in rows] == ["v-today"] and rows[0].origin == "https://a.example" and rows[0].cost_usd == 0.2
+    assert [r.id for r in await index.external_runs_since(t - timedelta(days=3))] == ["v-old", "v-today"]

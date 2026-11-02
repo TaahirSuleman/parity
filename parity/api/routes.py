@@ -17,10 +17,12 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from parity import replay
 from parity.api.sse import sse_response
-from parity.flows import available_flows
+from parity.flows import Flow, available_flows
 from parity.pipeline.gate import ConflictError, decide
-from parity.pipeline.runner import run_flow
-from parity.store.models import RunMode
+from parity.pipeline.runner import VisitorRequest, run_flow
+from parity.pipeline.urlpolicy import MAX_URL_LEN, READ_ONLY_GOAL, Refusal, check_url
+from parity.ratelimit import Closed
+from parity.store.models import RunMode, now
 from parity.verifier_off import verifier_off
 
 log = logging.getLogger(__name__)
@@ -53,11 +55,35 @@ FindingId = Annotated[str, Depends(_finding_id)]
 StepIndex = Annotated[int, Path(ge=0, le=999)]
 
 
+HINT_MAX = 120
+HINT_TAGS = re.compile(r"<[^>]*>")
+HINT_OTHER = re.compile(r"[^A-Za-z0-9 .,;:'!?()&/-]")
+
+
 class RunRequest(BaseModel):
     flow_id: str | None = None
     mode: RunMode = RunMode.replay
     pace_ms: int = Field(default=replay.DEFAULT_PACE_MS, ge=0, le=5000)
     replay_of: str | None = Field(default=None, max_length=ID_MAX, pattern=ID_PATTERN)  # a recorded run id (public samples)
+    # "Live on a page you choose" (spec §19.3.2): the visitor's URL, how many screens, their affirmation, an optional hint
+    url: str | None = Field(default=None, max_length=MAX_URL_LEN)
+    screens: Literal[1, 3] = 1
+    consent: bool = False
+    hint: str | None = Field(default=None, max_length=HINT_MAX)
+
+
+def clean_hint(hint: str | None) -> str:
+    """Letters, digits and basic punctuation only, whitespace collapsed: tags, control and invisible characters are dropped."""
+    if not hint:
+        return ""
+    return re.sub(r"\s+", " ", HINT_OTHER.sub("", HINT_TAGS.sub("", hint))).strip()
+
+
+def public_origin(request: Request, trust_proxy: bool) -> str:
+    """The address the world reaches this app at: linked from the user agent on external pages, refused by the URL policy as our own."""
+    host = request.headers.get("host") or request.url.netloc
+    scheme = (request.headers.get("x-forwarded-proto") if trust_proxy else None) or request.url.scheme
+    return f"{scheme}://{host}"
 
 
 class DecisionRequest(BaseModel):
@@ -81,6 +107,8 @@ async def health(request: Request) -> dict:
         "ok": True, "mode_default": st.settings.default_mode, "live_enabled": st.settings.live_enabled,
         "storage": "gcs" if st.settings.gcs_bucket else "local", "runs_indexed": await st.index.count_runs(),
         "has_key": st.settings.has_key, "models_ok": bool(getattr(st, "models_ok", False)), "replay_runs": st.replay_ids, "replay_flows": st.replay_for_flow, "version": request.app.version,
+        "open_url": bool(st.settings.open_url and st.settings.live_enabled and st.client is not None), "suggested_urls": list(st.settings.suggested_urls),
+        "external_closed_today": bool(st.settings.open_url and await st.budget.day_closed(st.index)),
     }
 
 
@@ -93,6 +121,8 @@ async def flows(request: Request) -> list[dict]:
 @router.post("/runs", status_code=202)
 async def start_run(req: RunRequest, request: Request) -> dict:
     st = request.app.state
+    if req.url is not None:
+        return await _start_url_run(req, request)
     if req.replay_of and req.mode != RunMode.replay:
         raise HTTPException(422, "replay_of selects a recorded run; it needs mode=replay")
     if req.replay_of:
@@ -119,6 +149,51 @@ async def start_run(req: RunRequest, request: Request) -> dict:
     verdict = st.limiter.check(ip)
     if not verdict.allowed:
         return _too_many(verdict.message, verdict.retry_after_s)
+    return await _launch_live(st, flow, ip, {"own_origin": public_origin(request, st.settings.trust_proxy)})
+
+
+async def _start_url_run(req: RunRequest, request: Request) -> dict:
+    """Live on a page the visitor chose (spec §19.3.2): the switch, the affirmation, the policy, the caps, then the usual Live gates.
+    No answer ever carries the URL back; a refusal is one sentence."""
+    st = request.app.state
+    settings = st.settings
+    if not settings.open_url:
+        raise HTTPException(403, "pages you choose are not offered on this server")
+    if req.mode != RunMode.live:
+        raise HTTPException(422, "a page you choose runs Live: set mode=live")
+    if not req.consent:
+        raise HTTPException(422, "confirm that the page is public and that you may audit it")
+    if not settings.live_enabled:
+        raise HTTPException(403, "Live mode is disabled on this server; use Replay")
+    if st.client is None:
+        raise HTTPException(503, "Live mode needs MODEL_API_KEY on the server; use Replay")
+    ip = client_ip(request, settings.trust_proxy)
+    verdict = st.limiter.check(ip)  # a look, not a count: a refused address must not spend one of the visitor's runs
+    if not verdict.allowed:
+        return _too_many(verdict.message, verdict.retry_after_s)
+    own = public_origin(request, settings.trust_proxy)
+    target = await asyncio.to_thread(check_url, req.url or "", own_origin=own, deny=settings.url_deny, resolver=st.resolver, robots=st.robots)  # DNS and robots.txt block
+    if isinstance(target, Refusal):
+        raise HTTPException(422, target.message)
+    closed = await st.budget.check(st.index, target.origin)
+    if isinstance(closed, Closed):
+        if closed.scope == "day":
+            raise HTTPException(503, closed.message)
+        return _too_many(closed.message, closed.retry_after_s)
+    hint = clean_hint(req.hint)
+    goal = READ_ONLY_GOAL + (f" The visitor says the page is about: <page_data>{hint}</page_data>" if hint else "")
+    flow = Flow(id=f"url-{hashlib.sha256(target.origin.encode()).hexdigest()[:8]}", name=f"Page: {target.host}", start_url=target.url, goal=goal,
+                pages=(urlparse(target.url).path or "/",), single_page=req.screens == 1, public=True,
+                attribution=f"{target.host} · audited read-only at a visitor's request")
+    extra = {
+        "own_origin": own, "visitor": VisitorRequest(origin=target.origin, consent_at=now(), screens=req.screens), "cost_cap_usd": settings.external_run_usd,
+        "timeout_s": settings.external_timeout_s * (2 if req.screens == 3 else 1), "max_turns": 6 if req.screens == 1 else 12, "max_screens": req.screens,
+    }
+    return await _launch_live(st, flow, ip, extra)
+
+
+async def _launch_live(st, flow: Flow, ip: str, extra: dict) -> dict | JSONResponse:
+    """Take the one Live slot and this visitor's run, mint the id and start the task; any failure on the way gives the slot back."""
     if st.live_lock.locked():
         # A holder that has already published its terminal event is only mid-teardown: wait for the
         # slot instead of refusing, so "Run" works the moment a viewer sees the previous run end.
@@ -140,7 +215,7 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         run_id = await replay.fresh_run_id(st.bundle)
         st.last_live_run = run_id
         st.bus.open(run_id)  # subscribers that connect before run.started attach live instead of reading an empty log
-        task = asyncio.create_task(_live(st, flow, run_id, ip_hash), name=f"live-{run_id}")
+        task = asyncio.create_task(_live(st, flow, run_id, ip_hash, extra), name=f"live-{run_id}")
     except BaseException:
         st.live_lock.release()
         raise
@@ -149,10 +224,11 @@ async def start_run(req: RunRequest, request: Request) -> dict:
     return {"run_id": run_id, "mode": "live"}
 
 
-async def _live(st, flow, run_id: str, ip_hash: str) -> None:
+async def _live(st, flow, run_id: str, ip_hash: str, extra: dict) -> None:
     try:
         # an external page runs at its own origin behind the read-only guard (spec §19.2); the store runs under the app's own address
-        await run_flow(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=flow.origin or st.self_base_url, run_id=run_id, client_ip_hash=ip_hash, public=flow.public)
+        await run_flow(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=flow.origin or st.self_base_url, run_id=run_id, client_ip_hash=ip_hash,
+                       public=flow.public, **extra)
     except Exception:  # run_flow records failures itself; this guards the task
         log.exception("live run %s crashed outside the runner", run_id)
     finally:

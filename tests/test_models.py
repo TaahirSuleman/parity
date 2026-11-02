@@ -34,3 +34,20 @@ def test_finding_roundtrip():
 def test_enums_are_strings():
     assert RunStatus.awaiting_review == "awaiting_review"
     assert Severity.needs_review == "needs_review"
+
+
+def test_run_carries_its_source_and_the_visitor_fields():
+    """Spec §19.3.2: a visitor-URL run records source, origin, consent_at and screens; a store run has the defaults."""
+    import pytest
+    from pydantic import ValidationError
+
+    from parity.store.models import Run, RunMode, now
+
+    run = Run(id="r", mode=RunMode.live, flow_id="checkout")
+    assert run.source == "flow" and run.origin == "" and run.consent_at is None and run.screens is None
+    t = now()
+    visitor = Run(id="v", mode=RunMode.live, flow_id="url-1", source="visitor-url", origin="https://a.example", consent_at=t, screens=3)
+    again = Run.model_validate_json(visitor.model_dump_json())
+    assert again.source == "visitor-url" and again.origin == "https://a.example" and again.consent_at == t and again.screens == 3
+    with pytest.raises(ValidationError):
+        Run(id="x", mode=RunMode.live, flow_id="f", source="other")

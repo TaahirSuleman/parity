@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import secrets
 import time
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
-from parity.agent.loop import AgentMode, AgentResult, result_dict, run_agent
+from parity.agent.loop import AgentMode, AgentResult, result_dict, run_agent, wall_reason
 from parity.api.events import EventBus
 from parity.config import Settings
 from parity.flows import Flow
@@ -28,6 +31,15 @@ log = logging.getLogger(__name__)
 PageFactory = Callable[..., Awaitable[Page]]  # called bare for the store; with external=True, own_origin and on_blocked for a page we do not serve
 
 
+@dataclass(frozen=True)
+class VisitorRequest:
+    """A page a visitor chose (spec §19.3.2): what the run record keeps beyond the flow."""
+
+    origin: str
+    consent_at: datetime
+    screens: int
+
+
 def new_run_id() -> str:
     return f"{datetime.now(UTC):%Y%m%d-%H%M%S}-{secrets.token_hex(4)}"  # 16 bits collided in 0.55% of 30-id bursts and merged two bundles
 
@@ -36,14 +48,19 @@ async def run_flow(
     settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, *, base_url: str,
     mode: RunMode = RunMode.live, run_id: str | None = None, client_ip_hash: str = "", ablation: Ablation | None = None,
     page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False, own_origin: str = "",
+    visitor: VisitorRequest | None = None, cost_cap_usd: float | None = None, timeout_s: int | None = None, max_screens: int | None = None,
 ) -> Run:
     """Own one run end to end: single page → audit_view directly; multi-page → the auditor agent."""
     public = public or flow.public  # a flow on a page we do not serve is guarded whatever the caller passed (spec §17, §19.2)
     run = Run(
         id=run_id or new_run_id(), mode=mode, flow_id=flow.id, goal=flow.goal, target_url=flow.target_url(base_url),
         status=RunStatus.running, client_ip_hash=client_ip_hash,
+        source="visitor-url" if visitor else "flow", origin=visitor.origin if visitor else "", consent_at=visitor.consent_at if visitor else None,
+        screens=visitor.screens if visitor else None,
     )
-    ctx = RunContext(settings=settings, client=client, bus=bus, bundle=bundle, index=index, run=run, base_url=base_url, ablation=ablation or Ablation(), public=public)
+    ctx = RunContext(settings=settings, client=client, bus=bus, bundle=bundle, index=index, run=run, base_url=base_url, ablation=ablation or Ablation(), public=public,
+                     cost_cap_usd=cost_cap_usd)
+    deadline_s = timeout_s or settings.run_timeout_s
     await bundle.create(run)
     await ctx._index_safe("upsert_run", run)
     router = getattr(client, "trace", None)
@@ -58,7 +75,7 @@ async def run_flow(
     page: Page | None = None
     agent: AgentResult | None = None
     try:
-      async with asyncio.timeout(settings.run_timeout_s):
+      async with asyncio.timeout(deadline_s):
           if public and flow.origin:  # a page we do not serve: every request is re-checked and the user agent names Parity (spec §19.3.1)
               page = await page_factory(external=True, own_origin=own_origin, on_blocked=_request_blocked(ctx))
           else:
@@ -68,14 +85,17 @@ async def run_flow(
               await ctx.emit("nav.blocked", {"turn": 0, "url": run.target_url, "reason": "robots.txt disallows the start URL; nothing was fetched"})
               agent = AgentResult(0, False, False, "stopped: robots.txt disallows the start URL")
               verified = []
+          elif outcome := await _open(ctx, page, run.target_url, public):  # a public page that did not answer, was aborted, or is a wall
+              agent = AgentResult(0, False, False, outcome)
+              verified = []
+          elif flow.single_page:
+              summary = await audit_view(ctx, page, 0, reason="single-page flow")
+              verified = [b.__dict__ for b in summary.verified]
+              if ctx.over_budget:
+                  agent = AgentResult(0, False, False, "cost cap reached")
           else:
-            await page.goto(run.target_url, wait_until="load")
-            if flow.single_page:
-                summary = await audit_view(ctx, page, 0, reason="single-page flow")
-                verified = [b.__dict__ for b in summary.verified]
-            else:
-                agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode)
-                verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
+              agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode, max_screens=max_screens)
+              verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
           final_url = page.url  # where the walk ended, before re-audits reuse the page
 
           async def same_page() -> Page:
@@ -91,7 +111,7 @@ async def run_flow(
           })
     except TimeoutError:
         run.status = RunStatus.failed
-        run.error = f"run deadline of {settings.run_timeout_s} s exceeded"
+        run.error = f"run deadline of {deadline_s} s exceeded"
         log.error("run %s failed: %s", run.id, run.error)
         await _close(ctx, t0)
         await ctx.emit("run.failed", {"error": run.error})
@@ -133,6 +153,28 @@ async def run_flow(
         bundle.forget(run.id)  # the bundle is the record now; the buffers would otherwise grow with every run
         bus.forget(run.id)
     return run
+
+
+async def _open(ctx: RunContext, page: Page, url: str, public: bool) -> str | None:
+    """Navigate to the start URL. On a page we do not serve, a refused connection, a navigation the request guard aborted
+    and a bot wall are outcomes the run ends with (spec §17, §19.3), never failures of ours; nothing reaches a model."""
+    try:
+        await page.goto(url, wait_until="load")
+    except PlaywrightError as exc:
+        if not public:
+            raise
+        first = str(exc).splitlines()[0]
+        code = re.search(r"net::ERR_[A-Z_]+", first)
+        if code and code.group(0) == "net::ERR_BLOCKED_BY_CLIENT":
+            reason = "This address is not public."
+        else:
+            reason = f"the site did not answer: {code.group(0) if code else 'timed out' if 'Timeout' in first else 'navigation failed'}"
+        await ctx.emit("nav.blocked", {"turn": 0, "reason": reason})
+        return reason
+    if public and (wall := await wall_reason(page)):
+        await ctx.emit("nav.blocked", {"turn": 0, "url": page.url, "reason": wall})
+        return wall
+    return None
 
 
 def _request_blocked(ctx: RunContext):

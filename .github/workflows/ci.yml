@@ -1,5 +1,8 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:  # a manual run deploys main as a push would
 jobs:
   python:
     runs-on: ubuntu-latest
@@ -26,3 +29,35 @@ jobs:
           node-version: "26"
       - if: hashFiles('web/package.json') != ''
         run: cd web && npm ci && npm test
+  deploy:  # every push to main that changes the app redeploys the hosted demo, after both suites pass; nothing to add by hand
+    needs: [python, web]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-main
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changes  # docs-only pushes do not rebuild the image
+        env:
+          BEFORE: ${{ github.event.before }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          if [ "$FORCE" = "true" ] || [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then echo "app=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -vE '^(docs/|\.superpowers/|[^/]*\.md$|\.github/)' | grep -q .; then echo "app=true" >> "$GITHUB_OUTPUT"; else echo "app=false" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.changes.outputs.app == 'true'
+        uses: google-github-actions/auth@v2  # Workload Identity Federation: no key stored anywhere; the provider trusts this repository only
+        with:
+          workload_identity_provider: projects/565679729433/locations/global/workloadIdentityPools/github/providers/github
+          service_account: parity-deployer@parity-hackathon-2026.iam.gserviceaccount.com
+      - if: steps.changes.outputs.app == 'true'
+        uses: google-github-actions/setup-gcloud@v2
+      - if: steps.changes.outputs.app == 'true'
+        env:
+          PROJECT: parity-hackathon-2026
+        run: deploy/cloudrun.sh build && deploy/cloudrun.sh deploy

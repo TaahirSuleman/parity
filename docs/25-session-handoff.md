@@ -67,7 +67,9 @@ its own copy under `scripts/` since the scratchpad is session-scoped.
   final merge it runs `git merge main` into its branch (a merge, not a rebase), then on `main` `git pull --ff-only` and a fast-forward merge.
 - **The old chat** (VoiceOver pass) writes only `docs/24-voiceover-pass.md` and commits only that.
 - No chat runs `git stash`, `git reset`, `git checkout -- .` or a rebase on `main`; every chat pulls with `git pull --ff-only` before a push and
-  verifies the author after it. Only the user adds Secret Manager versions; redeploys are Tue 12:30 (chat B) and Tue 16:00 (chat A) unless the user says otherwise.
+  verifies the author after it. Only the user adds Secret Manager versions. **Since 2 Nov evening every push to `main` that changes the app
+  redeploys the hosted demo once CI is green** (deploy/README.md "Continuous deployment"): a push to `main` is a deploy, so push only task-complete,
+  suite-green states; the Tue 12:30 and 16:00 "redeploys" are the merges and pushes at those times, and `deploy/cloudrun.sh` is for emergencies.
 - The workbench fixes that come out of the VoiceOver pass are done in chat A once Task 28 has been committed.
 
 ## 5. The kickoff message for the new chat

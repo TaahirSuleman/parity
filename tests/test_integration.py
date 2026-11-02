@@ -146,7 +146,7 @@ async def test_twenty_concurrent_subscribers_see_identical_streams(api):
     run_id = (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "replay", "pace_ms": 100})).json()["run_id"]
     bodies = await asyncio.gather(*(client.get(f"/api/runs/{run_id}/events") for _ in range(20)))
     streams = [[t for t, _ in parse_sse(b.text)] for b in bodies]
-    assert streams[0][-1] == "run.finished" and len(streams[0]) == 8
+    assert streams[0][-1] == "run.finished" and len(streams[0]) == 9
     assert all(s == streams[0] for s in streams)
 
 

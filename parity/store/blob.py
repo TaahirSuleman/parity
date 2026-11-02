@@ -16,6 +16,20 @@ from typing import Any, Protocol
 from parity.config import Settings
 
 
+CONCURRENCY = 16  # object round trips in flight at once: a run holds dozens of objects and on GCS each is ~50 ms (2 Nov measurement)
+
+
+async def gather_bounded(coros, limit: int = CONCURRENCY) -> list:
+    """Run the coroutines together, at most ``limit`` at a time, and return their results in order."""
+    sem = asyncio.Semaphore(limit)
+
+    async def one(coro):
+        async with sem:
+            return await coro
+
+    return await asyncio.gather(*(one(c) for c in coros))
+
+
 class BlobStore(Protocol):
     async def put(self, key: str, data: bytes, content_type: str = "application/octet-stream") -> None: ...
     async def get(self, key: str) -> bytes: ...

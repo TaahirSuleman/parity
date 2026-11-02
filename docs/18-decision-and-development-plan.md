@@ -118,13 +118,13 @@ Goal ("buy the headphones") ─► NAVIGATOR (Spark 1.3 computer use, truncation
 
 | Time | On screen (always the product) |
 |---|---|
-| 0:00–0:06 | Scope line, spoken + captioned: "Parity was built this week on Meta's Muse Spark; Playwright and axe-core are pre-existing open source." Workbench idle on the demo checkout |
-| 0:06–0:20 | The person and the problem: a blind shopper at checkout. One overlay card: 95.9% of home pages fail; 5,114 US suits in 2025. axe-core badge: **0 violations** |
-| 0:20–1:30 | Click **Run the audit**. The Navigator walks the flow (label: *Muse Spark 1.3 · computer use*). Side-by-side panels with grounding boxes (*Spark · grounding*). Findings appear; the Verifier rejects one bad finding (red row). **Hero:** "Pay R1,249" vs `button, "Submit"` |
-| 1:30–1:55 | Fixer diff → Re-audit shows the gap closed → developer clicks **Approve** |
-| 1:55–2:15 | Ablation strip in the product: screenshot-only / tree-only / full Parity, with recall for each. Tester quote |
-| 2:15–2:35 | Eval tab: catch rate and precision vs axe-core on ~30 seeded faults; cost and time per page. A ≤ 10 s architecture card |
-| 2:35–2:50 | Impact close + "try it yourself" URL |
+| 0:00–0:06 | Scope line, spoken + captioned: "Parity was built this week on Meta's Muse Spark; Playwright and axe-core are pre-existing open source." Workbench idle (the Sighted panel fills on the click; the axe-core badge reads "—" until then) |
+| 0:06–0:20 | The person and the problem: a blind shopper at checkout. One overlay card: 95.9% of home pages fail; 5,114 US suits in 2025. The axe-core badge shows **0 violations** a quarter-second after the click that opens the next beat |
+| 0:20–1:30 | Click **Run the audit** on the **Purchase flow, Replay** (a recorded run, labelled REPLAY: it plays in ≈71 s and is the only flow with computer-use rows; a Live walk takes 7–10 min and is not shown). The Navigator walks the flow (label: *Muse Spark 1.3 contributor · computer use*). Side-by-side panels with grounding boxes (*grounding*). Findings appear; scroll to a red row (the Verifier's rejections sit after the cards). **Hero:** the run ends on "Pay R1,249" vs `button, "Submit"` (deterministic since 2 Nov); click "Total: R1,249.00" for "not announced" if time allows |
+| 1:30–1:55 | Proposed fix → open **Diff** on camera → Re-audit shows the gap closed → developer clicks **Approve fix** (the filled button) → "Download fix.patch" appears in the header |
+| 1:55–2:15 | Eval tab, the ablation rows: screenshot only 17% / tree only 75% / no grounding 82% / full Parity 84% recall, and false alarms on clean 0.0 vs 0.7 without grounding (no tester quote: there is no on-screen artefact for one, rule L7) |
+| 2:15–2:35 | Eval tab: recall 84% and precision 97% vs axe-core 0% on 38 seeded faults built to pass axe-core, 20 clean controls; $0.37 and 4 m 41 s per 3 pages (say "per three pages", not "per page"). The ≤ 10 s architecture card; the judge comparison (Muse Wonder) if a second is free |
+| 2:35–2:50 | Impact close + "try it yourself" URL. Record at 1280 px wide (three columns, everything ≈12% larger); zoom in the edit on the hero pair and on the Approve click |
 | 2:50–2:55 | End card |
 
 ## 10. Problem statement

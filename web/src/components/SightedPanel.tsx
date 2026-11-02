@@ -92,6 +92,7 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
               <span style={{ color: row.kind === "refused" || row.kind === "blocked" ? "var(--bad)" : "inherit" }}>{row.label}</span>
               {row.kind === "actions" && <MetaBadge model={model} capability="computer use" />}
               {row.kind === "tool_call" && <CodeBadge what="gated tool" />}
+              {row.kind === "safety" && <CodeBadge what="code · guard" />}
             </li>
           ))}
         </ol>

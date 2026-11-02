@@ -7,6 +7,7 @@ index from the bundles, discover replay bundles, then serve.
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -19,6 +20,7 @@ from pydantic import ValidationError
 from fastapi.staticfiles import StaticFiles
 
 from parity import __version__
+from parity.store import blob
 from parity.api.events import EventBus
 from parity.api.routes import UNREADABLE, router
 from parity.config import Settings, load_settings
@@ -99,6 +101,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        if settings.gcs_bucket:  # bucket round trips run in threads; the default pool (cpu + 4) would cap the bounded gathers at about six
+            asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=blob.CONCURRENCY, thread_name_prefix="blob"))
         st = app.state
         await st.index.init()
         booted = await st.index.boot(st.bundle, replay_keep=settings.replay_keep, replay_min_age_s=settings.replay_min_age_s)
@@ -174,6 +178,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             # A shared run link (/runs/<id>, or ?run= on any path) opens the workbench: any path that is not an API route, a
             # store page or a real file under static/ serves index.html. A missing file (favicon.ico) stays a 404.
             if path.startswith(("api/", "store/")) or path in ("api", "store"):
+                raise HTTPException(404)
+            if "\x00" in path or any(len(segment.encode()) > 255 for segment in path.split("/")):  # Linux resolves such a path without raising, macOS raises: same answer on both
                 raise HTTPException(404)
             try:
                 candidate = (STATIC_DIR / path).resolve() if path else STATIC_DIR / "index.html"

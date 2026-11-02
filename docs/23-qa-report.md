@@ -287,3 +287,98 @@ during the run, and whether a freshly inserted `role=status` is announced.
   a 3 MB body is refused with 413.
 - Hosted stress on revision 00004: 10 concurrent Replays in 4.2 s, none bad; the fuzz list produced no 5xx; one Live checkout run finished
   (7 verified, $0.104, 268 s) and a second Live POST during it answered 429 with `retry_after_s: 60` and the Replay suggestion.
+
+## 8. Pre-stretch gate — before Phases 6, 6b and 6c (2 Nov 2026, evening)
+
+The whole product as judges and the video will meet it, before any stretch work starts: the suites cold, three fresh-context reviewers
+(requirements coverage, demo-path robustness, a cold judge on UX and UI), a first-hand walk of the hosted app with timings, and a Live run.
+Everything a judge would see was fixed with a failing test first; everything else is listed, not fixed, because the freeze is tomorrow.
+
+### 8.1 First-hand checks (hosted revision parity-00004 from f1c7bd5, Cloud Run us-central1, measured from South Africa)
+
+- Suites cold at HEAD before any change: pytest 339 green (incl. the Playwright smoke suite and the docs checks), vitest 86/86, `tsc` clean.
+- Hero Replay (Checkout page): click to first event ≈2 s, finished in ≈21 s, header `Parity 7 verified · 3 rejected`, `$0.0901 · recorded 4 m 42 s`,
+  the "Pay R1,249" card selected with `button, "Submit"`, five green checks, re-audit "gap closed", fix explanation. Approve with a reason: decision 200,
+  header `1 approved · 6 to review`, "Download fix.patch" link. No console errors.
+- Purchase flow Replay: 285 events play in ≈71 s (250 ms pace), 35 verified · 2 rejected, the screens strip, the agent timeline. Site A plays under
+  "Site A · read-only sample" with `axe-core 7 violations · Parity 6 verified`. The Eval tab's numbers match `eval/results/final.json` and the README.
+- Live checkout run on the hosted app: 8 verified · 2 rejected, $0.10, **6 m 50 s** (yesterday's: 268 s). Model latency by stage from the trace:
+  comparator 10 calls, 289 s (one first pass, then one re-audit comparison per finding at ≈29 s each); fixer 8 calls, 139 s; judge 8, 85 s; seer 33 s.
+  The run is sequential re-audits; a Live purchase walk is 10 min or more. The video uses the Purchase **Replay** for the run beat (doc 18 §9, revised).
+- Latency, network vs server: TLS to Cloud Run ≈0.25 s, first byte ≈0.5 s on `/`, `/api/health`, `/api/flows`, `/api/eval` (network-bound; fine).
+  **Replay start was slow on GCS:** POST `/api/runs` 1.9 s for the checkout bundle, **5.9 s for the purchase bundle**; `GET /api/runs/<purchase id>`
+  2.7 s. The same calls on local disk: 20–50 ms and 17 ms. Cause: the copy and the load did one bucket round trip per object, in sequence
+  (≈66 objects for a purchase copy). Fixed (8.3). Dark mode renders; the README's seven relative links resolve.
+- Cloud Run runs with `--min-instances 1`, so there is no cold start for a judge; the cold-start cost noted by the reviewer applies to redeploys only.
+
+### 8.2 Reviewer findings and what was done
+
+Requirements auditor (125 rows: 88 covered, 18 partial, 11 gap of which 8 are the unstarted phases, 8 manual):
+- **The workbench opened on the wrong card for the Purchase replay** ("Download invoice", a later-screen tie-break beat "Pay R1,249") and won the Checkout
+  tie only by event order. Fixed: `pickHero` adds a deterministic bonus for a control whose visible label carries an amount or a count (the hero by design,
+  doc 18 §3); `web/src/state/hero.test.ts` plays both committed `events.jsonl` logs through the reducer and asserts the selected card is "Pay R1,249"
+  vs "Submit". Reviewed by the cold judge independently (same finding).
+- **CI red on Linux for seven pushes**: `/runs/<2,000 × b>` served `index.html` (200) on Linux, where `Path.resolve()` does not raise; macOS raised and
+  answered 404. Fixed in `app.py spa()`: a NUL or a segment over 255 bytes is a 404 before the filesystem is touched, on every OS.
+- Video script vs product: "~30 faults" (38), "per page" (per 3 pages), an idle "0 violations" badge (it reads "—" until a run), a tester quote with no
+  artefact, "catch rate" (Recall). Doc 18 §9 rewritten to what the product shows; no code.
+- Code and docs disagreed on the proxy hop (right-most in code, "first" in `config.py` and `deploy/README.md`): wording fixed to match the code, which is
+  the spoof-resistant choice behind Cloud Run. Doc 19 §19.2's last line had been swallowed by the §19.3 rewrite: restored.
+- Consent banners (doc 19 §17) were never implemented; only the CLI reaches it today, Phase 6c would expose it: added to Task 26F.2. Lines that become
+  false when 6c ships (Header, README): added to Task 26F.6.
+- Deferred, the user's call: the third-party documents removed from the tree are still in public git history (commit `9f6ca2c`); purging means a history
+  rewrite that changes `1e6caad`, cited by the README, `latest.md` and doc 17 (doc 20 Task 25 already records this choice).
+- Deferred: a Playwright smoke test over the committed bundles (every smoke test uses a one-finding synthetic bundle); the spec's "sighted crop" on the
+  card (§9) and the `sighted_text_in_dom` evidence (§4) were never built; doc 19 §6 says computer-use turns are cached, the code never caches them by
+  design (`test_auditor_turns_bypass_the_cache`).
+
+Demo-path code reviewer (one Critical, six Important, all confirmed with repros):
+- **C1, fixed:** a reloaded `?run=` link that answers after the presenter clicked Run (0.8–2.7 s window on GCS) closed the new run's stream and left the
+  page on "Auditing…" for good. `App.tsx` counts starts; the link's answer is ignored once a run has begun. `App.test.tsx`.
+- **I4, fixed:** between the POST answering and the first event the button said "Run the audit" again and a second click started a second run (in Live, a
+  429 for the visitor's own run). The start guard now holds until the run's first event or a failed start. `App.test.tsx`.
+- **I2, fixed:** a storage error between taking the one-Live-at-a-time slot and starting the run (minting the id reads the bucket) kept the slot: every
+  later Live click got 429 until a restart. The slot is released on any failure. `tests/test_demo_path.py`.
+- **I3, fixed for Replay:** if the final write failed, no terminal event reached subscribers and the page stayed on "Auditing…" while `run.json` said
+  otherwise. The replay publisher now always sends a terminal event (`run.failed` with a plain reason). `tests/test_demo_path.py`. The runner's equivalent
+  path (`_close`/`_settle` raising) is deferred: it needs the same shape inside `runner.py` and a redeploy; a storage failure at that instant is rare.
+- **I5, fixed:** sequential bucket round trips on the request path (8.1): `bundle.load` and `replay.start` now read and write their objects together,
+  bounded at 16 in flight (`tests/test_store_latency.py`, peak in flight asserted); the thread pool behind `to_thread` is widened to 16 on GCS at
+  startup (the default on 2 vCPU is 6). Boot loads every kept bundle; with `--min-instances 1` that is a redeploy cost only. Eviction's per-object
+  delete stays sequential (deferred; it only runs past 20 kept copies).
+- **I6, changed:** `--concurrency 20` counted every open event stream (a 71 s purchase replay holds one for its whole run; 20 viewers saturated the
+  instance). `deploy/cloudrun.sh` now sets 80; takes effect at the next deploy.
+- Minor, fixed: the Live slot's teardown wait is 10 s, not 2 (a purchase run's last bundle load and flush on GCS outlasts 2 s, so "Run" right after a
+  finished Live run got 429); the replayed `run.started` now carries `replay_of` (the header tooltip read "Replay of recorded run " with nothing after it);
+  Live is offered only when `/api/health` says the models answer (`models_ok`).
+- Minor, deferred: a reconnect that gets a non-200 answer freezes silently (instance restart only); a reconnect resets the judge's selection; the
+  mode toggle and "Replay Site A" are silent no-ops while a run is going; no React error boundary; `scrollIntoView` ignores reduced motion; a redeploy
+  mid-replay marks the old revision's runs failed.
+
+Cold judge, UX and UI (ranked by effect on the score; the three essentials and the cheap ones done):
+- Meta-model badges looked the same as code badges (a 6 px dot was the only difference, invisible on video): `.badge.model` now carries the
+  architecture diagram's blue (tint, border, text), light and dark; the axe contrast tests in the smoke suite cover both schemes.
+- The card never said a Meta model found the gap: "Found by · Muse Spark 1.3 contributor · grounding · comparison" now precedes the verifier's checks.
+- The card ran Re-audit above Proposed fix, opposite to the 1:30–1:55 beat: order is now Proposed fix → Diff → Re-audit → reason → **Approve fix** as
+  the filled primary button; the suggested reason is short enough to read whole (`Gap closed: now says "Pay R1,249"`). `FindingCard.test.tsx`.
+- The screen-reader panel read backwards (heard first, seen second, the price louder): "On screen" then "Announced", at one size, and the duplicate
+  sentence is gone when the judge's impact line exists. `ScreenReaderPanel.test.tsx`.
+- The safety-check rows carried the model's computer-use badge although code acknowledges them (rule L7, honest attribution): they now carry
+  `code · guard`. `reducer.test.ts`.
+- Eval tab: "38 seeded faults built to pass axe-core" (the 0% row is otherwise a straw man), "False alarms on clean", "Cost / 3 pages", "Time / 3 pages",
+  and "a patch is exported only after a human approves each fix" (nothing is applied). `EvalTab.test.tsx`.
+- Costs in cents everywhere (`$0.09`, not `$0.0901`; under a cent keeps four decimals); the axe-core and Parity counters at 20 px.
+- The Header says, in Live on the Purchase flow, that the walk takes about 10 minutes. `Header.test.tsx`.
+- Deferred, with the script as the hedge: rejected rows sort after every card (scroll to them on camera); the card legend disappears when the
+  screenshot loads; 10 px box labels and 11.5 px checks are small at 1×; at 800 px the header wraps to five rows (record at 1280 px); glossary for
+  "contributor", "grounding", "not axe", "unique", "name rule" (the Eval tab has one; the cards do not).
+
+### 8.3 Verification of this gate
+
+- Every fix above has a test that failed before the change and passed after it (the Python ones in `tests/test_demo_path.py` and
+  `tests/test_store_latency.py`; the web ones in `App.test.tsx`, `hero.test.ts`, `FindingCard.test.tsx`, `ScreenReaderPanel.test.tsx`,
+  `EvalTab.test.tsx`, `Header.test.tsx`, `reducer.test.ts`). The Python suite is green on the rebuilt bundle (0 tests, including the Playwright
+  smoke suite with its axe checks in light and dark, and the docs checks); vitest is 101 of 101; `tsc` is clean; the web bundle builds.
+- Not yet verified on the hosted app: the replay-start and run-load timings after the bounded gathers, the 80-slot concurrency, and the UI changes
+  as a judge sees them. They need a redeploy (≈7 min), then the walk in 8.1 again; the numbers go here when it has run.
+- Spend this gate: one hosted Live run, $0.10.

@@ -220,3 +220,12 @@ describe("reduce guards (stress pass)", () => {
     expect(s.timeline[s.timeline.length - 1]?.label).toBe("blocked by site: bot challenge");
   });
 });
+
+describe("safety-check rows are the guard's, not the model's", () => {
+  it("records a nav.safety_check as a code row", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const state = reduce(started, { type: "nav.safety_check", run_id: started.run!.id, at: "2026-11-02T00:00:00Z", turn: 2, codes: ["confirm-to-proceed"], reason: "routine confirmation on the demo store" } as unknown as ParityEvent);
+    const row = state.timeline.at(-1);
+    expect(row?.kind).toBe("safety");
+  });
+});

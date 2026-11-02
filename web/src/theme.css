@@ -2,7 +2,7 @@
 
 :root {
   --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eef0f3; --line: #d9dde3; --ink: #15181e; --muted: #4d5563;
-  --ok: #137a3d; --bad: #c62828; --warn: #a36a00; --focus: #2f6fed;
+  --ok: #137a3d; --bad: #c62828; --warn: #a36a00; --focus: #2f6fed; --model-ink: #1a47b8; --model-bg: #e4edff; --model-line: #a9c1f5;
   --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", monospace;
   --sans: -apple-system, "Segoe UI", Inter, system-ui, sans-serif;
   color-scheme: light dark;
@@ -10,12 +10,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f1115; --surface: #171a21; --surface-2: #1f232c; --line: #2a2f3a; --ink: #e8eaf0; --muted: #9aa3b2;
-    --ok: #3ccf74; --bad: #ff6b6b; --warn: #f2b134; --focus: #7aa7ff;
+    --ok: #3ccf74; --bad: #ff6b6b; --warn: #f2b134; --focus: #7aa7ff; --model-ink: #b9cfff; --model-bg: #1b2a4a; --model-line: #3b5590;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1115; --surface: #171a21; --surface-2: #1f232c; --line: #2a2f3a; --ink: #e8eaf0; --muted: #9aa3b2;
-  --ok: #3ccf74; --bad: #ff6b6b; --warn: #f2b134; --focus: #7aa7ff;
+  --ok: #3ccf74; --bad: #ff6b6b; --warn: #f2b134; --focus: #7aa7ff; --model-ink: #b9cfff; --model-bg: #1b2a4a; --model-line: #3b5590;
 }
 
 html, body, #root { height: 100%; }
@@ -35,6 +35,7 @@ button { font: inherit; color: inherit; }
 }
 .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
 .badge.model::before { background: var(--focus); }
+.badge.model { color: var(--model-ink); background: var(--model-bg); border-color: var(--model-line); }  /* the diagram's blue: a Meta model, not code */
 
 .pill { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .pill button { padding: 4px 10px; background: var(--surface); border: 0; cursor: pointer; font-size: 12.5px; letter-spacing: 0.02em; }
@@ -47,7 +48,7 @@ button { font: inherit; color: inherit; }
 .btn-quiet:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .counter { display: inline-flex; align-items: baseline; gap: 6px; font-variant-numeric: tabular-nums; }
-.counter strong { font-size: 15px; }
+.counter strong { font-size: 20px; }  /* axe-core 0 vs Parity 7 is the claim: large enough to read on a video */
 
 .progress { height: 2px; background: var(--line); position: relative; overflow: hidden; }
 .progress::after { content: ""; position: absolute; inset: 0; width: 30%; background: var(--focus); animation: slide 1.4s linear infinite; }
@@ -83,6 +84,7 @@ button { font: inherit; color: inherit; }
 .sr-quote { font-family: var(--mono); font-size: 22px; line-height: 1.3; word-break: break-word; }
 .sr-silent { color: var(--muted); font-style: normal; }
 .price-line { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sr-pair { font-size: 24px; line-height: 1.3; }  /* what is seen and what is heard, at one size: the pair is the point */
 
 .trace { position: relative; z-index: 2; background: var(--surface); }
 .trace table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11.5px; }

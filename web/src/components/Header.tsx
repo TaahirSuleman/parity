@@ -21,7 +21,7 @@ interface Props {
 }
 
 export function fmtCost(usd: number): string {
-  return usd < 0.1 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;
+  return usd < 0.01 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;  // cents everywhere a judge compares costs; under a cent the digits are the information
 }
 export function fmtDuration(ms: number): string {
   if (ms < 1000) return `${ms} ms`;
@@ -81,7 +81,7 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
               Live (rate-limited)
             </button>
           </div>
-          <span className="muted text-xs">{mode === "replay" ? "a recorded run, no model calls" : "real model calls; a few runs per visitor per hour"}</span>
+          <span className="muted text-xs">{mode === "replay" ? "a recorded run, no model calls" : flows.find((f) => f.id === flowId)?.single_page === false ? "real model calls; the agent walk takes about 10 minutes; a few runs per visitor per hour" : "real model calls; a few runs per visitor per hour"}</span>
         </div>
         <button type="button" className="btn-primary" onClick={() => { if (!running) onRun(); }} aria-disabled={running} data-running={running}>
           {running ? "Auditing…" : "Run the audit"}

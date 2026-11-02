@@ -76,7 +76,7 @@ deploy() {
   say "Cloud Run deploy $SERVICE ($IMAGE:$TAG)"
   gcloud run deploy "$SERVICE" --image "$IMAGE:$TAG" --project "$PROJECT" --region "$REGION" --platform managed \
     --allow-unauthenticated --execution-environment gen2 \
-    --min-instances 1 --max-instances 1 --cpu 2 --memory 2Gi --no-cpu-throttling --timeout 3600 --concurrency 20 \
+    --min-instances 1 --max-instances 1 --cpu 2 --memory 2Gi --no-cpu-throttling --timeout 3600 --concurrency 80 \
     --service-account "$SA" \
     --set-secrets "MODEL_API_KEY=${SECRET}:latest" \
     --set-env-vars "PARITY_GCS_BUCKET=${BUCKET},PARITY_INDEX_PATH=/tmp/index.db,PARITY_CACHE_DIR=/tmp/cache,PARITY_DEFAULT_MODE=replay,PARITY_TRUST_PROXY=1,LOG_LEVEL=info"

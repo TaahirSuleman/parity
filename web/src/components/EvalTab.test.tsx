@@ -61,3 +61,14 @@ describe("EvalTab", () => {
     expect(screen.getByText(/no eval results/i)).toBeInTheDocument();
   });
 });
+
+describe("EvalTab wording for a newcomer (cold-judge review, 2 Nov)", () => {
+  it("says the seeded faults were built to pass axe-core and names the columns plainly", () => {
+    render(<EvalTab results={results} onReplay={() => {}} />);
+    expect(screen.getByText(/seeded faults built to pass axe-core/)).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "False alarms on clean" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Cost \/ 3 pages/ })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Time \/ 3 pages/ })).toBeInTheDocument();
+    expect(screen.getByText(/a patch is exported only after a human approves/)).toBeInTheDocument();
+  });
+});

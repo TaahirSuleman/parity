@@ -53,7 +53,7 @@ The user answers Questions A–D by ear. Fixes land after Task 28.
 
 | # | Step | Expected | Heard | Verdict |
 |---|---|---|---|---|
-| 4.1 | On the selected card, Tab to the reason field. | "Reason, edit text" with the suggested text ("Re-audit: gap closed, the screen reader now says …") read out; the text is selected so typing replaces it. | | |
+| 4.1 | On the selected card, Tab to the reason field. | "Reason, edit text" with the suggested text ("Gap closed: now says …") read out; the text is selected so typing replaces it. | | |
 | 4.2 | Tab to "Approve" and press it. | The Approve/Reject controls disappear; focus stays on this card's heading button (not the top of the page); **Question D:** is "Approved · <reason>" announced? The header now says "1 approved · 6 to review" and a "Download fix.patch" link exists. | | |
 | 4.3 | Select another card, type a reason, press "Reject". | "Rejected · <reason>" announced; counts update. | | |
 | 4.4 | Reload (Cmd+R). | Same run, both decisions still shown; nothing re-announces the whole run as new beyond the page load. | | |

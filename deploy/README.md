@@ -11,7 +11,7 @@ the model key in Secret Manager. Spec: docs/19 §12. Docker is not needed on you
    nothing prints the value.
 4. `deploy/cloudrun.sh build` then `deploy/cloudrun.sh deploy` — builds with Cloud Build (tag = git sha) and deploys with
    `--allow-unauthenticated --min-instances 1 --max-instances 1 --cpu 2 --memory 2Gi --no-cpu-throttling --timeout 3600 --concurrency 20`,
-   the bucket, the secret and `PARITY_TRUST_PROXY=1` (the per-visitor Live limit reads the first `X-Forwarded-For` hop).
+   the bucket, the secret and `PARITY_TRUST_PROXY=1` (the per-visitor Live limit reads the right-most `X-Forwarded-For` hop, the address the front end saw).
 5. Check `https://<url>/api/health`: `storage: "gcs"`, `models_ok: true`, `runs_indexed`.
 
 ## Redeploy

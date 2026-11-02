@@ -302,7 +302,10 @@ A fair comparison, not a strawman: the multi-agent variant gets the same models,
 - The workbench groups them as "External page (W3C demo, read-only)", shows the attribution line, and passes `fixesExpected=false` (no fixer, no
   re-audit: §17 stands, we never patch a page we do not serve). The header names the site from the flow, never "ShopRight".
 - Replay bundles `fixtures/replay/runs/bad-<page>` recorded once each with the Spark model (~$0.10 each), not anonymised (the pages are a public
-  demonstration published for this purpose), with a `NOTICE` carrying the W3C copyright line. Rate limits unchanged; `PARITY_EXTERNAL### 19.3 Any public page on the hosted app (Phase 6c) [D12]
+  demonstration published for this purpose), with a `NOTICE` carrying the W3C copyright line. Rate limits unchanged; `PARITY_EXTERNAL_FLOWS=0`
+  hides the group.
+
+### 19.3 Any public page on the hosted app (Phase 6c) [D12]
 The hosted workbench accepts a visitor's URL. Everything that makes that safe is code the model cannot talk its way past: the model perceives,
 code decides, as everywhere else in Parity. Retention is not about storage cost; it is the promise on the policy page that makes a read-only
 audit of someone else's page defensible under R4, and the takedown path needs deletion to exist anyway.

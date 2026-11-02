@@ -31,7 +31,8 @@ export default function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [flows, setFlows] = useState<FlowInfo[]>([]);
   const closeRef = useRef<(() => void) | null>(null);
-  const startingRef = useRef(false);  // a start request in flight: a second click (or a slow first one) must not start a second run
+  const startingRef = useRef(false);  // a start request in flight, or a started run whose first event has not arrived: no second run meanwhile
+  const beganRef = useRef(0);  // starts since mount: a reloaded ?run= link that answers after a click must not take the new run's stream over
   const [starting, setStarting] = useState(false);
   const [flowId, setFlowId] = useState<string>("");
   const [stepOverride, setStepOverride] = useState<number | null>(null); // a screen picked on the step strip
@@ -68,6 +69,7 @@ export default function App() {
       const linked = runIdFromLocation(window.location.pathname, window.location.search);
       if (linked) {  // a shared or reloaded run: its history streams back in, once the server confirms it still has the run
         getRun(linked).then(() => {
+          if (beganRef.current) return;  // the visitor clicked Run while the link was loading (a whole bundle on GCS): the new run wins
           closeRef.current?.();
           closeRef.current = follow(linked);
         }, (e: unknown) => dispatch({ kind: "notice", message: e instanceof ApiError && e.status === 404
@@ -82,6 +84,7 @@ export default function App() {
   const begin = useCallback(async (start: () => Promise<{ run_id: string }>, mode: RunMode) => {
     if (startingRef.current || state.phase === "running") return;  // one run at a time: a double click, or a click while a slow start is pending
     startingRef.current = true;
+    beganRef.current += 1;
     setStarting(true);
     closeRef.current?.();
     setStepOverride(null);
@@ -90,16 +93,21 @@ export default function App() {
     try {
       const { run_id } = await start();
       window.history.replaceState(null, "", withRunParam(window.location.search, run_id) || window.location.pathname);
-      closeRef.current = follow(run_id);
+      closeRef.current = follow(run_id);  // the button stays taken until this run's first event (or its stream failing) clears it below
       focusMain();
     } catch (e) {
       const m = startRunMessage(e);
       dispatch(m.kind === "notice" ? { kind: "notice", message: m.text } : { kind: "error", message: m.text });
-    } finally {
       startingRef.current = false;
       setStarting(false);
     }
   }, [state.phase, follow]);
+  useEffect(() => {  // the run's first event (or a failure) frees the start guard; until then a second click starts nothing
+    if (state.phase !== "idle") {
+      startingRef.current = false;
+      setStarting(false);
+    }
+  }, [state.phase, state.run?.id]);
 
   const onRun = useCallback(() => {
     if (!flow) {
@@ -129,7 +137,7 @@ export default function App() {
   const selectedFinding = state.findings.find((f) => f.id === state.selectedFindingId);
   const stepIndex = stepOverride ?? (state.phase === "running" ? lastStep?.index : selectedFinding?.step_index ?? lastStep?.index) ?? null;
   const shot = state.run && stepIndex !== null ? screenshotUrl(state.run.id, stepIndex) : null;
-  const canLive = Boolean(health?.has_key && health?.live_enabled);
+  const canLive = Boolean(health?.has_key && health?.live_enabled && health?.models_ok !== false);  // a key the models reject is no Live
   return (
     <Workbench
       state={state} flows={flows} flowId={flow?.id ?? ""} onFlowChange={setFlowId} canLive={canLive} screenshotUrl={shot} model={state.models.navigator ?? state.models.comparator}

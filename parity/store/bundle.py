@@ -10,7 +10,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-from parity.store.blob import BlobStore
+from parity.store.blob import BlobStore, gather_bounded
 from parity.store.models import Capture, Event, Finding, ModelCall, Rejected, Run, Step
 
 JSON = "application/json"
@@ -191,14 +191,24 @@ class RunBundle:
         run = run or Run.model_validate_json(await self.store.get(keys.run(run_id)))
         loaded = LoadedRun(run=run)
         prefix = keys.prefix(run_id)
-        for key in await self.store.list(prefix):
+
+        def kind(key: str) -> str | None:
             rel = key[len(prefix):]
             if rel.startswith("steps/") and rel.endswith("/step.json"):
-                loaded.steps.append(Step.model_validate_json(await self.store.get(key)))
-            elif rel.startswith("findings/"):
-                loaded.findings.append(Finding.model_validate_json(await self.store.get(key)))
-            elif rel.startswith("rejected/"):
-                loaded.rejected.append(Rejected.model_validate_json(await self.store.get(key)))
+                return "step"
+            return "finding" if rel.startswith("findings/") else "rejected" if rel.startswith("rejected/") else None
+
+        async def fetch(key: str) -> tuple[str, bytes]:
+            return key, await self.store.get(key)
+
+        wanted = [key for key in await self.store.list(prefix) if kind(key)]
+        for key, data in await gather_bounded(fetch(key) for key in wanted):  # one round trip each on GCS; together, not in sequence
+            if kind(key) == "step":
+                loaded.steps.append(Step.model_validate_json(data))
+            elif kind(key) == "finding":
+                loaded.findings.append(Finding.model_validate_json(data))
+            else:
+                loaded.rejected.append(Rejected.model_validate_json(data))
         loaded.steps.sort(key=lambda s: s.index)
         loaded.findings.sort(key=lambda f: f.id)
         loaded.rejected.sort(key=lambda r: r.id)

@@ -125,20 +125,24 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         if not finishing:
             return _too_many("a Live run is already in progress; try again shortly, or watch a Replay (no model calls, no limit)", 60)
         try:
-            await asyncio.wait_for(st.live_lock.acquire(), timeout=2)
+            await asyncio.wait_for(st.live_lock.acquire(), timeout=10)  # a purchase run's teardown (a last bundle load and flush on GCS) outlasts 2 s
         except TimeoutError:
             return _too_many("a Live run is already in progress; try again shortly, or watch a Replay (no model calls, no limit)", 60)
     else:
         await st.live_lock.acquire()  # the slot is taken here, synchronously, so a double click cannot queue two runs
-    verdict = st.limiter.take(ip)  # counted once the slot is ours; a refusal here is a race between two of this visitor's clicks
-    if not verdict.allowed:
+    try:  # from here the slot is ours until the run's task owns it: any failure on the way (a bucket error minting the id) must give it back
+        verdict = st.limiter.take(ip)  # counted once the slot is ours; a refusal here is a race between two of this visitor's clicks
+        if not verdict.allowed:
+            st.live_lock.release()
+            return _too_many(verdict.message, verdict.retry_after_s)
+        ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16] if ip else ""
+        run_id = await replay.fresh_run_id(st.bundle)
+        st.last_live_run = run_id
+        st.bus.open(run_id)  # subscribers that connect before run.started attach live instead of reading an empty log
+        task = asyncio.create_task(_live(st, flow, run_id, ip_hash), name=f"live-{run_id}")
+    except BaseException:
         st.live_lock.release()
-        return _too_many(verdict.message, verdict.retry_after_s)
-    ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16] if ip else ""
-    run_id = await replay.fresh_run_id(st.bundle)
-    st.last_live_run = run_id
-    st.bus.open(run_id)  # subscribers that connect before run.started attach live instead of reading an empty log
-    task = asyncio.create_task(_live(st, flow, run_id, ip_hash), name=f"live-{run_id}")
+        raise
     st.tasks.add(task)  # cancelled and awaited at shutdown, so a redeploy leaves run.failed behind, not a run that is `running` for ever
     task.add_done_callback(st.tasks.discard)
     return {"run_id": run_id, "mode": "live"}

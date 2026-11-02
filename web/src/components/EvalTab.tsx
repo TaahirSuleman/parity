@@ -53,10 +53,10 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
           <h2 id="eval-main-h" className="m-0" style={{ fontSize: 16 }}>Parity vs axe-core, same labels</h2>
           <MetaBadge model={model} capability="seer · comparator" />
           <CodeBadge what="code · verifier" />
-          <span className="muted text-xs ml-auto">{results.n_faults ?? "?"} seeded faults · {results.n_clean ?? "?"} clean controls · {results.runs ?? configs.full?.runs ?? 1} {(results.runs ?? configs.full?.runs ?? 1) === 1 ? "run" : "runs"} per page · {fmtWhen(results.updated_at)}</span>
+          <span className="muted text-xs ml-auto">{results.n_faults ?? "?"} seeded faults built to pass axe-core · {results.n_clean ?? "?"} clean controls · {results.runs ?? configs.full?.runs ?? 1} {(results.runs ?? configs.full?.runs ?? 1) === 1 ? "run" : "runs"} per page · {fmtWhen(results.updated_at)}</span>
         </div>
         <table className="eval mt-3">
-          <thead><tr><th scope="col">System</th><th scope="col">Recall</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">FP on clean</th><th scope="col">Cost / page set</th><th scope="col">Time</th></tr></thead>
+          <thead><tr><th scope="col">System</th><th scope="col">Recall</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">False alarms on clean</th><th scope="col">Cost / 3 pages</th><th scope="col">Time / 3 pages</th></tr></thead>
           <tbody>
             {order.map((k) => {
               const t = configs[k].total;
@@ -84,7 +84,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
       <section className="surface p-4" aria-labelledby="eval-arch-h">
         <h2 id="eval-arch-h" className="m-0" style={{ fontSize: 16 }}>How Parity works, in ten seconds</h2>
         <img src="/architecture.png" alt="Parity's pipeline: per screen, the Navigator walks, Capture records, the Seer grounds, the Comparator compares and the Verifier checks; per verified finding, the Judge rates, the Fixer proposes, the Re-audit confirms and a human decides" className="block w-full mt-2" style={{ maxWidth: 1100, height: "auto", border: "1px solid var(--line)", borderRadius: 6 }} />
-        <p className="text-sm mt-2 mb-0 muted">Blue boxes are Meta models (Muse Spark 1.3); grey boxes are deterministic code. A finding exists only after the Verifier's five checks; a fix lands only after a human approves it.</p>
+        <p className="text-sm mt-2 mb-0 muted">Blue boxes are Meta models (Muse Spark 1.3); grey boxes are deterministic code. A finding exists only after the Verifier's five checks; a patch is exported only after a human approves each fix.</p>
       </section>
       {results.judge && Object.keys(results.judge).length > 0 && (
         <section className="surface p-4" aria-labelledby="eval-judge-h">

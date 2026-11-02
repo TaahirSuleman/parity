@@ -20,16 +20,16 @@ export function ScreenReaderPanel({ finding }: { finding: Finding | null }) {
         ) : (
           <>
             <div>
+              <div className="text-xs uppercase tracking-wider muted mb-1">On screen</div>
+              <div className="sr-pair price-line">{finding.sighted_text}</div>
+            </div>
+            <div>
               <div className="text-xs uppercase tracking-wider muted mb-1">Announced</div>
-              <div className="sr-quote" aria-live="polite">
+              <div className="sr-pair sr-quote" aria-live="polite">
                 {quote ?? <span className="sr-silent">— not announced —</span>}
               </div>
             </div>
-            <div>
-              <div className="text-xs uppercase tracking-wider muted mb-1">On screen</div>
-              <div className="price-line">{finding.sighted_text}</div>
-            </div>
-            {finding.why_it_matters && <p className="m-0 muted">{finding.why_it_matters}</p>}
+            {finding.why_it_matters && !finding.judgement?.impact && <p className="m-0 muted">{finding.why_it_matters}</p>}
             {finding.judgement?.impact && (
               <p className="m-0 flex flex-col gap-1">
                 <span>{finding.judgement.impact}</span>

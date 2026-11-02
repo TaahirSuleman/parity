@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Header, fmtDuration } from "./Header";
+import { Header, fmtCost, fmtDuration } from "./Header";
 
 const flows = [
   { id: "checkout", name: "Checkout page", start_url: "/store/checkout.html", goal: "Pay", pages: ["checkout.html"], single_page: true },
@@ -156,5 +156,24 @@ describe("Header labels (stress pass)", () => {
     expect(screen.getByText(/failed/i)).toBeInTheDocument();
     expect(screen.queryByText(/0 ms/)).toBeNull();
     expect(screen.queryByText(/axe-core/)).toBeNull();
+  });
+});
+
+describe("Header Live expectations", () => {
+  it("says how long a Live purchase walk takes before the judge starts one", () => {
+    render(<Header flows={flows} flowId="purchase" run={null} mode="live" canLive={true} running={false} onModeChange={() => {}} onRun={() => {}} onFlowChange={() => {}} />);
+    expect(screen.getByText(/about 10 minutes/)).toBeInTheDocument();
+  });
+  it("does not warn about the walk's length on the single-page checkout", () => {
+    render(<Header flows={flows} flowId="checkout" run={null} mode="live" canLive={true} running={false} onModeChange={() => {}} onRun={() => {}} onFlowChange={() => {}} />);
+    expect(screen.queryByText(/about 10 minutes/)).toBeNull();
+  });
+});
+
+describe("fmtCost", () => {
+  it("uses cents everywhere a judge compares costs", () => {
+    expect(fmtCost(0.0901)).toBe("$0.09");
+    expect(fmtCost(0.4359)).toBe("$0.44");
+    expect(fmtCost(0.0014)).toBe("$0.0014");  // under a cent, the digits are the information
   });
 });

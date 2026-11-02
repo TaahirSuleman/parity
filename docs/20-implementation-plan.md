@@ -420,6 +420,8 @@ bot-walled site ends "blocked by site" and the notice says so; the policy page o
 - `parity/pipeline/browser.py`: `new_page(external=False)`; an external page gets `page.route("**/*", request_guard)` with a per-run host cache
   and Chromium `--host-resolver-rules="MAP metadata.google.internal ~NOTFOUND"`; a crawl delay of 1 s between navigations in public runs; the user
   agent `Parity/<version> (+<own origin>/audit-policy)`.
+- Consent banners (doc 19 §17, never implemented): in public runs the guard refuses clicks whose label matches accept-all/agree/allow-all; a reject-all or
+  necessary-only label is allowed; a banner that offers neither is left alone. Test `tests/test_guard.py::test_public_mode_never_accepts_a_consent_banner`.
 - Tests `tests/test_browser_guard.py` with local fixture pages: one loads `http://127.0.0.1:<port>/private.png`, one redirects to
   `http://169.254.169.254/`; both requests aborted, the page still captured, the abort recorded as `nav.blocked`; `test_store_runs_are_not_guarded`.
 
@@ -451,6 +453,8 @@ bot-walled site ends "blocked by site" and the notice says so; the policy page o
   `Workbench.test.tsx` (the outcome notice for `blocked by site`). Smoke `tests/test_web_smoke.py::test_url_field_audits_the_w3c_home_page`.
 - Merge: `git merge main` into the branch, suites green, then on `main` `git pull --ff-only`, a fast-forward merge, push, verify the author;
   redeploy; `/api/health` says `open_url: true`. **Gate (merge): Tue 12:30 SAST.**
+- Lines that become false the moment the field ships, fixed in the same commit: `Header.tsx` ("the hosted app never audits third-party sites"), README
+  "How it acts" and the Live-mode paragraph, doc 19 §11 and §17 (already amended), `HACKATHON_SCOPE.md` if any page is named.
 - Hosted verification (~$1, before Tue 14:30 SAST): three third-party pages of different kinds, one known to challenge bots; record each outcome,
   cost and seconds in the QA report (docs/23); fill `PARITY_SUGGESTED_URLS` with the two that ran well plus the W3C home page; check the
   private-address refusal on the hosted URL. **Gate (hosted):** all three outcomes honest and shown in the UI.

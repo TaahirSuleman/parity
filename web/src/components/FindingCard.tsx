@@ -17,8 +17,8 @@ function suggestedReason(finding: Finding): string {
   if (!finding.reaudit) return "";
   const after = finding.reaudit.sr_name_after || "nothing";
   return finding.reaudit.gap_closed
-    ? `Re-audit: gap closed, the screen reader now says "${after}"`
-    : `Re-audit: name rule still open, the screen reader now says "${after}"`;
+    ? `Gap closed: now says "${after}"`
+    : `Name rule still open: now says "${after}"`;
 }
 
 export function FindingCard({ finding, selected, onSelect, onDecision, screenLabel, fixesExpected = true, comparatorModel = "muse-spark-1.3-contributor" }: Props) {
@@ -61,6 +61,10 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           <div className="text-xs uppercase tracking-wider muted">Screen reader gets</div>
           <div className="mono" style={{ fontSize: 15 }}>{quote ?? <span className="sr-silent">— not announced —</span>}</div>
         </div>
+        <div className="mt-2 flex items-center gap-2 flex-wrap text-xs">
+          <span className="uppercase tracking-wider muted">Found by</span>
+          <MetaBadge model={comparatorModel} capability="grounding · comparison" />
+        </div>
         <ul className="checks" aria-label="Verifier checks">
           {Object.entries(finding.verifier.checks).map(([name, c]) => (
             <li key={name} data-passed={c.passed} aria-label={`${CHECK_LABELS[name] ?? name}: ${c.passed ? "passed" : "failed"}`} title={c.detail}>
@@ -87,28 +91,6 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
             <MetaBadge model={String(j.model_meta?.model ?? "muse-spark-1.3")} capability="judge" />
           </div>
         )}
-        {finding.reaudit && (
-          <div className="mt-2 text-sm">
-            <span className="text-xs uppercase tracking-wider muted mr-2">Re-audit</span>
-            <span className="mono">"{finding.reaudit.sr_name_before}" → "{finding.reaudit.sr_name_after}"</span>
-            {finding.reaudit.gap_closed
-              ? <span className="ml-2" style={{ color: "var(--ok)" }}>gap closed</span>
-              : finding.reaudit.comparator_still_flags === false
-                ? <span className="ml-2" style={{ color: "var(--warn)" }} title="The strict rule wants the visible text inside the new name; for an icon the visible text names a picture, so the comparator's verdict is the one to weigh.">
-                    name rule: still open — the visible text "{finding.sighted_text}" cannot match the new name; the comparator no longer flags it
-                  </span>
-                : <span className="ml-2" style={{ color: "var(--bad)" }}>name rule: still open</span>}
-            <span className="ml-2"><CodeBadge what="code · re-audit" /></span>
-            {finding.reaudit.comparator_still_flags !== null && (
-              <span className="ml-2 inline-flex items-center gap-2">
-                <span style={{ color: finding.reaudit.comparator_still_flags ? "var(--bad)" : "var(--ok)" }}>
-                  {finding.reaudit.comparator_still_flags ? "comparator: still flags it" : "comparator: no longer flags it"}
-                </span>
-                <MetaBadge model={comparatorModel} capability="comparison" />
-              </span>
-            )}
-          </div>
-        )}
         {finding.decision && (
           <div className="mt-2 text-sm" role="status" style={{ color: finding.decision.decision === "approve" ? "var(--ok)" : "var(--bad)" }}>
             {finding.decision.decision === "approve" ? "Approved" : "Rejected"} · {finding.decision.reason}
@@ -133,13 +115,35 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
         </div>
       )}
       {!finding.fix && finding.fix_note && <p className="muted text-xs px-1 pt-2 m-0">No fix proposed: {finding.fix_note}</p>}
+        {finding.reaudit && (
+          <div className="px-1 pt-2 text-sm">
+            <span className="text-xs uppercase tracking-wider muted mr-2">Re-audit</span>
+            <span className="mono">"{finding.reaudit.sr_name_before}" → "{finding.reaudit.sr_name_after}"</span>
+            {finding.reaudit.gap_closed
+              ? <span className="ml-2" style={{ color: "var(--ok)" }}>gap closed</span>
+              : finding.reaudit.comparator_still_flags === false
+                ? <span className="ml-2" style={{ color: "var(--warn)" }} title="The strict rule wants the visible text inside the new name; for an icon the visible text names a picture, so the comparator's verdict is the one to weigh.">
+                    name rule: still open — the visible text "{finding.sighted_text}" cannot match the new name; the comparator no longer flags it
+                  </span>
+                : <span className="ml-2" style={{ color: "var(--bad)" }}>name rule: still open</span>}
+            <span className="ml-2"><CodeBadge what="code · re-audit" /></span>
+            {finding.reaudit.comparator_still_flags !== null && (
+              <span className="ml-2 inline-flex items-center gap-2">
+                <span style={{ color: finding.reaudit.comparator_still_flags ? "var(--bad)" : "var(--ok)" }}>
+                  {finding.reaudit.comparator_still_flags ? "comparator: still flags it" : "comparator: no longer flags it"}
+                </span>
+                <MetaBadge model={comparatorModel} capability="comparison" />
+              </span>
+            )}
+          </div>
+        )}
       {finding.fix && !finding.reaudit && finding.reaudit_note && <p className="muted text-xs px-1 pt-1 m-0">Re-audit did not run: {finding.reaudit_note}</p>}
       {selected && !finding.decision && (
         <div className="flex items-center gap-2 px-1 py-2 flex-wrap">
           <label className="sr-only" htmlFor={reasonId}>Reason</label>
           <input id={reasonId} className="btn-quiet fix-reason" value={reason} onChange={(e) => setTyped(e.target.value)} onFocus={(e) => e.currentTarget.select()}
             placeholder="Reason for the decision" disabled={!canDecide} />  {/* the suggestion is selected on focus: typing replaces it, a click mid-sentence does not splice into it */}
-          <button type="button" className="btn-quiet" disabled={!(canApprove && hasReason)} onClick={() => act("approve")} title={canApprove ? "Approve the proposed fix" : "Approve needs a proposed fix"}>
+          <button type="button" className="btn-primary" disabled={!(canApprove && hasReason)} onClick={() => act("approve")} title={canApprove ? "Approve the proposed fix" : "Approve needs a proposed fix"}>
             Approve fix
           </button>
           <button type="button" className="btn-quiet" disabled={!(canReject && hasReason)} onClick={() => act("reject")} title={finding.fix ? "Reject the proposed fix" : "Dismiss this finding (no fix was proposed)"}>

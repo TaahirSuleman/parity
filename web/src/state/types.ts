@@ -42,7 +42,7 @@ export interface ParityEvent { type: string; run_id: string; at: string; [key: s
 /** A model call as carried by a `model.call` event. */
 export interface CallEvent { stage: string; model: string; request_id: string; tokens: number; latency_ms: number; cost_usd: number; cache_hit: boolean; attempt: number; http_status?: number | null; error?: string | null; at: string }
 
-export interface TimelineRow { turn: number; kind: "tool_call" | "actions" | "refused" | "blocked" | "error" | "outcome"; label: string; at: string }
+export interface TimelineRow { turn: number; kind: "tool_call" | "actions" | "safety" | "refused" | "blocked" | "error" | "outcome"; label: string; at: string }
 
 export interface AgentOutcome { turns: number; finished: boolean; finish_forced: boolean; summary: string }
 

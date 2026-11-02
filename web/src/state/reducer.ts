@@ -25,7 +25,9 @@ const CONTROL_ROLES = new Set(["button", "link", "textbox", "searchbox", "checkb
 export function pickHero(findings: Finding[]): Finding | undefined {
   const score = (f: Finding) =>
     (f.reaudit?.gap_closed ? 10 : 0) + (f.judgement?.is_barrier === false ? -5 : 0) + (SEVERITY_RANK[f.judgement?.severity ?? ""] ?? 0)
-    + (CONTROL_ROLES.has(f.sr_role ?? "") ? 3 : 0) + (f.judgement?.wcag?.some((w) => w.sc === "2.5.3") ? 1 : 0) + (f.step_index ?? 0) * 0.01;
+    + (CONTROL_ROLES.has(f.sr_role ?? "") ? 3 : 0) + (f.judgement?.wcag?.some((w) => w.sc === "2.5.3") ? 1 : 0)
+    + (CONTROL_ROLES.has(f.sr_role ?? "") && /\d/.test(f.sighted_text ?? "") ? 2 : 0)  // a control whose visible label carries an amount or a count: the costliest gap, and the hero by design
+    + (f.step_index ?? 0) * 0.01;
   return [...findings].sort((a, b) => score(b) - score(a))[0];
 }
 
@@ -66,7 +68,7 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     case "nav.safety_check": {
       const codes = (ev.codes as string[] | undefined) ?? [];
       const reason = typeof ev.reason === "string" && ev.reason ? ev.reason : "on the store";  // the event says why it was acknowledged (store, or the public-site guard)
-      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "actions", at: ev.at, label: `safety check acknowledged (${reason}): ${codes.map((c) => SAFETY_LABELS[c] ?? c).join(", ")}` };
+      const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "safety", at: ev.at, label: `safety check acknowledged (${reason}): ${codes.map((c) => SAFETY_LABELS[c] ?? c).join(", ")}` };
       return { ...state, timeline: [...state.timeline, row] };
     }
     case "nav.blocked": {

@@ -206,3 +206,28 @@ describe("Task 24: verifier details reachable without a mouse", () => {
     expect(container.querySelector("details.check-details")?.textContent).toMatch(/button at button#f5/);
   });
 });
+
+describe("FindingCard for the camera (cold-judge review, 2 Nov)", () => {
+  const card = (over: Partial<Finding> = {}) => render(<FindingCard finding={{ ...finding, ...over } as Finding} selected onSelect={() => {}} onDecision={() => {}} />);
+  it("names the Meta model that found the gap before the verifier's checks", () => {
+    card();
+    const found = screen.getByText(/grounding · comparison/i);
+    const verifier = screen.getByText(/code · verifier/i);
+    expect(found.compareDocumentPosition(verifier) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it("shows the proposed fix, then its re-audit, then the decision", () => {
+    card();
+    const fix = screen.getByText("Proposed fix");
+    const reaudit = screen.getByText("Re-audit");
+    const approve = screen.getByRole("button", { name: /Approve/ });
+    expect(fix.compareDocumentPosition(reaudit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(reaudit.compareDocumentPosition(approve) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it("makes Approve the primary button and keeps the suggested reason short enough to read", () => {
+    card();
+    expect(screen.getByRole("button", { name: /Approve/ })).toHaveClass("btn-primary");
+    const reason = screen.getByRole("textbox", { name: /reason/i }) as HTMLInputElement;
+    expect(reason.value).toMatch(/^Gap closed: now says "/);
+    expect(reason.value.length).toBeLessThan(60);
+  });
+});

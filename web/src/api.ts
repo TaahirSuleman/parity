@@ -1,6 +1,6 @@
 import type { Finding, ParityEvent, Run, RunMode } from "./state/types";
 
-export interface Health { ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; replay_runs: string[]; replay_flows: Record<string, string>; version: string }
+export interface Health { ok: boolean; mode_default: RunMode; live_enabled: boolean; storage: string; runs_indexed: number; has_key: boolean; models_ok?: boolean; replay_runs: string[]; replay_flows: Record<string, string>; version: string }
 export interface FlowInfo { id: string; name: string; start_url: string; goal: string; pages: string[]; single_page: boolean }
 
 export interface ErrorBody { error?: string; retry_after_s?: number; suggestion?: string; detail?: string }

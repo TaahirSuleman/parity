@@ -103,6 +103,7 @@ class AxeViolation(Strict):
     impact: str | None = None
     targets: list[str] = Field(default_factory=list)
     backend_ids: list[int] = Field(default_factory=list)
+    htmls: list[str] = Field(default_factory=list)  # each flagged node's outer HTML as axe reports it, one per target; the external baseline anchors on it
 
 
 class Capture(Strict):

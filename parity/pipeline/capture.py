@@ -235,6 +235,7 @@ async def _axe(page: Page, cdp: CDPSession) -> list[AxeViolation]:
     for v in result.get("violations", []):
         targets: list[str] = []
         backend_ids: list[int] = []
+        htmls: list[str] = []
         for node in v.get("nodes", []):
             target = node.get("target") or []
             selector = target[0] if target else ""
@@ -243,10 +244,11 @@ async def _axe(page: Page, cdp: CDPSession) -> list[AxeViolation]:
             if not selector:
                 continue
             targets.append(selector)
+            htmls.append(str(node.get("html") or "")[:MAX_OUTER_HTML])
             backend_id = await _backend_id_for(cdp, root, selector)
             if backend_id is not None:
                 backend_ids.append(backend_id)
-        violations.append(AxeViolation(id=v["id"], impact=v.get("impact"), targets=targets, backend_ids=backend_ids))
+        violations.append(AxeViolation(id=v["id"], impact=v.get("impact"), targets=targets, backend_ids=backend_ids, htmls=htmls))
     return violations
 
 

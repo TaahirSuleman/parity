@@ -1,13 +1,13 @@
-# Session handoff: starting Phase 6 in a fresh chat (written Mon 2 Nov 2026, ~00:30 SAST)
+# Session handoff: Phases 6, 6b and 6c in two fresh chats (written Mon 2 Nov 2026 ~00:30 SAST; D12 and the two tracks added Mon 19:00 SAST)
 
 Why this file exists: the chat that ran Phases 0–5, the stress campaign and D11 is long and has been compacted once. Phase 6 starts in a
-new chat. This file is what that chat needs that is not in the code, the git log or the plan. The VoiceOver pass over the workbench
-(docs/24) continues in the old chat, which holds the tool grants and the driver for it; the two chats share this checkout on `main`
-and write disjoint files (see §4).
+new chat (chat A). Since D12 (Mon 19:00 SAST) a second new chat (chat B) builds Phase 6c in its own worktree. This file is what those chats
+need that is not in the code, the git log or the plan. The VoiceOver pass over the workbench (docs/24) continues in the old chat, which holds
+the tool grants and the driver for it; the chats write disjoint files (see §4).
 
 ## 1. State of the repository and the deployment
 
-- `origin/main` at `862f167` (docs). Last code commit `f1c7bd5` (stress pass 5). All commits are sole-author `Taahir Suleman <tai.suleman@gmail.com>`,
+- `origin/main` at the D12 docs commit (Mon 2 Nov 19:00 SAST); nothing of Phases 6, 6b or 6c has started. Last code commit `f1c7bd5` (stress pass 5). All commits are sole-author `Taahir Suleman <tai.suleman@gmail.com>`,
   no trailers; verify after every push with `git log -1 --format='%an <%ae>%n%B'`.
 - Suites at HEAD: pytest 339 green (`.venv/bin/python -m pytest -q`), vitest 86/86 (`cd web && npm test -- --run`), web smoke 26/26.
 - Hosted: `https://parity-u7lcbbxuia-uc.a.run.app`, Cloud Run revision `parity-00004` from image tag `f1c7bd5`. Redeploy is
@@ -19,12 +19,17 @@ and write disjoint files (see §4).
 ## 2. Decisions that bind Phase 6 and 6b
 
 - **Phases are started only on the user's go-ahead.** Do not begin Phase 6b or Phase 6 without it in the new chat's first message.
-- **Ordering (D11, doc 18 §11):** the external benchmark core (Task 26E.1–26E.3) was recommended before Voice; the user has not yet chosen.
-  The user's own Task 26 recording is a manual step that needs them at the Mac with VoiceOver and an audio recorder, so the interleave that
-  wastes no one's time is: Task 26 kit first (the script and `docs/voice-recording.md`, ~45 min), the user records while the agent runs 26E.1–26E.3,
-  then Tasks 27–28. If the user says "Voice only", run 26, 27, 28 and leave 26E for after.
-- **Gates (doc 20):** 26E core by Mon 15:00 SAST; 26E hosted by Tue 12:00 SAST; Voice G-V = word accuracy ≥ 0.90 decides whether Voice is
-  primary evidence or corroboration. Feature freeze Tue 3 Nov 12:00 ET = 19:00 SAST. A missed gate is dropped, not squeezed.
+- **Ordering (D12, doc 18 §12, decided Mon 2 Nov 19:00 SAST; supersedes D11's timing):** two tracks in parallel.
+  - Track A, chat A, on `main`: Task 26 kit first (~45 min; the user records while the agent continues) → 26E.1–26E.3 → Task 27 → Task 28 →
+    the VoiceOver-pass fixes if time remains.
+  - Track B, chat B, worktree on `feat/open-url`: 26E.4 → Phase 6c (26F.1–26F.6) → merge into `main` → the first redeploy → 26E.5 bundles and
+    the hosted verification of 6c.
+  - Phase 6c has priority when the two collide (the first merge slot, the earlier hosted gate, the user's attention); Voice is not dropped and is
+    ended only by its own clock. Drop order if the day runs short: 26E.5 bundles, then 6c's three-screen option, then the hero re-record.
+- **Gates (SAST):** benchmark core Tue 10:00; 6c complete locally Tue 11:00; merge and first redeploy Tue 12:30; 6c verified on the hosted app
+  Tue 14:30; Voice Task 28 committed Tue 14:00, hero re-recorded with the second and last redeploy Tue 16:00; 26E.5 by Tue 15:00; cold review
+  Tue 17:00; freeze Tue 19:00 (= 12:00 ET). G-V = word accuracy ≥ 0.90 decides whether Voice is primary evidence or corroboration. A missed
+  gate is dropped, not squeezed.
 - **The VoiceOver pass is not a gate for Phase 6** (ruled Mon 2 Nov, below). Its findings are workbench wording and announcement fixes
   (the stress pass's M5 items). They land after Task 28 so that only one hand touches `web/src` at a time.
 - **Open items the user owns:** the AI-coding-assistance line in `HACKATHON_SCOPE.md` (left out for now, kept open); the pre-submission
@@ -49,12 +54,21 @@ without the caption panel and without transcribing by hand, and it is the refere
 The driver used for the workbench pass is at the old chat's scratchpad (`vo/vo.sh`, `watch <seconds>` subcommand); Task 26 should carry
 its own copy under `scripts/` since the scratchpad is session-scoped.
 
-## 4. Two chats, one checkout
+## 4. Three chats, two checkouts
 
-- The new chat (Phase 6 / 6b) owns everything except `docs/24-voiceover-pass.md` and this file. It commits only the files it changed.
-- The old chat (VoiceOver pass) writes only `docs/24-voiceover-pass.md` (the Heard and Verdict columns) and commits only that.
-- Neither chat runs `git stash`, `git reset`, `git checkout -- .` or a rebase; both pull with `git pull --ff-only` before a push.
-- The workbench fixes that come out of the VoiceOver pass are done in whichever chat is active once Task 28 has been committed.
+- **Chat A** (Phase 6b core and Phase 6) works in this checkout on `main` and owns everything there except `docs/24-voiceover-pass.md`, this file,
+  and the files Phase 6c creates or changes (`parity/pipeline/urlpolicy.py`, `parity/pipeline/browser.py`, `parity/ratelimit.py`, `parity/replay.py`,
+  `parity/static/audit-policy.html`, the prompts in `parity/meta/prompts/`, `web/src/components/UrlRun.tsx`, `parity/flows.py`). Chat A's edits to
+  `parity/api/routes.py`, `parity/config.py`, `parity/pipeline/runner.py`, `web/src/App.tsx`, `Workbench.tsx` and `Header.tsx` are expected and are
+  merged by chat B; keep them small and local to Voice.
+- **Chat B** (26E.4 and Phase 6c) works in the worktree `../parity-open-url` on `feat/open-url`. The user creates it (one command in §5b) and copies
+  `.env` into it, because the agent may not touch `.env*`. Chat B runs `make venv web vendor-axe` there (its own `.venv` and `node_modules`), sets
+  `PARITY_CACHE_DIR` to this checkout's `cache/` (absolute path) so no model call is paid twice, and keeps `data/` local to the worktree. Before the
+  final merge it runs `git merge main` into its branch (a merge, not a rebase), then on `main` `git pull --ff-only` and a fast-forward merge.
+- **The old chat** (VoiceOver pass) writes only `docs/24-voiceover-pass.md` and commits only that.
+- No chat runs `git stash`, `git reset`, `git checkout -- .` or a rebase on `main`; every chat pulls with `git pull --ff-only` before a push and
+  verifies the author after it. Only the user adds Secret Manager versions; redeploys are Tue 12:30 (chat B) and Tue 16:00 (chat A) unless the user says otherwise.
+- The workbench fixes that come out of the VoiceOver pass are done in chat A once Task 28 has been committed.
 
 ## 5. The kickoff message for the new chat
 
@@ -62,23 +76,61 @@ Paste this as the first message of a new chat opened in `/Users/ammarah/Desktop/
 otherwise):
 
 ```
-Start Phase 6b and Phase 6 of docs/20-implementation-plan.md in the order given in docs/25-session-handoff.md §2
-(Task 26 kit first so I can record while you run 26E.1–26E.3, then 27–28; 26E.4–26E.5 if the Tue 12:00 SAST gate holds).
+You are chat A, track A of docs/25-session-handoff.md §2: Task 26 kit first so I can record while you run 26E.1–26E.3, then Tasks 27 and 28,
+all on main in this checkout. Chat B builds 26E.4 and Phase 6c in a worktree on feat/open-url and merges Tue 12:30 SAST; do not do their
+tasks and do not touch their files (docs/25 §4).
 
 Read first, in this order: CLAUDE.md (loaded), docs/25-session-handoff.md, the last 40 lines of
-.superpowers/sdd/20-implementation-plan/progress.md, docs/20-implementation-plan.md Phase 6b and Phase 6, docs/19-design-spec.md §19,
-docs/18-decision-and-development-plan.md §11, and the meta-model-api skill before any API call.
+.superpowers/sdd/20-implementation-plan/progress.md, docs/20-implementation-plan.md Phase 6b and Phase 6, docs/19-design-spec.md §16 and §19,
+docs/18-decision-and-development-plan.md §11–§12, and the meta-model-api skill before any API call.
 
 Use superpowers:executing-plans inline with TDD; one ledger line per task in progress.md. Do not touch docs/24-voiceover-pass.md
 (another chat owns it). Commit only the files you changed, sole author, no trailers, verify after each push, pull --ff-only first.
 Every model call cached and traced; tell me the spend before any run over $1. Stop and ask before: redeploying, any run that costs
 more than $2, tagging, or anything in §2's open items.
 
-Confirm you have read the handoff by telling me the three gates and their times in SAST, then begin Task 26.
+Confirm you have read the handoff by telling me your gates (benchmark core, Task 28, the second redeploy) in SAST, then begin Task 26.
 ```
 
 What you (the user) do during Phase 6: record `store/voice/checkout.wav` per `docs/voice-recording.md` when the kit is ready, answer the
-G-V number when it is reported, and decide the 26E hosted gate at Tue 12:00 SAST.
+G-V number when it is reported, and approve the Tue 16:00 SAST redeploy.
+
+## 5b. The kickoff message for chat B (Phase 6c)
+
+First, in this checkout, create the worktree and give it the key (the agent may not touch `.env*`):
+
+```bash
+git worktree add ../parity-open-url -b feat/open-url
+```
+
+```bash
+cp .env ../parity-open-url/.env
+```
+
+Then open a new chat in `/Users/ammarah/Desktop/Meta_Hackathon/parity-open-url` and paste:
+
+```
+You are chat B, track B of docs/25-session-handoff.md §2: Task 26E.4 first, then Phase 6c (Tasks 26F.1–26F.6) of
+docs/20-implementation-plan.md, in this worktree on branch feat/open-url. Chat A runs 26E.1–26E.3 and Voice on main in the
+main checkout; do not do their tasks. Set up with `make venv web vendor-axe`, point PARITY_CACHE_DIR at the main checkout's cache/
+(absolute path) so nothing is paid twice, and keep data/ local.
+
+Read first, in this order: CLAUDE.md (loaded), docs/25-session-handoff.md, the last 40 lines of
+.superpowers/sdd/20-implementation-plan/progress.md in the main checkout, docs/20-implementation-plan.md Phase 6b (26E.4) and
+Phase 6c, docs/19-design-spec.md §17 and §19, docs/18-decision-and-development-plan.md §11–§12, and the meta-model-api skill
+before any API call.
+
+Use superpowers:executing-plans inline with TDD; one ledger line per task in the main checkout's progress.md. Commit on the
+branch only, sole author, no trailers; before the final merge run `git merge main` into the branch, suites green, then on main
+`git pull --ff-only`, fast-forward merge, push, verify the author. Every model call cached and traced; tell me the spend before any
+run over $1. Stop and ask before: the merge, redeploying, any run that costs more than $2, adding any site to the suggested list,
+or anything in §2's open items. The policy contact is the repository author's email; the daily cap starts at $5.
+
+Confirm you have read the handoff by telling me your three gates in SAST and the drop order, then begin Task 26E.4.
+```
+
+What you (the user) do for Phase 6c: create the worktree and copy `.env` (above), approve the Tue 12:30 SAST merge and redeploy, and pick
+or confirm the three third-party pages for the hosted verification when chat B proposes them.
 
 ## 6. The VoiceOver pass, where it stands
 

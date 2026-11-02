@@ -112,6 +112,7 @@ Goal ("buy the headphones") ─► NAVIGATOR (Spark 1.3 computer use, truncation
 | R4 | Third-party site terms | Hero and eval on our own store; public sites read-only, within their terms, disclosed responsibly |
 | R5 | Credit burn from judges | Replay by default; Live behind a per-IP limit; contributor model for eval |
 | R6 | Incumbents (Evinced, Deque) ship the same | Position as an open, verifiable agent; speed matters, so build now |
+| R7 | The open URL field (D12): SSRF, abuse, credit burn, third-party terms | Policy in code with a test per refused class, re-checked on every request the browser makes; per-run, per-origin and per-day caps; consent, a policy page, 24 h deletion; kill switch `PARITY_OPEN_URL=0` |
 
 ## 9. Video (judged for Demo 25% and Tooling 25%; judges stop at 3:00)
 
@@ -164,3 +165,56 @@ URLs on the hosted app for after the event.
 then the hosted flows and Replay bundles (~2 h). Go/no-go: core by Mon 15:00 SAST, hosted by Tue 12:00 SAST; whatever misses its gate is
 dropped, not squeezed. Phase 6 (Voice) follows the core on Monday; if both cannot land, the benchmark core has priority because it changes what
 the evaluation can honestly claim, while Voice adds a third Meta model to a hero that already works. Plan: doc 20 Phase 6b, Task 26E.
+
+**Amended by D12 (§12, Mon 2 Nov 19:00 SAST):** the last bullet (arbitrary URLs after the event) and the timing paragraph are superseded;
+the benchmark and the judge-runnable flows stand.
+
+## 12. Any public page on the hosted app, before the freeze [D12, decided Mon 2 Nov 19:00 SAST]
+
+**What changed since D11.** D11 (§11) kept an open URL field for after the event. The user ruled that nothing after the event counts for judging
+and asked for the full version before the freeze, without dropping Voice, as an additional phase ordered by value. The design is doc 19 §19.3
+(rewritten); the plan is doc 20 Phase 6c (Tasks 26F.1–26F.6); the chats and branches are docs/25 §4–§5.
+
+**Decision.** The hosted workbench gets a third mode, "Live on a page you choose": the visitor types a public URL, affirms it is public and they
+may audit it, and Parity audits that screen as a visitor would see it (one screen by default, up to three on request), with no fixer and no
+re-audit, behind guard rails that are code, not model judgement: a URL policy that refuses every non-public address and is re-checked on every
+request the browser makes; per-run, per-origin and per-day cost caps on top of the existing per-IP limits; a policy page with the opt-out and
+takedown contact; 24-hour deletion of page content; prompts that mark page text as data; a kill switch that hides the field. The outcomes a
+judge may hit ("blocked by site", "robots.txt disallows this page", "this address is not public") are shown as outcomes, not errors, and three
+pages known to run well sit under the field. Approaches rejected: a curated allow list (a judge who types their own site gets "not on the
+list", which reads as a demo that cannot do what it says) and a free-goal multi-screen walk by default (longer, more bot walls, more cost, and a
+free goal is one more injection path; it is where Site B died).
+
+**Risk and reward, Phase 6c against Voice (Phase 6).** Both ship if their clocks allow; the table decides who gets the merge slot and the
+builder's time when they collide.
+
+| | Phase 6c: any public page | Phase 6: Voice |
+|---|---|---|
+| Rubric lines served | Impact 30% and Demo 25% directly (a judge audits a page they chose); Technical depth (policy, SSRF defence and caps are craft) | Use of Meta AI tooling 25% (a fourth Meta model, a second modality); Technical depth (alignment, word accuracy) |
+| What it answers | "Your numbers are on faults you seeded" and "does it work outside your store": the judge sees for themselves | "Is the accessibility tree what a screen-reader user hears": real speech corroborates the tree |
+| Evidence it will work | Site A: six verified findings axe-core misses, $0.11, 184 s; the W3C pages run clean; the pipeline, the guard and `--public` exist | Voice Transcribe verified on the live API (doc 17); the alignment and the UI are new code; G-V is unmeasured |
+| Main risk | A live run in front of a judge ends "blocked by site" (Site B); an abuse and SSRF surface on a credit-funded service; ~10 h of agent work the day before the freeze | G-V < 0.90 demotes Voice to corroboration; the recording is an hour of the builder's time no agent can do; the hero card changes the day before the freeze |
+| Mitigation | Honest outcomes and the known-good list; the policy in code with a test per refused class; caps and a kill switch; Replay untouched | The gate was designed for it; the kit records captions by script; the UI change is one panel and one badge |
+| Cost | ~10 h agent, ~$2 of verification runs, one page of policy text | ~5 h agent, ~1 h builder, ~$1 (hero re-record $0.40) |
+| If it slips | The field ships hidden (`PARITY_OPEN_URL=0`); judges keep the W3C flows and the store; nothing else regresses | Ships without Voice and the README says so (Task 25 rule); the tree stays the evidence |
+| Value if it lands | The product claim becomes "point it at a public page" instead of "watch it on our store" | A fourth Meta model in a hero that already works, with a measured accuracy beside it |
+
+**Ruling.** Phase 6c has the higher reward and a bounded risk (its failure mode is a hidden field), so it takes priority: the first Tuesday merge
+and redeploy, the earlier hosted gate, and the builder's attention when the two collide. Voice is not dropped: it runs in parallel on the other
+track, keeps its own gate, and only its own clock can end it. The benchmark core (26E.1–26E.3) keeps its place before Voice on that track
+because four hours buy a labelled number on pages we did not write; the benchmark answers the critique in numbers, Phase 6c answers it in deeds.
+
+**Ordering: two tracks in parallel (amends §11's timing; the Mon 15:00 gate passed with nothing started, so every gate is re-set from Mon 19:00 SAST).**
+- Track A, chat A, on `main`: Task 26 kit (45 min; the builder records while the agent continues) → 26E.1–26E.3 → Task 27 → Task 28 → the
+  VoiceOver-pass fixes (docs/24) if time remains.
+- Track B, chat B, in a worktree on `feat/open-url`: 26E.4 → 26F.1–26F.6 → merge into `main` → the first redeploy → 26E.5 bundles and the hosted
+  verification of 6c.
+- Gates (SAST): benchmark core Tue 10:00; 6c complete locally (suites green, three third-party pages run locally, the injection test) Tue 11:00;
+  merge and first redeploy Tue 12:30; 6c verified on the hosted app Tue 14:30; Voice Task 28 committed Tue 14:00, hero re-recorded with the
+  second and last redeploy Tue 16:00; 26E.5 bundles Tue 15:00; cold review Tue 17:00; freeze Tue 19:00. A gate missed is dropped, not squeezed.
+- Drop order if the day runs short, first to go first: 26E.5 Replay bundles (the W3C flows still run Live); the three-screen option of 6c (one
+  screen ships); the hero re-record (Voice then shows on Live checkout runs, not in the committed hero bundle). Task 29 was never in.
+
+**Retention, answered.** Deletion is not about storage (a bundle is a few megabytes and the bucket is cheap). It is the promise on the policy page
+that makes a read-only audit of someone else's page defensible under R4, and the takedown path needs it to exist anyway. Page content goes after
+24 h; a small summary (origin, outcome, counts, cost, time) stays so the day's spend and the stats survive.

@@ -27,6 +27,10 @@ IRREVERSIBLE = re.compile(
     r"\b(pay|buy|purchase|complete|place (?:\w+ )?order|order now|submit|send|sign ?up|register|subscribe|unsubscribe|confirm|delete|checkout(?: now)?|donate|book now|reserve|apply now)\b",
     re.IGNORECASE,
 )
+# Consent banners (spec §17): accepting cookies or terms on the visitor's behalf is not read-only; a reject-all or necessary-only
+# choice is, and a banner that offers neither is left alone. A refused consent click does not end the walk: it is simply not made.
+CONSENT_ACCEPT = re.compile(r"\b(accept|agree|allow all|allow cookies|got it|consent)\b", re.IGNORECASE)
+CONSENT_DECLINE = re.compile(r"\b(reject|decline|refuse|deny|necessary|essential|only required|settings|preferences|manage|customi[sz]e)\b", re.IGNORECASE)
 INVISIBLE = re.compile(r"[\u200b-\u200f\u2060\ufeff\u00ad\u202a-\u202e\u2066-\u2069]")  # zero-width, soft and bidi-control characters a label can hide a word behind
 BLOCKED_FIELDS = {"password", "cc-number", "cc-csc", "cc-exp", "email", "tel", "new-password", "current-password"}
 SUBMIT_KEYS = {"enter", "return", "numpadenter", "space"}  # Enter submits a form; Space activates a focused control
@@ -53,6 +57,7 @@ class Allowed:
 class Blocked:
     reason: str
     allowed: bool = False
+    fatal: bool = True  # False: the action is dropped and the walk goes on (a consent click); True: the walk ends here
 
 
 Verdict = Allowed | Blocked
@@ -74,6 +79,8 @@ def guard_action(action: dict, target: AxNode | None, field_type: str | None, *,
         hit = next((m for m in (IRREVERSIBLE.search(s) for s in spellings) if m), None)
         if hit:
             return Blocked(f"'{name}' looks like an irreversible step ({hit.group(1).lower()}); stopped before it")
+        if any(CONSENT_ACCEPT.search(s) for s in spellings) and not any(CONSENT_DECLINE.search(s) for s in spellings):
+            return Blocked(f"consent banner: '{name}' would accept cookies or terms on the visitor's behalf; only a reject-all or necessary-only choice is clicked", fatal=False)
         if target is not None and target.role in UNNAMED_CONTROLS and not name.strip():
             return Blocked(f"the {target.role} under the pointer has no accessible name, so its effect is unknown; not clicked on a public site")
         return Allowed()

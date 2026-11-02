@@ -295,7 +295,7 @@ async def test_external_flow_runs_public_and_never_fixes(tmp_path, server_url, p
     flow = Flow(id="bad-test", name="W3C demo: test", start_url=f"{server_url}/store/checkout.html", goal="Read the page as a visitor would. Do not submit anything.",
                 pages=("checkout.html",), single_page=True, public=True, attribution="W3C test attribution")
 
-    async def page_factory():
+    async def page_factory(**kwargs):  # an external page asks for a guarded page; this test brings its own (the guard has its own tests)
         return page
 
     async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):

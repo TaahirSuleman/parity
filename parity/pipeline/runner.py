@@ -25,7 +25,7 @@ from parity.store.bundle import RunBundle
 from parity.store.models import Run, RunMode, RunStatus, now
 
 log = logging.getLogger(__name__)
-PageFactory = Callable[[], Awaitable[Page]]
+PageFactory = Callable[..., Awaitable[Page]]  # called bare for the store; with external=True, own_origin and on_blocked for a page we do not serve
 
 
 def new_run_id() -> str:
@@ -35,7 +35,7 @@ def new_run_id() -> str:
 async def run_flow(
     settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, *, base_url: str,
     mode: RunMode = RunMode.live, run_id: str | None = None, client_ip_hash: str = "", ablation: Ablation | None = None,
-    page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False,
+    page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False, own_origin: str = "",
 ) -> Run:
     """Own one run end to end: single page → audit_view directly; multi-page → the auditor agent."""
     public = public or flow.public  # a flow on a page we do not serve is guarded whatever the caller passed (spec §17, §19.2)
@@ -59,7 +59,10 @@ async def run_flow(
     agent: AgentResult | None = None
     try:
       async with asyncio.timeout(settings.run_timeout_s):
-          page = await page_factory()
+          if public and flow.origin:  # a page we do not serve: every request is re-checked and the user agent names Parity (spec §19.3.1)
+              page = await page_factory(external=True, own_origin=own_origin, on_blocked=_request_blocked(ctx))
+          else:
+              page = await page_factory()
           ctx.page = page
           if public and not robots_allows(run.target_url):
               await ctx.emit("nav.blocked", {"turn": 0, "url": run.target_url, "reason": "robots.txt disallows the start URL; nothing was fetched"})
@@ -130,6 +133,15 @@ async def run_flow(
         bundle.forget(run.id)  # the bundle is the record now; the buffers would otherwise grow with every run
         bus.forget(run.id)
     return run
+
+
+def _request_blocked(ctx: RunContext):
+    """The request guard's report of an aborted request, as a nav.blocked event on the run (the host, never the whole URL)."""
+
+    async def hook(host: str, resource: str, reason: str) -> None:
+        await ctx.emit("nav.blocked", {"turn": getattr(ctx.agent, "turn", 0), "host": host, "resource": resource, "reason": f"request to {host} aborted: {reason}"})
+
+    return hook
 
 
 async def _close(ctx: RunContext, t0: float) -> None:

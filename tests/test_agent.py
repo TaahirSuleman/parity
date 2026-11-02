@@ -560,3 +560,28 @@ async def test_last_turn_keeps_the_computer_tool_when_it_answers_a_computer_call
     assert last["input"][0]["type"] == "computer_call_output"
     assert any(t.get("type") == "computer" for t in last["tools"]), [t.get("name", t.get("type")) for t in last["tools"]]
     assert sorted(t.get("name") for t in last["tools"] if t.get("type") == "function") == ["audit_view", "finish"]  # the same set as the turn it answers
+
+
+async def test_a_refused_consent_click_is_dropped_and_the_walk_goes_on(tmp_path, fixture_url, page):
+    """Task 26F.2: on a public page the agent's click on "Accept all cookies" is not made (nav.blocked says so) and the walk
+    continues to its finish, instead of ending as an irreversible step would end it."""
+    from parity.flows import Flow
+
+    accept = await centre(page, f"{fixture_url}/consent.html", "#accept")
+    script = [turn(computer_call([{"type": "click", **accept}], "c1")), turn(function_call("audit_view", {"reason": "consent"}, "c2")),
+              turn(function_call("finish", {"summary": "done"}, "c3"))]
+
+    async def factory(**kwargs):  # the test's own page; the request guard is covered in test_browser_guard
+        return page
+
+    flow = Flow(id="public-consent", name="consent", start_url=f"{fixture_url}/consent.html", goal="browse", pages=("consent.html",), single_page=False, public=True)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=factory, public=True)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done, run.error
+    blocked = [e.data for e in loaded.events if e.type == "nav.blocked"]
+    assert len(blocked) == 1 and "consent" in blocked[0]["reason"] and "Accept all cookies" in blocked[0]["reason"]
+    finished = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
+    assert finished["finished"] is True and finished["turns"] == 3  # the walk went on after the refused click
+    actions = next(e.data for e in loaded.events if e.type == "nav.actions")
+    assert actions["executed"] == 0 and actions["dropped"] == 1  # the click was never made: nothing was accepted on the visitor's behalf

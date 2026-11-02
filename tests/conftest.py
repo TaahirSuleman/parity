@@ -51,6 +51,59 @@ def store_url(server_url):
     return server_url + "/store/"
 
 
+@pytest.fixture(scope="session")
+def fixture_url():
+    """Local pages for the guard tests (tests/fixtures/pages), served by a throwaway server on localhost with two special
+    answers: /private.png (a loopback subresource) and /bounce.png (a redirect to the cloud metadata address). Each request's
+    User-Agent is recorded on the server (``fixture_url.agents``)."""
+    import http.server
+    from functools import partial
+    from pathlib import Path
+
+    root = Path(__file__).parent / "fixtures" / "pages"
+    agents: list[str] = []
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def log_message(self, *args) -> None:  # keep pytest's output clean
+            pass
+
+        def do_GET(self) -> None:
+            agents.append(self.headers.get("User-Agent", ""))
+            if self.path == "/bounce.png":
+                self.send_response(302)
+                self.send_header("Location", "http://169.254.169.254/latest/meta-data/")
+                self.end_headers()
+                return
+            if self.path == "/private.png":
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.end_headers()
+                self.wfile.write(b"\x89PNG\r\n\x1a\n")
+                return
+            if self.path.endswith(".html"):  # the page's own port is patched in, so a subresource can point at 127.0.0.1:<port>
+                body = (root / self.path.lstrip("/")).read_bytes().replace(b"__PORT__", str(self.server.server_address[1]).encode())
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            super().do_GET()
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), partial(Handler, directory=str(root)))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = f"http://localhost:{server.server_address[1]}"
+
+    class Fixture(str):
+        pass
+
+    fixture = Fixture(url)
+    fixture.agents = agents  # type: ignore[attr-defined]
+    yield fixture
+    server.shutdown()
+
+
 @pytest_asyncio.fixture
 async def page():
     async with async_playwright() as p:

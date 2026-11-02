@@ -224,6 +224,10 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                                 verdict = guard_action(action, target, field_type, submits=submits)
                             except InspectionFailed as exc:
                                 verdict = Blocked(f"{exc}; refused rather than guessed")
+                            if isinstance(verdict, Blocked) and not verdict.fatal:  # a consent click: not made, the walk goes on
+                                dropped += 1
+                                await ctx.emit("nav.blocked", {"turn": turn, "action": action.get("type"), "url": page.url, "reason": f"not clicked: {verdict.reason}"})
+                                continue
                             if isinstance(verdict, Blocked):
                                 await ctx.emit("nav.blocked", {"turn": turn, "action": action.get("type"), "url": page.url, "reason": f"stopped before irreversible step: {verdict.reason}"})
                                 state.summary = f"stopped before irreversible step: {verdict.reason}"

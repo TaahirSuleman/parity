@@ -259,3 +259,16 @@ def test_guard_edge_spellings_from_the_fuzz():
     assert isinstance(guard_action({"type": "keypress", "keys": "Enter"}, node("textbox", "Card"), "cc-number"), Blocked)
     assert challenge_reason("Just\xa0a moment...", "https://x/", []) == "blocked by site: bot challenge"
     assert challenge_reason("Shop", "https://x/users/sign_in", ["input[type=password]"]) == "blocked by site: login"
+
+
+def test_public_mode_never_accepts_a_consent_banner():
+    """Spec §17 / Task 26F.2: a click on accept-all, agree or allow-all is refused on a public site (the refusal does not end the
+    walk, the click is simply not made); reject-all or necessary-only is allowed; a banner that offers neither is left alone."""
+    for label in ("Accept all cookies", "Accept All", "I agree", "Agree", "Allow all", "Accept and continue", "Yes, I accept", "OK, got it"):
+        verdict = guard_action({"type": "click", "x": 1, "y": 1}, node("button", label), None)
+        assert isinstance(verdict, Blocked) and verdict.fatal is False and "consent" in verdict.reason, label
+    for label in ("Reject all", "Decline", "Only necessary", "Necessary cookies only", "Cookie settings", "Manage preferences", "Add to cart", "Next page"):
+        assert guard_action({"type": "click", "x": 1, "y": 1}, node("button", label), None).allowed, label
+    assert guard_action({"type": "click", "x": 1, "y": 1}, node("link", "Agree"), None).allowed is False  # a link spelled like consent is still a consent click
+    assert isinstance(guard_action({"type": "click", "x": 1, "y": 1}, node("button", "Pay now"), None), Blocked)  # the irreversible rule still ends the walk
+    assert guard_action({"type": "click", "x": 1, "y": 1}, node("button", "Pay now"), None).fatal is True

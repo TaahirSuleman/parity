@@ -52,7 +52,7 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
         <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
           flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} notice={state.notice ?? null} outcome={outcome} steps={state.steps}
           fixesExpected={state.phase === "running" && !isPublic} comparatorModel={state.models.comparator} />
-        <ScreenReaderPanel finding={selected} />
+        <ScreenReaderPanel finding={selected} voiceAccuracy={state.voice?.accuracy} />
         <p className="sr-only" aria-live="polite">{live}</p>
       </main>
       )}

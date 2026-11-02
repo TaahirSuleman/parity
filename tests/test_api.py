@@ -552,3 +552,20 @@ async def test_voice_focuslog_records_lists_and_clears_entries(tmp_path):
             assert (await client.post("/api/voice/focuslog", json={"t_ms": -1, "dom_id": "x", "event": "focusin"})).status_code == 422
             assert (await client.delete("/api/voice/focuslog")).json() == {"cleared": 2}
             assert (await client.get("/api/voice/focuslog")).json() == {"entries": []}
+
+
+async def test_voice_clips_are_served_with_byte_ranges(api):
+    """The player seeks to a finding's segment with #t=start,end, which needs Range requests on /store/voice/*.wav (spec §16)."""
+    from parity.app import STORE_DIR
+
+    client, _ = api
+    clip = STORE_DIR / "voice" / "_range-test.wav"
+    clip.parent.mkdir(exist_ok=True)
+    clip.write_bytes(bytes(range(256)) * 4)
+    try:
+        full = await client.get("/store/voice/_range-test.wav")
+        assert full.status_code == 200 and full.headers.get("accept-ranges") == "bytes" and full.headers["content-type"].startswith("audio/")
+        part = await client.get("/store/voice/_range-test.wav", headers={"Range": "bytes=10-19"})
+        assert part.status_code == 206 and part.content == bytes(range(10, 20)) and part.headers["content-range"] == "bytes 10-19/1024"
+    finally:
+        clip.unlink()

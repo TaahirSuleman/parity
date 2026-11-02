@@ -59,6 +59,7 @@ export interface RunState {
   mode: RunMode;
   phase: "idle" | "running" | "finished" | "failed";
   stage: string | null; // last model-backed stage seen, for the sighted-panel badge
+  voice?: { page: string; accuracy: number | null; clip_key: string } | null; // the page's VoiceOver clip once transcribed (spec §16); G-V is decided on accuracy
   percepts: { visible_text: string; kind: string; bbox: BBox }[];
   error: string | null;
   notice?: string | null; // a transient message (a failed decision, an interrupted stream): shown, never fatal

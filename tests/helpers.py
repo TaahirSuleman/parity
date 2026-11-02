@@ -5,7 +5,7 @@ from pathlib import Path
 
 from parity.store.blob import LocalBlobStore
 from parity.store.bundle import RunBundle
-from parity.store.models import Capture, Event, FindingStatus, Fix, ModelCall, Reaudit, RunMode, RunStatus, Step
+from parity.store.models import Capture, Event, FindingStatus, Fix, ModelCall, Reaudit, RunMode, RunStatus, Step, VoiceEvidence
 from tests.test_bundle import sample_finding, sample_run
 
 FIXTURE = Path(__file__).parent / "fixtures" / "capture_checkout.json"
@@ -31,14 +31,18 @@ async def make_replay_bundle(root: Path) -> None:
                       diff=HERO_DIFF, explanation="Real text instead of an image with a generic aria-label.", model_meta={"model": "muse-spark-1.3-contributor"})
     finding.reaudit = Reaudit(gap_closed=True, sr_name_before="Submit", sr_name_after="Pay R1,249", comparator_still_flags=False)
     finding.status = FindingStatus.reaudited
+    # real VoiceOver audio (spec §16): the segment spoken while the Submit button had focus, attached after verify
+    finding.voice = VoiceEvidence(clip_key="checkout.wav", start_ms=7200, end_ms=10000, transcript="Submit, button", agrees=True)
     await bundle.write_finding(finding)
     bundle.add_trace(SRC, ModelCall(id=f"{SRC}-c1", run_id=SRC, stage="comparator", model="muse-spark-1.3-contributor", total_tokens=1234, cost_usd=0.0021, request_id="req-1"))
     for ev in (
         Event(type="run.started", run_id=SRC, data={"flow_id": "checkout", "mode": "live"}),
         Event(type="step.captured", run_id=SRC, data={"index": 0, "axe_violations": 0}),
         Event(type="model.call", run_id=SRC, data={"stage": "comparator", "tokens": 1234}),
-        Event(type="verifier.result", run_id=SRC, data={"passed": True, "finding_id": finding.id, "finding": finding.model_dump(mode="json")}),
+        Event(type="verifier.result", run_id=SRC, data={"passed": True, "finding_id": finding.id, "finding": {**finding.model_dump(mode="json"), "voice": None}}),
         Event(type="judge.result", run_id=SRC, data={"finding_id": finding.id, "judgement": finding.judgement.model_dump(mode="json")}),
+        Event(type="voice.transcribed", run_id=SRC, data={"page": "checkout", "accuracy": 0.93, "clip_key": "checkout.wav", "duration_ms": 90000, "model": "muse-voice-transcribe-1.0",
+                                                          "segments": 1, "findings": {finding.id: finding.voice.model_dump(mode="json")}}),
         Event(type="fixer.proposed", run_id=SRC, data={"finding_id": finding.id, "diff": finding.fix.diff, "fix": finding.fix.model_dump(mode="json")}),
         Event(type="reaudit.result", run_id=SRC, data={"finding_id": finding.id, "gap_closed": True, "before": "Submit", "after": "Pay R1,249", "reaudit": finding.reaudit.model_dump(mode="json")}),
         Event(type="run.finished", run_id=SRC, data={"findings_verified": 1, "status": "awaiting_review", "fixes_proposed": 1}),

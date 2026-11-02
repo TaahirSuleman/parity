@@ -255,3 +255,24 @@ async def test_screenshot_boxes_have_a_24px_hit_area(page, server_url):
         }"""
     )
     assert misses == [], misses
+
+
+async def test_hero_card_has_an_audio_element_with_a_time_fragment(page, server_url):
+    """Spec §16, Task 28: selecting the hero finding in Replay plays its VoiceOver segment (#t=start,end on the page's clip), shows the
+    Voice Transcribe transcript with the real-audio badge, and says whether the transcript agrees with the tree."""
+    await page.goto(server_url + "/")
+    await page.get_by_role("button", name="Replay").click()
+    await page.get_by_role("button", name="Run the audit").click()
+    card = page.get_by_role("button", name="Pay R1,249").first
+    await card.wait_for(timeout=30000)
+    await card.click()
+    await page.wait_for_function("() => document.querySelector('header')?.textContent.includes('0 violations')", timeout=30000)
+    panel = page.locator("section[aria-labelledby='sr-h']")
+    audio = panel.locator("audio")
+    await audio.wait_for(timeout=10000)
+    src = await audio.get_attribute("src")
+    assert re.fullmatch(r"/store/voice/checkout\.wav#t=\d+(\.\d+)?,\d+(\.\d+)?", src or ""), src
+    text = await panel.inner_text()
+    assert "Submit, button" in text and "MUSE VOICE TRANSCRIBE" in text and "agrees with the accessibility tree" in text
+    assert "Primary evidence" in text or "Corroboration" in text
+    assert await page.get_by_text("VoiceOver transcript agrees", exact=False).count() >= 1  # the card line beside the five checks

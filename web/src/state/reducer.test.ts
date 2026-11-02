@@ -229,3 +229,16 @@ describe("safety-check rows are the guard's, not the model's", () => {
     expect(row?.kind).toBe("safety");
   });
 });
+
+describe("Voice (P6)", () => {
+  it("voice.transcribed attaches the segment to each finding it names and keeps the page accuracy", () => {
+    const base = play(events.filter((e) => ["run.started", "step.captured", "verifier.result"].includes(e.type)));
+    const hero = base.findings.find((f) => f.sr_name === "Submit")!;
+    const segment = { clip_key: "checkout.wav", start_ms: 7200, end_ms: 10000, transcript: "Submit, button", agrees: true };
+    const next = reduce(base, { type: "voice.transcribed", run_id: base.run!.id, at: "t", page: "checkout", accuracy: 0.93, clip_key: "checkout.wav", findings: { [hero.id]: segment } } as unknown as ParityEvent);
+    expect(next.voice).toEqual({ page: "checkout", accuracy: 0.93, clip_key: "checkout.wav" });
+    expect(next.findings.find((f) => f.id === hero.id)!.voice).toEqual(segment);
+    expect(next.findings.filter((f) => f.id !== hero.id).every((f) => !f.voice)).toBe(true);
+    expect(next.stage).toBe("voice");
+  });
+});

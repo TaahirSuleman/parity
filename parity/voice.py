@@ -15,10 +15,16 @@ and ``transcript_agrees`` is the non-gating evidence check on one finding: the s
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
+
+from parity.store.models import VoiceEvidence
+
+log = logging.getLogger(__name__)
 
 Caption = tuple[int, str]
 VOICE_DIR = Path(__file__).resolve().parents[1] / "store" / "voice"
@@ -170,3 +176,39 @@ async def transcribe_page(client, page: str, *, keywords: list[str] | tuple[str,
     return PageVoice(page=page, clip_key=str(rec.meta.get("clip") or f"{page}.wav"), duration_ms=t.duration_ms or int(rec.meta.get("duration_ms") or 0),
                      transcript=t.transcript, turns=t.turns, segments=align(t.turns, list(rec.meta.get("stops") or [])), word_accuracy=accuracy,
                      model=t.model, request_id=t.request_id)
+
+
+# --- the runner hook (Task 28) --------------------------------------------------------------------------
+
+KEYWORDS_MAX = 50
+
+
+async def attach_voice(ctx, cap, findings: list, step_index: int) -> dict | None:
+    """After verify, on one of our own store pages: transcribe the page's clip once (cached) and give each new finding whose
+    element had focus during the recording its segment, with the agreement check. Emits ``voice.transcribed``. Never on a site
+    we do not own, never without a clip, and never fatal: Voice is evidence, not a gate."""
+    url = str(getattr(cap, "url", "") or "")
+    if ctx.public or ctx.client is None or "/store/" not in url:
+        return None
+    page = Path(urlparse(url).path).stem
+    names = list(dict.fromkeys(n.name.strip() for n in cap.ax_nodes if n.name and n.name.strip()))[:KEYWORDS_MAX]
+    try:
+        voice = await transcribe_page(ctx.client, page, keywords=names, voice_dir=ctx.settings.voice_dir, run_id=ctx.run.id, step_index=step_index)
+    except Exception as exc:  # a transcription that fails after its retries leaves the finding's evidence as it was
+        log.warning("voice: transcription of %s failed: %s: %s", page, type(exc).__name__, exc)
+        return None
+    if voice is None:
+        return None
+    attached: dict[str, dict] = {}
+    for finding in findings:
+        segment = voice.segments.get(finding.element.dom_id or "")
+        if segment is None:
+            continue
+        finding.voice = VoiceEvidence(clip_key=voice.clip_key, start_ms=segment.start_ms, end_ms=segment.end_ms, transcript=segment.text,
+                                      agrees=transcript_agrees(segment, finding.sr_role, finding.sr_name))
+        await ctx.save_finding(finding)
+        attached[finding.id] = finding.voice.model_dump(mode="json")
+    data = {"page": page, "accuracy": voice.word_accuracy, "clip_key": voice.clip_key, "duration_ms": voice.duration_ms, "model": voice.model,
+            "segments": len(voice.segments), "findings": attached}
+    await ctx.emit("voice.transcribed", data)
+    return data

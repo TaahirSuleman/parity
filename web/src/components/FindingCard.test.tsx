@@ -231,3 +231,12 @@ describe("FindingCard for the camera (cold-judge review, 2 Nov)", () => {
     expect(reason.value.length).toBeLessThan(60);
   });
 });
+
+
+describe("FindingCard Voice (P6)", () => {
+  it("shows the VoiceOver transcript's agreement beside the five checks, and nothing about Voice without a clip", () => {
+    render(<FindingCard finding={{ ...finding, voice: { clip_key: "checkout.wav", start_ms: 7200, end_ms: 10000, transcript: "Submit, button", agrees: true } }} selected={true} onSelect={() => {}} />);
+    expect(screen.getByLabelText("VoiceOver evidence")).toHaveTextContent("VoiceOver transcript agrees: “Submit, button”");
+    expect(screen.getAllByRole("listitem", { name: /passed/i })).toHaveLength(5); // Voice is evidence, never a sixth gate
+  });
+});

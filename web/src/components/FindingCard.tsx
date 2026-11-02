@@ -10,6 +10,7 @@ interface Props {
   onDecision?: (id: string, decision: "approve" | "reject", reason: string) => void | Promise<void>;
   screenLabel?: string; // "screen 3 · checkout" when the run has several screens
   fixesExpected?: boolean; // false once no fix will follow (run over, or a read-only public sample)
+  readOnly?: boolean; // a page we do not serve: fixes and re-audits are not offered at all (spec §17, §19.3.6)
   comparatorModel?: string; // the model that re-ran the comparison on the patched page
 }
 
@@ -21,7 +22,7 @@ function suggestedReason(finding: Finding): string {
     : `Name rule still open: now says "${after}"`;
 }
 
-export function FindingCard({ finding, selected, onSelect, onDecision, screenLabel, fixesExpected = true, comparatorModel = "muse-spark-1.3-contributor" }: Props) {
+export function FindingCard({ finding, selected, onSelect, onDecision, screenLabel, fixesExpected = true, readOnly = false, comparatorModel = "muse-spark-1.3-contributor" }: Props) {
   const j = finding.judgement;
   const quote = srQuote(finding);
   const [typed, setTyped] = useState<string | null>(null);
@@ -154,9 +155,11 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           <button type="button" className="btn-quiet" disabled={!(canReject && hasReason)} onClick={() => act("reject")} title={finding.fix ? "Reject the proposed fix" : "Dismiss this finding (no fix was proposed)"}>
             Reject
           </button>
-          {!finding.fix && !finding.fix_note && (fixesExpected
-            ? <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>
-            : <span className="muted text-xs">No fix was proposed for this finding.</span>)}
+          {!finding.fix && !finding.fix_note && (readOnly
+            ? <span className="muted text-xs">Fixes and re-audits are not offered on pages we do not serve.</span>
+            : fixesExpected
+              ? <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>
+              : <span className="muted text-xs">No fix was proposed for this finding.</span>)}
         </div>
       )}
     </article>

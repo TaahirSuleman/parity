@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Fixture: a page that opens a window</title></head>
+<body style="margin:0;font-family:sans-serif"><main>
+<h1>Fixture: a popup</h1>
+<p>The button opens a new window on a loopback address; the request guard must see the popup's requests too.</p>
+<button type="button" id="open" onclick="window.open('http://127.0.0.1:__PORT__/private.png', '_blank')" style="position:absolute;left:20px;top:160px;width:160px;height:36px">Open window</button>
+</main></body></html>

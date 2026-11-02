@@ -113,3 +113,80 @@ async def test_guard_aborts_non_web_schemes_and_lets_data_urls_through(fixture_u
     finally:
         await page.context.close()
     assert [b[0] for b in blocked] == ["169.254.169.254"]  # the data: image never reached the guard's refusal path
+
+
+async def test_popup_requests_are_guarded_too(fixture_url):
+    """Review C1: a page may open a window; its requests go through the same guard (a page-level route would not see them)."""
+    blocked: list = []
+    page = await _external(fixture_url, blocked)
+    try:
+        await page.goto(f"{fixture_url}/popup.html", wait_until="load")
+        async with page.context.expect_page() as popup_info:
+            await page.click("#open")
+        popup = await popup_info.value
+        await popup.wait_for_timeout(500)
+    finally:
+        await page.context.close()
+    assert [b[0] for b in blocked] == ["127.0.0.1"] and blocked[0][1] == "document"
+
+
+async def test_service_workers_are_blocked_on_external_pages(fixture_url):
+    """Review C1: a service worker's requests are routed by no handler, so an external context blocks workers: one that phones home
+    on install never reaches the server. A store context lets it run (the control that proves the fixture works)."""
+    register = "() => navigator.serviceWorker.register('/sw.js').then(() => 'registered', (e) => 'rejected: ' + e.name)"
+    page = await _external(fixture_url, [])
+    try:
+        await page.goto(f"{fixture_url}/sw.html", wait_until="load")
+        outcome = await page.evaluate(register)
+        await page.wait_for_timeout(1000)
+    finally:
+        await page.context.close()
+    assert "/sw-ping" not in fixture_url.requests, outcome
+    control = await new_page()
+    try:
+        await control.goto(f"{fixture_url}/sw.html", wait_until="load")
+        assert await control.evaluate(register) == "registered"
+        await control.wait_for_function("() => navigator.serviceWorker.controller !== null || true")
+        await control.wait_for_timeout(1000)
+    finally:
+        await control.context.close()
+    assert "/sw-ping" in fixture_url.requests  # the same worker, allowed, did phone home
+
+
+async def test_public_capture_never_fetches_the_page_a_second_time(fixture_url, server_url):
+    """Review C2: served_source re-fetches the page outside the guard (and followed redirects); on a page we do not serve the
+    capture keeps the rendered DOM instead, since there is no fixer to need the served source."""
+    from parity.pipeline.capture import capture
+
+    page = await _external(fixture_url, [])
+    try:
+        await page.goto(f"{fixture_url}/bounce.html", wait_until="load")
+        before = fixture_url.requests.count("/bounce.html")
+        cap = await capture(page, 0, public=True)
+    finally:
+        await page.context.close()
+    assert fixture_url.requests.count("/bounce.html") == before and "Fixture page with a bounce" in cap.html
+    store = await new_page()
+    try:
+        await store.goto(server_url + "/store/checkout.html", wait_until="load")
+        cap = await capture(store, 0)
+    finally:
+        await store.context.close()
+    assert 'id="f5"' in cap.html  # the store keeps the served source: the fixer patches it
+
+
+async def test_a_flood_of_refused_requests_is_reported_once(fixture_url):
+    """Review I3: twenty refused requests to one address are one nav.blocked report (with the count kept), not twenty events."""
+    blocked: list = []
+
+    async def on_blocked(host: str, resource: str, reason: str) -> None:
+        blocked.append(host)
+
+    guard = RequestGuard(on_blocked=on_blocked, judge=judge_for_fixture)
+    page = await new_page(external=True, own_origin="https://parity.example", guard=guard)
+    try:
+        await page.goto(f"{fixture_url}/flood.html", wait_until="load")
+        await page.wait_for_function("() => window.done === true", timeout=15000)
+    finally:
+        await page.context.close()
+    assert blocked == ["127.0.0.1"] and guard.counts[("127.0.0.1", "not a public address")] == 20

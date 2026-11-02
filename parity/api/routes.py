@@ -183,8 +183,11 @@ async def _start_url_run(req: RunRequest, request: Request) -> dict:
     verdict = st.limiter.check(ip)  # a look, not a count: a refused address must not spend one of the visitor's runs
     if not verdict.allowed:
         return _too_many(verdict.message, verdict.retry_after_s)
+    if await st.budget.day_closed(st.index):  # an index read, answered before any lookup leaves this process
+        raise HTTPException(503, Closed(scope="day", retry_after_s=1).message)
     own = public_origin(request, settings.trust_proxy)
-    target = await asyncio.to_thread(check_url, req.url or "", own_origin=own, deny=settings.url_deny, resolver=st.resolver, robots=st.robots)  # DNS and robots.txt block
+    async with st.policy_gate:  # DNS and robots.txt block in a thread: a few at a time, however many addresses arrive at once
+        target = await asyncio.to_thread(check_url, req.url or "", own_origin=own, deny=settings.url_deny, resolver=st.resolver, robots=st.robots)
     if isinstance(target, Refusal):
         raise HTTPException(422, target.message)
     closed = await st.budget.check(st.index, target.origin)

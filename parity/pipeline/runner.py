@@ -10,6 +10,7 @@ import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from urllib.parse import urlsplit
 
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
@@ -88,14 +89,16 @@ async def run_flow(
           elif outcome := await _open(ctx, page, run.target_url, public):  # a public page that did not answer, was aborted, or is a wall
               agent = AgentResult(0, False, False, outcome)
               verified = []
-          elif flow.single_page:
-              summary = await audit_view(ctx, page, 0, reason="single-page flow")
-              verified = [b.__dict__ for b in summary.verified]
-              if ctx.over_budget:
-                  agent = AgentResult(0, False, False, "cost cap reached")
           else:
-              agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode, max_screens=max_screens)
-              verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
+              _landed(ctx, page, public, visitor)  # the walk is allowed where the page landed (an apex or http:// address redirects)
+              if flow.single_page:
+                  summary = await audit_view(ctx, page, 0, reason="single-page flow")
+                  verified = [b.__dict__ for b in summary.verified]
+                  if ctx.over_budget:
+                      agent = AgentResult(0, False, False, "cost cap reached")
+              else:
+                  agent = await run_agent(ctx, page, flow, max_turns=max_turns, mode=agent_mode, max_screens=max_screens)
+                  verified = [{"id": f.id, "sighted": f.sighted_text, "screen_reader": f"{f.sr_role}, \"{f.sr_name}\""} for f in ctx.findings]
           final_url = page.url  # where the walk ended, before re-audits reuse the page
 
           async def same_page() -> Page:
@@ -104,17 +107,19 @@ async def run_flow(
           # a public site is never patched or re-fetched (§17); nothing new starts past 80% of the deadline, so the run ends inside it
           fixes = await fix_findings(ctx, same_page, deadline=t0 + settings.run_timeout_s * gate_stage.FIX_BUDGET_FRACTION) if ctx.ablation.run_fixes and not public else 0
           pending = await _settle(ctx, t0)  # final state on disk BEFORE the terminal event: readers reacting to it see the final status
-          await ctx.emit("run.finished", {
-              "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
-              "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
-              "fixes_proposed": fixes, "pending": pending, "agent": result_dict(agent) if agent else None, "final_url": final_url, "duration_ms": run.duration_ms,
-          })
+          await ctx.emit("run.finished", _finished(run, verified, fixes, pending, agent, final_url))
     except TimeoutError:
-        run.status = RunStatus.failed
-        run.error = f"run deadline of {deadline_s} s exceeded"
-        log.error("run %s failed: %s", run.id, run.error)
-        await _close(ctx, t0)
-        await ctx.emit("run.failed", {"error": run.error})
+        if public:  # a page we do not serve that takes longer than the deadline is an outcome, not a failure of ours
+            reason = f"the page took longer than {deadline_s} s"
+            await ctx.emit("nav.blocked", {"turn": 0, "reason": reason})
+            pending = await _settle(ctx, t0)
+            await ctx.emit("run.finished", _finished(run, [], 0, pending, AgentResult(0, False, False, reason), page.url if page is not None else run.target_url))
+        else:
+            run.status = RunStatus.failed
+            run.error = f"run deadline of {deadline_s} s exceeded"
+            log.error("run %s failed: %s", run.id, run.error)
+            await _close(ctx, t0)
+            await ctx.emit("run.failed", {"error": run.error})
     except asyncio.CancelledError:  # a server shutdown mid-run (a redeploy): the bundle says so instead of settling as done
         run.status = RunStatus.failed
         run.error = "cancelled: the server shut down during the run"
@@ -153,6 +158,25 @@ async def run_flow(
         bundle.forget(run.id)  # the bundle is the record now; the buffers would otherwise grow with every run
         bus.forget(run.id)
     return run
+
+
+def _finished(run: Run, verified: list, fixes: int, pending: int, agent: AgentResult | None, final_url: str) -> dict:
+    return {
+        "status": run.status, "findings_verified": run.findings_verified, "findings_rejected": run.findings_rejected,
+        "axe_violations": run.axe_violations, "tokens": run.tokens, "cost_usd": run.cost_usd, "verified": verified,
+        "fixes_proposed": fixes, "pending": pending, "agent": result_dict(agent) if agent else None, "final_url": final_url, "duration_ms": run.duration_ms,
+    }
+
+
+def _landed(ctx: RunContext, page: Page, public: bool, visitor: VisitorRequest | None) -> None:
+    """On a page we do not serve, the origin the start URL landed on (after its redirects) is the walk's allowed origin and, for a
+    visitor's page, the run's recorded origin."""
+    if public and page.url.startswith(("http://", "https://")):
+        parts = urlsplit(page.url)
+        landed = f"{parts.scheme}://{parts.netloc}"
+        ctx.base_url = landed
+        if visitor is not None:
+            ctx.run.origin = landed
 
 
 async def _open(ctx: RunContext, page: Page, url: str, public: bool) -> str | None:

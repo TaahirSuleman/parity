@@ -64,7 +64,7 @@ async def judge(client, finding: Finding, capture: Capture, run_id: str, *, mode
     fallback_model = fallback_model or STANDARD_SPARK
     text = (PROMPT + "\n\nEVIDENCE:\n" + wrap(evidence_block(finding))
             + "\n\nACCESSIBILITY TREE of the whole screen (role, name, box on the 0-1000 grid), so you can judge what else a screen-reader user gets:\n"
-            + tree_block(capture))
+            + wrap(tree_block(capture)))
     content: list[dict[str, Any]] = [{"type": "input_text", "text": text}]
     if capture.screenshot_png:
         content.append({"type": "input_image", "image_url": png_to_data_url(capture.screenshot_png)})

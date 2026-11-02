@@ -62,6 +62,7 @@ def fixture_url():
 
     root = Path(__file__).parent / "fixtures" / "pages"
     agents: list[str] = []
+    requests: list[str] = []  # every path asked for, query stripped
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def log_message(self, *args) -> None:  # keep pytest's output clean
@@ -69,6 +70,16 @@ def fixture_url():
 
         def do_GET(self) -> None:
             agents.append(self.headers.get("User-Agent", ""))
+            requests.append(self.path.split("?", 1)[0])
+            if self.path == "/go-ip":  # a redirect to the same server under another origin: what an apex or http:// address does
+                self.send_response(302)
+                self.send_header("Location", f"http://127.0.0.1:{self.server.server_address[1]}/hop1.html")
+                self.end_headers()
+                return
+            if self.path == "/slow.html":
+                import time as _time
+
+                _time.sleep(3)
             if self.path == "/bounce.png":
                 self.send_response(302)
                 self.send_header("Location", "http://169.254.169.254/latest/meta-data/")
@@ -100,6 +111,8 @@ def fixture_url():
 
     fixture = Fixture(url)
     fixture.agents = agents  # type: ignore[attr-defined]
+    fixture.requests = requests  # type: ignore[attr-defined]
+    fixture.port = server.server_address[1]  # type: ignore[attr-defined]
     yield fixture
     server.shutdown()
 

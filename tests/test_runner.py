@@ -517,3 +517,19 @@ async def test_voice_is_skipped_without_a_clip_and_on_public_pages(tmp_path, ser
     _recording(voice_dir)
     run, loaded, types = await run_with(voice_dir, public=True)  # a site we do not own never gets our store's clip
     assert "voice.transcribed" not in types and all(f.voice is None for f in loaded.findings)
+
+
+async def test_public_run_that_outlives_its_deadline_ends_done_with_the_reason(tmp_path, fixture_url, page):
+    """Review M4: a page that takes longer than the run's deadline is an outcome on a page we do not serve, not a failed run."""
+    from parity.pipeline.runner import run_flow
+
+    async def page_factory(**kwargs):
+        return page
+
+    flow = _public_flow(f"{fixture_url}/slow.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=page_factory, timeout_s=1)
+    assert run.status == RunStatus.done and run.error is None and client.calls == []
+    loaded = await bundle.load(run.id)
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "the page took longer than 1 s"
+    assert [e.type for e in loaded.events][-1] == "run.finished"

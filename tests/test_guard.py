@@ -272,3 +272,28 @@ def test_public_mode_never_accepts_a_consent_banner():
     assert guard_action({"type": "click", "x": 1, "y": 1}, node("link", "Agree"), None).allowed is False  # a link spelled like consent is still a consent click
     assert isinstance(guard_action({"type": "click", "x": 1, "y": 1}, node("button", "Pay now"), None), Blocked)  # the irreversible rule still ends the walk
     assert guard_action({"type": "click", "x": 1, "y": 1}, node("button", "Pay now"), None).fatal is True
+
+
+def test_robots_fetch_follows_only_same_host_redirects(monkeypatch):
+    """Review I1: the robots.txt fetch runs in the server process; a redirect off the host is not followed (no file: allowed, as a
+    robots parser treats an unreachable file), a same-host hop (http → https, a new path) is, and the request names Parity."""
+    import httpx
+
+    calls: list[tuple[str, bool | None, str]] = []
+
+    def fake_get(url, **kw):
+        calls.append((url, kw.get("follow_redirects"), kw["headers"]["User-Agent"]))
+        req = httpx.Request("GET", url)
+        if url == "https://shop.example/robots.txt":
+            return httpx.Response(302, headers={"location": "http://127.0.0.1:8080/robots.txt"}, request=req)
+        if url == "https://up.example/robots.txt":
+            return httpx.Response(301, headers={"location": "https://up.example/r/robots.txt"}, request=req)
+        if url == "https://up.example/r/robots.txt":
+            return httpx.Response(200, text="User-agent: *\nDisallow: /private/\n", request=req)
+        return httpx.Response(404, request=req)
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    assert robots_allows("https://shop.example/anything") is True
+    assert robots_allows("https://up.example/private/x") is False and robots_allows("https://up.example/open") is True
+    assert all(u.startswith(("https://shop.example", "https://up.example")) for u, _, _ in calls), calls  # 127.0.0.1 was never asked
+    assert all(f is False for _, f, _ in calls) and all(ua.startswith("Parity/") for _, _, ua in calls)

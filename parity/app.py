@@ -39,6 +39,7 @@ STORE_DIR = ROOT / "store"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 PAGES_DIR = Path(__file__).resolve().parent / "pages"  # pages the app serves itself (the audit policy); static/ is the SPA build and is emptied by every build
 EXTERNAL_EVICT_INTERVAL_S = 3600  # retention for pages visitors chose is enforced at boot and hourly (spec §19.3.4)
+POLICY_CONCURRENCY = 4  # URL-policy lookups (DNS, robots.txt) in flight at once
 
 
 async def discover_replays(replay_bundle: RunBundle) -> tuple[dict[str, str], list[str]]:
@@ -76,7 +77,7 @@ async def evict_external_hourly(st, interval_s: int = EXTERNAL_EVICT_INTERVAL_S)
     while True:
         await asyncio.sleep(interval_s)
         try:
-            gone = await replay.evict_external(st.bundle, st.index)
+            gone = await replay.evict_external(st.bundle, st.index, cache_dir=st.settings.cache_dir)
             if gone:
                 log.info("retention: evicted %d visitor run(s) older than 24 h: %s", len(gone), gone)
         except Exception:
@@ -122,7 +123,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         st = app.state
         await st.index.init()
         booted = await st.index.boot(st.bundle, replay_keep=settings.replay_keep, replay_min_age_s=settings.replay_min_age_s)
-        expired = await replay.evict_external(st.bundle, st.index)  # after the index is rebuilt: it is what names the visitor runs
+        expired = await replay.evict_external(st.bundle, st.index, cache_dir=settings.cache_dir)  # after the index is rebuilt: it is what names the visitor runs
         st.sweep = asyncio.create_task(evict_external_hourly(st), name="evict-external")  # beside st.tasks, which is runs in flight
         st.replay_for_flow, st.replay_ids = await discover_replays(st.replay_bundle)
         st.models_ok = await probe_models(st.client)
@@ -174,6 +175,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.sweep: asyncio.Task | None = None  # the hourly retention sweep (spec §19.3.4), started at boot
     st.limiter = RateLimiter(settings.live_per_ip_per_hour, settings.live_global_per_day)
     st.budget = ExternalBudget(settings.external_run_usd, settings.external_daily_usd, settings.external_per_origin_per_day)  # pages visitors choose (spec §19.3.3)
+    st.policy_gate = asyncio.Semaphore(POLICY_CONCURRENCY)  # bounds the policy's blocking lookups (they share the default executor with GCS)
     st.resolver = None  # the URL policy's DNS lookup; tests inject one
     st.robots = None  # the URL policy's robots.txt check; tests inject one
     st.last_live_run = None  # the newest Live run id, for the finishing-run grace in POST /runs

@@ -50,8 +50,8 @@ describe("Workbench external runs (Task 26E.4)", () => {
     const external = [{ id: "bad-home", name: "W3C demo: home", single_page: true, public: true, start_url: "https://www.w3.org/WAI/demos/bad/before/home.html", attribution: "© 2012 W3C" }];
     const state: RunState = { ...running, run: { ...running.run!, flow_id: "bad-home", mode: "live" }, findings: [finding], selectedFindingId: finding.id };  // the expectation sits on the selected card
     const { container } = render(<Workbench state={state} flows={external} flowId="bad-home" onFlowChange={() => {}} canLive={true} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
-    expect(container.textContent).toMatch(/No fix was proposed/);
-    expect(container.textContent).not.toMatch(/A fix and its re-audit follow/);
+    expect(container.textContent).toMatch(/not offered on pages we do not serve/);  // spec §19.3.6 wording, never "no fix was proposed"
+    expect(container.textContent).not.toMatch(/No fix was proposed|A fix and its re-audit follow/);
   });
 
   it("store runs still expect a fix while they are going", async () => {
@@ -91,7 +91,8 @@ describe("Workbench outcomes for a page the visitor chose (Task 26F.6)", () => {
     const state: RunState = { ...running, run: { ...running.run!, mode: "live", flow_id: "url-1a2b3c4d", public: true, source: "visitor-url", origin: "https://www.w3.org" }, findings: [finding], selectedFindingId: finding.id };
     const { container } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={true} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}}
       urlMode openUrl onUrlModeChange={() => {}} onUrlRun={() => {}} suggestedUrls={[]} closedToday={false} urlRefusal={null} />);
-    expect(container.textContent).toMatch(/No fix was proposed/);
+    expect(container.textContent).toMatch(/not offered on pages we do not serve/);
+    expect(container.textContent).not.toMatch(/No fix was proposed/);
     expect(container.querySelector("input[type=url]")).not.toBeNull();
   });
 });

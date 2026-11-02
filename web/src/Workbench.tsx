@@ -64,7 +64,7 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
           steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} finished={state.phase === "finished"} isPublic={isPublic} />
         <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
           flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} notice={state.notice ?? null} outcome={outcome} steps={state.steps}
-          fixesExpected={state.phase === "running" && !readOnly} comparatorModel={state.models.comparator} />
+          fixesExpected={state.phase === "running" && !readOnly} readOnly={readOnly} comparatorModel={state.models.comparator} />
         <ScreenReaderPanel finding={selected} voiceAccuracy={state.voice?.accuracy} />
         <p className="sr-only" aria-live="assertive" aria-atomic="true">{live}</p>
         {state.lastDecision && (

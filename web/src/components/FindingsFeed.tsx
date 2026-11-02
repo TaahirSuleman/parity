@@ -17,10 +17,11 @@ interface Props {
   outcome?: string | null; // the walk's own stop reason when the site or the guard ended it
   steps?: Step[]; // to name the screen a card belongs to when there are several
   fixesExpected?: boolean; // false once the run is over, or for a read-only public sample: no fix will follow
+  readOnly?: boolean; // a page we do not serve: fixes and re-audits are not offered
   comparatorModel?: string;
 }
 
-export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow", notice = null, outcome = null, steps = [], fixesExpected = true, comparatorModel }: Props) {
+export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow", notice = null, outcome = null, steps = [], fixesExpected = true, readOnly = false, comparatorModel }: Props) {
   const noticeRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {  // on a phone the feed sits below the screenshot: a notice must come to the reader, not wait to be found
     if (notice) noticeRef.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
@@ -84,7 +85,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
         {items.map((it) =>
           it.kind === "f" ? (
             <div key={it.v.id} role="listitem">
-              <FindingCard finding={it.v} selected={it.v.id === selectedId} onSelect={onSelect} onDecision={onDecision} screenLabel={screenLabel(it.v)} fixesExpected={fixesExpected} comparatorModel={comparatorModel} />
+              <FindingCard finding={it.v} selected={it.v.id === selectedId} onSelect={onSelect} onDecision={onDecision} screenLabel={screenLabel(it.v)} fixesExpected={fixesExpected} readOnly={readOnly} comparatorModel={comparatorModel} />
             </div>
           ) : (
             <RejectedRow key={it.v.id} rejected={it.v} asReported={verifierOff} kind={kindOf(it.v)} />

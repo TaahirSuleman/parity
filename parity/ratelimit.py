@@ -91,6 +91,14 @@ class Closed:
         return "this site has had its runs for today; try another page, or come back tomorrow"
 
 
+def _site(origin: str) -> str:
+    """The per-origin cap's key: the host without scheme or a leading www., so http://a, https://a and https://www.a are one site."""
+    from urllib.parse import urlsplit
+
+    host = (urlsplit(origin).hostname or origin).lower().rstrip(".")
+    return host[4:] if host.startswith("www.") else host
+
+
 def _day_start(now: datetime) -> datetime:
     return now.astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -122,6 +130,6 @@ class ExternalBudget:
         until_midnight = max(1, int((_day_start(now) + timedelta(days=1) - now.astimezone(UTC)).total_seconds()))
         if sum(r.cost_usd for r in runs) >= self.daily_usd:
             return Closed(scope="day", retry_after_s=until_midnight)
-        if sum(1 for r in runs if r.origin == origin) >= self.per_origin_per_day:
+        if sum(1 for r in runs if _site(r.origin) == _site(origin)) >= self.per_origin_per_day:
             return Closed(scope="origin", retry_after_s=until_midnight)
         return Allowed()

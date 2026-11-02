@@ -264,11 +264,13 @@ async def served_source(page: Page) -> str:
     return await page.content()
 
 
-async def capture(page: Page, step_index: int) -> Capture:
+async def capture(page: Page, step_index: int, *, public: bool = False) -> Capture:
+    """``public``: a page we do not serve is never patched, so the rendered DOM stands in for the served source and the page
+    is not fetched a second time (that fetch would run outside the request guard and follow redirects on its own)."""
     size = page.viewport_size or {"width": 1280, "height": 720}
     viewport = (size["width"], size["height"])
     screenshot = await page.screenshot()
-    html = await served_source(page)
+    html = await page.content() if public else await served_source(page)
     cdp = await page.context.new_cdp_session(page)
     try:
         await cdp.send("DOM.enable")

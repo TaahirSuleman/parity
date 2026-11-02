@@ -140,11 +140,28 @@ def robots_allows(url: str, fetch: Callable[[str], str | None] | None = None) ->
     return parser.can_fetch(USER_AGENT, url)
 
 
-def _fetch(url: str) -> str | None:
-    import httpx
+ROBOTS_HOPS = 5
 
-    r = httpx.get(url, timeout=10, headers={"User-Agent": USER_AGENT}, follow_redirects=True)
-    return r.text if r.status_code == 200 else None
+
+def _fetch(url: str) -> str | None:
+    """robots.txt, from the server process: redirects are followed by hand and only on the same host (an off-host hop would be a
+    request this process makes to an address nobody checked), with a user agent that names Parity."""
+    import httpx
+    from urllib.parse import urljoin
+
+    from parity import __version__
+
+    host = (urlsplit(url).hostname or "").lower()
+    for _ in range(ROBOTS_HOPS):
+        r = httpx.get(url, timeout=10, headers={"User-Agent": f"Parity/{__version__}"}, follow_redirects=False)
+        location = r.headers.get("location") if r.status_code in (301, 302, 303, 307, 308) else None
+        if not location:
+            return r.text if r.status_code == 200 else None
+        url = urljoin(url, location)
+        if (urlsplit(url).hostname or "").lower() != host:
+            log.info("robots.txt for %s redirects off its host; treated as absent", host)
+            return None
+    return None
 
 
 def anonymise(src: Path, dest: Path, *, letter: str, host: str, names: list[str] | tuple[str, ...] = ()) -> Path:

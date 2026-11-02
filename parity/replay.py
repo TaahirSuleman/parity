@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from parity.api.events import EventBus
 from parity.pipeline.runner import new_run_id
@@ -61,12 +62,13 @@ async def evict_replay_copies(bundle: RunBundle, index, keep: int, bus: EventBus
     return gone
 
 
-async def evict_external(bundle: RunBundle, index, max_age_s: int = EXTERNAL_RETENTION_S) -> list[str]:
+async def evict_external(bundle: RunBundle, index, max_age_s: int = EXTERNAL_RETENTION_S, cache_dir: Path | None = None) -> list[str]:
     """Retention for pages visitors chose, enforced rather than promised (spec §19.3.4): every file holding page content
     (screenshots, trees, axe results, page source, findings, rejected rows, events, the trace, run.json) goes from bundles
     with ``source == "visitor-url"`` whose run ended more than ``max_age_s`` ago; ``summary.json`` stays (origin, outcome,
     counts, cost, seconds, consent) so the day's spend and the stats survive. The index row goes with the run: a summary is
-    not a run. A run still going is never touched."""
+    not a run. A run still going is never touched. With ``cache_dir``, the model cache files the run's trace names (the seer's,
+    comparator's and judge's answers carry the page's words) go too; every other cache file stays."""
     cutoff = now() - timedelta(seconds=max_age_s)
     gone: list[str] = []
     for run in await index.external_runs_since(EPOCH):
@@ -84,9 +86,12 @@ async def evict_external(bundle: RunBundle, index, max_age_s: int = EXTERNAL_RET
                 "consent_at": run.consent_at.isoformat() if run.consent_at else None, "started_at": run.started_at.isoformat(),
                 "finished_at": run.finished_at.isoformat() if run.finished_at else None, "evicted_at": now().isoformat(),
             }
+            cached = [call.prompt_sha256 for call in await bundle.trace(run.id) if call.prompt_sha256] if cache_dir else []
             await bundle.delete_run(run.id)
             await bundle.store.put(keys.summary(run.id), json.dumps(summary, indent=1).encode(), "application/json")
             await index.delete_run(run.id)
+            for sha in cached:
+                (Path(cache_dir) / f"{sha}.json").unlink(missing_ok=True)
             gone.append(run.id)
         except Exception as exc:
             log.warning("could not evict visitor run %s: %s", run.id, exc)

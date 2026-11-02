@@ -123,7 +123,7 @@ def brief(finding: Finding) -> FindingBrief:
 
 async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) -> AuditSummary:
     settings, run = ctx.settings, ctx.run
-    cap = await capture(page, step_index)
+    cap = await capture(page, step_index, public=ctx.public)
     ctx.captures[step_index] = cap
     step = Step(run_id=run.id, index=step_index, url=cap.url, viewport=cap.viewport)
     await ctx.bundle.write_step(step, cap)

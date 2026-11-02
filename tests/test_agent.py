@@ -609,3 +609,29 @@ async def test_a_visitor_walk_stops_after_its_screens(tmp_path, fixture_url, pag
     assert len(loaded.steps) == 2 and len(auditor_calls(client)) == 3  # two screens audited in three turns; the fourth turn was never asked for
     result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
     assert result["finished"] is True and result["finish_forced"] is False and result["summary"] == "2 screens audited: the limit for this run"
+
+
+async def test_a_walk_follows_the_landed_origin_after_a_redirect(tmp_path, fixture_url, page):
+    """Review I5: an apex or http:// address lands on another origin (www, https); the walk's allowed origin is where the page
+    landed, and the run records that origin."""
+    from parity.flows import Flow
+    from parity.pipeline.runner import VisitorRequest
+    from parity.store.models import now
+
+    link1 = await centre(page, f"{fixture_url}/hop1.html", "#next")
+    script = [turn(function_call("audit_view", {"reason": "first"}, "c1")), turn(computer_call([{"type": "click", **link1}], "c2")),
+              turn(function_call("audit_view", {"reason": "second"}, "c3")), turn(function_call("finish", {"summary": "done"}, "c4"))]
+
+    async def factory(**kwargs):
+        return page
+
+    flow = Flow(id="url-redirect", name="redirect", start_url=f"{fixture_url}/go-ip", goal="browse", pages=("go-ip",), single_page=False, public=True)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=factory, max_screens=3,
+                             visitor=VisitorRequest(origin=fixture_url, consent_at=now(), screens=3))
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done, run.error
+    result = next(e for e in loaded.events if e.type == "run.finished").data["agent"]
+    assert result["finished"] is True and result["summary"] == "done", result
+    assert not [e for e in loaded.events if e.type == "nav.blocked"]
+    assert loaded.run.origin == f"http://127.0.0.1:{fixture_url.port}" and len(loaded.steps) == 2

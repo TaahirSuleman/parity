@@ -123,3 +123,17 @@ async def test_daily_cap_closes_the_field_for_everyone():
     assert await budget.spent_today(FakeIndex(runs), now=day) == pytest.approx(1.05)
     assert await budget.day_closed(FakeIndex(runs), now=day) is True and await budget.day_closed(FakeIndex(runs[:1]), now=day) is False
     assert budget.run_exhausted(0.5) and budget.run_exhausted(0.51) and not budget.run_exhausted(0.49)
+
+
+async def test_per_origin_cap_ignores_scheme_and_www():
+    """Review I5: http://a, https://a and https://www.a are one site for the per-origin cap."""
+    from datetime import UTC, datetime, timedelta
+
+    from parity.ratelimit import Closed, ExternalBudget
+
+    day = datetime(2026, 11, 3, 9, 0, tzinfo=UTC)
+    runs = [_visitor_run("https://www.a.example", 0.1, day - timedelta(hours=1)), _visitor_run("http://a.example", 0.1, day - timedelta(hours=2)),
+            _visitor_run("https://a.example", 0.1, day - timedelta(hours=3))]
+    budget = ExternalBudget(run_usd=0.5, daily_usd=5.0, per_origin_per_day=3)
+    assert isinstance(await budget.check(FakeIndex(runs), "http://www.a.example", now=day), Closed)
+    assert (await budget.check(FakeIndex(runs), "https://b.example", now=day)).allowed

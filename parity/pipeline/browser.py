@@ -16,6 +16,7 @@ import asyncio
 import ipaddress
 import logging
 import time
+from collections import Counter
 from collections.abc import Awaitable, Callable
 from urllib.parse import urljoin, urlsplit
 
@@ -61,7 +62,8 @@ class RequestGuard:
         self.judge = judge or host_is_public
         self.delay_s = delay_s
         self.verdicts: dict[str, asyncio.Future[bool]] = {}  # one judgement per host, however many requests ask at once
-        self.blocked: list[tuple[str, str]] = []
+        self.blocked: list[tuple[str, str]] = []  # each (host, reason) once, in order of first sight
+        self.counts: Counter[tuple[str, str]] = Counter()  # how many requests each (host, reason) refused: a flood is one report
         self._last_nav: float | None = None
 
     async def __call__(self, route: Route, request: Request) -> None:
@@ -129,13 +131,16 @@ class RequestGuard:
         self._last_nav = time.monotonic()
 
     async def _abort(self, route: Route, request: Request, host: str, reason: str) -> None:
-        self.blocked.append((host, reason))
+        first = (host, reason) not in self.counts
+        self.counts[(host, reason)] += 1
         try:
             await route.abort("blockedbyclient")
         except Exception as exc:  # the page may be gone already
             log.debug("abort of a blocked request failed: %s", exc)
-        if self.on_blocked is not None:
-            await self.on_blocked(host, request.resource_type, reason)
+        if first:  # a page that retries a refused address a thousand times is one report, not a thousand events
+            self.blocked.append((host, reason))
+            if self.on_blocked is not None:
+                await self.on_blocked(host, request.resource_type, reason)
 
 
 def _redirect_target(response) -> str | None:
@@ -168,16 +173,16 @@ async def get_browser() -> Browser:
 
 
 async def new_page(external: bool = False, *, own_origin: str = "", on_blocked: BlockedHook | None = None, judge: Judge | None = None,
-                   delay_s: float = CRAWL_DELAY_S) -> Page:
-    """A page in its own context. ``external`` is a site we do not serve: Parity's user agent and the request guard."""
+                   delay_s: float = CRAWL_DELAY_S, guard: RequestGuard | None = None) -> Page:
+    """A page in its own context. ``external`` is a site we do not serve: Parity's user agent and the request guard on the whole
+    context (a page-level route would not see a popup's requests), with service workers blocked (no route ever sees theirs)."""
     browser = await get_browser()
     if not external:
         context = await browser.new_context(viewport=VIEWPORT, bypass_csp=True)  # axe is injected into any page
         return await context.new_page()
-    context = await browser.new_context(viewport=VIEWPORT, bypass_csp=True, user_agent=user_agent(own_origin))
-    page = await context.new_page()
-    await page.route("**/*", RequestGuard(on_blocked=on_blocked, judge=judge, delay_s=delay_s))
-    return page
+    context = await browser.new_context(viewport=VIEWPORT, bypass_csp=True, user_agent=user_agent(own_origin), service_workers="block")
+    await context.route("**/*", guard or RequestGuard(on_blocked=on_blocked, judge=judge, delay_s=delay_s))
+    return await context.new_page()
 
 
 async def shutdown() -> None:

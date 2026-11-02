@@ -43,7 +43,8 @@ async def seed_run(bundle: RunBundle, index: RunIndex | None, run_id: str, *, ag
     cap.url = run.target_url
     await bundle.write_step(Step(run_id=run_id, index=0, url=cap.url), cap)
     await bundle.write_finding(sample_finding(run_id, f"{run_id}-f01"))
-    bundle.add_trace(run_id, ModelCall(id=f"{run_id}-c1", run_id=run_id, stage="comparator", model="muse-spark-1.3-contributor", total_tokens=1500, cost_usd=0.12, request_id="req-1"))
+    bundle.add_trace(run_id, ModelCall(id=f"{run_id}-c1", run_id=run_id, stage="comparator", model="muse-spark-1.3-contributor", total_tokens=1500, cost_usd=0.12, request_id="req-1",
+                                       prompt_sha256="ab" * 32))
     bundle.add_event(run_id, Event(type="run.started", run_id=run_id, data={"flow_id": run.flow_id, "public": visitor, "goal": "read secret page text"}))
     bundle.add_event(run_id, Event(type="run.finished", run_id=run_id, data={"status": "done", "findings_verified": 1,
                                                                             "agent": {"turns": 0, "finished": False, "finish_forced": False, "summary": "blocked by site: bot challenge"}}))
@@ -112,3 +113,18 @@ async def test_eviction_runs_at_boot_and_is_scheduled_hourly(tmp_path):
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             assert (await client.get("/api/runs/v-old")).status_code == 410
             assert (await client.get("/api/health")).json()["runs_indexed"] == 1  # the young visitor run; the evicted one is no run
+
+
+async def test_evict_external_removes_the_cached_model_answers_too(store, tmp_path):
+    """Review I6: the model cache holds the page's words in the seer's, comparator's and judge's answers; eviction removes the
+    cache files the run's trace names and leaves every other cache file alone."""
+    bundle, index = store
+    run = await seed_run(bundle, index, "v-old", age_s=25 * 3600)
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    key = next(iter(await bundle.trace(run.id))).prompt_sha256
+    assert key, "the seeded trace row names its cache key"
+    (cache / f"{key}.json").write_text("{}")
+    (cache / "other.json").write_text("{}")
+    assert await evict_external(bundle, index, cache_dir=cache) == ["v-old"]
+    assert not (cache / f"{key}.json").exists() and (cache / "other.json").exists()

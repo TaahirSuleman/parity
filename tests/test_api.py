@@ -831,3 +831,42 @@ async def test_committed_w3c_bundles_replay_with_their_flow_and_attribution(tmp_
                 detail = (await client.get(f"/api/runs/{run_id}")).json()
                 assert detail["run"]["flow_id"] == flow and detail["run"]["replay_of"] == f"w3c-{flow[4:]}" and detail["run"]["status"] == "done"
                 assert all(f["run_id"] == run_id for f in detail["findings"])
+
+
+async def test_url_run_answers_closed_for_today_before_any_lookup(tmp_path):
+    """Review I4: the day's budget is an index read; it is answered before the policy's DNS and robots.txt lookups run."""
+    async with url_client(tmp_path, PARITY_EXTERNAL_DAILY_USD="0.30") as (client, app):
+        await app.state.index.upsert_run(_visitor("https://a.example", "v-1", cost=0.31))
+
+        def never(*args):
+            raise AssertionError("no lookup once the day is closed")
+
+        app.state.resolver = never
+        app.state.robots = never
+        assert (await client.post("/api/runs", json={"url": URL, "mode": "live", "consent": True})).status_code == 503
+
+
+async def test_url_run_policy_lookups_are_bounded(tmp_path, monkeypatch):
+    """Review I4: the policy's blocking lookups run in a thread, at most a few at a time, however many addresses arrive at once."""
+    import threading
+    import time
+
+    _recorder(monkeypatch)
+    live = {"now": 0, "max": 0}
+    lock = threading.Lock()
+
+    def slow(host):
+        with lock:
+            live["now"] += 1
+            live["max"] = max(live["max"], live["now"])
+        time.sleep(0.25)
+        with lock:
+            live["now"] -= 1
+        return ["93.184.215.14"]
+
+    async with url_client(tmp_path, PARITY_LIVE_PER_IP_PER_HOUR="20") as (client, app):
+        app.state.resolver = slow
+        answers = await asyncio.gather(*(client.post("/api/runs", json={"url": f"https://site{i}.example/", "mode": "live", "consent": True}) for i in range(8)))
+        await asyncio.gather(*app.state.tasks)
+    assert all(r.status_code in (202, 429) for r in answers), [r.status_code for r in answers]  # the stand-in runner frees the slot at once
+    assert 2 <= live["max"] <= 4, live  # eight at once, at most four looked up together

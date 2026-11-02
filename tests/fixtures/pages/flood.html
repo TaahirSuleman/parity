@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Fixture: a flood of refused requests</title></head>
+<body style="margin:0;font-family:sans-serif"><main><h1>Fixture: a flood</h1>
+<script>
+  Promise.allSettled(Array.from({ length: 20 }, (_, i) => fetch("http://127.0.0.1:__PORT__/private.png?" + i))).then(() => { window.done = true; });
+</script>
+</main></body></html>

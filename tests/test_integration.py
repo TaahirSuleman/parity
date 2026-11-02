@@ -137,7 +137,7 @@ async def test_sse_reconnect_mid_run_replays_full_history(api):
                     break  # drop the connection while the run is still pacing out events
     full = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
     types = [t for t, _ in full]
-    assert seen == 2 and types[0] == "run.started" and types[-1] == "run.finished" and len(types) == 8
+    assert seen == 2 and types[0] == "run.started" and types[-1] == "run.finished" and len(types) == 9
 
 
 async def test_twenty_concurrent_subscribers_see_identical_streams(api):

@@ -20,7 +20,7 @@ async def test_health_reports_storage_and_index(api):
 async def test_flows_lists_checkout(api):
     client, _ = api
     flows = (await client.get("/api/flows")).json()
-    assert [f["id"] for f in flows] == ["checkout", "purchase"] and flows[0]["start_url"] == "/store/checkout.html"
+    assert [f["id"] for f in flows][:2] == ["checkout", "purchase"] and flows[0]["start_url"] == "/store/checkout.html"  # the store first; the W3C pages follow (26E.4)
     assert flows[1]["single_page"] is False and len(flows[1]["pages"]) == 4
 
 
@@ -525,3 +525,54 @@ async def test_shutdown_finalises_runs_still_in_flight(tmp_path):
     assert loaded.run.status == RunStatus.failed and "shut down" in (loaded.run.error or ""), (loaded.run.status, loaded.run.error)
     assert loaded.events and loaded.events[-1].type == "run.failed", [e.type for e in loaded.events][-3:]
     assert not app.state.tasks
+
+
+async def test_external_flows_are_public_and_listed_with_attribution(api, tmp_path):
+    """Spec §19.2 (Task 26E.4): the four W3C BAD "before" pages are flows a judge can run. They are listed after the store
+    flows with `public: true`, an absolute start URL and the W3C attribution; the survey's goal says not to submit; no
+    Replay bundle exists for them yet (26E.5); PARITY_EXTERNAL_FLOWS=0 hides the group and the route refuses them."""
+    import httpx
+
+    client, _ = api
+    flows = (await client.get("/api/flows")).json()
+    assert [f["id"] for f in flows] == ["checkout", "purchase", "bad-home", "bad-news", "bad-tickets", "bad-survey"]
+    assert all(f["public"] is False and f["attribution"] == "" for f in flows[:2])
+    external = flows[2:]
+    assert all(f["public"] is True and f["single_page"] is True for f in external)
+    assert [f["start_url"] for f in external] == [f"https://www.w3.org/WAI/demos/bad/before/{p}.html" for p in ("home", "news", "tickets", "survey")]
+    assert all("W3C" in f["attribution"] and "2012" in f["attribution"] and "read-only" in f["attribution"] for f in external)
+    assert "not" in next(f for f in external if f["id"] == "bad-survey")["goal"].lower() and "submit" in next(f for f in external if f["id"] == "bad-survey")["goal"].lower()
+    assert all(f["name"].startswith("W3C demo: ") for f in external)
+    assert (await client.post("/api/runs", json={"flow_id": "bad-home", "mode": "replay"})).status_code == 404  # nothing recorded for it here
+    hidden = await _app_with(tmp_path / "hidden", PARITY_EXTERNAL_FLOWS="0")
+    async with hidden.router.lifespan_context(hidden):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=hidden), base_url="http://test") as c:
+            assert [f["id"] for f in (await c.get("/api/flows")).json()] == ["checkout", "purchase"]
+            assert (await c.post("/api/runs", json={"flow_id": "bad-home", "mode": "live"})).status_code == 404
+
+
+async def test_external_live_run_passes_public_and_the_flows_origin_to_the_runner(tmp_path, monkeypatch):
+    """The route hands the runner `public=flow.public` and the external page's origin as base_url (spec §19.2), not the
+    app's own address: that is what keeps the read-only guard on and the target URL on www.w3.org."""
+    import httpx
+
+    import parity.api.routes as routes
+    from parity.meta.fake import FakeMetaClient
+
+    seen: list[dict] = []
+
+    async def recorder(settings, client, bus, bundle, index, flow, **kwargs):
+        seen.append({"flow": flow, **kwargs})
+        bus.forget(kwargs["run_id"])
+
+    monkeypatch.setattr(routes, "run_flow", recorder)
+    app = await _app_with(tmp_path)
+    async with app.router.lifespan_context(app):
+        app.state.client = FakeMetaClient(tmp_path / "none")
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            assert (await client.post("/api/runs", json={"flow_id": "bad-home", "mode": "live"})).status_code == 202
+            await asyncio.gather(*app.state.tasks)
+            assert (await client.post("/api/runs", json={"flow_id": "checkout", "mode": "live"})).status_code == 202
+            await asyncio.gather(*app.state.tasks)
+    assert seen[0]["flow"].id == "bad-home" and seen[0]["public"] is True and seen[0]["base_url"] == "https://www.w3.org"
+    assert seen[1]["flow"].id == "checkout" and seen[1]["public"] is False and seen[1]["base_url"] == app.state.self_base_url

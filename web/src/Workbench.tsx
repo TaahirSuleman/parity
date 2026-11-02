@@ -35,7 +35,8 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
   const pending = state.findings.filter((f) => f.fix && !f.decision).length;
   const [traceOpen, setTraceOpen] = useState(false);
   const selected = state.findings.find((f) => f.id === state.selectedFindingId) ?? null;
-  const isPublic = isPublicRun(state.run);
+  const isPublic = isPublicRun(state.run);  // an anonymised sample: screenshots were withheld where nothing was verified
+  const readOnly = isPublic || Boolean(flows.find((f) => f.id === (state.run?.flow_id ?? flowId))?.public);  // a page we do not serve: no fix will follow (spec §17, §19.2)
   const outcome = state.agent && !state.agent.finished ? state.agent.summary : null;  // a walk the site or the guard stopped
   const live = state.phase === "running" ? "Audit started: capturing the page and comparing what is seen with what is announced."
     : state.phase === "finished" ? `Audit finished: ${state.run?.findings_verified ?? 0} verified findings.`
@@ -51,7 +52,7 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
           steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} finished={state.phase === "finished"} isPublic={isPublic} />
         <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
           flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} notice={state.notice ?? null} outcome={outcome} steps={state.steps}
-          fixesExpected={state.phase === "running" && !isPublic} comparatorModel={state.models.comparator} />
+          fixesExpected={state.phase === "running" && !readOnly} comparatorModel={state.models.comparator} />
         <ScreenReaderPanel finding={selected} />
         <p className="sr-only" aria-live="polite">{live}</p>
       </main>

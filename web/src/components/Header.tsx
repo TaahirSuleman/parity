@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { isPublicRun, type Run, type RunMode } from "../state/types";
 
-export interface FlowOption { id: string; name: string; single_page: boolean }
+export interface FlowOption { id: string; name: string; single_page: boolean; public?: boolean; attribution?: string; start_url?: string }
+
+/** The host an external flow audits ("www.w3.org"), or null for a store flow. */
+export function externalHost(flow: FlowOption | undefined): string | null {
+  if (!flow?.public || !flow.start_url) return null;
+  try { return new URL(flow.start_url).hostname; } catch { return null; }
+}
 
 interface Props {
   flows: FlowOption[];
@@ -55,6 +61,11 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
   const isPublic = isPublicRun(run);
   const audited = screens === undefined || screens > 0;
   const replay = run?.mode === "replay";
+  const current = flows.find((f) => f.id === flowId);
+  const host = externalHost(current);  // a page we do not serve: the header names its site, never the store
+  const external = flows.filter((f) => f.public);
+  const store = flows.filter((f) => !f.public);
+  const option = (f: FlowOption) => <option key={f.id} value={f.id}>{f.name}{f.single_page ? "" : " (agent)"}</option>;
   const time = !run ? "—" : running ? (replay ? "replaying…" : fmtDuration(elapsed)) : run.duration_ms > 0 ? (replay ? `recorded ${fmtDuration(run.duration_ms)}` : fmtDuration(run.duration_ms)) : "—";
   return (
     <header className="surface" style={{ borderRadius: 0, borderWidth: "0 0 1px 0" }}>
@@ -66,10 +77,15 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
             <span title="A public site audited read-only from the command line and anonymised; the hosted app never audits third-party sites">{siteLabel(run)} · read-only sample</span>
           ) : (
             <>
-              <span>ShopRight ·</span>
+              <span>{host ?? "ShopRight"} ·</span>
               <label className="sr-only" htmlFor="flow-select">Flow</label>
               <select id="flow-select" className="btn-quiet" style={{ padding: "3px 8px" }} value={flowId} onChange={(e) => onFlowChange(e.target.value)} disabled={running}>
-                {flows.map((f) => <option key={f.id} value={f.id}>{f.name}{f.single_page ? "" : " (agent)"}</option>)}
+                {external.length === 0 ? flows.map(option) : (
+                  <>
+                    <optgroup label="ShopRight demo store">{store.map(option)}</optgroup>
+                    <optgroup label="External page (W3C demo, read-only)">{external.map(option)}</optgroup>
+                  </>
+                )}
               </select>
             </>
           )}
@@ -77,7 +93,7 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
         <div className="flex items-center gap-2">
           <div className="pill" role="group" aria-label="Run mode">
             <button type="button" aria-pressed={mode === "replay"} onClick={() => onModeChange("replay")} title="Replay: a recorded run plays back; no model calls, no limit">Replay</button>
-            <button type="button" aria-pressed={mode === "live"} onClick={() => onModeChange("live")} disabled={!canLive} title={canLive ? "Live: real model calls against the demo store; a few runs per visitor per hour" : "Live needs a model key on the server; Replay works without one"}>
+            <button type="button" aria-pressed={mode === "live"} onClick={() => onModeChange("live")} disabled={!canLive} title={canLive ? "Live: real model calls on the selected page; a few runs per visitor per hour" : "Live needs a model key on the server; Replay works without one"}>
               Live (rate-limited)
             </button>
           </div>
@@ -111,6 +127,9 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
           {run && approved > 0 && <a className="btn-quiet" style={{ padding: "3px 8px", textDecoration: "none" }} href={`/api/runs/${run.id}/patch`} download={`parity-${run.id}.patch`} title="The approved fixes as one git patch">Download fix.patch</a>}
         </div>
       </div>
+      {host && current?.attribution && !isPublic && (
+        <p className="muted text-xs m-0 px-4 pb-2" data-testid="attribution">{current.attribution}</p>
+      )}
       {running && <div className="progress" aria-hidden="true" />}
     </header>
   );

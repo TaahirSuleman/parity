@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from parity import replay
 from parity.api.sse import sse_response
-from parity.flows import FLOWS
+from parity.flows import available_flows
 from parity.pipeline.gate import ConflictError, decide
 from parity.pipeline.runner import run_flow
 from parity.store.models import RunMode
@@ -85,8 +85,9 @@ async def health(request: Request) -> dict:
 
 
 @router.get("/flows")
-async def flows() -> list[dict]:
-    return [{"id": f.id, "name": f.name, "start_url": f.start_url, "goal": f.goal, "pages": list(f.pages), "single_page": f.single_page} for f in FLOWS.values()]
+async def flows(request: Request) -> list[dict]:
+    return [{"id": f.id, "name": f.name, "start_url": f.start_url, "goal": f.goal, "pages": list(f.pages), "single_page": f.single_page,
+             "public": f.public, "attribution": f.attribution} for f in available_flows(request.app.state.settings.external_flows).values()]
 
 
 @router.post("/runs", status_code=202)
@@ -100,7 +101,7 @@ async def start_run(req: RunRequest, request: Request) -> dict:
         run = await replay.start(req.replay_of, st.replay_bundle, st.bus, st.bundle, st.index, pace_ms=req.pace_ms, replay_keep=st.settings.replay_keep,
                                  replay_min_age_s=st.settings.replay_min_age_s, tasks=st.tasks)
         return {"run_id": run.id, "mode": run.mode, "replay_of": req.replay_of}
-    flow = FLOWS.get(req.flow_id or "")
+    flow = available_flows(st.settings.external_flows).get(req.flow_id or "")
     if flow is None:
         raise HTTPException(404, f"unknown flow {(req.flow_id or '')[:40]!r}")  # never echo a body back whole
     if req.mode == RunMode.replay:
@@ -150,7 +151,8 @@ async def start_run(req: RunRequest, request: Request) -> dict:
 
 async def _live(st, flow, run_id: str, ip_hash: str) -> None:
     try:
-        await run_flow(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=st.self_base_url, run_id=run_id, client_ip_hash=ip_hash)
+        # an external page runs at its own origin behind the read-only guard (spec §19.2); the store runs under the app's own address
+        await run_flow(st.settings, st.client, st.bus, st.bundle, st.index, flow, base_url=flow.origin or st.self_base_url, run_id=run_id, client_ip_hash=ip_hash, public=flow.public)
     except Exception:  # run_flow records failures itself; this guards the task
         log.exception("live run %s crashed outside the runner", run_id)
     finally:

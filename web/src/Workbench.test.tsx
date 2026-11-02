@@ -31,3 +31,27 @@ describe("Workbench (stress pass)", () => {
     expect(second.container.querySelector("[aria-live=polite]")?.textContent).toMatch(/audit failed/i);
   });
 });
+
+describe("Workbench external runs (Task 26E.4)", () => {
+  it("external runs expect no fixes: a verified finding on a page we do not serve never waits for one", async () => {
+    const hero = (await import("./fixtures/hero.json")).default as unknown as { events: import("./state/types").ParityEvent[] };
+    const { reduce } = await import("./state/reducer");
+    const finished = hero.events.reduce(reduce, initialState);
+    const finding = { ...finished.findings[0], fix: null, reaudit: null, fix_note: null, decision: null };
+    const external = [{ id: "bad-home", name: "W3C demo: home", single_page: true, public: true, start_url: "https://www.w3.org/WAI/demos/bad/before/home.html", attribution: "© 2012 W3C" }];
+    const state: RunState = { ...running, run: { ...running.run!, flow_id: "bad-home", mode: "live" }, findings: [finding], selectedFindingId: finding.id };  // the expectation sits on the selected card
+    const { container } = render(<Workbench state={state} flows={external} flowId="bad-home" onFlowChange={() => {}} canLive={true} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    expect(container.textContent).toMatch(/No fix was proposed/);
+    expect(container.textContent).not.toMatch(/A fix and its re-audit follow/);
+  });
+
+  it("store runs still expect a fix while they are going", async () => {
+    const hero = (await import("./fixtures/hero.json")).default as unknown as { events: import("./state/types").ParityEvent[] };
+    const { reduce } = await import("./state/reducer");
+    const finished = hero.events.reduce(reduce, initialState);
+    const finding = { ...finished.findings[0], fix: null, reaudit: null, fix_note: null, decision: null };
+    const state: RunState = { ...running, findings: [finding], selectedFindingId: finding.id };
+    const { container } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive={true} screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    expect(container.textContent).toMatch(/A fix and its re-audit follow/);
+  });
+});

@@ -38,8 +38,9 @@ async def run_flow(
     page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False,
 ) -> Run:
     """Own one run end to end: single page → audit_view directly; multi-page → the auditor agent."""
+    public = public or flow.public  # a flow on a page we do not serve is guarded whatever the caller passed (spec §17, §19.2)
     run = Run(
-        id=run_id or new_run_id(), mode=mode, flow_id=flow.id, goal=flow.goal, target_url=base_url.rstrip("/") + flow.start_url,
+        id=run_id or new_run_id(), mode=mode, flow_id=flow.id, goal=flow.goal, target_url=flow.target_url(base_url),
         status=RunStatus.running, client_ip_hash=client_ip_hash,
     )
     ctx = RunContext(settings=settings, client=client, bus=bus, bundle=bundle, index=index, run=run, base_url=base_url, ablation=ablation or Ablation(), public=public)
@@ -50,6 +51,7 @@ async def run_flow(
         router.bind(run.id, ctx.record_call)
     await ctx.emit("run.started", {"flow_id": flow.id, "flow_name": flow.name, "goal": flow.goal, "mode": mode, "target_url": run.target_url,
                                    "single_page": flow.single_page, "agent_mode": None if flow.single_page else agent_mode,
+                                   "public": public, "attribution": flow.attribution,
                                    "model": settings.model_for("comparator"), "judge_model": settings.model_for("judge"),
                                    "navigator_model": None if flow.single_page else settings.model_for("navigator")})
     t0 = time.perf_counter()

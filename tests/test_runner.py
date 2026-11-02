@@ -280,3 +280,32 @@ async def test_bundle_is_flushed_after_each_stage(tmp_path, server_url, page, mo
         run = await run_single_page(settings, client, bundle=bundle, bus=bus, index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory)
     assert run.findings_verified >= 1, run.error
     assert seen == {"seer": True, "verifier": True}, seen
+
+
+async def test_external_flow_runs_public_and_never_fixes(tmp_path, server_url, page, monkeypatch):
+    """Spec §19.2 (Task 26E.4): an external flow has an absolute start URL and runs behind the read-only guard whatever the
+    caller says: robots.txt is consulted for that URL, the page is audited as one screen, nothing is fixed or re-audited,
+    and run.started carries `public` and the attribution so the bundle and the workbench know whose page it is."""
+    import parity.pipeline.runner as runner_mod
+    from parity.flows import Flow
+    from parity.pipeline.runner import run_flow
+
+    consulted: list[str] = []
+    monkeypatch.setattr(runner_mod, "robots_allows", lambda url: consulted.append(url) or True)
+    flow = Flow(id="bad-test", name="W3C demo: test", start_url=f"{server_url}/store/checkout.html", goal="Read the page as a visitor would. Do not submit anything.",
+                pages=("checkout.html",), single_page=True, public=True, attribution="W3C test attribution")
+
+    async def page_factory():
+        return page
+
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=page_factory)  # public not passed: the flow says so
+        calls = await index.calls_for(run.id)
+    assert run.status == RunStatus.done and run.findings_verified >= 1, run.error
+    assert run.target_url == flow.start_url and consulted == [flow.start_url]  # absolute: not glued onto base_url
+    loaded = await bundle.load(run.id)
+    assert not [e.type for e in loaded.events if e.type.startswith(("fixer.", "reaudit."))]
+    assert "fixer" not in {c.stage for c in calls} and all(f.fix is None for f in loaded.findings)
+    started = next(e for e in loaded.events if e.type == "run.started")
+    assert started.data["public"] is True and started.data["attribution"] == "W3C test attribution"
+    assert next(e for e in loaded.events if e.type == "run.finished").data["fixes_proposed"] == 0

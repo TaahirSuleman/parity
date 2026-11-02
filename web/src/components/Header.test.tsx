@@ -177,3 +177,27 @@ describe("fmtCost", () => {
     expect(fmtCost(0.0014)).toBe("$0.0014");  // under a cent, the digits are the information
   });
 });
+
+describe("Header external flows (Task 26E.4)", () => {
+  const external = { id: "bad-home", name: "W3C demo: home", single_page: true, public: true, start_url: "https://www.w3.org/WAI/demos/bad/before/home.html",
+    attribution: "W3C WAI Before and After Demonstration (BAD), © 2012 W3C (MIT, ERCIM, Keio); audited read-only" };
+  const all = [...flows, external];
+  const props = { flows: all, run: null, mode: "live" as const, canLive: true, running: false, onModeChange: () => {}, onRun: () => {}, onFlowChange: () => {} };
+
+  it("names an external flow's site, never the store", () => {
+    render(<Header {...props} flowId="bad-home" />);
+    expect(screen.getByText(/www\.w3\.org/)).toBeInTheDocument();
+    expect(screen.queryByText(/ShopRight/)).toBeNull();
+    expect(screen.getByText(/© 2012 W3C/)).toBeInTheDocument();  // the attribution line
+    expect(screen.getByRole("combobox", { name: /flow/i })).toHaveValue("bad-home");  // the picker stays: a judge can go back to the store
+    expect(screen.getByRole("group", { name: /External page \(W3C demo, read-only\)/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Live \(rate-limited\)/ })).not.toHaveAttribute("title", expect.stringMatching(/demo store/));
+  });
+
+  it("keeps the store's name and shows no attribution for a store flow", () => {
+    render(<Header {...props} flowId="checkout" />);
+    expect(screen.getByText(/ShopRight/)).toBeInTheDocument();
+    expect(screen.queryByText(/© 2012 W3C/)).toBeNull();
+    expect(screen.queryByText(/www\.w3\.org/)).toBeNull();
+  });
+});

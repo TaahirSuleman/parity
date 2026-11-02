@@ -15,7 +15,7 @@ from typing import Any, Literal
 
 from playwright.async_api import Page
 
-from parity.agent.tools import AgentState, dispatch, screen_key, tool_definitions
+from parity.agent.tools import briefs, AgentState, dispatch, screen_key, tool_definitions
 from parity.flows import Flow
 from parity.meta.client import text_of
 from parity.meta.images import png_to_data_url
@@ -139,7 +139,7 @@ async def _audit_if_new(ctx: RunContext, state: AgentState, page: Page, reason: 
         return
     summary = await audit_view(ctx, page, state.step_count, reason)
     state.step_count += 1
-    state.audited[key] = {"screen": key, "verified": [b.__dict__ for b in summary.verified], "rejected": summary.rejected, "axe_violations": summary.axe_violations}
+    state.audited[key] = {"screen": key, "verified": briefs(summary), "rejected": summary.rejected, "axe_violations": summary.axe_violations}
 
 
 async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12, mode: AgentMode = "tools", max_screens: int | None = None) -> AgentResult:

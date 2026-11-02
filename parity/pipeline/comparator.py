@@ -17,6 +17,8 @@ from parity.pipeline.verifier import NOT_ANNOUNCED
 from parity.store.models import AxNode, Candidate, Capture, Percept
 
 log = logging.getLogger(__name__)
+from parity.meta.page_data import wrap
+
 PROMPT = (Path(__file__).resolve().parent.parent / "meta" / "prompts" / "comparator.txt").read_text()
 # Containers announce themselves, not their contents; leave them out of the tree the model compares against.
 TREE_SKIP_ROLES = {"banner", "main", "region", "navigation", "contentinfo", "complementary", "paragraph", "LabelText", "section"}
@@ -61,13 +63,13 @@ def build_prompt(capture: Capture, percepts: list[Percept], feedback: list[str] 
         sr_instruction = ('the role and accessible name a screen reader would announce for that element as far as you can tell from the page; '
                           'set both to "" if nothing would be announced.')
     parts = [PROMPT.replace("{inputs}", "\n".join(inputs)).replace("{sr_instruction}", sr_instruction)]
-    if percepts:
-        parts.append("WHAT A SIGHTED USER SEES:\n" + percept_block(percepts))
+    if percepts:  # everything below comes from the page: inside the delimiters (spec §19.3.5)
+        parts.append("WHAT A SIGHTED USER SEES:\n" + wrap(percept_block(percepts)))
     if use_tree:
-        parts.append("ACCESSIBILITY TREE:\n" + tree_block(capture))
-        parts.append("SILENT ELEMENTS:\n" + silent_block(capture))
-    if feedback:
-        parts.append("VERIFIER FEEDBACK on your previous attempt (fix these, keep the findings that were fine):\n- " + "\n- ".join(feedback))
+        parts.append("ACCESSIBILITY TREE:\n" + wrap(tree_block(capture)))
+        parts.append("SILENT ELEMENTS:\n" + wrap(silent_block(capture)))
+    if feedback:  # the verifier's words, quoting the page's
+        parts.append("VERIFIER FEEDBACK on your previous attempt (fix these, keep the findings that were fine):\n" + wrap("- " + "\n- ".join(feedback)))
     if unparseable_retry:
         parts.append(UNPARSEABLE_NOTE)  # a different request: the identical body would be served from the cache, bad answer and all
     return "\n\n".join(parts)

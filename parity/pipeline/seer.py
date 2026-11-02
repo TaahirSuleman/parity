@@ -12,6 +12,8 @@ from parity.meta.images import png_to_data_url
 from parity.store.models import BBox, Capture, Percept
 
 log = logging.getLogger(__name__)
+from parity.meta.page_data import wrap
+
 PROMPT = (Path(__file__).resolve().parent.parent / "meta" / "prompts" / "seer.txt").read_text()
 KINDS = {"button", "link", "text", "image", "price", "error", "icon", "field", "heading", "other"}
 
@@ -56,7 +58,7 @@ async def see(client, capture: Capture, run_id: str, *, model: str, effort: str 
         "text": {"format": {"type": "json_object"}},
         "max_output_tokens": 8000,
         "input": [{"role": "user", "content": [
-            {"type": "input_text", "text": PROMPT},
+            {"type": "input_text", "text": PROMPT.replace("{page_url}", wrap(capture.url))},
             {"type": "input_image", "image_url": png_to_data_url(capture.screenshot_png)},
         ]}],
     }

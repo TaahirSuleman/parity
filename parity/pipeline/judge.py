@@ -18,6 +18,8 @@ from parity.pipeline.comparator import tree_block
 from parity.store.models import Capture, Finding, Judgement, Severity, WcagRef
 
 log = logging.getLogger(__name__)
+from parity.meta.page_data import wrap
+
 PROMPT = (Path(__file__).resolve().parent.parent / "meta" / "prompts" / "judge.txt").read_text()
 # Reasoning tokens count against this budget; 1500 was exhausted by reasoning alone with no answer left.
 MAX_OUTPUT_TOKENS = 6000
@@ -60,7 +62,7 @@ def parse_judgement(text: str) -> Judgement:
 async def judge(client, finding: Finding, capture: Capture, run_id: str, *, model: str, fallback_model: str | None = None, effort: str = "medium") -> Judgement:
     """``fallback_model`` (settings.model_for("judge_fallback"), standard Spark by default) is tried once if ``model`` errors (D6)."""
     fallback_model = fallback_model or STANDARD_SPARK
-    text = (PROMPT + "\n\nEVIDENCE:\n" + evidence_block(finding)
+    text = (PROMPT + "\n\nEVIDENCE:\n" + wrap(evidence_block(finding))
             + "\n\nACCESSIBILITY TREE of the whole screen (role, name, box on the 0-1000 grid), so you can judge what else a screen-reader user gets:\n"
             + tree_block(capture))
     content: list[dict[str, Any]] = [{"type": "input_text", "text": text}]

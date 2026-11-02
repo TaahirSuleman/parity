@@ -18,6 +18,7 @@ from playwright.async_api import Error as PlaywrightError
 
 from parity.meta.client import MetaError
 from parity.pipeline.audit import RunContext, audit_view
+from parity.meta.page_data import wrap
 
 log = logging.getLogger(__name__)
 MAX_FINISH_REFUSALS = 3
@@ -60,6 +61,11 @@ def _state(ctx: RunContext) -> AgentState:
     return ctx.agent
 
 
+def briefs(summary) -> list[dict[str, str]]:
+    """The verified findings as the agent hears of them: the page's words inside the delimiters (spec §19.3.5)."""
+    return [{"id": b.id, "sighted": wrap(b.sighted), "screen_reader": wrap(b.screen_reader)} for b in summary.verified]
+
+
 async def _audit_view(ctx: RunContext, args: dict[str, Any]) -> dict[str, Any]:
     state = _state(ctx)
     if ctx.page is None:
@@ -70,7 +76,7 @@ async def _audit_view(ctx: RunContext, args: dict[str, Any]) -> dict[str, Any]:
     summary = await audit_view(ctx, ctx.page, state.step_count, str(args.get("reason") or "agent request"))
     state.step_count += 1
     result = {
-        "screen": key, "verified": [b.__dict__ for b in summary.verified], "rejected": summary.rejected,
+        "screen": key, "verified": briefs(summary), "rejected": summary.rejected,
         "axe_violations": summary.axe_violations,
     }
     state.audited[key] = result

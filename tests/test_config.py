@@ -54,3 +54,22 @@ def test_no_model_id_literals_outside_config_and_pricing():
             if re.search(r"[\"']muse-[a-z]", line):
                 offenders.append(f"{path.relative_to(root)}:{n}: {line.strip()[:80]}")
     assert offenders == [], offenders
+
+
+def test_open_url_defaults_to_whether_a_key_is_present():
+    """Spec §19.3.3: the visitor-URL mode is on when the server can run Live at all; PARITY_OPEN_URL=0 is the kill switch."""
+    assert load_settings(env={}).open_url is False
+    assert load_settings(env={"MODEL_API_KEY": "sk-x"}).open_url is True
+    assert load_settings(env={"MODEL_API_KEY": "sk-x", "PARITY_OPEN_URL": "0"}).open_url is False
+    assert load_settings(env={"PARITY_OPEN_URL": "1"}).open_url is True  # explicit wins, even without a key (the route still needs the client)
+
+
+def test_external_caps_lists_and_contact_parse():
+    s = load_settings(env={})
+    assert (s.external_run_usd, s.external_daily_usd, s.external_per_origin_per_day, s.external_timeout_s) == (0.5, 5.0, 3, 300)
+    assert s.url_deny == () and s.suggested_urls == () and s.contact_email == "tai.suleman@gmail.com"
+    s = load_settings(env={"PARITY_URL_DENY": " Denied.example, other.example ,,", "PARITY_SUGGESTED_URLS": "https://a.example/, https://b.example/x",
+                           "PARITY_CONTACT_EMAIL": "x@y.z", "PARITY_EXTERNAL_RUN_USD": "0.25", "PARITY_EXTERNAL_DAILY_USD": "10",
+                           "PARITY_EXTERNAL_PER_ORIGIN_PER_DAY": "2", "PARITY_EXTERNAL_TIMEOUT_S": "120"})
+    assert s.url_deny == ("denied.example", "other.example") and s.suggested_urls == ("https://a.example/", "https://b.example/x")
+    assert s.contact_email == "x@y.z" and (s.external_run_usd, s.external_daily_usd, s.external_per_origin_per_day, s.external_timeout_s) == (0.25, 10.0, 2, 120)

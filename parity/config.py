@@ -21,6 +21,18 @@ def _bool(value: str) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _has_key(value: str) -> bool:
+    return bool(value) and not value.startswith("REPLACE")
+
+
+def _list(value: str) -> tuple[str, ...]:
+    return tuple(v.strip() for v in value.split(",") if v.strip())
+
+
+def _hosts(value: str) -> tuple[str, ...]:
+    return tuple(v.lower().rstrip(".") for v in _list(value))
+
+
 @dataclass(frozen=True)
 class Settings:
     model_api_key: str = field(default="", repr=False)
@@ -45,6 +57,15 @@ class Settings:
     live_global_per_day: int = 40
     live_target_origins: str = "self"
     external_flows: bool = True  # list and run the W3C BAD pages as read-only flows (spec §19.2); PARITY_EXTERNAL_FLOWS=0 hides the group
+    # "Live on a page you choose" (spec §19.3): on when a key is present unless PARITY_OPEN_URL says otherwise (the kill switch)
+    open_url: bool = False
+    url_deny: tuple[str, ...] = ()  # hosts that asked not to be audited (and their subdomains); PARITY_URL_DENY, comma-separated
+    contact_email: str = "tai.suleman@gmail.com"  # the opt-out and takedown contact on the policy page: the repository author's address
+    suggested_urls: tuple[str, ...] = ()  # pages known to run well, offered under the field (filled in Task 26F.6)
+    external_run_usd: float = 0.50  # a visitor-URL run ends cleanly (reason "cost cap reached") when its model cost passes this
+    external_daily_usd: float = 5.0  # the day's visitor-URL runs, summed from the index; spent → the field says "closed for today"
+    external_per_origin_per_day: int = 3
+    external_timeout_s: int = 300  # one screen; three screens get twice this
     replay_keep: int = 20  # Replay copies kept (evicted oldest-first when a Replay starts and at boot); boot loads each kept copy once
     replay_min_age_s: int = 7200  # beyond the cap, only copies older than this are evicted: a judge still reviewing one must not lose it
     trust_proxy: bool = False  # behind Cloud Run the visitor is the right-most X-Forwarded-For hop (the front end appends the address it saw); a direct client's header is ignored
@@ -66,7 +87,7 @@ class Settings:
 
     @property
     def has_key(self) -> bool:
-        return bool(self.model_api_key) and not self.model_api_key.startswith("REPLACE")
+        return _has_key(self.model_api_key)
 
 
 def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None = Path(".env")) -> Settings:
@@ -111,5 +132,13 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         replay_min_age_s=int(get("PARITY_REPLAY_MIN_AGE_S", str(Settings.replay_min_age_s))),
         live_target_origins=get("PARITY_LIVE_TARGET_ORIGINS", "self"),
         external_flows=_bool(get("PARITY_EXTERNAL_FLOWS", "1")),
+        open_url=_bool(env.get("PARITY_OPEN_URL") or "") if (env.get("PARITY_OPEN_URL") or "").strip() else _has_key(env.get("MODEL_API_KEY", "")),
+        url_deny=_hosts(get("PARITY_URL_DENY", "")),
+        contact_email=get("PARITY_CONTACT_EMAIL", Settings.contact_email),
+        suggested_urls=_list(get("PARITY_SUGGESTED_URLS", "")),
+        external_run_usd=float(get("PARITY_EXTERNAL_RUN_USD", str(Settings.external_run_usd))),
+        external_daily_usd=float(get("PARITY_EXTERNAL_DAILY_USD", str(Settings.external_daily_usd))),
+        external_per_origin_per_day=int(get("PARITY_EXTERNAL_PER_ORIGIN_PER_DAY", str(Settings.external_per_origin_per_day))),
+        external_timeout_s=int(get("PARITY_EXTERNAL_TIMEOUT_S", str(Settings.external_timeout_s))),
         log_level=get("LOG_LEVEL", "info"),
     )

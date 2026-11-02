@@ -16,5 +16,41 @@
   "rejected": 0,
   "status": "done",
   "note": "blocked by site: a bot challenge stood in front of the first page, so the run ended before anything was sent to a model"
+ },
+ {
+  "name": "W3C demo: home",
+  "run_id": "w3c-home",
+  "pages": 1,
+  "verified": 2,
+  "rejected": 16,
+  "status": "done",
+  "note": "W3C's demonstration home page, audited read-only and named with its notice; two divergences verified, sixteen candidates rejected by the Verifier (most were axe-core's own or not located); axe-core 7 violations; 186 s, $0.05"
+ },
+ {
+  "name": "W3C demo: news",
+  "run_id": "w3c-news",
+  "pages": 1,
+  "verified": 0,
+  "rejected": 8,
+  "status": "done",
+  "note": "no candidate passed the Verifier on the news page; axe-core 6 violations; 73 s, less than a cent"
+ },
+ {
+  "name": "W3C demo: tickets",
+  "run_id": "w3c-tickets",
+  "pages": 1,
+  "verified": 1,
+  "rejected": 7,
+  "status": "done",
+  "note": "one divergence verified on the ticket page; axe-core 8 violations; 84 s, $0.02"
+ },
+ {
+  "name": "W3C demo: survey",
+  "run_id": "w3c-survey",
+  "pages": 1,
+  "verified": 0,
+  "rejected": 13,
+  "status": "done",
+  "note": "no candidate passed the Verifier on the survey page (nothing was filled in or submitted); axe-core 7 violations; 74 s, less than a cent"
  }
 ]

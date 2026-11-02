@@ -1,0 +1,56 @@
+{
+ "id": "w3c-tickets-r07",
+ "run_id": "w3c-tickets",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "QUICKMENU --->",
+  "sr_quote": "combobox, \"\"",
+  "why_it_matters": "A blind user encounters a dropdown with no label and cannot know its purpose.",
+  "bbox": {
+   "x_min": 685,
+   "y_min": 338,
+   "x_max": 797,
+   "y_max": 364
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "combobox at div#page > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(5) > select:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 97,
+   "css_path": "div#page > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(5) > select:nth-of-type(1)",
+   "box_px": [
+    877,
+    243,
+    1020,
+    262
+   ],
+   "outer_html": "<select onchange=\"location.href = this.value;\">\n            <option selected=\"\">QUICKMENU ----&gt;\n            </option><option value=\"../offsite.html\">Broadcasting\n            </option><option value=\"../offsite.html\">Education\n            </option><option value=\"../offsite.html\">Electricity\n            </option><option value=\"../offsite.html\">Fire service\n            </option><option value=\"../offsite.html\">Gas service\n            </option><option value=\"../offsite.html\">Health care\n            </option><option value=\"../offsite.html\">Police service\n            </option><option value=\"../offsite.html\">Public Libraries\n            </option><option value=\"../offsite.html\">Social services\n            </option><option value=\"../offsite.html\">Social housing\n            </option><option value=\"../offsite.html\">Telecommunications\n            </option><option value=\"../offsite.html\">Town planning\n            </option><option value=\"../offsite.html\">Transportation\n            </option><option value=\"../offsite.html\">Waste management\n            </option><option value=\"../offsite.html\">Water services\n          </option></select>",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

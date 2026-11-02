@@ -1,6 +1,7 @@
 import asyncio
 import re
 import json
+from pathlib import Path
 
 import httpx
 import pytest
@@ -800,3 +801,33 @@ async def test_voice_clips_are_served_with_byte_ranges(api):
         assert part.status_code == 206 and part.content == bytes(range(10, 20)) and part.headers["content-range"] == "bytes 10-19/1024"
     finally:
         clip.unlink()
+
+
+async def test_committed_w3c_bundles_replay_with_their_flow_and_attribution(tmp_path):
+    """Task 26E.5: the recorded W3C bundles replay under their flow id ("bad-home"), public, with the attribution on run.started, so a
+    judge's Replay and a shared link both name www.w3.org. (Replay rewrites the source run id throughout the copy: a bundle whose run id
+    equals its flow id would lose the flow id, so the bundles are named w3c-<page>.)"""
+    import httpx
+
+    from parity.app import create_app
+    from parity.config import load_settings
+
+    repo = Path(__file__).resolve().parents[1]
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_CACHE_DIR": str(tmp_path / "cache"),
+                                  "PARITY_INDEX_PATH": str(tmp_path / "index.db"), "PARITY_REPLAY_DIR": str(repo / "fixtures" / "replay")})
+    app = create_app(settings)
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+            health = (await client.get("/api/health")).json()
+            assert {health["replay_flows"][f] for f in ("bad-home", "bad-news", "bad-tickets", "bad-survey")} == {"w3c-home", "w3c-news", "w3c-tickets", "w3c-survey"}
+            for flow in ("bad-home", "bad-news", "bad-tickets", "bad-survey"):
+                r = await client.post("/api/runs", json={"flow_id": flow, "mode": "replay", "pace_ms": 0})
+                assert r.status_code == 202, r.text
+                run_id = r.json()["run_id"]
+                events = parse_sse((await client.get(f"/api/runs/{run_id}/events")).text)
+                started = next(d for t, d in events if t == "run.started")
+                assert started["flow_id"] == flow and started["public"] is True and "W3C" in started["attribution"] and started["run_id"] == run_id
+                assert events[-1][0] == "run.finished" and not [t for t, _ in events if t.startswith(("fixer.", "reaudit."))]
+                detail = (await client.get(f"/api/runs/{run_id}")).json()
+                assert detail["run"]["flow_id"] == flow and detail["run"]["replay_of"] == f"w3c-{flow[4:]}" and detail["run"]["status"] == "done"
+                assert all(f["run_id"] == run_id for f in detail["findings"])

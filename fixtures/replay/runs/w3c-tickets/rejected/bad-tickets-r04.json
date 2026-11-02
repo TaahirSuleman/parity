@@ -1,0 +1,56 @@
+{
+ "id": "w3c-tickets-r04",
+ "run_id": "w3c-tickets",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "SURVEY",
+  "sr_quote": "link, \"\"",
+  "why_it_matters": "A blind user encounters an unlabeled link and cannot know it goes to Survey.",
+  "bbox": {
+   "x_min": 195,
+   "y_min": 667,
+   "x_max": 291,
+   "y_max": 689
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at td#survey > a:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 209,
+   "css_path": "td#survey > a:nth-of-type(1)",
+   "box_px": [
+    250,
+    480,
+    373,
+    496
+   ],
+   "outer_html": "<a href=\"javascript:location.href='survey.html';\" onfocus=\"blur();\"><img src=\"./img/nav_survey.gif\" name=\"nav_survey\" width=\"107\" height=\"32\" hspace=\"8\" border=\"0px\"></a>",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

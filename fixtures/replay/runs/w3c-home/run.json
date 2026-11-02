@@ -1,0 +1,23 @@
+{
+ "id": "w3c-home",
+ "mode": "live",
+ "flow_id": "bad-home",
+ "goal": "Read the home page as a visitor would, to see what is on it and where it leads. Do not follow any link.",
+ "target_url": "https://www.w3.org/WAI/demos/bad/before/home.html",
+ "status": "done",
+ "started_at": "2026-11-02T22:52:34.652911Z",
+ "finished_at": "2026-11-02T22:55:41.208463Z",
+ "axe_violations": 7,
+ "findings_verified": 2,
+ "findings_rejected": 16,
+ "tokens": 60821,
+ "cost_usd": 0.05277225,
+ "duration_ms": 186557,
+ "client_ip_hash": "12ca17b49af22894",
+ "error": null,
+ "replay_of": null,
+ "source": "flow",
+ "origin": "",
+ "consent_at": null,
+ "screens": null
+}

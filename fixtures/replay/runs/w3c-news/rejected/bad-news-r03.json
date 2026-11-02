@@ -1,0 +1,56 @@
+{
+ "id": "w3c-news-r03",
+ "run_id": "w3c-news",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "NEWS",
+  "sr_quote": "link, \"\"",
+  "why_it_matters": "A blind user encounters an empty link with no name and cannot know it navigates to NEWS.",
+  "bbox": {
+   "x_min": 195,
+   "y_min": 561,
+   "x_max": 284,
+   "y_max": 583
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at td#news > a:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 188,
+   "css_path": "td#news > a:nth-of-type(1)",
+   "box_px": [
+    250,
+    404,
+    364,
+    420
+   ],
+   "outer_html": "<a href=\"javascript:location.href='news.html';\" onfocus=\"blur();\"><img src=\"./img/nav_news.gif\" name=\"nav_news\" width=\"90\" height=\"21\" hspace=\"12\" border=\"0px\"></a>",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

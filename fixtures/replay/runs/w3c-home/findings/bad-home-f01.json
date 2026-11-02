@@ -1,0 +1,84 @@
+{
+ "id": "w3c-home-f01",
+ "run_id": "w3c-home",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "photo of man in orange shirt with hat",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "A blind user gets no information about the article photo that illustrates the heat-wave story.",
+ "voice": null,
+ "bbox": {
+  "x_min": 330,
+  "y_min": 708,
+  "x_max": 441,
+  "y_max": 833
+ },
+ "element": {
+  "backend_id": 229,
+  "css_path": "div#content > div:nth-of-type(3) > div:nth-of-type(1)",
+  "box_px": [
+   425,
+   481,
+   563,
+   600
+  ],
+  "outer_html": "<div class=\"image\" style=\"background: url(./img/panda-sm.jpg) center center no-repeat #cccccc\" title=\"image\"><div class=\"null\"></div></div>",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "silent:div at div#content > div:nth-of-type(3) > div:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 229,
+   "css_path": "div#content > div:nth-of-type(3) > div:nth-of-type(1)",
+   "box_px": [
+    425,
+    481,
+    563,
+    600
+   ],
+   "outer_html": "<div class=\"image\" style=\"background: url(./img/panda-sm.jpg) center center no-repeat #cccccc\" title=\"image\"><div class=\"null\"></div></div>",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": false,
+  "severity": "minor",
+  "wcag": [],
+  "impact": "The user still gets the headline, summary text and article link and misses only the decorative photo detail.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "1bf150b3-5722-4442-9538-57c741470414",
+   "response_id": "resp_6ae914d1b1c9804323594862",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

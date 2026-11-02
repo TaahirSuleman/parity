@@ -1,0 +1,56 @@
+{
+ "id": "w3c-home-r12",
+ "run_id": "w3c-home",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "MORE >>",
+  "sr_quote": "link, \"\"",
+  "why_it_matters": "A blind user encounters an empty link and cannot know it continues the brain-donations article.",
+  "bbox": {
+   "x_min": 557,
+   "y_min": 974,
+   "x_max": 606,
+   "y_max": 993
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at div#content > div:nth-of-type(4) > div:nth-of-type(3) > span:nth-of-type(1) > a:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 248,
+   "css_path": "div#content > div:nth-of-type(4) > div:nth-of-type(3) > span:nth-of-type(1) > a:nth-of-type(1)",
+   "box_px": [
+    716,
+    697,
+    764,
+    713
+   ],
+   "outer_html": "<a href=\"news.html\" onfocus=\"blur();\"><img src=\"./img/morearrow.gif\" width=\"48\" height=\"10\" alt=\"\" border=\"0\" onmouseover=\"this.src='./img/morearrow_a.gif'\" onmouseout=\"this.src='./img/morearrow.gif'\" style=\"vertical-align: bottom\"></a>",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

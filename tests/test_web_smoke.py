@@ -334,3 +334,50 @@ async def test_hero_card_has_an_audio_element_with_a_time_fragment(page, server_
     assert "Submit, button" in text and "MUSE VOICE TRANSCRIBE" in text and "agrees with the accessibility tree" in text
     assert "Primary evidence" in text or "Corroboration" in text
     assert await page.get_by_text("VoiceOver transcript agrees", exact=False).count() >= 1  # the card line beside the five checks
+
+
+@pytest.fixture(scope="module")
+def committed_server(tmp_path_factory):
+    """The served app over the committed Replay bundles (fixtures/replay), copies going to a temp data dir: what a judge gets."""
+    import asyncio
+    import socket
+    import threading
+    import time
+
+    import uvicorn
+
+    from parity.app import create_app
+    from parity.config import load_settings
+
+    root = tmp_path_factory.mktemp("parity-committed")
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    settings = load_settings(env={"PARITY_DATA_DIR": str(root / "data"), "PARITY_CACHE_DIR": str(root / "cache"), "PARITY_INDEX_PATH": str(root / "index.db"),
+                                  "PARITY_REPLAY_DIR": str(STATIC.parents[2] / "fixtures" / "replay"), "PORT": str(port)})
+    server = uvicorn.Server(uvicorn.Config(create_app(settings), host="127.0.0.1", port=port, log_level="warning"))
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+    deadline = time.time() + 10
+    while not server.started and time.time() < deadline:
+        time.sleep(0.05)
+    assert server.started, "uvicorn did not start"
+    yield f"http://127.0.0.1:{port}"
+    server.should_exit = True
+    thread.join(timeout=10)
+    asyncio.run(asyncio.sleep(0))
+
+
+async def test_external_replay_plays_with_attribution(page, committed_server):
+    """Task 26E.5: a judge picks "W3C demo: home" and watches it in Replay for free: the header names www.w3.org and carries the W3C
+    attribution, never the store, and no card waits for a fix (we never patch a page we do not serve)."""
+    await page.goto(committed_server + "/")
+    await page.get_by_role("combobox", name="Flow").select_option("bad-home")
+    await page.get_by_role("button", name="Replay").click()
+    await page.get_by_role("button", name="Run the audit").click()
+    await page.wait_for_function("() => /Audit finished|No divergences|no replay bundle/i.test(document.querySelector('main')?.textContent || '')", timeout=90000)
+    main_text = await page.locator("main").inner_text()
+    assert "no replay bundle" not in main_text.lower(), main_text[:200]
+    header = await page.locator("header").inner_text()
+    assert "www.w3.org" in header and "W3C" in header and "replay" in header.lower() and "ShopRight" not in header
+    assert "A fix and its re-audit follow" not in main_text

@@ -1,0 +1,56 @@
+{
+ "id": "w3c-survey-r06",
+ "run_id": "w3c-survey",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "None",
+  "sr_quote": "radio, \"\"",
+  "why_it_matters": "Blind user hears an unnamed radio button and cannot tell it means None.",
+  "bbox": {
+   "x_min": 354,
+   "y_min": 707,
+   "x_max": 364,
+   "y_max": 725
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "radio at td#main > div:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(2) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > input:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 241,
+   "css_path": "td#main > div:nth-of-type(1) > form:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(2) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(3) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > input:nth-of-type(1)",
+   "box_px": [
+    453,
+    509,
+    466,
+    522
+   ],
+   "outer_html": "<input class=\"align\" type=\"radio\" name=\"res\" value=\"1\" style=\"\">",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

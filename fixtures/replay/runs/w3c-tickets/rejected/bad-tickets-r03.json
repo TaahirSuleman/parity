@@ -1,0 +1,56 @@
+{
+ "id": "w3c-tickets-r03",
+ "run_id": "w3c-tickets",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "TICKETS",
+  "sr_quote": "link, \"\"",
+  "why_it_matters": "A blind user encounters an unlabeled link and cannot know it goes to Tickets.",
+  "bbox": {
+   "x_min": 195,
+   "y_min": 611,
+   "x_max": 291,
+   "y_max": 633
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at td#tickets > a:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 202,
+   "css_path": "td#tickets > a:nth-of-type(1)",
+   "box_px": [
+    250,
+    440,
+    373,
+    456
+   ],
+   "outer_html": "<a href=\"javascript:location.href='tickets.html';\" onfocus=\"blur();\"><img name=\"nav_facts\" src=\"./img/nav_facts.gif\" width=\"105\" height=\"23\" hspace=\"9\" border=\"0px\"></a>",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

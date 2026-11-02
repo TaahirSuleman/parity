@@ -1,0 +1,56 @@
+{
+ "id": "w3c-home-r04",
+ "run_id": "w3c-home",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "newspaper icon + NEWS",
+  "sr_quote": "link, \"\"",
+  "why_it_matters": "A blind user encounters an empty link with no name and cannot know it goes to NEWS.",
+  "bbox": {
+   "x_min": 219,
+   "y_min": 582,
+   "x_max": 327,
+   "y_max": 626
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at td#tickets > a:nth-of-type(1) > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 198,
+   "css_path": "td#tickets > a:nth-of-type(1) > img:nth-of-type(1)",
+   "box_px": [
+    259,
+    430,
+    364,
+    453
+   ],
+   "outer_html": "<img name=\"nav_facts\" src=\"./img/nav_facts.gif\" width=\"105\" height=\"23\" hspace=\"9\" border=\"0px\">",
+   "dom_id": null
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree; axe-core already reports this element; only report what rule engines miss"
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "id": "w3c-home-r15",
+ "run_id": "w3c-home",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "photo of white flowers, crocuses",
+  "sr_quote": "image, \"\"",
+  "why_it_matters": "A blind user gets no description of the informative flowers photo that sighted users see.",
+  "bbox": {
+   "x_min": 688,
+   "y_min": 919,
+   "x_max": 805,
+   "y_max": 1000
+  },
+  "attempt": 2
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at div#page > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2) > table:nth-of-type(2) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(5) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(1) > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 303,
+   "css_path": "div#page > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(2) > table:nth-of-type(2) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(5) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(8) > td:nth-of-type(1) > img:nth-of-type(1)",
+   "box_px": [
+    880,
+    662,
+    1030,
+    816
+   ],
+   "outer_html": "<img src=\"./img/teaser_right2.jpg\" width=\"150px\" height=\"154px\">",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

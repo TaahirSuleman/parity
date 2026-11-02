@@ -1,0 +1,23 @@
+{
+ "id": "w3c-survey",
+ "mode": "live",
+ "flow_id": "bad-survey",
+ "goal": "Look over the survey as a visitor deciding whether to answer it. Do not fill in or submit anything.",
+ "target_url": "https://www.w3.org/WAI/demos/bad/before/survey.html",
+ "status": "done",
+ "started_at": "2026-11-02T22:58:26.982975Z",
+ "finished_at": "2026-11-02T22:59:41.414824Z",
+ "axe_violations": 7,
+ "findings_verified": 0,
+ "findings_rejected": 13,
+ "tokens": 24615,
+ "cost_usd": 0.0031725,
+ "duration_ms": 74430,
+ "client_ip_hash": "12ca17b49af22894",
+ "error": null,
+ "replay_of": null,
+ "source": "flow",
+ "origin": "",
+ "consent_at": null,
+ "screens": null
+}

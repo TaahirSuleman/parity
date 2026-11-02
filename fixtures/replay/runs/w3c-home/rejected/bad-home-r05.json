@@ -1,0 +1,56 @@
+{
+ "id": "w3c-home-r05",
+ "run_id": "w3c-home",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "ticket icon + TICKETS",
+  "sr_quote": "link, \"\"",
+  "why_it_matters": "A blind user encounters an empty link with no name and cannot know it goes to TICKETS.",
+  "bbox": {
+   "x_min": 219,
+   "y_min": 629,
+   "x_max": 328,
+   "y_max": 675
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at td#survey > a:nth-of-type(1) > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 205,
+   "css_path": "td#survey > a:nth-of-type(1) > img:nth-of-type(1)",
+   "box_px": [
+    258,
+    461,
+    365,
+    493
+   ],
+   "outer_html": "<img src=\"./img/nav_survey.gif\" name=\"nav_survey\" width=\"107\" height=\"32\" hspace=\"8\" border=\"0px\">",
+   "dom_id": null
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree; axe-core already reports this element; only report what rule engines miss"
+ }
+}

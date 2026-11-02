@@ -1,0 +1,10 @@
+This bundle is a recorded read-only audit of a page from the W3C Web Accessibility Initiative's
+"Before and After Demonstration" (BAD), https://www.w3.org/WAI/demos/bad/, a demonstration site
+built by W3C to show accessibility barriers. The screenshot, the page source and the accessibility
+tree in this bundle are copies of that page and are used under the W3C document licence.
+
+Copyright © 2012 W3C® (MIT, ERCIM, Keio), All Rights Reserved. W3C liability, trademark and
+document use rules apply: https://www.w3.org/Consortium/Legal/copyright-documents
+
+The findings, the model traces and the events in this bundle are Parity's own. Nothing on the page
+was changed; no fix was proposed for it.

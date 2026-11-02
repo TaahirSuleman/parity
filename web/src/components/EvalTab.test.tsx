@@ -109,3 +109,15 @@ describe("EvalTab external pages (W3C BAD, Phase 6b)", () => {
     expect(screen.getAllByRole("row", { name: /parity \(full\)/i })).toHaveLength(1);
   });
 });
+
+describe("EvalTab public samples with the W3C demo pages (Task 26E.5)", () => {
+  it("names the W3C pages among the read-only samples and no longer calls the whole list anonymised", () => {
+    const results = { public: [
+      { name: "Site A", run_id: "public-a", pages: 2, verified: 6, rejected: 0, status: "done" },
+      { name: "W3C demo: home", run_id: "bad-home", pages: 1, verified: 3, rejected: 2, status: "done", note: "W3C's own demonstration page, named with its notice" },
+    ] } as unknown as import("./EvalTab").EvalResults;
+    render(<EvalTab results={results} onReplay={() => {}} />);
+    expect(screen.getByRole("heading", { name: /Real-world sample/ })).toHaveTextContent(/Sites A and B anonymised; the W3C demo pages named/);
+    expect(screen.getByRole("button", { name: "Replay W3C demo: home" })).toBeInTheDocument();
+  });
+});

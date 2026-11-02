@@ -124,7 +124,8 @@ Goal ("buy the headphones") ─► NAVIGATOR (Spark 1.3 computer use, truncation
 | 1:30–1:55 | Proposed fix → open **Diff** on camera → Re-audit shows the gap closed → developer clicks **Approve fix** (the filled button) → "Download fix.patch" appears in the header |
 | 1:55–2:15 | Eval tab, the ablation rows: screenshot only 17% / tree only 75% / no grounding 82% / full Parity 84% recall, and false alarms on clean 0.0 vs 0.7 without grounding (no tester quote: there is no on-screen artefact for one, rule L7) |
 | 2:15–2:35 | Eval tab: recall 84% and precision 97% vs axe-core 0% on 38 seeded faults built to pass axe-core, 20 clean controls; $0.37 and 4 m 41 s per 3 pages (say "per three pages", not "per page"). The ≤ 10 s architecture card; the judge comparison (Muse Wonder) if a second is free |
-| 2:35–2:50 | Impact close + "try it yourself" URL. Record at 1280 px wide (three columns, everything ≈12% larger); zoom in the edit on the hero pair and on the Approve click |
+| 2:35–2:42 | Pages we did not make: the flow picker's "External page (W3C demo, read-only)" group → **W3C demo: home** in Replay (≈15 s): the header names www.w3.org with W3C's attribution; then, in one breath, "Live on a page you choose" with a judge's own address (one screen, read-only, the policy link) |
+| 2:42–2:50 | Impact close + "try it yourself" URL. Record at 1280 px wide (three columns, everything ≈12% larger); zoom in the edit on the hero pair and on the Approve click |
 | 2:50–2:55 | End card |
 
 ## 10. Problem statement

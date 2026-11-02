@@ -1,0 +1,56 @@
+{
+ "id": "w3c-tickets-r06",
+ "run_id": "w3c-tickets",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "Ticket Prices",
+  "sr_quote": "image, \"\"",
+  "why_it_matters": "A blind user misses the Ticket Prices heading because it is an image with no accessible name.",
+  "bbox": {
+   "x_min": 334,
+   "y_min": 828,
+   "x_max": 417,
+   "y_max": 854
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at td#main > table:nth-of-type(2) > tbody:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(1) > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": false,
+    "detail": "axe-core already reports this element"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 252,
+   "css_path": "td#main > table:nth-of-type(2) > tbody:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(1) > img:nth-of-type(1)",
+   "box_px": [
+    428,
+    596,
+    534,
+    615
+   ],
+   "outer_html": "<img src=\"./img/headline_ticket_prices.gif\" border=\"0\">",
+   "dom_id": null
+  },
+  "feedback": "axe-core already reports this element; only report what rule engines miss"
+ }
+}

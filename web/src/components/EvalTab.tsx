@@ -157,7 +157,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
         </section>
       )}
       <section className="surface p-4" aria-labelledby="eval-public-h">
-        <h2 id="eval-public-h" className="m-0" style={{ fontSize: 16 }}>Real-world sample, read-only and anonymised</h2>
+        <h2 id="eval-public-h" className="m-0" style={{ fontSize: 16 }}>Real-world sample, read-only (Sites A and B anonymised; the W3C demo pages named)</h2>
         {(results.public ?? []).length === 0 ? (
           <p className="muted text-sm mb-0">No public-site runs recorded yet.</p>
         ) : (

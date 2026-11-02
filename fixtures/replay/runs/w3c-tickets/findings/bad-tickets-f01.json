@@ -1,0 +1,89 @@
+{
+ "id": "w3c-tickets-f01",
+ "run_id": "w3c-tickets",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "(1) 269 M-U-S-I-C",
+ "sr_role": "image",
+ "sr_name": "music line phone number",
+ "why_it_matters": "A blind user never hears the actual ticket hotline number, only a generic label.",
+ "voice": null,
+ "bbox": {
+  "x_min": 688,
+  "y_min": 728,
+  "x_max": 774,
+  "y_max": 756
+ },
+ "element": {
+  "backend_id": 248,
+  "css_path": "td#main > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(2) > div:nth-of-type(1) > img:nth-of-type(1)",
+  "box_px": [
+   880,
+   524,
+   991,
+   544
+  ],
+  "outer_html": "<img src=\"./img/telefon_lightgrey_bg.gif\" alt=\"music line phone number\" border=\"0\" valign=\"absmiddle\">",
+  "dom_id": null
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at td#main > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(2) > div:nth-of-type(1) > img:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 248,
+   "css_path": "td#main > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(2) > div:nth-of-type(1) > img:nth-of-type(1)",
+   "box_px": [
+    880,
+    524,
+    991,
+    544
+   ],
+   "outer_html": "<img src=\"./img/telefon_lightgrey_bg.gif\" alt=\"music line phone number\" border=\"0\" valign=\"absmiddle\">",
+   "dom_id": null
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": true,
+  "severity": "critical",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "The screen-reader user never learns the (1) 269 M-U-S-I-C hotline number and therefore cannot call to purchase the tickets that are only sold by phone.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "289f5ac9-c48a-4cb5-966d-e5e3b35bc95c",
+   "response_id": "resp_6ae9158fe8c1ce7b427d4f06",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

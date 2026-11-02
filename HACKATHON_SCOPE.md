@@ -23,6 +23,7 @@
 | pytest, pytest-asyncio | tests | MIT |
 | React, Vite, TypeScript, Tailwind CSS | workbench | MIT / Apache-2.0 |
 | Playwright Docker base image | deploy image | Apache-2.0 |
+| W3C WAI "Before and After Demonstration" (BAD) pages, `https://www.w3.org/WAI/demos/bad/` | an external, labelled benchmark we did not write: the four "before" pages are audited read-only in the eval and offered as Replay and Live flows; the recorded bundles under `fixtures/replay/runs/bad-*` carry W3C's notice | W3C document licence (Copyright © 2012 W3C® (MIT, ERCIM, Keio)) |
 
 No pre-existing application code, models, datasets or prompts are reused. The README quotes only numbers measured here; any public statistic shown in the video is cited on screen.
 

@@ -9,6 +9,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: { "/api": "http://127.0.0.1:8080", "/store": "http://127.0.0.1:8080" },
+    fs: { allow: [".", ".."] },  // the tests read the committed replay bundles under ../fixtures (CI's workspace root is web/, not the repo)
   },
   test: {
     environment: "jsdom",

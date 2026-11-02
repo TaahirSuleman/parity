@@ -2,15 +2,20 @@
 
 import asyncio
 import os
+import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 LOGGER = ROOT / "scripts" / "vo_focus_logger.js"
 CAPTIONS = ROOT / "scripts" / "vo_captions.sh"
 RECORDER = ROOT / "scripts" / "vo_record.py"
+ZSH = shutil.which("zsh")
+needs_zsh = pytest.mark.skipif(ZSH is None, reason="the captions poller is a zsh script for macOS (VoiceOver); the Linux runner has no zsh")
 
 
 async def _logger_page(page, store_url):
@@ -69,6 +74,7 @@ async def test_focus_logger_pasted_twice_logs_once(page, store_url):
     assert len(posted) == 1
 
 
+@needs_zsh
 def test_vo_captions_script_logs_only_phrases_that_change_after_it_starts(tmp_path):
     """A stub osascript stands in for VoiceOver: the phrase current at the first poll is the baseline, not a caption."""
     stub = tmp_path / "bin" / "osascript"
@@ -82,20 +88,21 @@ def test_vo_captions_script_logs_only_phrases_that_change_after_it_starts(tmp_pa
     env = {**os.environ, "PATH": f"{stub.parent}:{os.environ['PATH']}", "VO_STUB_COUNTER": str(tmp_path / "n")}
     out = tmp_path / "captions.tsv"
     before = int(time.time() * 1000)
-    subprocess.run(["/bin/zsh", str(CAPTIONS), "1", str(out)], env=env, check=True, timeout=15)
+    subprocess.run([ZSH, str(CAPTIONS), "1", str(out)], env=env, check=True, timeout=15)
     after = int(time.time() * 1000)
     rows = [line.split("\t", 1) for line in out.read_text().splitlines()]
     assert [text for _, text in rows] == ["Google Chrome", "Name on card, edit text", "Submit, button"]
     assert all(before <= int(ms) <= after for ms, _ in rows)
 
 
+@needs_zsh
 def test_vo_captions_script_fails_loudly_when_voiceover_cannot_be_reached(tmp_path):
     stub = tmp_path / "bin" / "osascript"
     stub.parent.mkdir()
     stub.write_text("#!/bin/sh\necho 'execution error: VoiceOver got an error' >&2\nexit 1\n")
     stub.chmod(0o755)
     env = {**os.environ, "PATH": f"{stub.parent}:{os.environ['PATH']}"}
-    done = subprocess.run(["/bin/zsh", str(CAPTIONS), "1", str(tmp_path / "out.tsv")], env=env, capture_output=True, text=True, timeout=15)
+    done = subprocess.run([ZSH, str(CAPTIONS), "1", str(tmp_path / "out.tsv")], env=env, capture_output=True, text=True, timeout=15)
     assert done.returncode == 3 and "VoiceOver" in done.stderr
 
 

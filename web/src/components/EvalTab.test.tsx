@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { EvalTab } from "./EvalTab";
 
@@ -70,5 +70,37 @@ describe("EvalTab wording for a newcomer (cold-judge review, 2 Nov)", () => {
     expect(screen.getByRole("columnheader", { name: /Cost \/ 3 pages/ })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Time \/ 3 pages/ })).toBeInTheDocument();
     expect(screen.getByText(/a patch is exported only after a human approves/)).toBeInTheDocument();
+  });
+});
+
+describe("EvalTab external pages (W3C BAD, Phase 6b)", () => {
+  const external = {
+    model: "muse-spark-1.3-contributor", runs: 2, n_in_scope: 14, out_of_scope_count: 21, n_clean: 35,
+    in_scope_recall: 0.5, precision: 0.8, n: 20, fp_on_after_pages: 1.5, out_of_scope_hits: 2, unlabelled_on_before: 6,
+    axe_recall: 0.21, axe: { violations: 40, out_of_scope: ["home-09"] }, cost_usd: 1.4, seconds: 900,
+    attribution: "W3C WAI Before and After Demonstration, Copyright © 2012 W3C® (MIT, ERCIM, Keio), W3C Document License; audited read-only",
+  };
+
+  it("renders the external row with its subset note", () => {
+    render(<EvalTab results={{ ...results, external }} onReplay={() => {}} />);
+    const section = screen.getByRole("region", { name: /external pages \(W3C BAD\)/i });
+    const full = within(section).getByRole("row", { name: /parity \(full\)/i });
+    expect(full).toHaveTextContent("50%");
+    expect(full).toHaveTextContent("80%");
+    expect(full).toHaveTextContent("20 per run");
+    expect(within(section).getByRole("row", { name: /axe-core/i })).toHaveTextContent("21%");
+    const note = screen.getByLabelText("External scope note");
+    expect(note).toHaveTextContent("14 of W3C's 35 numbered barriers");
+    expect(note).toHaveTextContent(/counted, never claimed/);
+    expect(note).toHaveTextContent(/W3C Document License/);
+    expect(within(section).getByText(/2 runs per page/)).toBeInTheDocument();
+    expect(within(section).getAllByText(/MUSE SPARK/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/complian/i)).toBeNull();
+  });
+
+  it("says 'not run' and claims nothing when the external block is absent", () => {
+    render(<EvalTab results={results} onReplay={() => {}} />);
+    expect(screen.getByText(/External pages \(W3C BAD\): not run yet/)).toBeInTheDocument();
+    expect(screen.getAllByRole("row", { name: /parity \(full\)/i })).toHaveLength(1);
   });
 });

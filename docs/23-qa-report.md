@@ -653,3 +653,35 @@ and a frame that reads as the BBC. FlySafair is the candidate for the richer sto
 the fields a traveller must use) once the post-deploy re-run shows the same findings on a painted frame; it is the slowest and dearest page of the set.
 Ticketmaster is the thirty-second honesty beat before either. Time per page is set by the model calls, 1–2.5 minutes for one screen; the judge is
 85–95 % of the cost on every page, so a page with more verified findings costs more, not a page with more nodes.
+
+### 10.7 Merge and the hosted re-check (3 Nov 20:52–20:59 SAST, revision `parity-00012-rgt` from `main` 5ae3ada, CI run 41696605520 green)
+`main` fast-forwarded to the branch at 5ae3ada and pushed (author verified); CI's web, python and deploy jobs green; the new revision answered
+`/api/health` with `storage: gcs`, `models_ok: true`, `open_url: true`; asset `index-N9Vxc0ys.js`. The three pages that failed, run again:
+
+| Page | Run | Outcome | Verified / rejected | Judged barriers | axe | Cost | Time |
+|---|---|---|---|---|---|---|---|
+| `https://www.ticketmaster.com/` | `20261103-185422-3b51e1ed` | done: `blocked by site: bot challenge`, no model call | 0 / 0 | 0 | 0 | $0 | 9 s |
+| `https://www.takealot.com/` | `20261103-185435-21f70fc5` | done, the whole page (1 258 nodes) | 4 / 3 | 1 | 9 | $0.26 | 2 m 14 s |
+| `https://www.flysafair.co.za/` | `20261103-185653-2c30bd3b` | done, a painted frame (257 nodes, 84 % ink) | 9 / 10 | 8 | 10 | $0.19 | 2 m 28 s |
+
+- **Ticketmaster:** the workbench says "No screen was captured on this run." over the Sighted panel and "The site stopped the walk before any
+  screen was audited: blocked by site: bot challenge." in the feed; $0, 0 tokens. Found on the way: the timeline said the reason twice (the guard's
+  `nav.blocked` row and the finished run's outcome row carry the same words). Fixed on the branch, reducer test first (`1f3092a`): the outcome row is
+  not added when the row before it already says the same; not on `main` as of this record.
+- **Takealot:** captured at 16.8 s with the page whole (70 % ink). Four verified, all minor: three brand links in the Featured Brands strip are named by
+  their image files ("chenshia-160-70", "Samsung_2021_logo-01", "Stacked New Balance Logo - 5pt. - Black") where a sighted visitor reads a logo, and a
+  "Next Item" arrow. Three rejected with reasons. The dearest page of the day: four judge calls on a 1 258-node tree, $0.06 each.
+- **FlySafair:** captured at 9.4 s, painted (84 % ink): the hero, the booking form, the cookie banner. Nine verified, eight judged barriers and now
+  grounded in what the frame shows: the origin and destination fields both announce combobox, "Search for option" while the sighted visitor reads
+  "Please select origin" and "Please select destination" (both critical, WCAG 3.3.2 and 2.5.3); the hero promotion has no name (serious); the three
+  passenger info icons are announced as the ligature text "info_outline" and the special-assistance icon as a private-use glyph; the shield icon in the
+  banner is decorative (minor, not a barrier). Ten rejected with reasons (three combobox candidates axe already reports, four duplicates of the hero's
+  words, a second claim on the same glyph with the wrong quote, a "1" that is announced as "1"). Compared with the earlier run on the unpainted frame:
+  the same elements, with sighted texts a judge can see in the picture instead of descriptions written from the tree.
+- **Demo pick, confirmed:** FlySafair is the richer page (two critical barriers on the fields every traveller must use, a South African brand, 2.5
+  minutes, 19 cents); BBC News the quicker one (one serious barrier, 2 minutes, 9 cents); Ticketmaster the honesty beat (a wall named in nine
+  seconds for nothing). Takealot is whole now but its findings are minor and it costs the most.
+- **Spend:** the re-check $0.45; the day through the hosted field $1.03 (eleven runs), under the $5 daily cap.
+- **Proposed next task (not done tonight):** a verifier check that a candidate has a seer percept behind it (its sighted text or its box), so a
+  tree-only candidate on an unpainted frame is rejected rather than judged; it changes recall on the eval set, so it carries the eval re-run (about
+  an hour and $5) and a refresh of the README's numbers.

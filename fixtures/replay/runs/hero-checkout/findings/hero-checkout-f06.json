@@ -6,19 +6,19 @@
  "sighted_text": "Pay with wallet",
  "sr_role": "button",
  "sr_name": "Button",
- "why_it_matters": "Blind user hears only meaningless Button and does not know it pays with wallet.",
+ "why_it_matters": "Blind user hears only generic Button and does not know it pays with wallet.",
  "voice": {
   "clip_key": "checkout.wav",
-  "start_ms": 76876,
-  "end_ms": 81655,
+  "start_ms": 128377,
+  "end_ms": 133208,
   "transcript": "button button you are currently on a button to click this button press control option space",
   "agrees": true
  },
  "bbox": {
-  "x_min": 636,
-  "y_min": 578,
-  "x_max": 745,
-  "y_max": 635
+  "x_min": 639,
+  "y_min": 577,
+  "x_max": 756,
+  "y_max": 633
  },
  "element": {
   "backend_id": 66,
@@ -75,20 +75,20 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
-   },
-   {
     "sc": "4.1.2",
     "name": "Name, Role, Value"
+   },
+   {
+    "sc": "2.5.3",
+    "name": "Label in Name"
    }
   ],
-  "impact": "The user hears only \"Button\" and cannot know this control pays with wallet or choose it confidently among payment options.",
+  "impact": "User hears only generic \"Button\" and cannot know it pays with wallet or choose that payment option.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "da76aa54-cbb4-41ac-856e-f669e7711623",
-   "response_id": "resp_6aea02a8b282cbb957784f77",
+   "request_id": "e8d5c22e-0a6e-4fa4-b168-09dc33ba7ced",
+   "response_id": "resp_6aea120a560f779b15da4c3f",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -97,11 +97,11 @@
   "before_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button>",
   "after_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button>",
   "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -36,7 +36,7 @@\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n-      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n+      <button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button></p>\n   </section>\n </main>\n <script>\n",
-  "explanation": "Replaced the meaningless aria-label=\"Button\" and empty-alt image-of-text with real text \"Pay with wallet\" so the accessible name matches what sighted users see.",
+  "explanation": "Replaced the generic aria-label and empty-alt image-of-text with real button text matching the visible label so screen readers announce Pay with wallet.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "6060ed17-36ed-4d98-870b-4436fd0d0c2d",
-   "response_id": "resp_6aea02da0fa0e5c015974511",
+   "request_id": "cde17d62-1b1c-4102-842b-93d3377efdd4",
+   "response_id": "resp_6aea1261104499a19efe48d7",
    "status": "completed"
   }
  },

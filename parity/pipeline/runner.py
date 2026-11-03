@@ -199,7 +199,11 @@ async def _open(ctx: RunContext, page: Page, url: str, public: bool, render_wait
         await page.goto(url, wait_until="load")
         if public:
             await browser.settle_redirects(page)  # each redirect hop is a routed navigation of its own; wait them out
+            if wall := await wall_reason(page):  # a wall known at load ends the run at once; one drawn by a script is read again below
+                await ctx.emit("nav.blocked", {"turn": 0, "url": page.url, "reason": wall})
+                return wall
             unrendered = await wait_rendered(page, render_wait_s)  # a loading screen is not the page (www.takealot.com, 3 Nov)
+            await browser.settle_redirects(page)  # a script may have sent the page on after load; a hop the guard refused is named here
     except PlaywrightError as exc:
         if not public:
             raise

@@ -28,27 +28,61 @@ SETTLE_MS = 300
 # A page we do not serve may paint a loading screen at load and fill itself in from scripts (www.takealot.com, found by the hosted
 # verification of 26F.6, 3 Nov): before its first capture it gets a bounded wait for its words, and one that never shows any is reported, not audited.
 RENDER_WAIT_S = 20.0
+RENDER_SETTLE_S = 5.0  # a later screen of a guarded walk: the same wait, shorter, and never the run's to end
+RENDER_STILL_S = 3.0  # once the floor is cleared, at most this long for the words to hold still (a ticker never does)
 RENDER_MIN_TEXT = 40  # visible characters that make a page a page rather than a spinner
 RENDER_MIN_ELEMENTS = 50  # or this many elements: an image-led page has few words
 RENDER_POLL_MS = 500
-_RENDERED_JS = """() => ({ text: ((document.body && document.body.innerText) || "").replace(/\\s+/g, " ").trim().length, elements: document.querySelectorAll("body *").length })"""
+WEB_PAGE_TYPES = ("text/html", "application/xhtml+xml")
+NOT_WEB_PAGE = "the address is not a web page: {}"
+# the visible words and the elements, read through open shadow roots as the wall probe reads them (a web-components site keeps its words there)
+_RENDERED_JS = """() => {
+  const visible = (n) => { const r = n.getBoundingClientRect(); const cs = getComputedStyle(n); return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none"; };
+  let text = 0, elements = 0;
+  const take = (root) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT); let n;
+    while ((n = walker.nextNode())) {
+      if (n.nodeType === Node.ELEMENT_NODE) { elements += 1; if (n.shadowRoot) take(n.shadowRoot); continue; }
+      const p = n.parentElement || (n.parentNode && n.parentNode.host);
+      if (!p || ["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE"].includes(p.tagName)) continue;
+      const s = n.textContent.replace(/\\s+/g, " ").trim();
+      if (s && visible(p)) text += s.length;
+    }
+  };
+  try { if (document.body) take(document.body); } catch (e) {}
+  return { text, elements, type: document.contentType || "" };
+}"""
 
 
 async def wait_rendered(page: Page, timeout_s: float = RENDER_WAIT_S) -> str | None:
-    """Wait, bounded, until the page shows words (or many elements) and they are the same on two polls; None once it has rendered,
-    else one sentence saying it never did."""
+    """Wait, bounded, until the page shows words (or many elements) and their count is the same on two polls, or has held the floor
+    for RENDER_STILL_S; None once it has rendered, else one sentence saying it never did, or that the address is not a web page.
+    Returns at once when the guard has aborted a navigation the page started: settle_redirects names that."""
     deadline = time.monotonic() + timeout_s
-    last: dict | None = None
+    last: tuple[int, int] | None = None
+    shown_at: float | None = None
     while True:
+        guard = getattr(page, "parity_guard", None)
+        if guard is not None and guard.nav_abort:
+            return None
         try:
             now = await page.evaluate(_RENDERED_JS)
         except Exception:  # mid-navigation: nothing to measure yet
-            now = {"text": 0, "elements": 0}
-        shown = now["text"] >= RENDER_MIN_TEXT or now["elements"] >= RENDER_MIN_ELEMENTS
-        if shown and now == last:
-            return None
-        last = now
-        if time.monotonic() >= deadline:
+            now = {"text": 0, "elements": 0, "type": ""}
+        kind = str(now.get("type") or "")
+        if kind and kind not in WEB_PAGE_TYPES:
+            return NOT_WEB_PAGE.format(kind)
+        measure = (int(now.get("text") or 0), int(now.get("elements") or 0))
+        shown = measure[0] >= RENDER_MIN_TEXT or measure[1] >= RENDER_MIN_ELEMENTS
+        t = time.monotonic()
+        if shown:
+            shown_at = shown_at if shown_at is not None else t
+            if measure == last or t - shown_at >= RENDER_STILL_S:
+                return None
+        else:
+            shown_at = None  # the page emptied again (a navigation mid-wait): the next document gets its own stillness clock
+        last = measure
+        if t >= deadline:
             return None if shown else f"the page showed no content after {int(round(timeout_s))} s: a loading screen at most"
         await page.wait_for_timeout(RENDER_POLL_MS)
 
@@ -128,6 +162,8 @@ async def settle(page: Page) -> None:
     try:
         await page.wait_for_load_state("load", timeout=5000)
         await browser.settle_redirects(page)  # a guarded page's redirect hops are navigations of their own (a refused hop is already reported)
+        if getattr(page, "parity_guard", None) is not None:  # a later screen of a page we do not serve may fill itself in from scripts, too
+            await wait_rendered(page, RENDER_SETTLE_S)  # its verdict is not the walk's to act on: the screen is the model's to judge
     except Exception:
         pass
     await page.wait_for_timeout(SETTLE_MS)

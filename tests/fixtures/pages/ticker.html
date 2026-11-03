@@ -1,0 +1,5 @@
+<!doctype html><html><head><title>Ticker</title></head><body>
+<h1>Live ticker</h1><p>The words on this page never hold still: a counter below grows by one character every hundred milliseconds.</p>
+<p id="t"></p>
+<script>setInterval(() => { document.getElementById("t").textContent += "."; }, 100);</script>
+</body></html>

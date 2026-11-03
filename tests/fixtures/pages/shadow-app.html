@@ -1,0 +1,5 @@
+<!doctype html><html><head><title>Shop</title></head><body><my-app></my-app>
+<script>customElements.define("my-app", class extends HTMLElement { connectedCallback() {
+  const root = this.attachShadow({mode: "open"});
+  setTimeout(() => { root.innerHTML = "<h1>Shadow shop</h1><p>Every word on this page lives inside an open shadow root, as a web-components site keeps them.</p><a href='/hop1.html'>Browse</a>"; }, 300);
+} });</script></body></html>

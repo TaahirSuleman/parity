@@ -654,3 +654,74 @@ async def test_a_public_page_that_fills_itself_in_late_is_captured_once_it_has(t
     assert len(loaded.steps) == 1 and loaded.steps[0].ax_nodes >= 4  # the heading, the paragraph, the link and the button, not one spinner
     assert [c.stage for c in calls][:1] == ["seer"]
     assert "nav.blocked" not in [e.type for e in loaded.events]
+
+
+def _guarded_factory():
+    from parity.pipeline.browser import new_page
+
+    async def page_factory(**kwargs):
+        return await new_page(external=True, own_origin="https://parity.example", judge=lambda host: host in ("localhost", "127.0.0.1"), delay_s=0)
+
+    return page_factory
+
+
+async def test_a_wall_drawn_into_a_shadow_root_is_named_at_once(tmp_path, fixture_url):
+    """Review of the render wait: the page's words are read through open shadow roots, as the wall probe reads them, so a wall of
+    the Ticketmaster shape is named at once instead of after the whole wait."""
+    from parity.pipeline.runner import run_flow
+
+    flow = _public_flow(f"{fixture_url}/shadow-wall.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=_guarded_factory(), render_wait_s=10.0)
+    assert run.status == RunStatus.done and client.calls == [] and run.duration_ms < 4000, run.duration_ms
+    assert next(e for e in (await bundle.load(run.id)).events if e.type == "run.finished").data["agent"]["summary"] == "blocked by site: bot challenge"
+
+
+async def test_a_page_whose_words_live_in_a_shadow_root_is_captured(tmp_path, fixture_url):
+    """A web-components page keeps its words in shadow roots: it is a page, captured once they are in, not "no content"."""
+    from parity.pipeline.runner import run_flow
+
+    flow = _public_flow(f"{fixture_url}/shadow-app.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=_guarded_factory(), render_wait_s=4.0)
+    loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and len(loaded.steps) == 1 and loaded.steps[0].ax_nodes >= 3, run.error
+    assert "nav.blocked" not in [e.type for e in loaded.events]
+
+
+async def test_an_address_that_is_not_a_web_page_ends_with_the_reason(tmp_path, fixture_url):
+    """A direct link to an image is told so at once, not "a loading screen" after the whole wait."""
+    from parity.pipeline.runner import run_flow
+
+    flow = _public_flow(f"{fixture_url}/img-final")  # answered as image/png
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=_guarded_factory(), render_wait_s=10.0)
+    loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and client.calls == [] and not loaded.steps and run.duration_ms < 4000, run.duration_ms
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "the address is not a web page: image/png"
+
+
+async def test_a_late_script_navigation_the_guard_refuses_is_reported_as_such(tmp_path, fixture_url):
+    """A script that sends the page on after load, to an address the guard refuses, ends the run with the guard's sentence at
+    once, not "no content" at the end of the wait."""
+    from parity.pipeline.runner import run_flow
+
+    flow = _public_flow(f"{fixture_url}/late-hop.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=_guarded_factory(), render_wait_s=10.0)
+    loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and client.calls == [] and not loaded.steps and run.duration_ms < 5000, run.duration_ms
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "This address is not public."
+
+
+async def test_a_page_that_never_holds_still_is_captured_within_the_stillness_cap(tmp_path, fixture_url):
+    """A ticker changes on every poll: once the floor is cleared the capture waits a few seconds for stillness at most, not the whole 20 s."""
+    from parity.pipeline.runner import run_flow
+
+    flow = _public_flow(f"{fixture_url}/ticker.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=_guarded_factory(), render_wait_s=20.0)
+    loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and len(loaded.steps) == 1, run.error
+    opened = next(e for e in loaded.events if e.type == "step.captured").at - next(e for e in loaded.events if e.type == "run.started").at
+    assert opened.total_seconds() < 8, opened

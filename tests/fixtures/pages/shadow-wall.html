@@ -1,0 +1,5 @@
+<html><head><title>Tickets</title></head><body><abuse-component action="block"></abuse-component>
+<script>customElements.define("abuse-component", class extends HTMLElement { connectedCallback() {
+  const root = this.attachShadow({mode: "open"});
+  root.innerHTML = "<h1>Your Browsing Activity Has Been Paused</h1><p>We’ve detected unusual behavior on either your network or your browser.</p>";
+} });</script></body></html>

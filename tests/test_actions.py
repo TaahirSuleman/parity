@@ -50,3 +50,18 @@ def test_key_names_with_underscores_or_spaces_are_normalised():
     assert chord(["page_up"]) == "PageUp"
     assert chord(["Arrow Down"]) == "ArrowDown"
     assert chord(["CTRL", "a"]) == "ControlOrMeta+a"
+
+
+async def test_settle_waits_for_a_guarded_page_to_fill_itself_in(fixture_url):
+    """Review of the render wait: a later screen of a page we do not serve may render from scripts too, so settle waits for its words
+    (bounded) when the page carries the guard; a store page, which is static, is not slowed."""
+    from parity.pipeline.actions import settle
+    from parity.pipeline.browser import new_page
+
+    page = await new_page(external=True, own_origin="https://parity.example", judge=lambda host: host in ("localhost", "127.0.0.1"), delay_s=0)
+    try:
+        await page.goto(f"{fixture_url}/late.html", wait_until="load")
+        await settle(page)
+        assert await page.evaluate("() => document.body.innerText.length") >= 40
+    finally:
+        await page.context.close()

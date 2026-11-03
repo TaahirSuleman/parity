@@ -587,7 +587,16 @@ with every revision; the money caps are index-backed and do not).
   `wait_rendered` in `parity/pipeline/actions.py` polls the page's visible words and element count every 0.5 s until they clear a floor (40 characters or
   50 elements) and hold still between two polls, for at most 20 s; `_open` runs it after the redirect settle on a public page, then the bot-wall check on
   the rendered page; a page that never shows content ends the run `done` with "the page showed no content after 20 s: a loading screen at most" as a
-  `nav.blocked` outcome, before any model call. The hosted re-check of both Takealot pages waits for the next deploy.
+  `nav.blocked` outcome, before any model call. With the fix, the same pipeline run locally against the real home page with the fake model client
+  captures 877 accessibility nodes and 10 axe violations, 7.6 s from start to finish. The hosted re-check of both Takealot pages waits for the next deploy.
+- **Review of the render wait (a fresh reviewer, "ship with fixes"), all taken:** the measurement read `innerText`, which does not cross shadow roots, so a
+  wall of the Ticketmaster shape waited the whole 20 s before the wall check named it, and a web-components site would have been "no content" (now the words
+  are read through open shadow roots, as the wall probe reads them, and the wall check also runs at `load`); a script navigation after `load` to an address
+  the guard refuses was reported as "no content" 20 s late (now the redirect settle runs again after the wait and the wait returns as soon as the guard has
+  aborted a navigation, so the guard's own sentence is the outcome); a direct image link waited 20 s to be called a loading screen (now "the address is
+  not a web page: image/png" at once); a page whose words never hold still (a ticker) ran the whole wait (now 3 s past the floor at most); a later screen
+  of a multi-screen walk had no wait (now `settle` runs the same wait, capped at 5 s, on a guarded page and never ends the walk). Six tests hold these
+  (`shadow-wall.html`, `shadow-app.html`, `/img-final`, `late-hop.html`, `ticker.html`, `test_settle_waits_for_a_guarded_page_to_fill_itself_in`).
 - **gov.za:** 313 nodes, 12 axe violations. Two verified findings, both the masthead logo link: a sighted visitor reads "REPUBLIC OF SOUTH AFRICA" and
   "South African Government", a screen reader hears link, "Home"; the judge rated both minor (the link still goes home). Eight rejected with reasons:
   six copies of a "more>" link the comparator proposed six times (the visible text equals the name: not a divergence), a menu toggle axe already reports,

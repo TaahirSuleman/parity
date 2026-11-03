@@ -506,3 +506,13 @@ Met with a test, three benign deviations reasoned in code (bundle names `w3c-*`,
   `origin: https://www.w3.org`, ended `done` in 2 m 55 s at $0.05 with 2 verified and 14 rejected, no request refused. Found on the way, deferred: the
   header names the typed host (`w3.org`) until the page is reloaded; the record and the attribution carry the landed one after the run.
 - Spend this gate: $0.17 of model calls (two Live runs through the field).
+
+### 10.4 Hosted verification (revision `parity-00010-7hm` from `d02e408`, CI run 41642604410 green at ≈15:25 SAST)
+- `/api/health`: `storage: gcs`, `models_ok: true`, `open_url: true`, `external_closed_today: false`, `w3c-home` among the replays; the asset is
+  `index-DopJABib.js`. The policy page answers with the contact and "24 hours". `/api/flows` lists the four W3C flows as public.
+- The private-address refusal on the hosted URL: `http://169.254.169.254/…` and `http://metadata.google.internal/…` both 422 "This address is not
+  public."; a request without the affirmation 422 "confirm that the page is public and that you may audit it". Nothing echoed.
+- **26E.5 gate:** in the hosted workbench a judge picks "W3C demo: home" in Replay and presses Run: the header names `www.w3.org`, W3C's attribution
+  line sits under it, the run ends with 2 verified and 16 rejected at $0.05, "recorded 3 m 6 s", the selected card says fixes and re-audits are not
+  offered on pages we do not serve. The same bundle streamed through the API from `run.started` (public, attribution) to `run.finished` (done, 2 verified).
+- Not run here (the user's call): the three third-party Live pages of 26F.6 (about $0.15) and the suggested list that follows; the bucket's soft delete.

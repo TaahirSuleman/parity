@@ -1,0 +1,90 @@
+{
+ "id": "hero-checkout-f08",
+ "run_id": "hero-checkout",
+ "step_index": 0,
+ "status": "judged",
+ "sighted_text": "?",
+ "sr_role": "button",
+ "sr_name": "Help",
+ "why_it_matters": "Blind user hears generic Help with no context that it explains CVV.",
+ "voice": {
+  "clip_key": "checkout.wav",
+  "start_ms": 73495,
+  "end_ms": 76876,
+  "transcript": "help button you are currently on a button",
+  "agrees": true
+ },
+ "bbox": {
+  "x_min": 602,
+  "y_min": 578,
+  "x_max": 630,
+  "y_max": 633
+ },
+ "element": {
+  "backend_id": 65,
+  "css_path": "button#help-icon",
+  "box_px": [
+   771,
+   416,
+   806,
+   456
+  ],
+  "outer_html": "<button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>",
+  "dom_id": "help-icon"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#help-icon"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   }
+  },
+  "element": {
+   "backend_id": 65,
+   "css_path": "button#help-icon",
+   "box_px": [
+    771,
+    416,
+    806,
+    456
+   ],
+   "outer_html": "<button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>",
+   "dom_id": "help-icon"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": false,
+  "severity": "minor",
+  "wcag": [],
+  "impact": "Screen-reader user still encounters a generic help control immediately after the CVV field, matching the visual '?' cue and retaining the same ability to get CVV help.",
+  "model_meta": {
+   "model": "muse-spark-1.3",
+   "fallback": false,
+   "request_id": "01c1865e-69f0-481d-9468-418af7678311",
+   "response_id": "resp_6aea02a5f35339ac155b4b14",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

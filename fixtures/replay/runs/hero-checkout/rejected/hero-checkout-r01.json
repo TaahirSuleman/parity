@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "Total: R1,249.00",
-  "sr_quote": "text, \"Total:\"",
-  "why_it_matters": "Blind user hears only Total without the amount and does not know what will be charged.",
+  "sighted_text": "Payment",
+  "sr_quote": "text, \"Payment\"",
+  "why_it_matters": "Blind user gets no announcement that Payment is the current step in Cart Payment Done.",
   "bbox": {
-   "x_min": 146,
-   "y_min": 462,
-   "x_max": 267,
-   "y_max": 491
+   "x_min": 177,
+   "y_min": 511,
+   "x_max": 223,
+   "y_max": 533
   },
   "attempt": 1
  },
@@ -20,15 +20,15 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#returns-link"
+    "detail": "text at li#step-payment"
    },
    "sr_quote_exact": {
-    "passed": false,
-    "detail": "quote differs from the accessibility tree entry"
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
-    "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "passed": false,
+    "detail": "visible text equals the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -40,17 +40,17 @@
    }
   },
   "element": {
-   "backend_id": 32,
-   "css_path": "a#returns-link",
+   "backend_id": 80,
+   "css_path": "li#step-payment",
    "box_px": [
-    187,
-    340,
-    288,
-    357
+    227,
+    368,
+    286,
+    384
    ],
-   "outer_html": "<a id=\"returns-link\" href=\"#returns\">Returns policy</a>",
-   "dom_id": "returns-link"
+   "outer_html": "<li id=\"step-payment\" class=\"current\">Payment</li>",
+   "dom_id": "step-payment"
   },
-  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
  }
 }

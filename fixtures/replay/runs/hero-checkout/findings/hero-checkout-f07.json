@@ -6,8 +6,14 @@
  "sighted_text": "Terms",
  "sr_role": "link",
  "sr_name": "Click here",
- "why_it_matters": "A blind user hears a generic link with no destination and cannot know it opens the Terms.",
- "voice": null,
+ "why_it_matters": "Blind user hears generic Click here with no indication it leads to the Terms.",
+ "voice": {
+  "clip_key": "checkout.wav",
+  "start_ms": 46806,
+  "end_ms": 49463,
+  "transcript": "link click here you are currently",
+  "agrees": true
+ },
  "bbox": {
   "x_min": 649,
   "y_min": 454,
@@ -77,25 +83,25 @@
     "name": "Label in Name"
    }
   ],
-  "impact": "The user hears only 'Click here' in the agreement sentence and cannot know the link opens the Terms before paying.",
+  "impact": "Blind user hears only 'Click here' and cannot know the link leads to the Terms they agree to by paying.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "913b754e-23cd-4dc8-bdfb-e7dfdbcabe0e",
-   "response_id": "resp_6ae732d9dbfe6a8126944a64",
+   "request_id": "7f8e81ed-33c7-4f1e-872d-7bc092d365dc",
+   "response_id": "resp_6aea02a1b1f31ac6ebea4ae8",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
-  "after_html": "<a id=\"f4\" href=\"#terms\"><img alt=\"Terms\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -29,7 +29,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\"><img alt=\"Terms\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
-  "explanation": "Removed the misleading aria-label \"Click here\" and set the image alt to \"Terms\" so the link's accessible name matches the visible text.",
+  "after_html": "<a id=\"f4\" href=\"#terms\">Terms</a>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -29,7 +29,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\">Terms</a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
+  "explanation": "Removed the generic aria-label \"Click here\" and empty-alt image and replaced with real link text \"Terms\" to match the visible label.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "620b102e-1c67-4c1a-80ca-eeba981fdd97",
-   "response_id": "resp_6ae732fbab2dd49c6ed44467",
+   "request_id": "6ccb733f-b3b4-4fb6-a14e-77d7d791d809",
+   "response_id": "resp_6aea02dfe9e32da11df44533",
    "status": "completed"
   }
  },

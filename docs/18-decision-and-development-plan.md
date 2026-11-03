@@ -128,6 +128,8 @@ Goal ("buy the headphones") ─► NAVIGATOR (Spark 1.3 computer use, truncation
 | 2:42–2:50 | Impact close + "try it yourself" URL. Record at 1280 px wide (three columns, everything ≈12% larger); zoom in the edit on the hero pair and on the Approve click |
 | 2:50–2:55 | End card |
 
+**Voice in the video (3 Nov, after Gate G-V).** G-V measured 0.58 word accuracy on the recorded checkout page (the transcript is aligned to VoiceOver's own phrases; the hint sentences the next Tab cut short count against it), below the 0.90 bar, so Voice is corroboration, not the hero's primary evidence, and the hero beat above stays on the accessibility tree. The **Checkout page Replay** (re-recorded 3 Nov, 8 verified findings) carries it: its Submit card plays the segment where VoiceOver says "Submit button" with the badge *Muse Voice Transcribe · real VoiceOver audio* and the agreement tick. If a second is free after 1:30, select that card and press play; otherwise it is the third Meta model in the README and the Eval tab, not on camera. The Purchase replay was not re-recorded with Voice.
+
 ## 10. Problem statement
 **Build for Your World:** we ship software and its users include screen-reader users. The fallback is *Push the Frontier (software)*. This is our choice; the organisers' answer on it doesn't change scoring.
 

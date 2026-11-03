@@ -122,23 +122,75 @@ def load_recording(voice_dir: Path, page: str) -> Recording | None:
     return Recording(clip=clip, meta=json.loads(meta.read_text()), captions=captions)
 
 
-def align(turns: list[dict], stops: list[dict]) -> dict[str, Segment]:
-    """Each turn belongs to the stop that had focus when it started; a stop's segment spans every turn until the next stop.
-    Turns spoken before the first stop belong to nobody."""
+LAST_STOP_TAIL_MS = 3000  # a phrase VoiceOver starts at its caption time is over well within this
+
+
+def align(transcript: str, captions: list[tuple[int, str]], stops: list[dict], *, duration_ms: int) -> dict[str, Segment]:
+    """Give each focus stop the words the transcriber heard while its element had focus.
+
+    The API returns no usable timing per element (PUSH_TO_TALK: no turns; DIARIZATION: a few pause-delimited turns spanning
+    many stops; both seen 3 Nov), so the flat transcript is aligned word by word to the captions, which carry the clock: a
+    word-level edit path (the same distance ``word_accuracy`` uses) maps each transcript word to a caption, a word the
+    transcriber added stays with the caption of the word before it, and each caption belongs to the stop that had focus when
+    it was spoken. A stop's segment starts at its focus event and ends at the next stop's (or the clip's end); its text is the
+    transcript's own words, in order. Speech before the first stop belongs to nobody."""
+    tokens = [(tok, norm) for tok in (transcript or "").split() if (norm := _PUNCT.sub("", tok.lower()))]
+    ref = [(i, w) for i, (_, text) in enumerate(captions) for w in _words(text)]
     ordered = sorted(stops, key=lambda s: int(s["t_ms"]))
-    segments: dict[str, Segment] = {}
-    for turn in sorted(turns, key=lambda t: int(t.get("startMs", 0))):
-        start, end, text = int(turn.get("startMs", 0)), int(turn.get("endMs", turn.get("startMs", 0))), str(turn.get("transcript") or "").strip()
-        owner = None
-        for stop in ordered:
-            if int(stop["t_ms"]) <= start:
-                owner = str(stop["dom_id"])
+    if not tokens or not ref or not ordered:
+        return {}
+    n, m = len(ref), len(tokens)
+    d = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(1, n + 1):
+        d[i][0] = i
+    for j in range(1, m + 1):
+        d[0][j] = j
+    # A substitution costs as much as a deletion plus an insertion, so an exact match a few words on is never traded for a
+    # mis-heard word here: the hero's "Submit" must land on the "Submit button" caption, not on the hint cut short before it.
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            d[i][j] = min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (0 if ref[i - 1][1] == tokens[j - 1][1] else 2))
+    owner: list[int | None] = [None] * m  # caption index per transcript word
+    i, j = n, m
+    while i > 0 and j > 0:
+        if ref[i - 1][1] == tokens[j - 1][1] and d[i][j] == d[i - 1][j - 1]:
+            owner[j - 1] = ref[i - 1][0]
+            i, j = i - 1, j - 1
+        elif d[i][j] == d[i][j - 1] + 1:
+            j -= 1  # a word the transcriber added (or mis-heard): it stays with the caption of the word before it
+        else:
+            i -= 1  # a caption word it missed
+    last: int | None = None
+    for k in range(m):
+        if owner[k] is None:
+            owner[k] = last
+        else:
+            last = owner[k]
+    caption_stop: list[int | None] = []
+    for t_ms, _ in captions:
+        idx = None
+        for si, stop in enumerate(ordered):
+            if int(stop["t_ms"]) <= int(t_ms):
+                idx = si
             else:
                 break
-        if owner is None or not text:
-            continue
-        seg = segments.get(owner)
-        segments[owner] = Segment(start, end, text) if seg is None else Segment(seg.start_ms, max(seg.end_ms, end), f"{seg.text} {text}")
+        caption_stop.append(idx)
+    words: dict[int, list[str]] = {}
+    spoken_until: dict[int, int] = {}  # the last caption time per stop: the final stop's segment ends soon after it, not at the clip's end
+    for k, (tok, _) in enumerate(tokens):
+        c = owner[k]
+        si = caption_stop[c] if c is not None else None
+        if si is not None:
+            words.setdefault(si, []).append(tok)
+            spoken_until[si] = max(spoken_until.get(si, 0), int(captions[c][0]))
+    segments: dict[str, Segment] = {}
+    for si in sorted(words):
+        stop = ordered[si]
+        start = int(stop["t_ms"])
+        end = int(ordered[si + 1]["t_ms"]) if si + 1 < len(ordered) else min(int(duration_ms), spoken_until[si] + LAST_STOP_TAIL_MS)
+        seg = segments.get(str(stop["dom_id"]))
+        text = " ".join(words[si])
+        segments[str(stop["dom_id"])] = Segment(start, max(end, start), text) if seg is None else Segment(seg.start_ms, max(seg.end_ms, end), f"{seg.text} {text}")
     return segments
 
 
@@ -166,21 +218,34 @@ def transcript_agrees(segment: Segment | None, ax_role: str, ax_name: str) -> bo
 
 async def transcribe_page(client, page: str, *, keywords: list[str] | tuple[str, ...] = (), voice_dir: Path = VOICE_DIR, run_id: str = "",
                           step_index: int | None = None) -> PageVoice | None:
-    """Transcribe the page's clip (PUSH_TO_TALK, the AX names as keywords) and align it to the focus log; None without a clip."""
+    """Transcribe the page's clip (PUSH_TO_TALK, the AX names as keywords) and align it to the captions and focus log; None without a clip."""
     rec = load_recording(voice_dir, page)
     if rec is None:
         return None
     t = await client.transcribe(rec.clip.read_bytes(), keywords=list(keywords), mode="PUSH_TO_TALK", run_id=run_id, step_index=step_index)
     hypothesis = " ".join(str(x.get("transcript") or "") for x in t.turns) or t.transcript
     accuracy = word_accuracy(hypothesis, " ".join(text for _, text in rec.captions)) if rec.captions else None
-    return PageVoice(page=page, clip_key=str(rec.meta.get("clip") or f"{page}.wav"), duration_ms=t.duration_ms or int(rec.meta.get("duration_ms") or 0),
-                     transcript=t.transcript, turns=t.turns, segments=align(t.turns, list(rec.meta.get("stops") or [])), word_accuracy=accuracy,
-                     model=t.model, request_id=t.request_id)
+    duration = t.duration_ms or int(rec.meta.get("duration_ms") or 0)
+    segments = align(hypothesis, rec.captions, list(rec.meta.get("stops") or []), duration_ms=duration)
+    return PageVoice(page=page, clip_key=str(rec.meta.get("clip") or f"{page}.wav"), duration_ms=duration, transcript=t.transcript, turns=t.turns,
+                     segments=segments, word_accuracy=accuracy, model=t.model, request_id=t.request_id)
 
 
 # --- the runner hook (Task 28) --------------------------------------------------------------------------
 
 KEYWORDS_MAX = 50
+KEYWORD_MAX_CHARS = 30  # the API rejects a longer keyword with 400 ("ASR keyword N exceeds the maximum length of 30 characters")
+
+
+def voice_keywords(names) -> list[str]:
+    """The biasing hints for the transcriber: the page's accessibility names, stripped, unique, in order, within the API's limits.
+    A name over the length limit is dropped, not cut: a truncated hint would bias toward a word nobody speaks."""
+    seen: dict[str, None] = {}
+    for raw in names:
+        name = (raw or "").strip()
+        if name and len(name) <= KEYWORD_MAX_CHARS:
+            seen.setdefault(name, None)
+    return list(seen)[:KEYWORDS_MAX]
 
 
 async def attach_voice(ctx, cap, findings: list, step_index: int) -> dict | None:
@@ -191,7 +256,7 @@ async def attach_voice(ctx, cap, findings: list, step_index: int) -> dict | None
     if ctx.public or ctx.client is None or "/store/" not in url:
         return None
     page = Path(urlparse(url).path).stem
-    names = list(dict.fromkeys(n.name.strip() for n in cap.ax_nodes if n.name and n.name.strip()))[:KEYWORDS_MAX]
+    names = voice_keywords(n.name for n in cap.ax_nodes)
     try:
         voice = await transcribe_page(ctx.client, page, keywords=names, voice_dir=ctx.settings.voice_dir, run_id=ctx.run.id, step_index=step_index)
     except Exception as exc:  # a transcription that fails after its retries leaves the finding's evidence as it was

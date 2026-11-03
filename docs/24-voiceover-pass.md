@@ -7,7 +7,7 @@ Record what VoiceOver said (VO+Shift+C copies the last phrase to the clipboard),
 
 **Status (Mon 2 Nov, 23:35 SAST): the pass has run** (Heard and Verdict below; method §6 of docs/25; three findings, all announcements: the load paragraph re-read on every flow change, the finish and the decision drowned by the quote region and the focus move). Not a gate for Phase 6 (doc 20 Phase 6b note; docs/25 §2 and §6). The agent runs sections 1–12 in Chrome through the Claude in
 Chrome extension and reads each phrase back from VoiceOver's scripting interface; the rotor rows are checked against the accessibility tree.
-The user answers Questions A–D by ear. Fixes land after Task 28.
+**Answers (Tue 3 Nov, 13:05 SAST), given by the user by ear, and what was done:** (A) shorten the load paragraph to one sentence: done in this chat, `FindingsFeed.tsx`, 39 words, with a test that holds it to one sentence of at most 40 words (chat A had already taken it out of the live region, a447b8b, so a flow change no longer re-reads it); (B) the wording of the start announcement stays as it is; (C) the finish must win over the quote region: done by chat A in a447b8b (the run announcement is assertive and atomic; the quote region is unchanged), verified on the hosted app (docs/23 §9.1); (D) announce the decision as an alert before focus moves: done by chat A in a447b8b, verified on the hosted app.
 
 ## 0. Setup
 
@@ -124,4 +124,5 @@ The user answers Questions A–D by ear. Fixes land after Task 28.
 
 - The table above with Heard and Verdict filled in (verbatim phrases where the verdict is not ok).
 - Your answers to Questions A–D: (A) the load-time status: keep, shorten, or drop; (B) one or two start announcements; (C) the quote spoken on selection: keep or make it silent; (D) whether "Approved/Rejected" is announced after a decision.
+  Answered 3 Nov: A shorten to one sentence; B keep the wording; C make the finish an alert so it wins; D announce the decision as an alert before focus moves. See the status line at the top for what was done.
 - Anything a judge using VoiceOver would stumble on that is not listed here.

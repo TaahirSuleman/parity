@@ -56,7 +56,14 @@ describe("Task 24: the idle state frames the product", () => {
     render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="idle" error={null} onSelect={() => {}} flowName="Checkout page" />);
     const framing = screen.getByText(/Run the audit to start/); // a plain paragraph since the VoiceOver pass: a flow change must not re-read it
     expect(framing).toHaveTextContent(/sighted .* screen-reader/i);
-    expect(framing).toHaveTextContent(/Replay plays a recorded run.*no model calls/i);
+    expect(framing).toHaveTextContent(/Replay.*recorded run.*no model calls/i);
+  });
+
+  it("is one sentence of at most 40 words: VoiceOver reads it on load and the user asked for a short one (docs/24 Question A)", () => {
+    render(<FindingsFeed findings={[]} rejected={[]} selectedId={null} phase="idle" error={null} onSelect={() => {}} flowName="Checkout page" />);
+    const text = screen.getByText(/Run the audit to start/).textContent ?? "";
+    expect(text.trim().split(/\s+/).length).toBeLessThanOrEqual(40);
+    expect(text.trim().match(/[.!?](\s|$)/g)?.length ?? 0).toBe(1);
   });
 });
 

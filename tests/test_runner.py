@@ -757,3 +757,44 @@ async def test_a_page_that_never_paints_ends_with_the_reason(tmp_path, fixture_u
     loaded = await bundle.load(run.id)
     assert run.status == RunStatus.done and client.calls == [] and not loaded.steps
     assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "the page showed no content after 2 s: a loading screen at most"
+
+
+async def test_candidates_written_from_the_tree_alone_are_rejected_on_seen(tmp_path, server_url, page):
+    """Shaped like www.flysafair.co.za on 3 Nov: the tree holds a whole page, the screenshot shows a banner, and the comparator
+    writes "sighted" texts from the tree. The sixth check rejects both; nothing is verified; the red rows carry six checks."""
+    import json as _json
+
+    from parity.pipeline.verifier import CHECKS
+
+    def answer(payload: dict):
+        return {"id": "r", "_request_id": "req", "status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": _json.dumps(payload)}]}], "usage": {"input_tokens": 1, "output_tokens": 1}}
+
+    banner = {"percepts": [{"visible_text": "We use cookies. Accept all", "kind": "button", "bbox": {"x_min": 0, "y_min": 880, "x_max": 1000, "y_max": 1000}}]}
+    from_tree = {"findings": [
+        {"what_sighted_user_sees": "Pay R1,249", "screen_reader_role": "button", "screen_reader_name": "Submit", "why_it_matters": "x", "bbox": {"x_min": 526, "y_min": 500, "x_max": 646, "y_max": 567}},
+        {"what_sighted_user_sees": "Terms", "screen_reader_role": "link", "screen_reader_name": "Click here", "why_it_matters": "x", "bbox": {"x_min": 649, "y_min": 454, "x_max": 685, "y_max": 475}},
+    ]}
+
+    async def factory():
+        return page
+
+    client = FakeMetaClient(META, stage_defaults=stage_defaults(), script={"seer": [answer(banner)], "comparator": [answer(from_tree)] * 3})  # spare answers: a re-audit would ask again
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data")})
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        run = await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory)
+    finally:
+        await index.close()
+    assert run.status == RunStatus.done, run.error
+    assert run.findings_verified == 0 and run.findings_rejected == 2
+    loaded = await bundle.load(run.id)
+    results = [e.data for e in loaded.events if e.type == "verifier.result"]
+    assert len(results) == 2 and all(r["passed"] is False for r in results)
+    for r in results:
+        assert tuple(r["checks"]) == CHECKS
+        failed = [k for k, c in r["checks"].items() if not c["passed"]]
+        assert failed == ["seen"], failed  # the five tree checks pass: these are exactly the candidates the old gate let through
+    seen_event = next(e for e in loaded.events if e.type == "seer.done")
+    assert [p["visible_text"] for p in seen_event.data["percepts"]] == ["We use cookies. Accept all"]

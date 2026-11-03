@@ -1,6 +1,6 @@
 """The Verifier: the only door a finding can pass through. Code, no model.
 
-Five named checks. A candidate becomes a Finding only when all pass. Failed checks produce
+Six named checks. A candidate becomes a Finding only when all pass. Failed checks produce
 feedback written as instructions the comparator can act on; feedback never contains the
 accessible names it should have quoted, so the model cannot be handed the answer.
 """
@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import re
 
-from parity.store.models import AxNode, BBox, Candidate, Capture, Check, Finding, VerifierResult
+from parity.store.models import AxNode, BBox, Candidate, Capture, Check, Finding, Percept, VerifierResult
 
 NOT_ANNOUNCED = "not announced"
 IOU_MIN = 0.2
 CENTRE_TOLERANCE = 15
 ROLE_ALIASES = {"img": "image", "graphic": "image", "text field": "textbox", "text box": "textbox", "edit": "textbox"}
-CHECKS = ("located", "sr_quote_exact", "diverges", "not_axe", "unique")
+CHECKS = ("located", "sr_quote_exact", "diverges", "not_axe", "unique", "seen")
 
 
 def normalise(s: str) -> str:
@@ -79,7 +79,23 @@ def parse_quote(quote: str) -> tuple[str, str]:
     return ROLE_ALIASES.get(role_n, role_n), normalise(name)
 
 
-def verify(candidate: Candidate, capture: Capture, prior: list[Finding]) -> VerifierResult:
+def seen_by_sighted_pass(candidate: Candidate, percepts: list[Percept]) -> bool:
+    """A percept carries the candidate's sighted text (either way round, letters only), or sits at its box.
+    Both routes apply to every candidate, silent ones included: on the recorded runs the seer listed a canvas's drawn
+    price by its exact text at an adjacent, non-overlapping box, and nothing else (measured 4 Nov, 95 of 95 kept)."""
+    sighted = _letters(candidate.sighted_text)
+    for p in percepts:
+        shown = _letters(p.visible_text)
+        if sighted and shown and (sighted in shown or shown in sighted):
+            return True
+        if candidate.bbox is not None and (iou(candidate.bbox, p.bbox) >= IOU_MIN or _centre_inside(candidate.bbox, p.bbox)):
+            return True
+    return False
+
+
+def verify(candidate: Candidate, capture: Capture, prior: list[Finding], percepts: list[Percept] | None = None) -> VerifierResult:
+    """`percepts` is None when the sighted pass did not run on this screen (an ablation, or the budget cap): the `seen`
+    check then passes by construction. A list, even an empty one, means it ran and the candidate must be in it."""
     checks: dict[str, Check] = {}
     feedback: list[str] = []
     wants_silence = normalise(candidate.sr_quote) == NOT_ANNOUNCED
@@ -141,6 +157,14 @@ def verify(candidate: Candidate, capture: Capture, prior: list[Finding]) -> Veri
         feedback.append("this element is already reported; do not repeat it")
     else:
         checks["unique"] = Check(passed=True, detail="first finding on this element")
+
+    if percepts is None:
+        checks["seen"] = Check(passed=True, detail="no sighted pass on this screen")
+    elif seen_by_sighted_pass(candidate, percepts):
+        checks["seen"] = Check(passed=True, detail="the sighted pass saw it")
+    else:
+        checks["seen"] = Check(passed=False, detail="no sighted percept with that text or at that box")
+        feedback.append("the sighted pass did not see that text at that box; only report what is on screen")
 
     passed = all(c.passed for c in checks.values())
     return VerifierResult(

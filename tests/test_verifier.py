@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from parity.pipeline.verifier import NOT_ANNOUNCED, iou, locate, normalise, verify
-from parity.store.models import AxeViolation, BBox, Candidate, Capture, Element, Finding, VerifierResult
+from parity.pipeline.verifier import CHECKS, NOT_ANNOUNCED, iou, locate, normalise, verify
+from parity.store.models import AxeViolation, BBox, Candidate, Capture, Element, Finding, Percept, VerifierResult
 
 FIXTURE = Path(__file__).parent / "fixtures" / "capture_checkout.json"
 
@@ -28,7 +28,7 @@ def cand(cap: Capture, dom_id: str | None, sighted: str, sr: str, bbox: BBox | N
 def test_hero_passes(cap):
     r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [])
     assert r.passed is True
-    assert set(r.checks) == {"located", "sr_quote_exact", "diverges", "not_axe", "unique"}
+    assert tuple(r.checks) == CHECKS  # six since 4 Nov; percepts=None here, so seen passes as "no sighted pass"
     assert all(c.passed for c in r.checks.values())
     assert r.element and r.element.dom_id == "f5" and r.element.css_path == "button#f5"
     assert r.feedback is None
@@ -161,3 +161,51 @@ def test_parse_quote_bounds_hostile_lengths():
     for n in (2_000, 10_000, 20_000):
         parse_quote("a" + " " * n + "b")
     assert time.perf_counter() - t0 < 0.3
+
+
+# --- seen: a candidate must have a seer percept behind it (the sixth check, 4 Nov) ---
+
+
+def percept(text: str, bbox: BBox, kind: str = "text") -> Percept:
+    return Percept(step_index=0, visible_text=text, kind=kind, bbox=bbox)
+
+
+def test_seen_fails_a_tree_only_candidate_when_the_seer_saw_nothing(cap):
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [], percepts=[])
+    assert r.passed is False
+    assert r.checks["seen"].passed is False
+    assert r.checks["seen"].detail == "no sighted percept with that text or at that box"
+    assert r.feedback == "the sighted pass did not see that text at that box; only report what is on screen"
+
+
+def test_seen_passes_when_a_percept_carries_the_sighted_text(cap):
+    far_away = BBox(x_min=900, y_min=900, x_max=950, y_max=950)
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [], percepts=[percept("Pay R1,249", far_away, "button")])
+    assert r.checks["seen"].passed is True and r.passed is True
+
+
+def test_seen_passes_a_silent_candidate_by_box_alone(cap):
+    box = box_of(cap, "f2")  # the canvas; no words in common with the percept
+    r = verify(cand(cap, "f2", "Total: R1,249.00", NOT_ANNOUNCED), cap, [], percepts=[percept("a drawing", box, "image")])
+    assert r.checks["seen"].passed is True and r.passed is True
+
+
+def test_seen_passes_the_canvas_total_by_text_at_an_adjacent_box(cap):
+    """The one miss of the box-only rule on the recorded runs: the seer lists the drawn price by its exact text, one row below the canvas."""
+    canvas = BBox(x_min=185, y_min=419, x_max=295, y_max=461)
+    below = BBox(x_min=145, y_min=462, x_max=266, y_max=491)
+    assert iou(canvas, below) == 0.0
+    r = verify(cand(cap, None, "Total: R1,249.00", NOT_ANNOUNCED, bbox=canvas), cap, [], percepts=[percept("Total: R1,249.00", below, "price")])
+    assert r.checks["seen"].passed is True and r.passed is True
+
+
+def test_seen_passes_when_no_sighted_pass_ran(cap):
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [], percepts=None)
+    assert r.checks["seen"].passed is True and r.checks["seen"].detail == "no sighted pass on this screen"
+    assert r.passed is True
+
+
+def test_six_checks_are_named_and_carried(cap):
+    assert CHECKS == ("located", "sr_quote_exact", "diverges", "not_axe", "unique", "seen")
+    r = verify(cand(cap, "f5", "Pay R1,249", 'button, "Submit"'), cap, [], percepts=[percept("Pay R1,249", box_of(cap, "f5"), "button")])
+    assert tuple(r.checks) == CHECKS and all(c.passed for c in r.checks.values())

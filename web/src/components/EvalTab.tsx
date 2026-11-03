@@ -127,7 +127,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
       <section className="surface p-4" aria-labelledby="eval-arch-h">
         <h2 id="eval-arch-h" className="m-0" style={{ fontSize: 16 }}>How Parity works, in ten seconds</h2>
         <img src="/architecture.png" alt="Parity's pipeline: per screen, the Navigator walks, Capture records, the Seer grounds, the Comparator compares and the Verifier checks; per verified finding, the Judge rates, the Fixer proposes, the Re-audit confirms and a human decides" className="block w-full mt-2" style={{ maxWidth: 1100, height: "auto", border: "1px solid var(--line)", borderRadius: 6 }} />
-        <p className="text-sm mt-2 mb-0 muted">Blue boxes are Meta models (Muse Spark 1.3); grey boxes are deterministic code. A finding exists only after the Verifier's five checks; a patch is exported only after a human approves each fix.</p>
+        <p className="text-sm mt-2 mb-0 muted">Blue boxes are Meta models (Muse Spark 1.3); grey boxes are deterministic code. A finding exists only after the Verifier's six checks; a patch is exported only after a human approves each fix.</p>
       </section>
       {results.judge && Object.keys(results.judge).length > 0 && (
         <section className="surface p-4" aria-labelledby="eval-judge-h">

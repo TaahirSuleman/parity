@@ -22,7 +22,7 @@ from parity.pipeline.seer import see
 from parity.pipeline.verifier import NOT_ANNOUNCED, locate, normalise, verify
 from parity.voice import attach_voice
 from parity.store.bundle import RunBundle
-from parity.store.models import Capture, Event, Finding, FindingStatus, Judgement, ModelCall, Rejected, Run, Severity, Step
+from parity.store.models import Capture, Event, Finding, FindingStatus, Judgement, ModelCall, Percept, Rejected, Run, Severity, Step
 
 log = logging.getLogger(__name__)
 MAX_COMPARATOR_ATTEMPTS = 2
@@ -130,10 +130,10 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     run.axe_violations += len(cap.axe_violations)
     await ctx.emit("step.captured", {"index": step_index, "url": cap.url, "axe_violations": len(cap.axe_violations), "ax_nodes": len(cap.ax_nodes), "reason": reason})
 
-    percepts = []
+    percepts: list[Percept] | None = None  # None: the sighted pass did not run (an ablation, or the cap), so the verifier's `seen` check stands down
     if ctx.ablation.use_grounding and ctx.ablation.use_screenshot and not ctx.over_budget:
         percepts = await see(ctx.client, cap, run.id, model=settings.model_for("seer"), effort=ctx.ablation.effort)
-    await ctx.emit("seer.done", {"index": step_index, "percepts": [p.model_dump(mode="json") for p in percepts]})
+    await ctx.emit("seer.done", {"index": step_index, "percepts": [p.model_dump(mode="json") for p in percepts or []]})
     await ctx.bundle.flush(run.id)  # per stage, not per screen: a crash mid-screen keeps what the seer saw
 
     new_findings: list[Finding] = []
@@ -145,7 +145,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
         if ctx.over_budget:  # checked before every call, not only before the first (review M1)
             break
         candidates = await compare(
-            ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
+            ctx.client, cap, percepts or [], run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
             use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree, unparseable_retry=unparseable_retry,
         )
         await ctx.emit("comparator.candidates", {"index": step_index, "n": len(candidates), "attempt": attempt, "parse_ok": getattr(candidates, "parse_ok", True)})
@@ -165,7 +165,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
                 if (repeat is not None and repeat.backend_id in verified_ids) or signature in seen:
                     continue  # the model re-listed something it already proposed: not a new candidate, not a second red row
             seen.add(signature)
-            result = verify(cand, cap, ctx.findings)
+            result = verify(cand, cap, ctx.findings, percepts)
             if result.passed and result.element is not None:
                 role, name = _sr_role_name(result.element, cap, cand.sr_quote)
                 finding = Finding(

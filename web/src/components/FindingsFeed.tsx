@@ -71,7 +71,7 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
       )}
       {items.length === 0 && (
         <p className="muted m-0 p-5" role={phase === "idle" ? undefined : "status"}>
-          {phase === "idle" && `Parity walks the ${flowName} as a sighted shopper and as a screen-reader user, then shows where the two differ, proves each gap against the page's accessibility tree, and proposes a fix for a human to approve. Replay plays a recorded run with no model calls; Live runs the pipeline against the demo store. Run the audit to start.`}
+          {phase === "idle" && `Parity walks the ${flowName} as a sighted shopper and a screen-reader user, proves each gap and proposes a fix for a human to approve: Run the audit to start (Replay is a recorded run with no model calls).`}
           {phase === "running" && "Capturing the page and comparing what is seen with what is announced…"}
           {phase === "finished" && (outcome
             ? (steps.length === 0 ? `The site stopped the walk before any screen was audited: ${outcome}.` : `The walk ended early (${outcome}); no divergences passed the verifier on the screens it audited.`)

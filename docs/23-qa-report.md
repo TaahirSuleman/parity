@@ -597,9 +597,59 @@ with every revision; the money caps are index-backed and do not).
   not a web page: image/png" at once); a page whose words never hold still (a ticker) ran the whole wait (now 3 s past the floor at most); a later screen
   of a multi-screen walk had no wait (now `settle` runs the same wait, capped at 5 s, on a guarded page and never ends the walk). Six tests hold these
   (`shadow-wall.html`, `shadow-app.html`, `/img-final`, `late-hop.html`, `ticker.html`, `test_settle_waits_for_a_guarded_page_to_fill_itself_in`).
+- **Paint check, added with the review's fixes and calibrated on the eight hosted screenshots:** once the word count has settled, a page of 50 or more
+  elements must also show as ink (5 % of a 160×90 thumbnail off its dominant colour; a pure loader or a blank page is near 0, the sparsest real page seen, a
+  bot wall, is 17 %). FlySafair's own blank frame measures 13 % because of its cookie banner, so this check guards pure overlays only
+  (`overlay.html`, `overlay-forever.html`); what catches a loader phase is the word count, which on FlySafair is 18 characters while the loader shows and
+  1 627 once the content is in (local probe with the app's guarded browser).
 - **gov.za:** 313 nodes, 12 axe violations. Two verified findings, both the masthead logo link: a sighted visitor reads "REPUBLIC OF SOUTH AFRICA" and
   "South African Government", a screen reader hears link, "Home"; the judge rated both minor (the link still goes home). Eight rejected with reasons:
   six copies of a "more>" link the comparator proposed six times (the visible text equals the name: not a divergence), a menu toggle axe already reports,
   and a conference image the comparator called "not announced" while the tree names it. The judge's two calls were 92 % of the cost. Observation, not a
   defect: six identical rejected rows is noise a reader scrolls past; the comparator could be told that a candidate it has already made is not to be
   repeated, or the feed could fold identical rejections.
+
+Batch 2 (the per-visitor hour had to pass: 20:27–20:32 SAST, the same revision):
+
+| Page | Run | Outcome | Verified / rejected | Judged barriers | axe | Cost | Time |
+|---|---|---|---|---|---|---|---|
+| `https://www.bbc.com/news` (news, heavy, a cookie banner) | `20261103-182732-d823d351` | done | 2 / 1 | 1 | 2 | $0.09 | 2 m 7 s |
+| `https://www.flysafair.co.za/` (airline booking, an app shell) | `20261103-182944-0c625eeb` | done, on a frame the page had not painted (below) | 9 / 7 | 7 | 10 | $0.18 | 2 m 37 s |
+
+- **BBC News:** 537 nodes, 2 axe violations; the capture is sound (the grey band is an empty ad slot). One serious barrier the judge rated under WCAG 2.5.3
+  and 4.1.2: the top-left control shows a magnifier beside the hamburger and is named only "Open menu", so a screen-reader user cannot find the search a
+  sighted one sees; one minor (a composite election image whose alt names Trump and a voter but not the raised fist). One candidate rejected (the same
+  icon, claimed "not announced", with a box that landed on nothing). The judge's two calls were 90 % of the cost.
+- **FlySafair: found, the sharpest shortfall of the day.** The capture's screenshot was a grey field with only the cookie banner, while its tree held 257
+  nodes: the seer listed three percepts (the banner's sentence, its link, its button) and the comparator, given that screenshot and that tree, wrote nine
+  "sighted" descriptions from the tree alone ("Origin airport search input", "FlySafair brand logo image in the header"); the verifier passed all nine
+  (each box landed on a tree node, each quote matched the tree, each text differed from the name) and the judge rated seven of them barriers, one
+  critical. The hosted workbench shows nine boxes drawn on a blank page. **RCA, two causes.** (1) Timing: the site keeps an app loader (18 characters of
+  text, 34 elements) over the viewport while its content arrives; locally the content is in by 3–5 s after `load`. A capture is not atomic: the screenshot
+  is taken first, the tree a moment later, so on the slower hosted machine the screenshot caught the loader and the tree caught the content. The render
+  wait fixes this: it does not return while the word count is 18, and the capture then follows a settled page. With the fix the same pipeline run locally
+  against the real page captures 257 nodes with an 83 % painted frame in 7.6 s. (2) A gap in the verifier: nothing ties a candidate's "sighted" text to
+  what the sighted pass saw. The seer's percepts are the grounding, yet a candidate needs no percept behind it, so a tree-only candidate passes every
+  check when its box lands on a node. A `seen` check (the candidate's text or box must match a percept) would have rejected all nine; it is not added
+  tonight because it changes recall on the eval set whose numbers the README quotes (`eval/results/final.json`; a re-run is about an hour and $5), so it
+  is proposed as the next task with the re-run in its scope. The render wait removes the condition that produced the nine.
+- **Spend, both batches:** $0.36 of model calls (batch 1 $0.09, batch 2 $0.27); the day's total through the field $0.58.
+
+**Per-page log, all eight pages run through the hosted field today** (one screen each; outcome as the run recorded it on the revision it ran on):
+
+| Page | Kind | Outcome | Verified / rejected | Barriers | axe | Cost | Time | Fit for the demo |
+|---|---|---|---|---|---|---|---|---|
+| Wikipedia, Screen reader | content article | done | 3 / 0 | 0 | 3 | $0.16 | 2 m 8 s | shows the judge's nuance (verified, not a barrier); no barrier to act on; the costliest page |
+| mozilla.org → firefox.com | marketing, cross-host redirect | done | 2 / 2 | 0 | 0 | $0.04 | 1 m 55 s | cheap and quick; tells the redirect story; no barrier |
+| ticketmaster.com | bot-walled | wall audited as a page; after the fix `blocked by site` at $0 | 2 / 1 | 0 | 4 | $0.02 | 1 m 39 s | the honesty beat: a wall named in seconds, no model call |
+| takealot.com home | e-commerce app shell | spinner captured; after the fix a full page (877 nodes locally) | 0 / 1 | 0 | 3 | $0.002 | 1 m 5 s | re-run after the deploy before judging |
+| takealot.com product | e-commerce app shell | spinner captured; the spinner judged a barrier | 1 / 0 | 1 | 3 | $0.02 | 1 m 3 s | re-run after the deploy before judging |
+| gov.za | government portal | done | 2 / 8 | 0 | 12 | $0.06 | 2 m 31 s | dense page, 12 axe violations, the verifier's rejections visible; findings minor |
+| bbc.com/news | news | done | 2 / 1 | 1 | 2 | $0.09 | 2 m 7 s | **a serious barrier on a famous page, a clean frame, two minutes, nine cents** |
+| flysafair.co.za | airline booking app shell | frame unpainted; after the fix a painted page (257 nodes, 83 % ink locally) | 9 / 7 | 7 | 10 | $0.18 | 2 m 37 s | re-run after the deploy: a booking form with unlabeled airport fields and icon glyphs would be the richest page, at the highest cost |
+
+**Demo pick.** BBC News is the safe choice now: two minutes, nine cents, one serious barrier a judge can see at a glance (a magnifier named "Open menu")
+and a frame that reads as the BBC. FlySafair is the candidate for the richer story (a booking form a South African audience knows, several barriers on
+the fields a traveller must use) once the post-deploy re-run shows the same findings on a painted frame; it is the slowest and dearest page of the set.
+Ticketmaster is the thirty-second honesty beat before either. Time per page is set by the model calls, 1–2.5 minutes for one screen; the judge is
+85–95 % of the cost on every page, so a page with more verified findings costs more, not a page with more nodes.

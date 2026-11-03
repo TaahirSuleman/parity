@@ -459,6 +459,7 @@ bot-walled site ends "blocked by site" and the notice says so; the policy page o
   cost and seconds in the QA report (docs/23); fill `PARITY_SUGGESTED_URLS` with the two that ran well plus the W3C home page; check the
   private-address refusal on the hosted URL. **Gate (hosted):** all three outcomes honest and shown in the UI.
   Run 3 Nov 18:30–18:37 SAST on revision parity-00010-7hm (docs/23 §10.5): Wikipedia done 3 verified $0.16; mozilla.org landed on firefox.com, done 2 verified $0.04; Ticketmaster served a Kasada wall that was audited as a page (2 "findings" on the wall's own words, $0.02): not honest, fixed (the wall is known by its title and its words; the run ends `blocked by site: bot challenge` before any model call) with the landed host named from `run.landed`. $0.22 in all.
+  Stress test, five more pages (3 Nov 19:27–20:32 SAST, revision parity-00011-tmg, docs/23 §10.6): takealot.com home and product captured as one spinner node (fixed: a bounded render wait before the first capture, with a word floor, a stillness rule and a paint check); gov.za done 2 verified $0.06; bbc.com/news done, one serious barrier, $0.09, 2 m 7 s; flysafair.co.za captured on an unpainted frame with nine tree-only "findings" (the render wait removes the condition; a verifier `seen` check against the seer's percepts is the proposed next task, with the eval re-run). Demo pick: BBC News now, FlySafair after the post-deploy re-run. $0.36.
 
 ---
 

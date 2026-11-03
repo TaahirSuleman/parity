@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import io
 import logging
 import re
 import time
+from collections import Counter
 from urllib.parse import urlsplit
 
+from PIL import Image
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
@@ -33,6 +36,10 @@ RENDER_STILL_S = 3.0  # once the floor is cleared, at most this long for the wor
 RENDER_MIN_TEXT = 40  # visible characters that make a page a page rather than a spinner
 RENDER_MIN_ELEMENTS = 50  # or this many elements: an image-led page has few words
 RENDER_POLL_MS = 500
+# A built tree must show as ink: www.flysafair.co.za (3 Nov) keeps a loader over the page while its content arrives, so a capture's screenshot was a grey
+# field with the cookie banner (2 % of a thumbnail off its dominant colour) while its tree held 257 nodes; the sparsest real page seen (a bot wall) is 17 %.
+RENDER_PAINT_ELEMENTS = 50
+RENDER_PAINT_INK = 0.05
 WEB_PAGE_TYPES = ("text/html", "application/xhtml+xml")
 NOT_WEB_PAGE = "the address is not a web page: {}"
 # the visible words and the elements, read through open shadow roots as the wall probe reads them (a web-components site keeps its words there)
@@ -54,9 +61,18 @@ _RENDERED_JS = """() => {
 }"""
 
 
+async def ink(png: bytes) -> float:
+    """The share of a 160×90 thumbnail of the screenshot that is not its dominant colour: a loader overlay or a blank page is near zero."""
+    small = Image.open(io.BytesIO(png)).convert("RGB").resize((160, 90))
+    data = small.tobytes()
+    counts = Counter(data[i:i + 3] for i in range(0, len(data), 3))
+    return 1 - counts.most_common(1)[0][1] / (160 * 90)
+
+
 async def wait_rendered(page: Page, timeout_s: float = RENDER_WAIT_S) -> str | None:
-    """Wait, bounded, until the page shows words (or many elements) and their count is the same on two polls, or has held the floor
-    for RENDER_STILL_S; None once it has rendered, else one sentence saying it never did, or that the address is not a web page.
+    """Wait, bounded, until the page shows words (or many elements), their count is the same on two polls or has held the floor for
+    RENDER_STILL_S, and a big tree shows as ink in the screenshot; None once it has rendered, else one sentence saying it never did, or
+    that the address is not a web page.
     Returns at once when the guard has aborted a navigation the page started: settle_redirects names that."""
     deadline = time.monotonic() + timeout_s
     last: tuple[int, int] | None = None
@@ -75,15 +91,19 @@ async def wait_rendered(page: Page, timeout_s: float = RENDER_WAIT_S) -> str | N
         measure = (int(now.get("text") or 0), int(now.get("elements") or 0))
         shown = measure[0] >= RENDER_MIN_TEXT or measure[1] >= RENDER_MIN_ELEMENTS
         t = time.monotonic()
+        painted: bool | None = None
         if shown:
             shown_at = shown_at if shown_at is not None else t
             if measure == last or t - shown_at >= RENDER_STILL_S:
-                return None
+                painted = measure[1] < RENDER_PAINT_ELEMENTS or await ink(await page.screenshot()) >= RENDER_PAINT_INK
+                if painted:
+                    return None
+                # a built page nothing of which shows: a loader over it; keep waiting for it to lift
         else:
             shown_at = None  # the page emptied again (a navigation mid-wait): the next document gets its own stillness clock
         last = measure
         if t >= deadline:
-            return None if shown else f"the page showed no content after {int(round(timeout_s))} s: a loading screen at most"
+            return None if shown and painted is not False else f"the page showed no content after {int(round(timeout_s))} s: a loading screen at most"
         await page.wait_for_timeout(RENDER_POLL_MS)
 
 

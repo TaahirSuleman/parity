@@ -725,3 +725,35 @@ async def test_a_page_that_never_holds_still_is_captured_within_the_stillness_ca
     assert run.status == RunStatus.done and len(loaded.steps) == 1, run.error
     opened = next(e for e in loaded.events if e.type == "step.captured").at - next(e for e in loaded.events if e.type == "run.started").at
     assert opened.total_seconds() < 8, opened
+
+
+async def test_a_page_hidden_behind_a_loader_overlay_is_captured_once_it_shows(tmp_path, fixture_url):
+    """The hosted verification of 26F.6 (3 Nov): www.flysafair.co.za keeps an app loader over the page while its content arrives, so the
+    capture's screenshot was a grey field with the cookie banner while its tree held 257 nodes, and nine "findings" were made from the
+    tree alone. The wait also asks the screenshot for ink where the tree has elements, so a built page behind a loader is not yet a page."""
+    import io
+
+    from PIL import Image
+    from parity.pipeline.runner import run_flow
+
+    flow = _public_flow(f"{fixture_url}/overlay.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=_guarded_factory(), render_wait_s=6.0)
+        loaded = await bundle.load(run.id)
+        png = await bundle.read_screenshot(run.id, 0) if loaded.steps else b""
+    assert run.status == RunStatus.done and len(loaded.steps) == 1, run.error
+    pixels = list(Image.open(io.BytesIO(png)).convert("RGB").resize((160, 90)).getdata())
+    dominant = max(set(pixels), key=pixels.count)
+    assert sum(1 for px in pixels if px != dominant) / len(pixels) > 0.05  # the words are in the picture, not only in the tree
+
+
+async def test_a_page_that_never_paints_ends_with_the_reason(tmp_path, fixture_url):
+    """A loader that never lifts is a loading screen, whatever the tree holds behind it."""
+    from parity.pipeline.runner import run_flow
+
+    flow = _public_flow(f"{fixture_url}/overlay-forever.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=_guarded_factory(), render_wait_s=2.0)
+    loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and client.calls == [] and not loaded.steps
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "the page showed no content after 2 s: a loading screen at most"

@@ -1,0 +1,79 @@
+{
+  "page": "checkout",
+  "clip": "checkout.wav",
+  "recorded_at": "2026-11-03T15:00:27.505000+00:00",
+  "duration_ms": 180153,
+  "sample_rate": 16000,
+  "stops": [
+    {
+      "t_ms": 8847,
+      "dom_id": "body > header:nth-of-type(1) > nav:nth-of-type(1) > a:nth-of-type(1)",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 12496,
+      "dom_id": "body > header:nth-of-type(1) > nav:nth-of-type(1) > a:nth-of-type(2)",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 14789,
+      "dom_id": "returns-link",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 19068,
+      "dom_id": "order-note",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 22846,
+      "dom_id": "name",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 29062,
+      "dom_id": "card",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 40708,
+      "dom_id": "exp",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 46806,
+      "dom_id": "f4",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 49463,
+      "dom_id": "f5",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 57508,
+      "dom_id": "f6",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 59890,
+      "dom_id": "save-later",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 62224,
+      "dom_id": "cvv",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 73495,
+      "dom_id": "help-icon",
+      "event": "focusin"
+    },
+    {
+      "t_ms": 76876,
+      "dom_id": "express-pay",
+      "event": "focusin"
+    }
+  ]
+}

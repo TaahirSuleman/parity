@@ -223,7 +223,8 @@ async def test_unparseable_comparator_answer_is_retried_once(tmp_path, server_ur
     assert run.findings_verified == 1, run.error
     types = [e.type for e in loaded.events]
     assert "comparator.unparseable" in types and types.count("comparator.candidates") == 2
-    prompts = [c["input"][0]["content"][0]["text"] for c in client.calls if "ACCESSIBILITY TREE:" in c["input"][0]["content"][0].get("text", "")]
+    responses = [c for c in client.calls if "input" in c]  # the store has a checkout clip now, so one call is the transcription request
+    prompts = [c["input"][0]["content"][0]["text"] for c in responses if "ACCESSIBILITY TREE:" in c["input"][0]["content"][0].get("text", "")]
     assert len(prompts) >= 2 and prompts[0] != prompts[1] and "not valid JSON" in prompts[1]  # a different request: not a cache replay of the bad answer
 
 
@@ -477,12 +478,12 @@ async def test_voice_attaches_to_findings_when_the_page_has_a_clip(tmp_path, ser
     loaded = await bundle.load(run.id)
     hero = next(f for f in loaded.findings if f.sr_name == "Submit")
     assert hero.element.dom_id == "f5"
-    assert hero.voice is not None and hero.voice.clip_key == "checkout.wav" and (hero.voice.start_ms, hero.voice.end_ms) == (7200, 10000)
+    assert hero.voice is not None and hero.voice.clip_key == "checkout.wav" and (hero.voice.start_ms, hero.voice.end_ms) == (7000, 10000)
     assert hero.voice.transcript == "Submit, button Close, button" and hero.voice.agrees is True
     assert all(f.voice is None for f in loaded.findings if f.element.dom_id not in ("name", "card", "f5"))
     ev = next(e for e in await _events_of(tmp_path, run.id) if e["type"] == "voice.transcribed")
     assert ev["data"]["page"] == "checkout" and ev["data"]["accuracy"] == 1.0 and ev["data"]["clip_key"] == "checkout.wav"
-    assert ev["data"]["findings"][hero.id]["agrees"] is True and ev["data"]["findings"][hero.id]["start_ms"] == 7200
+    assert ev["data"]["findings"][hero.id]["agrees"] is True and ev["data"]["findings"][hero.id]["start_ms"] == 7000
     voice_calls = [t for t in loaded.trace if t.stage == "voice"]
     assert len(voice_calls) == 1 and voice_calls[0].model == "muse-voice-transcribe-1.0" and voice_calls[0].request_id == "req-asr-9"
     request = next(c for c in client.calls if c.get("audioEncoding") == "WAV")

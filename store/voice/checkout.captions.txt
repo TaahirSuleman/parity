@@ -1,0 +1,31 @@
+522	Parity recording started
+2595	You are currently on web content. To enter the web area, press Control-Option-Shift-Down Arrow.
+9622	link Shop Primary navigation
+12678	You are currently on a link. To click this link, press Control-Option-Space.
+18541	link Cart
+20253	You are currently on a link. To click this link, press Control-Option-Space.
+26213	link Returns policy Your order region
+29911	You are currently on a link. To click this link, press Control-Option-Space.
+35843	Note for the courier text entry area
+38850	You are currently on a text area.
+42474	T Suleman contents selected Name on card edit text Payment region
+47948	You are currently on a text field. To enter text in this field, type.
+53461	4111 1111 1111 111 contents selected Card number edit text
+62766	You are currently on a text field. To enter text in this field, type.
+68788	09/27 contents selected Expiry edit text
+74031	You are currently on a text field. To enter text in this field, type.
+79729	
+79995	link Click here
+81646	You are currently on a link. To click this link, press Control-Option-Space.
+88143	Submit button
+89740	You are currently on a button. To click this button, press Control-Option-Space.
+96306	Close button
+98123	You are currently on a button. To click this button, press Control-Option-Space.
+104595	Save for later button
+106324	You are currently on a button. To click this button, press Control-Option-Space.
+112579	CVV edit text blank
+115311	You are currently on a text field. To enter text in this field, type.
+121111	Help button
+122798	You are currently on a button. To click this button, press Control-Option-Space.
+128682	Button button
+130208	You are currently on a button. To click this button, press Control-Option-Space.

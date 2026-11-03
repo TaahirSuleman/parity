@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "Total: R1,249.00",
-  "sr_quote": "text, \"Total:\"",
-  "why_it_matters": "Blind user hears only Total without the amount and does not know what will be charged.",
+  "sighted_text": "Terms",
+  "sr_quote": "link, \"Click here\"",
+  "why_it_matters": "Blind user hears generic Click here instead of Terms and loses the link purpose.",
   "bbox": {
-   "x_min": 146,
-   "y_min": 462,
-   "x_max": 267,
-   "y_max": 491
+   "x_min": 672,
+   "y_min": 450,
+   "x_max": 703,
+   "y_max": 471
   },
   "attempt": 1
  },
@@ -20,7 +20,7 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#returns-link"
+    "detail": "text at body > main:nth-of-type(1) > section:nth-of-type(2) > p:nth-of-type(1)"
    },
    "sr_quote_exact": {
     "passed": false,
@@ -40,16 +40,16 @@
    }
   },
   "element": {
-   "backend_id": 32,
-   "css_path": "a#returns-link",
+   "backend_id": 91,
+   "css_path": "body > main:nth-of-type(1) > section:nth-of-type(2) > p:nth-of-type(1)",
    "box_px": [
-    187,
-    340,
-    288,
-    357
+    877,
+    327,
+    881,
+    342
    ],
-   "outer_html": "<a id=\"returns-link\" href=\"#returns\">Returns policy</a>",
-   "dom_id": "returns-link"
+   "outer_html": "<p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>",
+   "dom_id": null
   },
   "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
  }

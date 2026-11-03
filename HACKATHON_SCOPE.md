@@ -23,9 +23,10 @@
 | pytest, pytest-asyncio | tests | MIT |
 | React, Vite, TypeScript, Tailwind CSS | workbench | MIT / Apache-2.0 |
 | Playwright Docker base image | deploy image | Apache-2.0 |
+| sounddevice (PortAudio), BlackHole 2ch | the VoiceOver recording kit only (`scripts/vo_record.py`, run by hand on a Mac to make `store/voice/*.wav`); neither runs in the app | MIT / MIT (BlackHole, existential.audio) |
 | W3C WAI "Before and After Demonstration" (BAD) pages, `https://www.w3.org/WAI/demos/bad/` | an external, labelled benchmark we did not write: the four "before" pages are audited read-only in the eval and offered as Replay and Live flows; the recorded bundles under `fixtures/replay/runs/w3c-*` carry W3C's notice | W3C document licence (Copyright © 2012 W3C® (MIT, ERCIM, Keio)) |
 
 No pre-existing application code, models, datasets or prompts are reused. The README quotes only numbers measured here; any public statistic shown in the video is cited on screen.
 
 ## Models at runtime
-Only Meta models: `muse-spark-1.3-contributor` (default for navigation, perception, comparison and fixes), `muse-spark-1.3` (the judge, the judge fallback and private mode); `muse-wonder-1.0` was measured as an alternative judge in the eval and is not used at runtime. `muse-voice-transcribe-1.0` (transcribing recorded VoiceOver audio) is planned for a later phase and is part of the submission only if the README says so. Playwright and axe-core are not models. VoiceOver is Apple's screen reader; if used, it only records audio clips and is never called at runtime.
+Only Meta models: `muse-spark-1.3-contributor` (default for navigation, perception, comparison and fixes), `muse-spark-1.3` (the judge, the judge fallback and private mode); `muse-wonder-1.0` was measured as an alternative judge in the eval and is not used at runtime. `muse-voice-transcribe-1.0` transcribes the recorded VoiceOver clip of the checkout page once per run that audits it (the README states the measured word accuracy, 0.96, and that Voice is primary evidence beside the accessibility tree). Playwright and axe-core are not models. VoiceOver is Apple's screen reader; if used, it only records audio clips and is never called at runtime.

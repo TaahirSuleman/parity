@@ -167,7 +167,8 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
       if (!run) return state;
       const duration = Number(ev.duration_ms ?? Math.max(0, new Date(ev.at).getTime() - new Date(run.started_at).getTime()));  // the recorded run's time, not the replay's
       const agent = (ev.agent as RunState["agent"] | undefined) ?? null;
-      const outcome = agent
+      const said = state.timeline.at(-1)?.label;  // the guard's own row already says it (a wall, a refused hop): one line, not two
+      const outcome = agent && outcomeLabel(agent) !== said
         ? [{ turn: agent.turns, kind: "outcome" as const, at: ev.at, label: outcomeLabel(agent) }]
         : [];
       return {

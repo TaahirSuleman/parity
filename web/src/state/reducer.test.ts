@@ -287,3 +287,17 @@ describe("run.landed (the hosted verification of 26F.6)", () => {
     expect(state.timeline).toHaveLength(0);
   });
 });
+
+describe("a run ended by the site (the hosted re-check of 26F.6)", () => {
+  it("does not repeat the guard's row as the outcome row when they say the same thing", () => {
+    const started: ParityEvent = { type: "run.started", run_id: "r11", at: "2026-11-03T18:54:22Z", flow_id: "url-827ea58d", mode: "live", goal: "Read", target_url: "https://www.ticketmaster.com/",
+      single_page: true, public: true, attribution: "www.ticketmaster.com · audited read-only at a visitor's request", source: "visitor-url", origin: "https://www.ticketmaster.com" };
+    const blocked: ParityEvent = { type: "nav.blocked", run_id: "r11", at: "2026-11-03T18:54:30Z", turn: 0, url: "https://www.ticketmaster.com/", reason: "blocked by site: bot challenge" };
+    const finished: ParityEvent = { type: "run.finished", run_id: "r11", at: "2026-11-03T18:54:31Z", status: "done", findings_verified: 0, findings_rejected: 0, axe_violations: 0, tokens: 0, cost_usd: 0,
+      fixes_proposed: 0, pending: 0, agent: { turns: 0, finished: false, finish_forced: false, summary: "blocked by site: bot challenge" }, final_url: "https://www.ticketmaster.com/", duration_ms: 9000 };
+    const state = [started, blocked, finished].reduce(reduce, initialState);
+    expect(state.phase).toBe("finished");
+    expect(state.agent?.summary).toBe("blocked by site: bot challenge");
+    expect(state.timeline.filter((r) => r.label === "blocked by site: bot challenge")).toHaveLength(1);
+  });
+});

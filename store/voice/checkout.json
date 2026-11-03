@@ -1,77 +1,77 @@
 {
   "page": "checkout",
   "clip": "checkout.wav",
-  "recorded_at": "2026-11-03T15:00:27.505000+00:00",
-  "duration_ms": 180153,
+  "recorded_at": "2026-11-03T16:49:15.003000+00:00",
+  "duration_ms": 180148,
   "sample_rate": 16000,
   "stops": [
     {
-      "t_ms": 8847,
+      "t_ms": 9339,
       "dom_id": "body > header:nth-of-type(1) > nav:nth-of-type(1) > a:nth-of-type(1)",
       "event": "focusin"
     },
     {
-      "t_ms": 12496,
+      "t_ms": 18393,
       "dom_id": "body > header:nth-of-type(1) > nav:nth-of-type(1) > a:nth-of-type(2)",
       "event": "focusin"
     },
     {
-      "t_ms": 14789,
+      "t_ms": 25926,
       "dom_id": "returns-link",
       "event": "focusin"
     },
     {
-      "t_ms": 19068,
+      "t_ms": 35583,
       "dom_id": "order-note",
       "event": "focusin"
     },
     {
-      "t_ms": 22846,
+      "t_ms": 42179,
       "dom_id": "name",
       "event": "focusin"
     },
     {
-      "t_ms": 29062,
+      "t_ms": 53231,
       "dom_id": "card",
       "event": "focusin"
     },
     {
-      "t_ms": 40708,
+      "t_ms": 68374,
       "dom_id": "exp",
       "event": "focusin"
     },
     {
-      "t_ms": 46806,
+      "t_ms": 79416,
       "dom_id": "f4",
       "event": "focusin"
     },
     {
-      "t_ms": 49463,
+      "t_ms": 87916,
       "dom_id": "f5",
       "event": "focusin"
     },
     {
-      "t_ms": 57508,
+      "t_ms": 96086,
       "dom_id": "f6",
       "event": "focusin"
     },
     {
-      "t_ms": 59890,
+      "t_ms": 104205,
       "dom_id": "save-later",
       "event": "focusin"
     },
     {
-      "t_ms": 62224,
+      "t_ms": 112278,
       "dom_id": "cvv",
       "event": "focusin"
     },
     {
-      "t_ms": 73495,
+      "t_ms": 120915,
       "dom_id": "help-icon",
       "event": "focusin"
     },
     {
-      "t_ms": 76876,
+      "t_ms": 128377,
       "dom_id": "express-pay",
       "event": "focusin"
     }

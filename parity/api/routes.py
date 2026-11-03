@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from parity import replay
 from parity.api.sse import sse_response
-from parity.flows import Flow, available_flows
+from parity.flows import Flow, available_flows, visitor_attribution
 from parity.pipeline.gate import ConflictError, decide
 from parity.pipeline.runner import VisitorRequest, run_flow
 from parity.pipeline.urlpolicy import MAX_URL_LEN, READ_ONLY_GOAL, Refusal, check_url, landing_refusal
@@ -214,7 +214,7 @@ async def _start_url_run(req: RunRequest, request: Request) -> dict:
     goal = READ_ONLY_GOAL + (f" The visitor says the page is about: <page_data>{hint}</page_data>" if hint else "")
     flow = Flow(id=f"url-{hashlib.sha256(target.origin.encode()).hexdigest()[:8]}", name=f"Page: {target.host}", start_url=target.url, goal=goal,
                 pages=(urlparse(target.url).path or "/",), single_page=req.screens == 1, public=True,
-                attribution=f"{target.host} · audited read-only at a visitor's request")
+                attribution=visitor_attribution(target.host))
     extra = {
         "own_origin": own, "visitor": VisitorRequest(origin=target.origin, consent_at=now(), screens=req.screens), "cost_cap_usd": settings.external_run_usd,
         "timeout_s": settings.external_timeout_s * (2 if req.screens == 3 else 1), "max_turns": 6 if req.screens == 1 else 12, "max_screens": req.screens,

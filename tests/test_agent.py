@@ -635,3 +635,26 @@ async def test_a_walk_follows_the_landed_origin_after_a_redirect(tmp_path, fixtu
     assert result["finished"] is True and result["summary"] == "done", result
     assert not [e for e in loaded.events if e.type == "nav.blocked"]
     assert loaded.run.origin == f"http://127.0.0.1:{fixture_url.port}" and len(loaded.steps) == 2
+
+
+SHADOW_WALL_HTML = """<html><head><title>Tickets</title></head><body><abuse-component action="block"></abuse-component>
+<script>customElements.define("abuse-component", class extends HTMLElement { connectedCallback() {
+  const root = this.attachShadow({mode: "open"});
+  root.append(document.createTextNode("Your Browsing Activity Has Been Paused"));  // a text node right under the shadow root (review M1)
+  root.innerHTML += "<p>We’ve detected unusual behavior on either your network or your browser.</p>";
+} });</script></body></html>"""
+
+
+async def test_wall_reason_reads_the_words_of_a_wall_behind_a_shadow_root(page):
+    """Ticketmaster's wall (3 Nov) is a custom element whose words live in a shadow root under the site's own title: the probe reads
+    the visible words through shadow roots, so the wall is known before anything is captured or sent; a short page of ordinary
+    words and a long page that quotes a wall's words are not walls."""
+    from parity.agent.loop import wall_reason
+
+    await page.set_content(SHADOW_WALL_HTML)
+    assert await wall_reason(page) == "blocked by site: bot challenge"
+    await page.set_content("<html><head><title>Tickets</title></head><body><h1>Tickets</h1><p>Buy tickets to concerts near you.</p></body></html>")
+    assert await wall_reason(page) is None
+    article = "<p>A CAPTCHA asks: are you a robot?</p>" + "<p>More text about the history of the test and the people who built it.</p>" * 80
+    await page.set_content(f"<html><head><title>CAPTCHA - Wikipedia</title></head><body>{article}</body></html>")
+    assert await wall_reason(page) is None

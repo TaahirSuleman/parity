@@ -516,3 +516,51 @@ Met with a test, three benign deviations reasoned in code (bundle names `w3c-*`,
   line sits under it, the run ends with 2 verified and 16 rejected at $0.05, "recorded 3 m 6 s", the selected card says fixes and re-audits are not
   offered on pages we do not serve. The same bundle streamed through the API from `run.started` (public, attribution) to `run.finished` (done, 2 verified).
 - Not run here (the user's call): the three third-party Live pages of 26F.6 (about $0.15) and the suggested list that follows; the bucket's soft delete.
+
+### 10.5 The three third-party pages (3 Nov 18:30–18:37 SAST, revision `parity-00010-7hm`, through the hosted field's API, the Wikipedia run watched in the hosted UI)
+| Page | Run | Outcome | Verified / rejected | axe | Cost | Time |
+|---|---|---|---|---|---|---|
+| `https://en.wikipedia.org/wiki/Screen_reader` | `20261103-163051-c0d8a1fd` | done | 3 / 0 | 3 | $0.16 | 2 m 8 s |
+| `https://www.mozilla.org/en-US/firefox/` (landed on `https://www.firefox.com/en-US/`) | `20261103-163303-03243ca6` | done | 2 / 2 | 0 | $0.04 | 1 m 55 s |
+| `https://www.ticketmaster.com/` | `20261103-163501-c82ce1d2` | done, but on a bot wall audited as a page (below) | 2 / 1 | 4 | $0.02 | 1 m 39 s |
+
+- **Wikipedia:** the pill pressed, the header named `en.wikipedia.org` with the attribution line, the axe count and the page screenshot arrived while the
+  run went. The judge rated none of the three a barrier: the citation-needed image's alt is "icon"; a video placeholder is announced "Unable to play media."
+  beside a working Play button; "challenged" in the banner sentence is plain text (the adjacent "removed" link reaches the same policy). The three judge
+  calls were 95 % of the cost (36 k tokens each, the page's 1 081-node tree): the per-run cap of $0.50 holds, but a page this size spends $0.05 a finding.
+- **Mozilla → Firefox:** the typed address redirected across hosts; the guard judged the hop, `landing_refusal` applied the deny list and robots.txt at
+  `www.firefox.com`, and the run recorded the landed origin. Two findings (the hero illustration's alt "Kit over the Firefox Desktop Browser"; the download icon
+  hidden from the tree), neither a barrier; two candidates rejected with the verifier's reasons ("Scroll to see more" is not a divergence; "Flights" names no
+  element). **Found:** the hosted workbench said "Audited www.mozilla.org" and carried mozilla.org's attribution over a screenshot of firefox.com, during the
+  run and on reload, because the host and the attribution come from `run.started`, which carries the typed address. **RCA:** the record held the landed
+  origin, the stream never said so. **Fixed** (`test_a_visitor_run_says_where_the_address_landed`, a reducer test): `_landed` emits `run.landed {origin,
+  host, attribution}` when the landed origin differs from the typed one; the reducer moves the run's origin and attribution and adds a timeline row ("the
+  address redirected to www.firefox.com; audited there"); the header, the folded panel and the attribution follow. This also closes the deferred minor from
+  §10.3 (the header naming the typed host until reload).
+- **Ticketmaster:** the page served to the Cloud Run egress address (34.96.46.51) was a Kasada wall, 11 accessibility nodes: title "Let's Get Your Identity
+  Verified", words "Your Browsing Activity Has Been Paused · We've detected unusual behavior on either your network or your browser", a support ID. (From a
+  home connection with the Parity user agent the real page answers.) Parity audited the wall as the page: the comparator reported the wall's own sentence as
+  plain text and a one-character misreading of the support ID; both passed the verifier (the quotes were exact, the texts differed) and the judge called
+  neither a barrier. **Not honest:** the plan asked for the outcome `blocked by site` and the workbench said "Audit finished: 2 verified findings".
+  **RCA:** `challenge_reason` knew walls by a title list, a marker list and a login path; this wall's title was not on the list, its markers were Kasada's
+  (none listed) and its words live in a custom element's shadow root, which `innerText` would not have read anyway. **Fixed**
+  (`test_challenge_reason_reads_a_wall_from_its_title_or_its_words`, `test_wall_reason_reads_the_words_of_a_wall_behind_a_shadow_root`): the title list gains
+  "identity verified", "browsing activity has been paused", "pardon the interruption", "request blocked", "bot detection", "human verification"; the probe
+  reads the page's visible words through open shadow roots (capped at 4 000 characters) and a short page (≤ 3 000 characters) whose words say "browsing
+  activity has been paused", "detected unusual behavior/traffic on/from", "verify you are human", "are you a robot", "access to this page has been denied",
+  "pardon our interruption", "checking your browser before", "request blocked", "enable JavaScript and cookies to continue" or "press and hold to confirm" is a
+  wall; a long page that quotes those words (an article about CAPTCHAs) is not, and neither is a router manual that says "press and hold" or a bank notice
+  about "unusual activity" (the reviewer's cases, held by tests). In the served markup the `<title>` sits inside a `<noscript>` block, so with JavaScript on the document has no title at all and the words, rendered by the
+  site's script into its custom element, are what identify it. The run now ends `blocked by site:
+  bot challenge` before any model call, at $0, and the workbench says "The site stopped the walk before any screen was audited". The hosted re-check of this
+  outcome needs the next deploy.
+- **Review of the fix (a fresh reviewer on the diff, verdict "ship with fixes"):** Critical, the SSE client subscribes to events by name and `run.landed` was
+  not in its list, so the reducer case was dead in the real app (fixed; an App test streams `run.started` then `run.landed` and reads the landed host in the
+  header, the attribution and the folded panel). Important: three short ordinary pages matched the wall words or the new titles (narrowed, negative tests
+  added); a redirect that keeps the host (http→https) raised the event and refolded the panel (now only a change of host does; test added). Minor: a text
+  node right under a shadow root has no parent element (its host stands in; the shadow-root test holds it); the curly-apostrophe branch is tested; closed
+  shadow roots are not readable (stated in the spec).
+- **Spend:** $0.22 of model calls (the $0.15 estimate did not count Wikipedia's judge calls). Nothing refused by the guard on any of the three.
+- **Suggested list (the user's call):** `https://en.wikipedia.org/wiki/Screen_reader`, `https://www.firefox.com/en-US/` (the landed address, so the header names
+  the page audited from the start) and `https://www.w3.org/WAI/demos/bad/before/home.html`; set with
+  `gcloud run services update parity --region us-central1 --update-env-vars PARITY_SUGGESTED_URLS=...`.

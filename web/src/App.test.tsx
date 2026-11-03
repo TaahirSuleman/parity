@@ -196,3 +196,17 @@ it("the day's budget being spent is said once, as the panel's status, with the p
   expect(screen.getAllByText(/closed for today/i)).toHaveLength(1);
   expect(screen.getByRole("button", { name: /Live on a page you choose/ })).toBeDisabled();
 });
+
+it("names the host the address landed on, with its attribution, once the stream says the run landed elsewhere (26F.6 hosted verification)", async () => {
+  serveUrlMode(() => ok({ run_id: "url-run-1", mode: "live" }));
+  render(<App />);
+  await startVisitorRun();
+  await waitFor(() => expect(stream("url-run-1")).toBeDefined());
+  act(() => { stream("url-run-1")!.emit("run.started", { ...visitorStarted, origin: "https://www.mozilla.org", attribution: "www.mozilla.org · audited read-only at a visitor's request", target_url: "https://www.mozilla.org/en-US/firefox/" }); });
+  await waitFor(() => expect(screen.getByRole("banner")).toHaveTextContent("www.mozilla.org"));
+  act(() => { stream("url-run-1")!.emit("run.landed", { run_id: "url-run-1", origin: "https://www.firefox.com", host: "www.firefox.com", attribution: "www.firefox.com · audited read-only at a visitor's request" }); });
+  await waitFor(() => expect(screen.getByRole("banner")).toHaveTextContent("www.firefox.com"));
+  expect(screen.getByRole("banner")).not.toHaveTextContent("www.mozilla.org");
+  expect(screen.getByTestId("attribution")).toHaveTextContent("www.firefox.com · audited read-only at a visitor's request");
+  expect(screen.getByText(/Auditing www\.firefox\.com, read-only\./)).toBeInTheDocument();  // the folded panel names it too, while the run goes
+});

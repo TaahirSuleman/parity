@@ -267,3 +267,23 @@ describe("decision announcements (docs/24 Question D)", () => {
     expect(initialState.lastDecision).toBeNull();
   });
 });
+
+describe("run.landed (the hosted verification of 26F.6)", () => {
+  const started: ParityEvent = { type: "run.started", run_id: "r10", at: "2026-11-03T16:33:03Z", flow_id: "url-67b57391", mode: "live", goal: "Read", target_url: "https://www.mozilla.org/en-US/firefox/",
+    single_page: true, public: true, attribution: "www.mozilla.org · audited read-only at a visitor's request", source: "visitor-url", origin: "https://www.mozilla.org" };
+  const landed: ParityEvent = { type: "run.landed", run_id: "r10", at: "2026-11-03T16:33:05Z", origin: "https://www.firefox.com", host: "www.firefox.com", attribution: "www.firefox.com · audited read-only at a visitor's request" };
+
+  it("moves the run to the origin the address landed on, with that host's attribution, and says so in the timeline", () => {
+    const state = reduce(reduce(initialState, started), landed);
+    expect(state.run?.origin).toBe("https://www.firefox.com");
+    expect(state.run?.attribution).toBe("www.firefox.com · audited read-only at a visitor's request");
+    expect(state.run?.target_url).toBe("https://www.mozilla.org/en-US/firefox/");  // what was typed stays on the record
+    expect(state.timeline.at(-1)).toMatchObject({ kind: "outcome", label: "the address redirected to www.firefox.com; audited there" });
+  });
+
+  it("is ignored for another run's stream", () => {
+    const state = reduce(reduce(initialState, started), { ...landed, run_id: "other" });
+    expect(state.run?.origin).toBe("https://www.mozilla.org");
+    expect(state.timeline).toHaveLength(0);
+  });
+});

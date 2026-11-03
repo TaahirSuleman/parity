@@ -120,7 +120,20 @@ async def inspect_target(page: Page, action: dict[str, Any]):
 
 _WALL_JS = """(probes) => {
   const visible = (n) => { const r = n.getBoundingClientRect(); const cs = getComputedStyle(n); return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none"; };
-  return { title: document.title || "", markers: probes.filter(sel => { try { return Array.from(document.querySelectorAll(sel)).some(visible) || (sel.startsWith("#") && !!document.querySelector(sel)); } catch (e) { return false; } }) };
+  // the page's visible words, read through shadow roots (a wall may be a custom element) and capped: a wall is short
+  const words = []; let size = 0;
+  const take = (root) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT); let n;
+    while (size < 4000 && (n = walker.nextNode())) {
+      if (n.nodeType === Node.ELEMENT_NODE) { if (n.shadowRoot) take(n.shadowRoot); continue; }
+      const p = n.parentElement || (n.parentNode && n.parentNode.host);  // a text node right under a shadow root: its host says whether it shows
+      if (!p || ["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE"].includes(p.tagName) || !visible(p)) continue;
+      const s = n.textContent.replace(/\\s+/g, " ").trim();
+      if (s) { words.push(s); size += s.length + 1; }
+    }
+  };
+  try { take(document.body || document.documentElement); } catch (e) {}
+  return { title: document.title || "", text: words.join(" ").slice(0, 4000), markers: probes.filter(sel => { try { return Array.from(document.querySelectorAll(sel)).some(visible) || (sel.startsWith("#") && !!document.querySelector(sel)); } catch (e) { return false; } }) };
 }"""
 
 
@@ -130,7 +143,7 @@ async def wall_reason(page: Page) -> str | None:
         info = await page.evaluate(_WALL_JS, list(CHALLENGE_PROBES))
     except Exception:
         return None
-    return challenge_reason(str(info.get("title") or ""), page.url, list(info.get("markers") or []))
+    return challenge_reason(str(info.get("title") or ""), page.url, list(info.get("markers") or []), text=str(info.get("text") or ""))
 
 
 async def _audit_if_new(ctx: RunContext, state: AgentState, page: Page, reason: str) -> None:

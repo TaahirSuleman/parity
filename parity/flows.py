@@ -28,6 +28,11 @@ class Flow:
         return self.start_url if self.origin else base_url.rstrip("/") + self.start_url
 
 
+def visitor_attribution(host: str) -> str:
+    """The line under the header on a page a visitor chose: whose page it is and that it was read, not changed (spec §19.2)."""
+    return f"{host} · audited read-only at a visitor's request"
+
+
 FLOWS: dict[str, Flow] = {
     "checkout": Flow(
         id="checkout", name="Checkout page", start_url="/store/checkout.html", goal="Pay for the order",

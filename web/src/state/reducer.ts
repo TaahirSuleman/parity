@@ -72,6 +72,14 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
       const row: TimelineRow = { turn: Number(ev.turn ?? 0), kind: "safety", at: ev.at, label: `safety check acknowledged (${reason}): ${codes.map((c) => SAFETY_LABELS[c] ?? c).join(", ")}` };
       return { ...state, timeline: [...state.timeline, row] };
     }
+    case "run.landed": {  // the typed address redirected to another host: the header, the folded panel and the attribution name that host
+      if (!run) return state;
+      const host = String(ev.host ?? "");
+      return {
+        ...state, run: { ...run, origin: String(ev.origin ?? run.origin ?? ""), attribution: String(ev.attribution ?? run.attribution ?? "") },
+        timeline: [...state.timeline, { turn: 0, kind: "outcome", label: `the address redirected to ${host}; audited there`, at: ev.at }],
+      };
+    }
     case "nav.blocked": {
       const reason = String(ev.reason ?? "");
       return { ...state, timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "blocked", label: /^blocked\b/i.test(reason) ? reason : `blocked: ${reason}`, at: ev.at }] };

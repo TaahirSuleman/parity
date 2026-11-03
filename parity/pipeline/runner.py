@@ -18,7 +18,7 @@ from playwright.async_api import Page
 from parity.agent.loop import AgentMode, AgentResult, result_dict, run_agent, wall_reason
 from parity.api.events import EventBus
 from parity.config import Settings
-from parity.flows import Flow
+from parity.flows import Flow, visitor_attribution
 from parity.meta.client import MetaError, TraceRouter
 from parity.pipeline import browser
 from parity.pipeline.audit import Ablation, RunContext, audit_view
@@ -95,7 +95,7 @@ async def run_flow(
               agent = AgentResult(0, False, False, refusal)
               verified = []
           else:
-              _landed(ctx, page, public, visitor)  # the walk is allowed where the page landed (an apex or http:// address redirects)
+              await _landed(ctx, page, public, visitor)  # the walk is allowed where the page landed (an apex or http:// address redirects)
               if flow.single_page:
                   summary = await audit_view(ctx, page, 0, reason="single-page flow")
                   verified = [b.__dict__ for b in summary.verified]
@@ -173,15 +173,20 @@ def _finished(run: Run, verified: list, fixes: int, pending: int, agent: AgentRe
     }
 
 
-def _landed(ctx: RunContext, page: Page, public: bool, visitor: VisitorRequest | None) -> None:
+async def _landed(ctx: RunContext, page: Page, public: bool, visitor: VisitorRequest | None) -> None:
     """On a page we do not serve, the origin the start URL landed on (after its redirects) is the walk's allowed origin and, for a
-    visitor's page, the run's recorded origin."""
+    visitor's page, the run's recorded origin. When that is not the typed one (www.mozilla.org landed on www.firefox.com in the hosted
+    verification of 26F.6) the run says so: the workbench names the host and the attribution from this event, not the typed address."""
     if public and page.url.startswith(("http://", "https://")):
         parts = urlsplit(page.url)
         landed = f"{parts.scheme}://{parts.netloc}"
         ctx.base_url = landed
         if visitor is not None:
+            moved = parts.hostname != urlsplit(ctx.run.origin).hostname  # http→https under the same host is not a landing elsewhere; apex→www and mozilla.org→firefox.com are, and the header says so
             ctx.run.origin = landed
+            if moved:
+                host = parts.hostname or parts.netloc
+                await ctx.emit("run.landed", {"origin": landed, "host": host, "attribution": visitor_attribution(host)})
 
 
 async def _open(ctx: RunContext, page: Page, url: str, public: bool) -> str | None:

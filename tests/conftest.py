@@ -129,6 +129,11 @@ def fixture_url():
                 self.end_headers()
                 self.wfile.write(body)
                 return
+            if self.path == "/go-same":  # a redirect that keeps the host and changes the path
+                self.send_response(302)
+                self.send_header("Location", f"http://localhost:{port}/hop1.html")
+                self.end_headers()
+                return
             if self.path == "/go-ip":  # a redirect to the same server under another origin: what an apex or http:// address does
                 self.send_response(302)
                 self.send_header("Location", f"http://127.0.0.1:{self.server.server_address[1]}/hop1.html")

@@ -297,3 +297,26 @@ def test_robots_fetch_follows_only_same_host_redirects(monkeypatch):
     assert robots_allows("https://up.example/private/x") is False and robots_allows("https://up.example/open") is True
     assert all(u.startswith(("https://shop.example", "https://up.example")) for u, _, _ in calls), calls  # 127.0.0.1 was never asked
     assert all(f is False for _, f, _ in calls) and all(ua.startswith("Parity/") for _, _, ua in calls)
+
+
+def test_challenge_reason_reads_a_wall_from_its_title_or_its_words():
+    """The hosted verification of 26F.6 (3 Nov): Ticketmaster answered the field with a Kasada wall titled "Let's Get Your Identity
+    Verified" saying "Your Browsing Activity Has Been Paused"; neither the title nor the markers were known, so the wall was audited as a
+    page and two "findings" were reported on it. A wall is known by its title or, on a short page, by its own words; an article that
+    quotes those words is not one."""
+    from parity.pipeline.guard import challenge_reason
+
+    assert challenge_reason("Let's Get Your Identity Verified", "https://tickets.example/", []) == "blocked by site: bot challenge"
+    wall = ("ticketmaster Your Browsing Activity Has Been Paused We’ve detected unusual behavior on either your network or your browser. "
+            "To resolve this: Sign in to your account if you haven't already Change your Wi-Fi or cellular network 34.96.46.51")
+    assert challenge_reason("Tickets", "https://tickets.example/", [], text=wall) == "blocked by site: bot challenge"
+    assert challenge_reason("Tickets", "https://tickets.example/", [], text="Access to this page has been denied. Reference #18.2") == "blocked by site: bot challenge"
+    assert challenge_reason("Tickets", "https://tickets.example/", [], text="Press & Hold to confirm you are a human (and not a bot).") == "blocked by site: bot challenge"
+    article = "CAPTCHA. A CAPTCHA asks: are you a robot? A site may say verify you are human before it serves a page. " + "More text about the history of the test. " * 120
+    assert challenge_reason("CAPTCHA - Wikipedia", "https://en.wikipedia.org/wiki/CAPTCHA", [], text=article) is None
+    assert challenge_reason("Tickets", "https://tickets.example/", [], text="Buy tickets to concerts, sports and theatre near you.") is None
+    assert challenge_reason("Verify", "https://shop.example/", [], text="Please verify you’re human to continue") == "blocked by site: bot challenge"  # the curly apostrophe
+    # review of this fix: ordinary short pages that share a word or two with a wall are not walls
+    assert challenge_reason("Router help", "https://help.example/", [], text="Press and hold the power button for 3 seconds to restart your router.") is None
+    assert challenge_reason("Security", "https://bank.example/", [], text="We detected unusual activity on your account and sent a code.") is None
+    assert challenge_reason("Bot Detection and Mitigation | Kasada", "https://kasada.example/", [], text="Stop bots. Our product detects and mitigates them.") is None

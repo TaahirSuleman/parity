@@ -552,3 +552,64 @@ async def test_a_public_run_refuses_where_the_start_address_landed(tmp_path, fix
     loaded = await bundle.load(run.id)
     assert not loaded.steps
     assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "This site asked not to be audited."
+
+
+async def test_a_visitor_run_says_where_the_address_landed(tmp_path, fixture_url):
+    """The hosted verification of 26F.6 (3 Nov): www.mozilla.org/en-US/firefox/ landed on www.firefox.com. The record carried the landed
+    origin, but the workbench names the host and the attribution from run.started, so it kept saying "Audited www.mozilla.org" over a
+    screenshot of firefox.com. The run now says where it landed, with that host's attribution, before the screen is captured."""
+    from parity.flows import visitor_attribution
+    from parity.pipeline.browser import new_page
+    from parity.pipeline.runner import VisitorRequest, run_flow
+    from parity.store.models import now
+
+    async def page_factory(**kwargs):
+        return await new_page(external=True, own_origin="https://parity.example", judge=lambda host: host in ("localhost", "127.0.0.1"), delay_s=0)
+
+    flow = _public_flow(f"{fixture_url}/go-ip")  # localhost → 127.0.0.1: the same server under another host
+    port = fixture_url.rsplit(":", 1)[1]
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=page_factory,
+                             visitor=VisitorRequest(origin=fixture_url, consent_at=now(), screens=1))
+    assert run.status == RunStatus.done and run.error is None, run.error
+    assert run.origin == f"http://127.0.0.1:{port}"
+    loaded = await bundle.load(run.id)
+    landed = next(e for e in loaded.events if e.type == "run.landed").data
+    assert landed == {"origin": f"http://127.0.0.1:{port}", "host": "127.0.0.1", "attribution": visitor_attribution("127.0.0.1")}
+    assert landed["attribution"] == "127.0.0.1 · audited read-only at a visitor's request"
+    types = [e.type for e in loaded.events]
+    assert types.index("run.started") < types.index("run.landed") < types.index("step.captured")
+
+
+async def test_a_visitor_run_that_lands_where_it_was_typed_says_nothing_more(tmp_path, server_url, page):
+    """No redirect, no run.landed: the host under the header is the typed one and nothing repeats it."""
+    from parity.pipeline.runner import VisitorRequest, run_flow
+    from parity.store.models import now
+
+    async def page_factory(**kwargs):
+        return page
+
+    flow = _public_flow(f"{server_url}/store/checkout.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=page_factory,
+                             visitor=VisitorRequest(origin=server_url, consent_at=now(), screens=1))
+    assert run.status == RunStatus.done and run.origin == server_url
+    assert "run.landed" not in [e.type for e in (await bundle.load(run.id)).events]
+
+
+async def test_a_redirect_that_keeps_the_host_is_not_a_landing_elsewhere(tmp_path, fixture_url):
+    """Review of this fix: http://example.com landing on https://example.com changes the recorded origin but not the host under the
+    header, so nothing says "redirected to example.com". The hop here keeps the host and changes only the path."""
+    from parity.pipeline.browser import new_page
+    from parity.pipeline.runner import VisitorRequest, run_flow
+    from parity.store.models import now
+
+    async def page_factory(**kwargs):
+        return await new_page(external=True, own_origin="https://parity.example", judge=lambda host: host in ("localhost", "127.0.0.1"), delay_s=0)
+
+    flow = _public_flow(f"{fixture_url}/go-same")  # 302 to /hop1.html on the same host
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=page_factory,
+                             visitor=VisitorRequest(origin=fixture_url, consent_at=now(), screens=1))
+    assert run.status == RunStatus.done and run.origin == fixture_url, run.error
+    assert "run.landed" not in [e.type for e in (await bundle.load(run.id)).events]

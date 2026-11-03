@@ -458,6 +458,7 @@ bot-walled site ends "blocked by site" and the notice says so; the policy page o
 - Hosted verification (~$1, before Tue 14:30 SAST): three third-party pages of different kinds, one known to challenge bots; record each outcome,
   cost and seconds in the QA report (docs/23); fill `PARITY_SUGGESTED_URLS` with the two that ran well plus the W3C home page; check the
   private-address refusal on the hosted URL. **Gate (hosted):** all three outcomes honest and shown in the UI.
+  Run 3 Nov 18:30–18:37 SAST on revision parity-00010-7hm (docs/23 §10.5): Wikipedia done 3 verified $0.16; mozilla.org landed on firefox.com, done 2 verified $0.04; Ticketmaster served a Kasada wall that was audited as a page (2 "findings" on the wall's own words, $0.02): not honest, fixed (the wall is known by its title and its words; the run ends `blocked by site: bot challenge` before any model call) with the landed host named from `run.landed`. $0.22 in all.
 
 ---
 

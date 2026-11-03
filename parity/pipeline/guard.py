@@ -36,8 +36,23 @@ BLOCKED_FIELDS = {"password", "cc-number", "cc-csc", "cc-exp", "email", "tel", "
 SUBMIT_KEYS = {"enter", "return", "numpadenter", "space"}  # Enter submits a form; Space activates a focused control
 UNNAMED_CONTROLS = {"button", "menuitem", "switch"}  # a control the tree cannot name is a step whose effect is unknown
 USER_AGENT = "Parity"
-# Bot walls and login walls (spec §17): recognised from the title, the URL and a few well-known markers; never bypassed.
-CHALLENGE_TITLES = re.compile(r"just a moment|attention required|access denied|verify you are human|are you a robot|checking your browser|security check|unusual traffic", re.I)
+# Bot walls and login walls (spec §17): recognised from the title, the URL, a few well-known markers and, on a short page, the wall's own words; never bypassed.
+CHALLENGE_TITLES = re.compile(
+    r"just a moment|attention required|access denied|verify you are human|are you a robot|checking your browser|security check|unusual traffic"
+    r"|identity verified|browsing activity has been paused|pardon (?:our|the) interruption|request blocked|human verification",
+    re.I,
+)
+# A wall under the site's own title gives itself away in its words (Ticketmaster's Kasada page, found by the hosted verification of 26F.6,
+# 3 Nov): read on a short page only, since an article may quote the same words, and phrased as a wall phrases them, since a router
+# manual says "press and hold" and a bank says "unusual activity". The words are read through open shadow roots (that page is a custom
+# element) and only where visible.
+WALL_TEXT = re.compile(
+    r"browsing activity has been paused|detected unusual (?:behaviou?r|traffic) (?:on|from)|verify (?:that )?you(?:['\u2019]re| are) (?:a )?human"
+    r"|are you a robot|access to this page has been denied|pardon (?:our|the) interruption|checking your browser before|request blocked"
+    r"|enable javascript and cookies to continue|press (?:&|and) hold to confirm",
+    re.I,
+)
+WALL_TEXT_MAX = 3000  # characters of visible words: a wall is a short page; an encyclopedia article about CAPTCHAs is not
 CAPTCHA_MARKERS = (".g-recaptcha", "iframe[src*='recaptcha']", "iframe[src*='hcaptcha']", "[data-sitekey]")
 CHALLENGE_MARKERS = ("iframe[src*='challenges.cloudflare.com']", "#challenge-form", "#challenge-running", "#px-captcha", "#sec-cpt-if")
 LOGIN_TITLES = re.compile(r"\b(sign in|log ?in|login|signin)\b", re.I)
@@ -110,14 +125,16 @@ def _submits(key: str) -> bool:
     return any(token in SUBMIT_KEYS for token in k.replace("_", " ").replace("+", " ").split())
 
 
-def challenge_reason(title: str, url: str, markers_present: list[str]) -> str | None:
+def challenge_reason(title: str, url: str, markers_present: list[str], text: str = "") -> str | None:
     """'blocked by site: <what>' when the screen is a CAPTCHA, a bot challenge or a login wall, else None. A password field
-    alone is not a wall (shops keep one in the header); it is one with a login title or path."""
+    alone is not a wall (shops keep one in the header); it is one with a login title or path. ``text`` is the page's visible
+    words, read only when the page is short: a wall says what it is, an article about walls says much more."""
     present = set(markers_present)
     title = unicodedata.normalize("NFKC", title or "")  # "Just\xa0a moment" is "Just a moment"
+    words = unicodedata.normalize("NFKC", text or "")
     if present & set(CAPTCHA_MARKERS):
         return "blocked by site: CAPTCHA"
-    if present & set(CHALLENGE_MARKERS) or CHALLENGE_TITLES.search(title or ""):
+    if present & set(CHALLENGE_MARKERS) or CHALLENGE_TITLES.search(title) or (len(words) <= WALL_TEXT_MAX and WALL_TEXT.search(words)):
         return "blocked by site: bot challenge"
     if "input[type=password]" in present and (LOGIN_TITLES.search(title or "") or LOGIN_PATHS.search(urlsplit(url).path)):
         return "blocked by site: login"

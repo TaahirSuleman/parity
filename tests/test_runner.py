@@ -614,3 +614,43 @@ async def test_a_redirect_that_keeps_the_host_is_not_a_landing_elsewhere(tmp_pat
                              visitor=VisitorRequest(origin=fixture_url, consent_at=now(), screens=1))
     assert run.status == RunStatus.done and run.origin == fixture_url, run.error
     assert "run.landed" not in [e.type for e in (await bundle.load(run.id)).events]
+
+
+async def test_a_public_page_that_shows_only_a_loading_screen_ends_with_the_reason(tmp_path, fixture_url):
+    """The hosted verification of 26F.6 (3 Nov): www.takealot.com paints a spinner and fills itself in from scripts; the capture ran at
+    load and audited one accessibility node, the spinner, as the page. A page we do not serve gets a bounded wait for its words; one
+    that never shows any ends the run with that reason, before any model call."""
+    from parity.pipeline.browser import new_page
+    from parity.pipeline.runner import run_flow
+
+    async def page_factory(**kwargs):
+        return await new_page(external=True, own_origin="https://parity.example", judge=lambda host: host in ("localhost", "127.0.0.1"), delay_s=0)
+
+    flow = _public_flow(f"{fixture_url}/spinner.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=page_factory, render_wait_s=1.0)
+    assert run.status == RunStatus.done and run.error is None and client.calls == [], run.error
+    loaded = await bundle.load(run.id)
+    assert not loaded.steps
+    reason = "the page showed no content after 1 s: a loading screen at most"
+    assert next(e for e in loaded.events if e.type == "nav.blocked").data["reason"] == reason
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == reason
+
+
+async def test_a_public_page_that_fills_itself_in_late_is_captured_once_it_has(tmp_path, fixture_url):
+    """The same wait lets a page that renders from scripts after load be captured with its words, not its spinner."""
+    from parity.pipeline.browser import new_page
+    from parity.pipeline.runner import run_flow
+
+    async def page_factory(**kwargs):
+        return await new_page(external=True, own_origin="https://parity.example", judge=lambda host: host in ("localhost", "127.0.0.1"), delay_s=0)
+
+    flow = _public_flow(f"{fixture_url}/late.html")
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=page_factory, render_wait_s=5.0)
+        calls = await index.calls_for(run.id)
+    assert run.status == RunStatus.done and run.error is None, run.error
+    loaded = await bundle.load(run.id)
+    assert len(loaded.steps) == 1 and loaded.steps[0].ax_nodes >= 4  # the heading, the paragraph, the link and the button, not one spinner
+    assert [c.stage for c in calls][:1] == ["seer"]
+    assert "nav.blocked" not in [e.type for e in loaded.events]

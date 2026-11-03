@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 from urllib.parse import urlsplit
 
 from playwright.async_api import Error as PlaywrightError
@@ -24,6 +25,32 @@ KEY_MAP = {
     "LEFT": "ArrowLeft", "RIGHT": "ArrowRight", "SPACE": " ",
 }
 SETTLE_MS = 300
+# A page we do not serve may paint a loading screen at load and fill itself in from scripts (www.takealot.com, found by the hosted
+# verification of 26F.6, 3 Nov): before its first capture it gets a bounded wait for its words, and one that never shows any is reported, not audited.
+RENDER_WAIT_S = 20.0
+RENDER_MIN_TEXT = 40  # visible characters that make a page a page rather than a spinner
+RENDER_MIN_ELEMENTS = 50  # or this many elements: an image-led page has few words
+RENDER_POLL_MS = 500
+_RENDERED_JS = """() => ({ text: ((document.body && document.body.innerText) || "").replace(/\\s+/g, " ").trim().length, elements: document.querySelectorAll("body *").length })"""
+
+
+async def wait_rendered(page: Page, timeout_s: float = RENDER_WAIT_S) -> str | None:
+    """Wait, bounded, until the page shows words (or many elements) and they are the same on two polls; None once it has rendered,
+    else one sentence saying it never did."""
+    deadline = time.monotonic() + timeout_s
+    last: dict | None = None
+    while True:
+        try:
+            now = await page.evaluate(_RENDERED_JS)
+        except Exception:  # mid-navigation: nothing to measure yet
+            now = {"text": 0, "elements": 0}
+        shown = now["text"] >= RENDER_MIN_TEXT or now["elements"] >= RENDER_MIN_ELEMENTS
+        if shown and now == last:
+            return None
+        last = now
+        if time.monotonic() >= deadline:
+            return None if shown else f"the page showed no content after {int(round(timeout_s))} s: a loading screen at most"
+        await page.wait_for_timeout(RENDER_POLL_MS)
 
 
 def _key_name(key: str) -> str:

@@ -21,6 +21,7 @@ from parity.config import Settings
 from parity.flows import Flow, visitor_attribution
 from parity.meta.client import MetaError, TraceRouter
 from parity.pipeline import browser
+from parity.pipeline.actions import RENDER_WAIT_S, wait_rendered
 from parity.pipeline.audit import Ablation, RunContext, audit_view
 from parity.pipeline import gate as gate_stage
 from parity.pipeline.gate import fix_findings, is_pending, run_lock
@@ -50,7 +51,7 @@ async def run_flow(
     mode: RunMode = RunMode.live, run_id: str | None = None, client_ip_hash: str = "", ablation: Ablation | None = None,
     page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False, own_origin: str = "",
     visitor: VisitorRequest | None = None, cost_cap_usd: float | None = None, timeout_s: int | None = None, max_screens: int | None = None,
-    landing: Callable[[str], str | None] | None = None,
+    landing: Callable[[str], str | None] | None = None, render_wait_s: float = RENDER_WAIT_S,
 ) -> Run:
     """Own one run end to end: single page → audit_view directly; multi-page → the auditor agent."""
     public = public or flow.public  # a flow on a page we do not serve is guarded whatever the caller passed (spec §17, §19.2)
@@ -87,7 +88,7 @@ async def run_flow(
               await ctx.emit("nav.blocked", {"turn": 0, "url": run.target_url, "reason": "robots.txt disallows the start URL; nothing was fetched"})
               agent = AgentResult(0, False, False, "stopped: robots.txt disallows the start URL")
               verified = []
-          elif outcome := await _open(ctx, page, run.target_url, public):  # a public page that did not answer, was aborted, or is a wall
+          elif outcome := await _open(ctx, page, run.target_url, public, render_wait_s):  # a public page that did not answer, was aborted, is a wall, or never rendered
               agent = AgentResult(0, False, False, outcome)
               verified = []
           elif public and landing is not None and (refusal := landing(page.url)):  # the deny list and robots.txt apply where the page landed, too
@@ -189,13 +190,16 @@ async def _landed(ctx: RunContext, page: Page, public: bool, visitor: VisitorReq
                 await ctx.emit("run.landed", {"origin": landed, "host": host, "attribution": visitor_attribution(host)})
 
 
-async def _open(ctx: RunContext, page: Page, url: str, public: bool) -> str | None:
-    """Navigate to the start URL. On a page we do not serve, a refused connection, a navigation the request guard aborted
-    and a bot wall are outcomes the run ends with (spec §17, §19.3), never failures of ours; nothing reaches a model."""
+async def _open(ctx: RunContext, page: Page, url: str, public: bool, render_wait_s: float = RENDER_WAIT_S) -> str | None:
+    """Navigate to the start URL. On a page we do not serve, a refused connection, a navigation the request guard aborted,
+    a bot wall and a page that never renders are outcomes the run ends with (spec §17, §19.3), never failures of ours; nothing
+    reaches a model."""
+    unrendered: str | None = None
     try:
         await page.goto(url, wait_until="load")
         if public:
             await browser.settle_redirects(page)  # each redirect hop is a routed navigation of its own; wait them out
+            unrendered = await wait_rendered(page, render_wait_s)  # a loading screen is not the page (www.takealot.com, 3 Nov)
     except PlaywrightError as exc:
         if not public:
             raise
@@ -207,9 +211,12 @@ async def _open(ctx: RunContext, page: Page, url: str, public: bool) -> str | No
             reason = f"the site did not answer: {code.group(0) if code else 'timed out' if 'Timeout' in first else 'navigation failed'}"
         await ctx.emit("nav.blocked", {"turn": 0, "reason": reason})
         return reason
-    if public and (wall := await wall_reason(page)):
+    if public and (wall := await wall_reason(page)):  # read once the page has rendered: a wall drawn by a script is a wall
         await ctx.emit("nav.blocked", {"turn": 0, "url": page.url, "reason": wall})
         return wall
+    if unrendered:
+        await ctx.emit("nav.blocked", {"turn": 0, "url": page.url, "reason": unrendered})
+        return unrendered
     return None
 
 

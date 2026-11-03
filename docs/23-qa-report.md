@@ -564,3 +564,33 @@ Met with a test, three benign deviations reasoned in code (bundle names `w3c-*`,
 - **Suggested list (the user's call):** `https://en.wikipedia.org/wiki/Screen_reader`, `https://www.firefox.com/en-US/` (the landed address, so the header names
   the page audited from the start) and `https://www.w3.org/WAI/demos/bad/before/home.html`; set with
   `gcloud run services update parity --region us-central1 --update-env-vars PARITY_SUGGESTED_URLS=...`.
+
+### 10.6 Five more pages, as a stress test and to pick the demo page (3 Nov from 19:27 SAST; `main` 9144cea merged into the branch first, 0f1f751)
+Revision `parity-00011-tmg`, deployed at 19:16 SAST from `main` 9144cea (chat A's Voice commits): it carries the 6c code of `d02e408`, not the fixes of
+§10.5, which wait on the branch. The per-visitor window had reset with the new process, so the batch started at once (the in-memory limiter restarts
+with every revision; the money caps are index-backed and do not).
+
+| Page | Run | Outcome | Verified / rejected | Judged barriers | axe | Cost | Time |
+|---|---|---|---|---|---|---|---|
+| `https://www.takealot.com/` (e-commerce home, an app shell) | `20261103-172730-e2142f06` | done, on a loading spinner (below) | 0 / 1 | 0 | 3 | $0.002 | 1 m 5 s |
+| `https://www.takealot.com/…/PLID889` (a product page, the same shell) | `20261103-172838-88f6a190` | done, on a loading spinner (below) | 1 / 0 | 1 | 3 | $0.02 | 1 m 3 s |
+| `https://www.gov.za/` (government, server-rendered Drupal) | `20261103-172947-60240804` | done | 2 / 8 | 0 | 12 | $0.06 | 2 m 31 s |
+
+- **Takealot, both pages: found.** The page served is an app shell that paints a spinner at `load` and fills itself in from scripts; a single-page public
+  run captures straight after `load` (plus the redirect settle), so both captures held one accessibility node, the spinner (`ax_nodes: 1`). The home run
+  spent $0.002 to reject "loading spinner" and ended "done, 0 verified" under a spinner screenshot; the product run's comparator reported the spinner's
+  empty name, the verifier passed it (one node, an exact quote) and the judge rated it a moderate barrier (WCAG 1.1.1, 4.1.3): a "finding" about a
+  page that was never shown. **RCA:** nothing in the pipeline waited for a page we do not serve to render; the store's pages are static and the W3C
+  pages are static, so the gap never showed. A local probe with the app's own guarded browser and user agent shows Takealot's home rendering about
+  2.5 s after `load` (2 452 elements, 9 400 characters), so the hosted capture at 10 s was early, not refused. **Fixed**
+  (`test_a_public_page_that_shows_only_a_loading_screen_ends_with_the_reason`, `test_a_public_page_that_fills_itself_in_late_is_captured_once_it_has`):
+  `wait_rendered` in `parity/pipeline/actions.py` polls the page's visible words and element count every 0.5 s until they clear a floor (40 characters or
+  50 elements) and hold still between two polls, for at most 20 s; `_open` runs it after the redirect settle on a public page, then the bot-wall check on
+  the rendered page; a page that never shows content ends the run `done` with "the page showed no content after 20 s: a loading screen at most" as a
+  `nav.blocked` outcome, before any model call. The hosted re-check of both Takealot pages waits for the next deploy.
+- **gov.za:** 313 nodes, 12 axe violations. Two verified findings, both the masthead logo link: a sighted visitor reads "REPUBLIC OF SOUTH AFRICA" and
+  "South African Government", a screen reader hears link, "Home"; the judge rated both minor (the link still goes home). Eight rejected with reasons:
+  six copies of a "more>" link the comparator proposed six times (the visible text equals the name: not a divergence), a menu toggle axe already reports,
+  and a conference image the comparator called "not announced" while the tree names it. The judge's two calls were 92 % of the cost. Observation, not a
+  defect: six identical rejected rows is noise a reader scrolls past; the comparator could be told that a candidate it has already made is not to be
+  repeated, or the feed could fold identical rejections.

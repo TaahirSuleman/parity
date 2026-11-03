@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Fixture: a WebSocket</title></head>
+<body><main><h1>Fixture: a WebSocket</h1></main>
+<script>try { const w = new WebSocket("ws://localhost:__PORT__/ws"); w.onopen = () => { window.done = "open"; }; w.onerror = () => { window.done = "error"; }; w.onclose = () => { window.done = window.done || "closed"; }; } catch (e) { window.done = "thrown"; }</script>
+</body></html>

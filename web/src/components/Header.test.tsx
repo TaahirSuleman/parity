@@ -210,7 +210,7 @@ describe("Header, a page the visitor chose (Task 26F.6)", () => {
 
   it("names the host of a page the visitor chose, never the store, and shows the attribution line", () => {
     render(<Header {...props} run={visitor} urlMode openUrl onUrlModeChange={() => {}} />);
-    expect(screen.getByText("www.w3.org ·")).toBeInTheDocument();  // the site label
+    expect(screen.getByText("www.w3.org")).toBeInTheDocument();  // the site label
     expect(screen.queryByText(/ShopRight/)).toBeNull();
     expect(screen.queryByRole("combobox")).toBeNull();  // no flow to pick: the page is the visitor's
     expect(screen.getByTestId("attribution")).toHaveTextContent("www.w3.org · audited read-only at a visitor's request");
@@ -228,7 +228,7 @@ describe("Header, a page the visitor chose (Task 26F.6)", () => {
     expect(screen.getByRole("button", { name: /Live on a page you choose/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: /^Replay/ })).toHaveAttribute("aria-pressed", "false");
     expect(screen.queryByRole("button", { name: /Run the audit/ })).toBeNull();  // the panel below has the button
-    expect(screen.getByText("a page you choose ·")).toBeInTheDocument();
+    expect(screen.getByText("a page you choose")).toBeInTheDocument();
   });
 
   it("hides the third mode when the server does not offer it", () => {
@@ -240,5 +240,36 @@ describe("Header, a page the visitor chose (Task 26F.6)", () => {
     const sample = { id: "r1", mode: "replay" as const, flow_id: "public", goal: "Site A: Open the first book", target_url: "https://site-a.invalid/", status: "done" as const, started_at: "2026-11-01T12:00:00Z", axe_violations: 7, findings_verified: 6, findings_rejected: 0, tokens: 0, cost_usd: 0.11, duration_ms: 184000, replay_of: "public-a" };
     render(<Header {...props} run={sample} mode="replay" running={false} />);
     expect(screen.getByText(/Site A · read-only sample/)).not.toHaveAttribute("title", expect.stringMatching(/never audits/));
+  });
+});
+
+describe("QA gate before the 6c merge: the header tells the truth whatever the pills say", () => {
+  const flows2 = [{ id: "checkout", name: "Checkout page", single_page: true }, { id: "bad-home", name: "W3C demo: home", single_page: true, public: true, attribution: "Page by W3C WAI", start_url: "https://www.w3.org/WAI/demos/bad/before/home.html" }];
+  const base = { flows: flows2, flowId: "checkout", onFlowChange: () => {}, mode: "live" as const, canLive: true, running: false, onModeChange: () => {}, onRun: () => {} };
+  const w3cReplay = { id: "r2", mode: "replay" as const, flow_id: "bad-home", goal: "", target_url: "https://www.w3.org/WAI/demos/bad/before/home.html", status: "done" as const, started_at: "2026-11-03T08:00:00Z",
+    axe_violations: 7, findings_verified: 2, findings_rejected: 16, tokens: 0, cost_usd: 0.05, duration_ms: 186000, public: true, origin: "https://www.w3.org", attribution: "Page by W3C WAI", replay_of: "w3c-home" };
+
+  it("a public replay's site and attribution come from the run, even with the URL mode pressed and the picker on the store", () => {
+    render(<Header {...base} run={w3cReplay} mode="replay" urlMode openUrl onUrlModeChange={() => {}} />);
+    expect(screen.getByTestId("attribution")).toHaveTextContent("Page by W3C WAI");
+    expect(screen.getByText(/www\.w3\.org/)).toBeInTheDocument();
+    expect(screen.queryByText(/ShopRight/)).toBeNull();
+  });
+
+  it("leaves no dangling separator when nothing follows the site label", () => {
+    render(<Header {...base} run={null} urlMode openUrl onUrlModeChange={() => {}} />);
+    expect(screen.getByText("a page you choose").textContent).toBe("a page you choose");
+  });
+
+  it("the third pill is inert while a run is going, like the other two", () => {
+    render(<Header {...base} run={null} running openUrl onUrlModeChange={() => {}} />);
+    expect(screen.getByRole("button", { name: /Live on a page you choose/ })).toBeDisabled();
+  });
+
+  it("keeps the third pill on screen, disabled and explained, when the field is closed for today", () => {
+    render(<Header {...base} run={null} openUrl closedToday onUrlModeChange={() => {}} />);
+    const pill = screen.getByRole("button", { name: /Live on a page you choose/ });
+    expect(pill).toBeDisabled();
+    expect(pill).toHaveAttribute("title", expect.stringMatching(/closed for today/i));
   });
 });

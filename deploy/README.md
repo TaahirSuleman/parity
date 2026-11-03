@@ -12,6 +12,9 @@ the model key in Secret Manager. Spec: docs/19 §12. Docker is not needed on you
 4. `deploy/cloudrun.sh build` then `deploy/cloudrun.sh deploy` — builds with Cloud Build (tag = git sha) and deploys with
    `--allow-unauthenticated --min-instances 1 --max-instances 1 --cpu 2 --memory 2Gi --no-cpu-throttling --timeout 3600 --concurrency 20`,
    the bucket, the secret and `PARITY_TRUST_PROXY=1` (the per-visitor Live limit reads the right-most `X-Forwarded-For` hop, the address the front end saw).
+   The script passes `--update-env-vars`, so a value set on the service by hand survives every later deploy: `PARITY_SUGGESTED_URLS`
+   (the pages offered under the URL field), `PARITY_URL_DENY` (hosts that asked not to be audited), `PARITY_CONTACT_EMAIL`, and the kill
+   switch `PARITY_OPEN_URL=0`. Set them with `gcloud run services update parity --region us-central1 --update-env-vars KEY=value`.
 5. Check `https://<url>/api/health`: `storage: "gcs"`, `models_ok: true`, `runs_indexed`.
 
 ## Redeploy

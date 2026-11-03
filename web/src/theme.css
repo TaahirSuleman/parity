@@ -37,7 +37,7 @@ button { font: inherit; color: inherit; }
 .badge.model::before { background: var(--focus); }
 .badge.model { color: var(--model-ink); background: var(--model-bg); border-color: var(--model-line); }  /* the diagram's blue: a Meta model, not code */
 
-.pill { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.pill { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }  /* three pills wrap at phone width instead of clipping the third */
 .pill button { padding: 4px 10px; background: var(--surface); border: 0; cursor: pointer; font-size: 12.5px; letter-spacing: 0.02em; }
 .pill button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 .pill button:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -46,6 +46,7 @@ button { font: inherit; color: inherit; }
 .btn-primary:disabled { opacity: 0.5; cursor: progress; }
 .btn-quiet { background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
 .btn-quiet:disabled { opacity: 0.45; cursor: not-allowed; }
+input.btn-quiet { border-color: var(--muted); }  /* a text field's only boundary cue: 3:1 against the surface (WCAG 1.4.11), where a button's hairline need not be */
 
 .counter { display: inline-flex; align-items: baseline; gap: 6px; font-variant-numeric: tabular-nums; }
 .counter strong { font-size: 20px; }  /* axe-core 0 vs Parity 7 is the claim: large enough to read on a video */

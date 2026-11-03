@@ -20,11 +20,14 @@ from parity.api.sse import sse_response
 from parity.flows import Flow, available_flows
 from parity.pipeline.gate import ConflictError, decide
 from parity.pipeline.runner import VisitorRequest, run_flow
-from parity.pipeline.urlpolicy import MAX_URL_LEN, READ_ONLY_GOAL, Refusal, check_url
+from parity.pipeline.urlpolicy import MAX_URL_LEN, READ_ONLY_GOAL, Refusal, check_url, landing_refusal
 from parity.ratelimit import Closed
 from parity.store.bundle import keys
-from parity.store.models import RunMode, now
+from parity.store.models import Run, RunMode, now
 from parity.verifier_off import verifier_off
+
+POLICY_CONCURRENCY = 4  # URL-policy lookups (DNS, robots.txt) in flight at once; as many more may wait, the rest are answered 429
+POLICY_TIMEOUT_S = 20.0  # one URL-policy check (DNS and robots.txt) may take this long; past it the address is refused, the thread is not awaited
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -186,8 +189,20 @@ async def _start_url_run(req: RunRequest, request: Request) -> dict:
     if await st.budget.day_closed(st.index):  # an index read, answered before any lookup leaves this process
         raise HTTPException(503, Closed(scope="day", retry_after_s=1).message)
     own = public_origin(request, settings.trust_proxy)
-    async with st.policy_gate:  # DNS and robots.txt block in a thread: a few at a time, however many addresses arrive at once
-        target = await asyncio.to_thread(check_url, req.url or "", own_origin=own, deny=settings.url_deny, resolver=st.resolver, robots=st.robots)
+    look = st.lookups.take(ip)  # a lookup is outbound work a refusal still costs: counted per visitor (review I4)
+    if not look.allowed:
+        return _too_many("too many addresses from your connection this hour; try again later", look.retry_after_s)
+    if st.policy_gate.locked() and st.policy_waiting >= POLICY_CONCURRENCY:  # a full gate answers now instead of queueing every visitor behind one slow host
+        return _too_many("the field is busy checking other addresses; try again in a few seconds", 5)
+    st.policy_waiting += 1
+    try:
+        async with st.policy_gate:  # DNS and robots.txt block in a thread: a few at a time, however many addresses arrive at once
+            try:
+                target = await asyncio.wait_for(asyncio.to_thread(check_url, req.url or "", own_origin=own, deny=settings.url_deny, resolver=st.resolver, robots=st.robots), POLICY_TIMEOUT_S)
+            except TimeoutError:
+                raise HTTPException(422, "This address could not be checked in time; try again.") from None
+    finally:
+        st.policy_waiting -= 1
     if isinstance(target, Refusal):
         raise HTTPException(422, target.message)
     closed = await st.budget.check(st.index, target.origin)
@@ -203,6 +218,7 @@ async def _start_url_run(req: RunRequest, request: Request) -> dict:
     extra = {
         "own_origin": own, "visitor": VisitorRequest(origin=target.origin, consent_at=now(), screens=req.screens), "cost_cap_usd": settings.external_run_usd,
         "timeout_s": settings.external_timeout_s * (2 if req.screens == 3 else 1), "max_turns": 6 if req.screens == 1 else 12, "max_screens": req.screens,
+        "landing": lambda url: landing_refusal(url, deny=settings.url_deny, robots=st.robots),  # the deny list and robots.txt where the page landed
     }
     return await _launch_live(st, flow, ip, extra)
 
@@ -302,11 +318,17 @@ async def run_events(run_id: RunId, request: Request):
 
 @router.get("/runs/{run_id}/steps/{n}/screenshot.png")
 async def screenshot(run_id: RunId, n: StepIndex, request: Request) -> Response:
+    bundle = request.app.state.bundle
     try:
-        png = await request.app.state.bundle.read_screenshot(run_id, n)
+        png = await bundle.read_screenshot(run_id, n)
     except FileNotFoundError:
         raise HTTPException(404, "no screenshot") from None
-    return Response(content=png, media_type="image/png", headers={"Cache-Control": "public, max-age=31536000, immutable"})
+    try:  # a visitor's page is kept 24 hours; no shared cache may keep its screenshot longer (review M4)
+        shared = Run.model_validate_json(await bundle.store.get(keys.run(run_id))).source != "visitor-url"
+    except Exception:
+        shared = False
+    cache = "public, max-age=31536000, immutable" if shared else "private, max-age=3600"
+    return Response(content=png, media_type="image/png", headers={"Cache-Control": cache})
 
 
 @router.get("/runs/{run_id}/verifier-off")

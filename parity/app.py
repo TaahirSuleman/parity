@@ -24,7 +24,7 @@ from html import escape
 from parity import __version__, replay
 from parity.store import blob
 from parity.api.events import EventBus
-from parity.api.routes import UNREADABLE, router
+from parity.api.routes import POLICY_CONCURRENCY, UNREADABLE, router
 from parity.config import Settings, load_settings
 from parity.meta.client import MetaClient, TraceRouter
 from parity.pipeline import browser
@@ -39,7 +39,6 @@ STORE_DIR = ROOT / "store"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 PAGES_DIR = Path(__file__).resolve().parent / "pages"  # pages the app serves itself (the audit policy); static/ is the SPA build and is emptied by every build
 EXTERNAL_EVICT_INTERVAL_S = 3600  # retention for pages visitors chose is enforced at boot and hourly (spec §19.3.4)
-POLICY_CONCURRENCY = 4  # URL-policy lookups (DNS, robots.txt) in flight at once
 
 
 async def discover_replays(replay_bundle: RunBundle) -> tuple[dict[str, str], list[str]]:
@@ -115,6 +114,7 @@ class BodyLimit:
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
     logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.getLogger("httpx").setLevel(logging.WARNING)  # httpx's INFO line names every host fetched (robots.txt): visitor hosts stay out of logs that outlive the run
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -176,6 +176,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     st.limiter = RateLimiter(settings.live_per_ip_per_hour, settings.live_global_per_day)
     st.budget = ExternalBudget(settings.external_run_usd, settings.external_daily_usd, settings.external_per_origin_per_day)  # pages visitors choose (spec §19.3.3)
     st.policy_gate = asyncio.Semaphore(POLICY_CONCURRENCY)  # bounds the policy's blocking lookups (they share the default executor with GCS)
+    st.policy_waiting = 0  # requests waiting on the gate: past POLICY_CONCURRENCY more, the answer is 429, not a queue (review I4)
+    st.lookups = RateLimiter(settings.url_lookups_per_ip_per_hour, 1_000_000)  # lookups per visitor per hour: outbound work a refusal still costs
     st.resolver = None  # the URL policy's DNS lookup; tests inject one
     st.robots = None  # the URL policy's robots.txt check; tests inject one
     st.last_live_run = None  # the newest Live run id, for the finishing-run grace in POST /runs

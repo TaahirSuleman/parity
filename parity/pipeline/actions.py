@@ -11,6 +11,7 @@ from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
 from parity.config import Settings
+from parity.pipeline import browser
 
 log = logging.getLogger(__name__)
 
@@ -99,6 +100,7 @@ async def execute(page: Page, action: dict) -> bool:
 async def settle(page: Page) -> None:
     try:
         await page.wait_for_load_state("load", timeout=5000)
+        await browser.settle_redirects(page)  # a guarded page's redirect hops are navigations of their own (a refused hop is already reported)
     except Exception:
         pass
     await page.wait_for_timeout(SETTLE_MS)

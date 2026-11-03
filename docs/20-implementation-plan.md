@@ -385,7 +385,7 @@ Runs use `muse-spark-1.3-contributor` for the eval and `muse-spark-1.3` for the 
 - UI: the flow picker groups "External page (W3C demo, read-only)"; the attribution line under the header; `fixesExpected=false` for `public` flows.
 
 ### Task 26E.5: Replay bundles and the record
-- Record `fixtures/replay/runs/bad-{home,news,tickets,survey}` once each (`scripts/record_replay.py` with the flow id), add the `NOTICE`, add the
+- Record `fixtures/replay/runs/w3c-{home,news,tickets,survey}` (named after the page, see spec §19.2) once each (`scripts/record_replay.py` with the flow id), add the `NOTICE`, add the
   W3C BAD row to `HACKATHON_SCOPE.md`, the public samples list in `eval/results/public.json`, and a line in the video script where the external
   page is shown. Smoke: `tests/test_web_smoke.py::test_external_replay_plays_with_attribution`.
 - **Gate (hosted):** a judge can pick "W3C demo: home" and watch it in Replay for free, or run it Live within the limits.
@@ -417,7 +417,7 @@ bot-walled site ends "blocked by site" and the notice says so; the policy page o
   `test_any_private_answer_among_several_refuses` and `test_refusal_messages_are_one_sentence_without_the_url`.
 
 ### Task 26F.2: The browser re-checks every request
-- `parity/pipeline/browser.py`: `new_page(external=False)`; an external page gets `page.route("**/*", request_guard)` with a per-run host cache
+- `parity/pipeline/browser.py`: `new_page(external=False)`; an external page gets `context.route("**/*", request_guard)` (the whole context, popups included) with a per-run host cache
   and Chromium `--host-resolver-rules="MAP metadata.google.internal ~NOTFOUND"`; a crawl delay of 1 s between navigations in public runs; the user
   agent `Parity/<version> (+<own origin>/audit-policy)`.
 - Consent banners (doc 19 §17, never implemented): in public runs the guard refuses clicks whose label matches accept-all/agree/allow-all; a reject-all or
@@ -434,7 +434,7 @@ bot-walled site ends "blocked by site" and the notice says so; the policy page o
   `test_url_run_hint_is_bounded_and_sanitised`; `tests/test_runner.py::test_external_run_ends_at_cost_cap`; `tests/test_ratelimit.py::test_per_origin_per_day`.
 
 ### Task 26F.4: Policy page and retention
-- `parity/static/audit-policy.html` served at `GET /audit-policy` with the contact from settings; `evict_external()` in `parity/replay.py` beside
+- `parity/pages/audit-policy.html` (not `static/`, which the web build empties) served at `GET /audit-policy` with the contact from settings; `evict_external()` in `parity/replay.py` beside
   `evict_replay_copies`, run at boot and hourly from `app.py`; `GET /api/runs/{id}` answers 410 for an evicted external run; external runs never
   appear in any listing or public sample.
 - Tests `tests/test_retention.py`: `test_evict_external_removes_page_content_after_24h_and_keeps_summary`, `test_evict_external_leaves_young_and_store_runs`,

@@ -6,6 +6,7 @@ import { ScreenReaderPanel } from "./components/ScreenReaderPanel";
 import { SightedPanel } from "./components/SightedPanel";
 import { TraceDrawer } from "./components/TraceDrawer";
 import { UrlRun } from "./components/UrlRun";
+import { publicHost } from "./components/Header";
 import type { FlowOption } from "./components/Header";
 import type { UrlRunRequest } from "./api";
 import { isPublicRun, type RunMode, type RunState } from "./state/types";
@@ -48,23 +49,27 @@ export function Workbench({ state, flows, flowId, onFlowChange, canLive, screens
   const isPublic = isPublicRun(state.run);  // an anonymised sample: screenshots were withheld where nothing was verified
   const readOnly = isPublic || Boolean(state.run?.public) || Boolean(flows.find((f) => f.id === (state.run?.flow_id ?? flowId))?.public);  // a page we do not serve: no fix will follow (spec §17, §19.2, §19.3)
   const outcome = state.agent && !state.agent.finished ? state.agent.summary : null;  // a walk the site or the guard stopped
+  const verified = state.run?.findings_verified ?? 0;
   const live = state.phase === "running" ? "Audit started: capturing the page and comparing what is seen with what is announced."
-    : state.phase === "finished" ? `Audit finished: ${state.run?.findings_verified ?? 0} verified findings.`
+    : state.phase === "finished" ? (outcome  // an early end is said with its reason: the polite feed notice is drowned by this sentence (docs/24 §2.3)
+      ? `Audit ended early: ${outcome}. ${verified} verified finding${verified === 1 ? "" : "s"} on the screens it audited.`
+      : `Audit finished: ${verified} verified findings.`)
     : state.phase === "failed" ? `Audit failed: ${state.error ?? "the run failed"}.` : "";
   return (
     <div className="flex flex-col workbench-root" style={{ height: "100vh" }}>
       <Header view={view} onViewChange={onViewChange} approved={approved} pending={pending} flows={flows} flowId={flowId} onFlowChange={onFlowChange} run={state.run} mode={state.mode} canLive={canLive} running={state.phase === "running" || starting} screens={state.steps.length} onModeChange={onModeChange} onRun={onRun}
-        urlMode={urlMode} openUrl={openUrl} onUrlModeChange={onUrlModeChange} />
-      {urlMode && view !== "eval" && <UrlRun suggested={suggestedUrls} closed={closedToday} running={state.phase === "running" || starting} refusal={urlRefusal} onRun={(req) => onUrlRun?.(req)} />}
+        urlMode={urlMode} openUrl={openUrl} onUrlModeChange={onUrlModeChange} closedToday={closedToday} />
+      {urlMode && view !== "eval" && <UrlRun suggested={suggestedUrls} closed={closedToday} running={state.phase === "running" || starting} refusal={urlRefusal} onRun={(req) => onUrlRun?.(req)}
+        active={state.run?.source === "visitor-url" ? publicHost(state.run) : null} />}
       {view === "eval" ? (
         <main id="main" tabIndex={-1} className="flex-1 flex flex-col min-h-0 overflow-auto"><EvalTab results={evalResults} onReplay={(id) => onReplayRun?.(id)} /></main>
       ) : (
       <main id="main" tabIndex={-1} className="flex-1 workbench-grid">
         <SightedPanel screenshotUrl={screenshotUrl} findings={state.findings} percepts={state.percepts} selectedId={state.selectedFindingId} stage={state.stage} model={state.models.navigator ?? model} timeline={state.timeline}
-          steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} finished={state.phase === "finished"} isPublic={isPublic} />
+          steps={state.steps} stepIndex={stepIndex} onStepChange={onStepChange} onSelect={onSelect} finished={state.phase === "finished"} isPublic={isPublic} idleHint={urlMode ? "Audit this page to see it" : undefined} />
         <FindingsFeed findings={state.findings} rejected={state.rejected} selectedId={state.selectedFindingId} phase={state.phase} error={state.error} onSelect={onSelect} onDecision={onDecision}
           flowName={flows.find((f) => f.id === flowId)?.name ?? "flow"} notice={state.notice ?? null} outcome={outcome} steps={state.steps}
-          fixesExpected={state.phase === "running" && !readOnly} readOnly={readOnly} comparatorModel={state.models.comparator} />
+          fixesExpected={state.phase === "running" && !readOnly} readOnly={readOnly} urlMode={urlMode} comparatorModel={state.models.comparator} />
         <ScreenReaderPanel finding={selected} voiceAccuracy={state.voice?.accuracy} />
         <p className="sr-only" aria-live="assertive" aria-atomic="true">{live}</p>
         {state.lastDecision && (

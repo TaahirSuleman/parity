@@ -5,6 +5,7 @@ import { reconcileDecisions, submitDecision } from "./state/decisions";
 import { startRunMessage } from "./state/errors";
 import { runIdFromLocation, withRunParam } from "./state/location";
 import { shouldReset } from "./state/reducer";
+import { fmtWait } from "./state/errors";
 import { initialState, reduce, resetFor, select } from "./state/reducer";
 import type { ParityEvent, RunMode, RunState } from "./state/types";
 import { Workbench } from "./Workbench";
@@ -76,9 +77,11 @@ export default function App() {
           if (beganRef.current) return;  // the visitor clicked Run while the link was loading (a whole bundle on GCS): the new run wins
           closeRef.current?.();
           closeRef.current = follow(linked);
-        }, (e: unknown) => dispatch({ kind: "notice", message: e instanceof ApiError && e.status === 404
-          ? "The linked run is not on this server any more: Replay copies are kept for a limited time. Start a new Replay."
-          : `The linked run could not be loaded: ${e instanceof ApiError ? e.detail : String(e)}.` }));
+        }, (e: unknown) => dispatch({ kind: "notice", message: e instanceof ApiError && e.status === 410
+          ? e.detail  // an evicted visitor page: the server's one sentence, verbatim (spec §19.3.4)
+          : e instanceof ApiError && e.status === 404
+            ? "The linked run is not on this server any more: Replay copies are kept for a limited time. Start a new Replay."
+            : `The linked run could not be loaded: ${e instanceof ApiError ? e.detail : String(e)}.` }));
       }
     });
     return () => closeRef.current?.();
@@ -120,6 +123,7 @@ export default function App() {
       dispatch({ kind: "notice", message: "The list of flows has not loaded yet; wait a moment or reload the page." });
       return;
     }
+    setUrlMode(false);  // the run on screen decides the mode: a store or W3C run is never "a page you choose"
     void begin(() => startRun(flow.id, state.mode), state.mode);
   }, [flow, state.mode, begin]);
 
@@ -129,17 +133,29 @@ export default function App() {
     dispatch({ kind: "reset", mode });
   }, [state]);
   const onUrlModeChange = useCallback((on: boolean) => {
+    if (state.phase === "running") return;  // the pills are inert while a run is going, this one too
+    if (on !== urlMode) {  // the header's site label changes with the flag, so a run from the other mode must not stay under it
+      closeRef.current?.();
+      dispatch({ kind: "reset", mode: "live" });
+    }
     setUrlMode(on);
     setUrlRefusal(null);
     if (on) switchMode("live");
-  }, [switchMode]);
+  }, [state.phase, urlMode, switchMode]);
+  useEffect(() => {  // a linked or reloaded visitor run presses the third pill, as a replay link selects its flow
+    if (state.run?.source === "visitor-url") setUrlMode(true);
+  }, [state.run?.id, state.run?.source]);
   const onUrlRun = useCallback((req: UrlRunRequest) => {
     setUrlRefusal(null);
+    setUrlMode(true);
     void begin(() => startUrlRun(req), "live", (e) => {
-      // a refused address, the switch off, or the day's budget spent: the panel says it in the server's words; the run is not "failed"
-      if (e instanceof ApiError && (e.status === 422 || e.status === 403 || e.status === 503)) {
-        setUrlRefusal(e.detail);
-        if (e.status === 503 && /closed for today/i.test(e.detail)) setClosedToday(true);
+      // every answer to the visitor lands in the panel, in the server's words; the run is never "failed"
+      if (!(e instanceof ApiError)) return false;
+      if (e.status === 503 && /closed for today/i.test(e.detail)) { setClosedToday(true); return true; }  // the panel's own status line says it; no second sentence
+      if (e.status === 422 || e.status === 403 || e.status === 503) { setUrlRefusal(e.detail); return true; }
+      if (e.status === 429) {  // this site's runs for today, the visitor's hourly limit, or the one Live slot: the wait, without the Replay suggestion
+        const what = (e.body.error ?? e.detail).replace(/[.\s]+$/, "");
+        setUrlRefusal(`${what}. ${e.body.retry_after_s ? `Try again in ${fmtWait(e.body.retry_after_s)}.` : "Try again shortly."}`);
         return true;
       }
       return false;
@@ -151,7 +167,7 @@ export default function App() {
     if (next === "eval" && evalResults === undefined) getEval().then(setEvalResults).catch(() => setEvalResults(null));
   }, [evalResults]);
 
-  const onReplayRun = useCallback((runId: string) => void begin(() => startRun(null, "replay", runId), "replay"), [begin]);  // a recorded public sample, from the Eval tab
+  const onReplayRun = useCallback((runId: string) => { setUrlMode(false); void begin(() => startRun(null, "replay", runId), "replay"); }, [begin]);  // a recorded public sample, from the Eval tab
 
   const onDecision = useCallback((id: string, decision: "approve" | "reject", reason: string) => {
     if (!state.run) return Promise.resolve();
@@ -167,7 +183,7 @@ export default function App() {
   const stepIndex = stepOverride ?? (state.phase === "running" ? lastStep?.index : selectedFinding?.step_index ?? lastStep?.index) ?? null;
   const shot = state.run && stepIndex !== null ? screenshotUrl(state.run.id, stepIndex) : null;
   const canLive = Boolean(health?.has_key && health?.live_enabled && health?.models_ok !== false);  // a key the models reject is no Live
-  const openUrl = canLive && Boolean(health?.open_url) && !closedToday;  // the third mode is hidden when the server does not offer it or the day is spent
+  const openUrl = canLive && Boolean(health?.open_url);  // the third mode is hidden when the server does not offer it; a spent day keeps the pill, disabled and explained
   return (
     <Workbench
       state={state} flows={flows} flowId={flow?.id ?? ""} onFlowChange={setFlowId} canLive={canLive} screenshotUrl={shot} model={state.models.navigator ?? state.models.comparator}

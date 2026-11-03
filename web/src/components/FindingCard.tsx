@@ -144,7 +144,8 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           </div>
         )}
       {finding.fix && !finding.reaudit && finding.reaudit_note && <p className="muted text-xs px-1 pt-1 m-0">Re-audit did not run: {finding.reaudit_note}</p>}
-      {selected && !finding.decision && (
+      {selected && readOnly && !finding.fix && <p className="muted text-xs px-1 py-2 m-0">Fixes and re-audits are not offered on pages we do not serve.</p>}
+      {selected && !finding.decision && !readOnly && (
         <div className="flex items-center gap-2 px-1 py-2 flex-wrap">
           <label className="sr-only" htmlFor={reasonId}>Reason</label>
           <input id={reasonId} className="btn-quiet fix-reason" value={reason} onChange={(e) => setTyped(e.target.value)} onFocus={(e) => e.currentTarget.select()}
@@ -155,11 +156,9 @@ export function FindingCard({ finding, selected, onSelect, onDecision, screenLab
           <button type="button" className="btn-quiet" disabled={!(canReject && hasReason)} onClick={() => act("reject")} title={finding.fix ? "Reject the proposed fix" : "Dismiss this finding (no fix was proposed)"}>
             Reject
           </button>
-          {!finding.fix && !finding.fix_note && (readOnly
-            ? <span className="muted text-xs">Fixes and re-audits are not offered on pages we do not serve.</span>
-            : fixesExpected
-              ? <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>
-              : <span className="muted text-xs">No fix was proposed for this finding.</span>)}
+          {!finding.fix && !finding.fix_note && (fixesExpected
+            ? <span className="muted text-xs">A fix and its re-audit follow once the judge is done.</span>
+            : <span className="muted text-xs">No fix was proposed for this finding.</span>)}
         </div>
       )}
     </article>

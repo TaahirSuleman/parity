@@ -50,6 +50,7 @@ async def run_flow(
     mode: RunMode = RunMode.live, run_id: str | None = None, client_ip_hash: str = "", ablation: Ablation | None = None,
     page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False, own_origin: str = "",
     visitor: VisitorRequest | None = None, cost_cap_usd: float | None = None, timeout_s: int | None = None, max_screens: int | None = None,
+    landing: Callable[[str], str | None] | None = None,
 ) -> Run:
     """Own one run end to end: single page → audit_view directly; multi-page → the auditor agent."""
     public = public or flow.public  # a flow on a page we do not serve is guarded whatever the caller passed (spec §17, §19.2)
@@ -88,6 +89,10 @@ async def run_flow(
               verified = []
           elif outcome := await _open(ctx, page, run.target_url, public):  # a public page that did not answer, was aborted, or is a wall
               agent = AgentResult(0, False, False, outcome)
+              verified = []
+          elif public and landing is not None and (refusal := landing(page.url)):  # the deny list and robots.txt apply where the page landed, too
+              await ctx.emit("nav.blocked", {"turn": 0, "reason": refusal})
+              agent = AgentResult(0, False, False, refusal)
               verified = []
           else:
               _landed(ctx, page, public, visitor)  # the walk is allowed where the page landed (an apex or http:// address redirects)
@@ -184,6 +189,8 @@ async def _open(ctx: RunContext, page: Page, url: str, public: bool) -> str | No
     and a bot wall are outcomes the run ends with (spec §17, §19.3), never failures of ours; nothing reaches a model."""
     try:
         await page.goto(url, wait_until="load")
+        if public:
+            await browser.settle_redirects(page)  # each redirect hop is a routed navigation of its own; wait them out
     except PlaywrightError as exc:
         if not public:
             raise

@@ -190,3 +190,99 @@ async def test_a_flood_of_refused_requests_is_reported_once(fixture_url):
     finally:
         await page.context.close()
     assert blocked == ["127.0.0.1"] and guard.counts[("127.0.0.1", "not a public address")] == 20
+
+
+# QA gate before the 6c merge (the fresh backend review): a 3xx never reaches Chromium, so the browser's own traversal cannot
+# land anywhere the guard did not judge; the guard's answer is the only fetch the server ever sees from a run.
+
+
+async def test_a_main_frame_redirect_is_followed_hop_by_hop_through_the_guard(fixture_url):
+    """Review C1: /flip answers 200 to its first request and a redirect to 127.0.0.1/secret to the second. The old guard pre-walked the
+    chain and then handed Chromium the 302, whose unrouted follow fetched /flip a second time and landed on the loopback page."""
+    import urllib.request
+
+    from parity.pipeline.browser import settle_redirects
+
+    urllib.request.urlopen(f"{fixture_url}/flip-reset")
+    fixture_url.requests.clear()
+    blocked: list = []
+    page = await _external(fixture_url, blocked, delay_s=0)
+    try:
+        await page.goto(f"{fixture_url}/start-flip", wait_until="load")
+        await settle_redirects(page)
+        assert page.url == f"{fixture_url}/flip"
+        assert "flip first answer" in await page.content()
+    finally:
+        await page.context.close()
+    assert fixture_url.requests.count("/flip") == 1, fixture_url.requests
+    assert "/secret" not in fixture_url.requests
+    assert blocked == []
+
+
+async def test_a_subresource_redirect_is_fetched_once_by_the_guard(fixture_url):
+    """A redirecting image: the guard walks the chain and answers the browser with the final hop, so nothing is refetched unguarded."""
+    fixture_url.requests.clear()
+    blocked: list = []
+    page = await _external(fixture_url, blocked, delay_s=0)
+    try:
+        await page.goto(f"{fixture_url}/flip-img.html", wait_until="load")
+        await capture(page, 0)
+    finally:
+        await page.context.close()
+    assert fixture_url.requests.count("/flip-img") == 1 and fixture_url.requests.count("/img-final") == 1, fixture_url.requests
+
+
+async def test_a_redirect_loop_ends_as_an_aborted_navigation(fixture_url):
+    from playwright.async_api import Error as PlaywrightError
+
+    from parity.pipeline.browser import settle_redirects
+
+    blocked: list = []
+    page = await _external(fixture_url, blocked, delay_s=0)
+    try:
+        with pytest.raises(PlaywrightError):
+            await page.goto(f"{fixture_url}/loop", wait_until="load")
+            await settle_redirects(page)
+    finally:
+        await page.context.close()
+    assert ("localhost", "too many redirects") in [(b[0], b[2]) for b in blocked]
+
+
+async def test_a_websocket_from_an_external_page_never_reaches_the_server(fixture_url):
+    """Review M9: Chromium's fetch interception on a routed context swallows the WebSocket upgrade; this test holds that behaviour
+    (an explicit route_web_socket handler was tried and left a task the loop's teardown could not cancel: a hang after this test)."""
+    fixture_url.requests.clear()
+    blocked: list = []
+    page = await _external(fixture_url, blocked, delay_s=0)
+    try:
+        await page.goto(f"{fixture_url}/ws.html", wait_until="load")
+        await page.wait_for_function("() => window.done !== undefined", timeout=5000)
+        assert await page.evaluate("window.done") in ("error", "closed")
+    finally:
+        await page.context.close()
+    assert "/ws" not in fixture_url.requests
+
+
+async def test_a_run_judges_at_most_a_hundred_hosts(fixture_url):
+    """Review M6: a page naming thousands of hosts is not thousands of blocking lookups; past the bound the rest are refused, reported once.
+    The bound is injected (five here; MAX_HOSTS_PER_RUN in a run): eight failing fetches prove the rule where 120 at once starve the driver."""
+    from parity.pipeline.browser import new_page
+
+    judged: list[str] = []
+    blocked: list = []
+
+    async def on_blocked(host: str, resource: str, reason: str) -> None:
+        blocked.append((host, reason))
+
+    def judge(host: str) -> bool:
+        judged.append(host)
+        return host == "localhost"  # the page itself; every image host is refused, so no fetch leaves the process (deterministic, no DNS)
+
+    page = await new_page(external=True, own_origin="https://parity.example", on_blocked=on_blocked, judge=judge, delay_s=0, max_hosts=5)
+    try:
+        await page.goto(f"{fixture_url}/many-hosts.html", wait_until="load")
+    finally:
+        await page.context.close()
+    assert len(set(judged)) == 5  # localhost and the first four image hosts
+    assert blocked.count(("(many)", "more than 5 hosts on one run")) == 1
+    assert sum(1 for host, reason in blocked if reason == "not a public address") == 4

@@ -95,7 +95,9 @@ def _site(origin: str) -> str:
     """The per-origin cap's key: the host without scheme or a leading www., so http://a, https://a and https://www.a are one site."""
     from urllib.parse import urlsplit
 
-    host = (urlsplit(origin).hostname or origin).lower().rstrip(".")
+    from parity.pipeline.urlpolicy import fold_host
+
+    host = fold_host(urlsplit(origin).hostname or origin) or origin.lower()
     return host[4:] if host.startswith("www.") else host
 
 

@@ -9,6 +9,12 @@ export function visitorHost(run: Run | null): string | null {
   try { return new URL(run.origin).hostname; } catch { return null; }
 }
 
+/** The site of any run on a page we do not serve (a visitor's page, a W3C flow, in Live or Replay), from the run record itself. */
+export function publicHost(run: Run | null): string | null {
+  if (!run?.public || !run.origin) return null;
+  try { return new URL(run.origin).hostname; } catch { return null; }
+}
+
 /** The host an external flow audits ("www.w3.org"), or null for a store flow. */
 export function externalHost(flow: FlowOption | undefined): string | null {
   if (!flow?.public || !flow.start_url) return null;
@@ -33,6 +39,7 @@ interface Props {
   urlMode?: boolean; // "Live on a page you choose" is selected: the panel below holds the address and the button
   openUrl?: boolean; // the server offers the field (open, a key present, not closed for today)
   onUrlModeChange?: (on: boolean) => void;
+  closedToday?: boolean; // the day's budget for pages visitors choose is spent: the pill stays, disabled and explained
 }
 
 export function fmtCost(usd: number): string {
@@ -64,7 +71,7 @@ function useElapsed(startedAt: string | undefined, running: boolean): number {
   return running && startedAt ? Math.max(0, now - new Date(startedAt).getTime()) : 0;
 }
 
-export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, screens, onModeChange, onRun, approved = 0, pending = 0, view = "workbench", onViewChange, urlMode = false, openUrl = false, onUrlModeChange }: Props) {
+export function Header({ flows, flowId, onFlowChange, run, mode, canLive, running, screens, onModeChange, onRun, approved = 0, pending = 0, view = "workbench", onViewChange, urlMode = false, openUrl = false, onUrlModeChange, closedToday = false }: Props) {
   const axe = run?.axe_violations ?? 0;
   const elapsed = useElapsed(run?.started_at, running && !!run);
   const isPublic = isPublicRun(run);
@@ -72,8 +79,8 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
   const replay = run?.mode === "replay";
   const current = flows.find((f) => f.id === flowId);
   const visitor = visitorHost(run);  // a page the visitor chose: named from the run, never from the picker
-  const host = visitor ?? (urlMode ? null : externalHost(current));  // a page we do not serve: the header names its site, never the store
-  const attribution = visitor ? run?.attribution || null : !urlMode && externalHost(current) ? current?.attribution || null : null;
+  const host = visitor ?? publicHost(run) ?? (urlMode ? null : externalHost(current));  // a page we do not serve: the header names its site, never the store; the run on screen outranks the picker
+  const attribution = run?.public ? run.attribution || null : !urlMode && externalHost(current) ? current?.attribution || null : null;
   const chooseMode = (next: RunMode) => { onUrlModeChange?.(false); onModeChange(next); };
   const external = flows.filter((f) => f.public);
   const store = flows.filter((f) => !f.public);
@@ -88,7 +95,7 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
           {isPublic ? (
             <span title="A public site audited read-only from the command line and anonymised">{siteLabel(run)} · read-only sample</span>
           ) : urlMode || visitor ? (
-            <span>{host ?? "a page you choose"} ·</span>
+            <span>{host ?? "a page you choose"}</span>
           ) : (
             <>
               <span>{host ?? "ShopRight"} ·</span>
@@ -111,7 +118,8 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
               Live (rate-limited)
             </button>
             {openUrl && (
-              <button type="button" aria-pressed={urlMode} onClick={() => onUrlModeChange?.(true)} disabled={!canLive} title="Live on a page you choose: a public address, audited read-only as a visitor would see it; one screen by default; no fixes; kept for 24 hours">
+              <button type="button" aria-pressed={urlMode} onClick={() => onUrlModeChange?.(true)} disabled={!canLive || running || closedToday}
+                title={closedToday ? "Closed for today: the day's budget for pages visitors choose is spent; the store flows and Replay still work" : "Live on a page you choose: a public address, audited read-only as a visitor would see it; one screen by default; no fixes; kept for 24 hours"}>
                 Live on a page you choose
               </button>
             )}

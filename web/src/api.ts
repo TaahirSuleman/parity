@@ -7,7 +7,7 @@ export interface Health {
 export interface UrlRunRequest { url: string; screens: 1 | 3; consent: boolean; hint?: string }
 export interface FlowInfo { id: string; name: string; start_url: string; goal: string; pages: string[]; single_page: boolean; public: boolean; attribution: string }
 
-export interface ErrorBody { error?: string; retry_after_s?: number; suggestion?: string; detail?: string }
+export interface ErrorBody { error?: string; retry_after_s?: number; suggestion?: string; detail?: string | { msg?: string }[] }
 
 export class ApiError extends Error {
   constructor(public status: number, public detail: string, public body: ErrorBody = {}) {
@@ -21,7 +21,7 @@ async function json<T>(res: Response): Promise<T> {
     let body: ErrorBody = {};
     try {
       body = (await res.json()) as ErrorBody;
-      detail = body.detail ?? body.error ?? detail;
+      detail = (Array.isArray(body.detail) ? body.detail.map((d) => d.msg ?? JSON.stringify(d)).join("; ") : body.detail) ?? body.error ?? detail;  // a validation body is a list of messages
     } catch { /* keep statusText */ }
     throw new ApiError(res.status, String(detail), body);
   }

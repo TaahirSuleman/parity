@@ -58,7 +58,7 @@ its own copy under `scripts/` since the scratchpad is session-scoped.
 
 - **Chat A** (Phase 6b core and Phase 6) works in this checkout on `main` and owns everything there except `docs/24-voiceover-pass.md`, this file,
   and the files Phase 6c creates or changes (`parity/pipeline/urlpolicy.py`, `parity/pipeline/browser.py`, `parity/ratelimit.py`, `parity/replay.py`,
-  `parity/static/audit-policy.html`, the prompts in `parity/meta/prompts/`, `web/src/components/UrlRun.tsx`, `parity/flows.py`). Chat A's edits to
+  `parity/pages/audit-policy.html`, the prompts in `parity/meta/prompts/`, `web/src/components/UrlRun.tsx`, `parity/flows.py`). Chat A's edits to
   `parity/api/routes.py`, `parity/config.py`, `parity/pipeline/runner.py`, `web/src/App.tsx`, `Workbench.tsx` and `Header.tsx` are expected and are
   merged by chat B; keep them small and local to Voice.
 - **Chat B** (26E.4 and Phase 6c) works in the worktree `../parity-open-url` on `feat/open-url`. The user creates it (one command in §5b) and copies

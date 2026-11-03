@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { initialState } from "./state/reducer";
 import type { RunState } from "./state/types";
@@ -93,6 +93,45 @@ describe("Workbench outcomes for a page the visitor chose (Task 26F.6)", () => {
       urlMode openUrl onUrlModeChange={() => {}} onUrlRun={() => {}} suggestedUrls={[]} closedToday={false} urlRefusal={null} />);
     expect(container.textContent).toMatch(/not offered on pages we do not serve/);
     expect(container.textContent).not.toMatch(/No fix was proposed/);
-    expect(container.querySelector("input[type=url]")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /audit another page/i })).toBeInTheDocument();  // the panel folds under its own run; the form is one click away
+  });
+});
+
+describe("QA gate before the 6c merge: what a screen-reader judge hears and reads in the URL mode", () => {
+  const urlProps = { urlMode: true, openUrl: true, onUrlModeChange: () => {}, onUrlRun: () => {}, suggestedUrls: [], closedToday: false, urlRefusal: null };
+  const visitorRun = { ...running.run!, mode: "live" as const, flow_id: "url-1a2b3c4d", public: true, source: "visitor-url" as const, origin: "https://developer.mozilla.org" };
+
+  it("announces an early end with its reason in the assertive region, not only the verified count", () => {
+    const state: RunState = { ...running, phase: "finished", run: { ...visitorRun, status: "done" }, steps: [], agent: { turns: 0, finished: false, finish_forced: false, summary: "blocked by site: bot challenge" } };
+    const { container } = render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} {...urlProps} />);
+    expect(container.querySelector("[aria-live=assertive]")?.textContent).toMatch(/ended early: blocked by site: bot challenge/);
+  });
+
+  it("frames the idle screen for the page the visitor will choose, in one sentence of at most 40 words, and never names the store flow", () => {
+    const { container } = render(<Workbench state={initialState} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} {...urlProps} />);
+    const text = container.textContent ?? "";
+    expect(text).not.toMatch(/Checkout page as a sighted/);
+    expect(text).not.toMatch(/Run the audit to start/);
+    expect(text).toMatch(/Audit this page to see it/);
+    const framing = Array.from(container.querySelectorAll("p")).map((p) => p.textContent ?? "").find((t) => /page you choose/.test(t) && /sighted/.test(t)) ?? "";
+    expect(framing.trim().split(/\s+/).length).toBeLessThanOrEqual(40);
+    expect(framing.trim().match(/[.!?](\s|$)/g)?.length ?? 0).toBe(1);
+  });
+
+  it("frames a read-only W3C flow without promising a fix", () => {
+    const w3c = [{ id: "bad-home", name: "W3C demo: home", single_page: true, public: true, attribution: "Page by W3C WAI" }];
+    const { container } = render(<Workbench state={initialState} flows={w3c} flowId="bad-home" onFlowChange={() => {}} canLive screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} />);
+    const framing = Array.from(container.querySelectorAll("p")).map((p) => p.textContent ?? "").find((t) => /Run the audit to start/.test(t)) ?? "";
+    expect(framing).toMatch(/W3C demo: home/);
+    expect(framing).not.toMatch(/proposes a fix/);
+    expect(framing).toMatch(/read-only/i);
+    expect(framing.trim().split(/\s+/).length).toBeLessThanOrEqual(40);
+  });
+
+  it("folds the URL panel once the visitor's run is on screen so the screenshot gets the height", () => {
+    const state: RunState = { ...running, run: visitorRun };
+    render(<Workbench state={state} flows={flows} flowId="checkout" onFlowChange={() => {}} canLive screenshotUrl={null} model="m" onModeChange={() => {}} onRun={() => {}} onSelect={() => {}} {...urlProps} />);
+    expect(screen.queryByRole("textbox", { name: /page address/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /audit another page/i })).toBeInTheDocument();
   });
 });

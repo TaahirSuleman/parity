@@ -9,6 +9,7 @@ every request an external run makes (Task 26F.2), redirects included.
 from __future__ import annotations
 
 import ipaddress
+import re
 import socket
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -64,7 +65,7 @@ def is_public_ip(ip: str) -> bool:
 def _routable(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
     if str(addr) == METADATA_IP:
         return False
-    if addr.is_multicast or addr.is_loopback or addr.is_link_local or addr.is_private or addr.is_unspecified or addr.is_reserved:
+    if addr.is_multicast or addr.is_loopback or addr.is_link_local or addr.is_private or addr.is_unspecified or addr.is_reserved or getattr(addr, "is_site_local", False):
         return False
     return addr.is_global
 
@@ -110,9 +111,9 @@ def check_url(url: str, *, own_origin: str, deny: tuple[str, ...] | list[str] = 
         host, port = parts.hostname, parts.port  # .port raises on a non-numeric or out-of-range port
     except ValueError:
         return BAD_PORT
+    host = fold_host(host or "")
     if not host:
         return NO_HOST
-    host = host.lower().rstrip(".")
     if port not in (None, STANDARD_PORTS[scheme]):
         return BAD_PORT
     if _ip_literal(host):
@@ -134,6 +135,33 @@ def check_url(url: str, *, own_origin: str, deny: tuple[str, ...] | list[str] = 
     return Target(url=clean, origin=origin, host=host, addresses=tuple(resolved))
 
 
+def fold_host(host: str) -> str:
+    """The one spelling of a host name every resolver and browser sees: lower-case, no trailing dot, IDNA-folded ("ｅxample.com" is
+    example.com). An empty string when the name cannot be folded (review I2)."""
+    host = host.strip().lower().rstrip(".")
+    if not host:
+        return ""
+    try:
+        return host.encode("idna").decode("ascii")
+    except UnicodeError:
+        return ""
+
+
+def landing_refusal(url: str, *, deny: tuple[str, ...] | list[str] = (), robots: Callable[[str], bool] | None = None) -> str | None:
+    """The policy that applies again where the start address landed (after its redirects): the deny list and robots.txt (review I1).
+    Public-ness was judged by the browser's guard hop by hop; this is the opt-out promise. None when the landing may be audited."""
+    host = fold_host(urlsplit(url).hostname or "")
+    if not host:
+        return NO_HOST.message
+    for entry in deny:
+        entry = fold_host(entry)
+        if entry and (host == entry or host.endswith("." + entry)):
+            return DENIED.message
+    if not (robots or _robots_allows)(url):
+        return ROBOTS.message
+    return None
+
+
 def _ip_literal(host: str) -> bool:
     """An IPv4 or IPv6 literal, including the spellings a browser accepts and ipaddress does not (0x7f000001, 2130706433, 127.1)."""
     try:
@@ -141,7 +169,9 @@ def _ip_literal(host: str) -> bool:
         return True
     except ValueError:
         pass
-    return bool(host) and host.replace(".", "").replace("x", "").isalnum() and not any(c.isalpha() and c not in "abcdefx" for c in host) and host[0].isdigit()
+    # every dotted part a decimal or hex number: 127.1, 2130706433, 0x7f.1, 0177.0.0.1; a name with a letter outside such a part
+    # ("1a2b.cafe", "1.bad.cafe") is a name and goes to the resolver, which judges the addresses it answers
+    return bool(host) and all(re.fullmatch(r"0x[0-9a-f]*|[0-9]+", part, re.IGNORECASE) for part in host.split("."))
 
 
 def _robots_allows(url: str) -> bool:

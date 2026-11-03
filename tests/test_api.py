@@ -870,3 +870,39 @@ async def test_url_run_policy_lookups_are_bounded(tmp_path, monkeypatch):
         await asyncio.gather(*app.state.tasks)
     assert all(r.status_code in (202, 429) for r in answers), [r.status_code for r in answers]  # the stand-in runner frees the slot at once
     assert 2 <= live["max"] <= 4, live  # eight at once, at most four looked up together
+
+
+# QA gate before the 6c merge (the fresh backend review, I4): the policy's lookups are outbound work a visitor pays nothing for,
+# so they are counted per visitor, bounded in time, and answered 429 when the gate is full instead of queueing everyone.
+
+
+async def test_url_lookups_are_counted_per_visitor(tmp_path):
+    async with url_client(tmp_path, PARITY_URL_LOOKUPS_PER_IP_PER_HOUR="2") as (client, app):
+        app.state.resolver = lambda host: ["127.0.0.1"]  # every address refused: nothing spends a run, but each costs a lookup
+        codes = [(await client.post("/api/runs", json={"url": f"https://site{i}.example/", "mode": "live", "consent": True})).status_code for i in range(3)]
+    assert codes[:2] == [422, 422] and codes[2] == 429, codes
+
+
+async def test_url_lookup_that_hangs_is_a_refusal_not_a_wait(tmp_path, monkeypatch):
+    import time
+
+    from parity.api import routes
+
+    monkeypatch.setattr(routes, "POLICY_TIMEOUT_S", 0.2)
+    async with url_client(tmp_path) as (client, app):
+        app.state.resolver = lambda host: (time.sleep(0.6), ["93.184.215.14"])[1]
+        r = await client.post("/api/runs", json={"url": URL, "mode": "live", "consent": True})
+    assert r.status_code == 422 and r.json()["detail"] == "This address could not be checked in time; try again."
+
+
+async def test_url_lookups_answer_busy_instead_of_queueing_when_the_gate_is_full(tmp_path, monkeypatch):
+    import time
+
+    _recorder(monkeypatch)
+    async with url_client(tmp_path, PARITY_LIVE_PER_IP_PER_HOUR="20", PARITY_URL_LOOKUPS_PER_IP_PER_HOUR="50") as (client, app):
+        app.state.resolver = lambda host: (time.sleep(0.4), ["93.184.215.14"])[1]
+        answers = await asyncio.gather(*(client.post("/api/runs", json={"url": f"https://site{i}.example/", "mode": "live", "consent": True}) for i in range(10)))
+        await asyncio.gather(*app.state.tasks)
+    busy = [r for r in answers if r.status_code == 429 and "busy" in r.json()["error"]]
+    assert busy, [r.status_code for r in answers]
+    assert all(r.headers.get("Retry-After") for r in busy)

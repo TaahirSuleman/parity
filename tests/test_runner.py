@@ -533,3 +533,22 @@ async def test_public_run_that_outlives_its_deadline_ends_done_with_the_reason(t
     loaded = await bundle.load(run.id)
     assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "the page took longer than 1 s"
     assert [e.type for e in loaded.events][-1] == "run.finished"
+
+
+async def test_a_public_run_refuses_where_the_start_address_landed(tmp_path, fixture_url):
+    """Review I1 (QA gate before the 6c merge): the route judged the typed address; the page landed elsewhere after a redirect, and the
+    deny list and robots.txt apply there too, before any model call."""
+    from parity.pipeline.browser import new_page
+    from parity.pipeline.runner import run_flow
+
+    async def page_factory(**kwargs):
+        return await new_page(external=True, own_origin="https://parity.example", judge=lambda host: host in ("localhost", "127.0.0.1"), delay_s=0)
+
+    flow = _public_flow(f"{fixture_url}/go-ip")
+    refuse = lambda url: "This site asked not to be audited." if "127.0.0.1" in url else None  # noqa: E731
+    async with harness(tmp_path, {}) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=fixture_url, page_factory=page_factory, landing=refuse)
+    assert run.status == RunStatus.done and run.error is None and client.calls == []
+    loaded = await bundle.load(run.id)
+    assert not loaded.steps
+    assert next(e for e in loaded.events if e.type == "run.finished").data["agent"]["summary"] == "This site asked not to be audited."

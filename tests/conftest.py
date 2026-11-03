@@ -63,6 +63,7 @@ def fixture_url():
     root = Path(__file__).parent / "fixtures" / "pages"
     agents: list[str] = []
     requests: list[str] = []  # every path asked for, query stripped
+    flips = {"n": 0}  # /flip answers 200 once, then redirects to a loopback address: a server that varies its answer (review C1)
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def log_message(self, *args) -> None:  # keep pytest's output clean
@@ -71,6 +72,63 @@ def fixture_url():
         def do_GET(self) -> None:
             agents.append(self.headers.get("User-Agent", ""))
             requests.append(self.path.split("?", 1)[0])
+            port = self.server.server_address[1]
+            if self.path == "/flip-reset":
+                flips["n"] = 0
+                self.send_response(204)
+                self.end_headers()
+                return
+            if self.path == "/start-flip":
+                self.send_response(302)
+                self.send_header("Location", f"http://localhost:{port}/flip")
+                self.end_headers()
+                return
+            if self.path == "/flip":
+                flips["n"] += 1
+                if flips["n"] == 1:
+                    body = b"<!doctype html><html><body><h1>flip first answer</h1></body></html>"
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
+                self.send_response(302)
+                self.send_header("Location", f"http://127.0.0.1:{port}/secret")
+                self.end_headers()
+                return
+            if self.path == "/secret":
+                body = b"<!doctype html><html><body><h1>SECRET internal page reached</h1></body></html>"
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            if self.path == "/flip-img":  # a subresource that redirects on the same host
+                self.send_response(302)
+                self.send_header("Location", f"http://localhost:{port}/img-final")
+                self.end_headers()
+                return
+            if self.path == "/img-final":
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.end_headers()
+                self.wfile.write(b"\x89PNG\r\n\x1a\n")
+                return
+            if self.path == "/loop":
+                self.send_response(302)
+                self.send_header("Location", f"http://localhost:{port}/loop")
+                self.end_headers()
+                return
+            if self.path == "/many-hosts.html":
+                body = ("<!doctype html><html><body><h1>many hosts</h1>" + "".join(f'<img src="http://h{i}.invalid/x.png" alt="">' for i in range(8)) + "</body></html>").encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
             if self.path == "/go-ip":  # a redirect to the same server under another origin: what an apex or http:// address does
                 self.send_response(302)
                 self.send_header("Location", f"http://127.0.0.1:{self.server.server_address[1]}/hop1.html")

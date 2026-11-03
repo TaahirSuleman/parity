@@ -142,6 +142,8 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     seen: set[tuple[str, str | None]] = set()
     unparseable_retry = False
     for attempt in (range(1, MAX_COMPARATOR_ATTEMPTS + 1) if not ctx.over_budget else ()):  # past the cap the screen is kept, not compared
+        if ctx.over_budget:  # checked before every call, not only before the first (review M1)
+            break
         candidates = await compare(
             ctx.client, cap, percepts, run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
             use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree, unparseable_retry=unparseable_retry,
@@ -196,6 +198,8 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
     gate = asyncio.Semaphore(JUDGE_CONCURRENCY)
 
     async def judge_one(finding: Finding) -> None:
+        if ctx.over_budget:  # the cap is checked before every call (review M1)
+            return
         try:
             async with gate:
                 judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))

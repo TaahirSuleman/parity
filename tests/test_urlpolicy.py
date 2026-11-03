@@ -204,3 +204,45 @@ def test_refusal_messages_are_one_sentence_without_the_url():
 
 def test_read_only_goal_tells_the_agent_what_never_to_do():
     assert "submit" in READ_ONLY_GOAL.lower() and "sign in" in READ_ONLY_GOAL.lower() and "buy" in READ_ONLY_GOAL.lower()
+
+
+def test_a_name_that_merely_looks_hexadecimal_is_resolved_not_refused_as_a_literal():
+    """QA gate before the 6c merge: "1a2b.cafe" and "1.bad.cafe" are names; only all-numeric or 0x parts spell an address literal."""
+    from parity.pipeline.urlpolicy import Target, check_url
+
+    public = lambda host: ["93.184.216.34"]  # noqa: E731
+    for host in ("1a2b.cafe", "1.bad.cafe", "0fab.example"):
+        assert isinstance(check_url(f"https://{host}/", own_origin="https://parity.example", resolver=public, robots=lambda u: True), Target), host
+    for literal in ("0x7f000001", "2130706433", "127.1", "0177.0.0.1", "0x7f.1"):
+        refused = check_url(f"https://{literal}/", own_origin="https://parity.example", resolver=public, robots=lambda u: True)
+        assert not isinstance(refused, Target), literal
+
+
+def test_unicode_host_spellings_fold_to_the_ascii_name_before_the_deny_list_and_own_origin_checks():
+    """Review I2: 'ｅxample.com' is example.com to every resolver and browser; the deny list, the own origin and the per-origin key
+    must see the folded name, or a Unicode spelling walks past all three."""
+    from parity.pipeline.urlpolicy import DENIED, OWN, Target, check_url
+    from parity.ratelimit import _site
+
+    public = lambda host: ["93.184.216.34"]  # noqa: E731
+    assert check_url("http://ｅxample.com/", own_origin="https://parity.example", deny=("example.com",), resolver=public, robots=lambda u: True) is DENIED
+    assert check_url("https://ｐarity.example/", own_origin="https://parity.example", resolver=public, robots=lambda u: True) is OWN
+    target = check_url("https://ｗｗｗ.ｅxample.com/x", own_origin="https://parity.example", resolver=public, robots=lambda u: True)
+    assert isinstance(target, Target) and target.host == "www.example.com" and target.origin == "https://www.example.com"
+    assert _site("https://ｗｗｗ.ｅxample.com") == "example.com"
+
+
+def test_site_local_ipv6_is_not_public():
+    from parity.pipeline.urlpolicy import is_public_ip
+
+    assert is_public_ip("fec0::1") is False  # review M3: the deprecated site-local block
+
+
+def test_landing_refusal_applies_the_deny_list_and_robots_where_the_page_landed():
+    """Review I1: an allowed start address that redirects onto a deny-listed host, or onto a path robots.txt disallows, is refused there."""
+    from parity.pipeline.urlpolicy import DENIED, ROBOTS, landing_refusal
+
+    assert landing_refusal("https://denied.example/page", deny=("denied.example",), robots=lambda u: True) == DENIED.message
+    assert landing_refusal("https://ｄenied.example/page", deny=("denied.example",), robots=lambda u: True) == DENIED.message
+    assert landing_refusal("https://ok.example/page", deny=("denied.example",), robots=lambda u: False) == ROBOTS.message
+    assert landing_refusal("https://ok.example/page", deny=("denied.example",), robots=lambda u: True) is None

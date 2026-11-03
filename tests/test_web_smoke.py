@@ -381,3 +381,14 @@ async def test_external_replay_plays_with_attribution(page, committed_server):
     header = await page.locator("header").inner_text()
     assert "www.w3.org" in header and "W3C" in header and "replay" in header.lower() and "ShopRight" not in header
     assert "A fix and its re-audit follow" not in main_text
+
+
+async def test_mode_pills_are_not_clipped_at_phone_width(page, url_server):
+    """QA gate before the 6c merge: with three pills the group must wrap at 375 px; a pill whose text is cut to "Li a ch" is unreadable."""
+    await page.set_viewport_size({"width": 375, "height": 812})
+    await page.goto(url_server + "/")
+    await page.get_by_role("button", name="Live on a page you choose").wait_for()
+    clipped = await page.evaluate(
+        """() => Array.from(document.querySelectorAll('.pill button')).filter((b) => b.scrollWidth > b.clientWidth + 1 || b.getBoundingClientRect().right > window.innerWidth).map((b) => b.textContent)"""
+    )
+    assert clipped == [], clipped

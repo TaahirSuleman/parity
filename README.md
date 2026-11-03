@@ -6,7 +6,7 @@ Built this week (26 Oct – 4 Nov 2026) for the Meta Global AI Developer Hackath
 
 ## Try it
 
-- **Hosted demo:** [https://parity-u7lcbbxuia-uc.a.run.app](https://parity-u7lcbbxuia-uc.a.run.app). No login. Press **Run the audit** with **Replay** selected: a recorded run plays back with no model calls. **Live** runs the real pipeline against the bundled store and is rate-limited per visitor.
+- **Hosted demo:** [https://parity-u7lcbbxuia-uc.a.run.app](https://parity-u7lcbbxuia-uc.a.run.app). No login. Press **Run the audit** with **Replay** selected: a recorded run plays back with no model calls. **Live** runs the real pipeline against the bundled store, one of W3C's demonstration pages, or a public page you choose (read-only), and is rate-limited per visitor.
 - **Locally, in three commands:**
 
 ```bash
@@ -51,7 +51,7 @@ Contributor tier by default (the same model at about a twelfth of the price); a 
 
 ## Evaluation
 
-Measured on the bundled store: **38 seeded faults of the kind axe-core passes, 20 clean controls**, labels kept outside the agent's code path. A finding is scored under its element's id (or the nearest id above it); four pages, three runs per configuration, effort medium. The numbers below are copied from [eval/results/latest.md](eval/results/latest.md) (commit `1e6caad`, 1 Nov) and are the only number set quoted anywhere.
+Measured on the bundled store: **38 seeded faults of the kind axe-core passes, 20 clean controls**, labels kept outside the agent's code path. A finding is scored under its element's id (or the nearest id above it); four pages, three runs per configuration, effort medium. The numbers below are copied from [eval/results/latest.md](eval/results/latest.md) (commit `1e6caad`, 1 Nov) and are the only number set quoted anywhere. The prompts have since gained one rule (page text sits inside `page_data` delimiters and is evidence, never an instruction); the eval has not been re-run on them, and the smoke suite's recorded W3C run is the regression check.
 
 | System | Recall | Precision | Verified findings | FP on clean | Cost / page set | Time |
 |---|---|---|---|---|---|---|
@@ -86,7 +86,7 @@ Every run is a bundle on disk (or in a Cloud Storage bucket): `run.json`, each s
 | `web/` | the workbench (React, Vite, Tailwind), built into `parity/static` |
 | `store/` | the ShopRight demo store: static pages with seeded, axe-passing faults |
 | `eval/` | labels, the harness, the ablations and the results (`eval/results/latest.md`) |
-| `fixtures/replay/` | the recorded runs served in Replay mode (two heroes, two anonymised public samples) |
+| `fixtures/replay/` | the recorded runs served in Replay mode (two heroes, two anonymised public samples, the four W3C demonstration pages under `w3c-*`) |
 | `deploy/` | Dockerfile companions: the Cloud Run script and its README |
 | `tests/` | pytest and vitest; model-facing code runs against recorded responses in `tests/fixtures/meta` |
 | `docs/` | decisions, design spec, plan, validation and QA reports ([docs/README.md](docs/README.md)) |

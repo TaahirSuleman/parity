@@ -54,6 +54,7 @@ class Settings:
     default_mode: str = "replay"
     live_enabled: bool = True
     live_per_ip_per_hour: int = 3
+    url_lookups_per_ip_per_hour: int = 20  # URL-policy lookups (DNS, robots.txt) one visitor may cause an hour: refusals cost a lookup, not a run
     live_global_per_day: int = 40
     live_target_origins: str = "self"
     external_flows: bool = True  # list and run the W3C BAD pages as read-only flows (spec §19.2); PARITY_EXTERNAL_FLOWS=0 hides the group
@@ -128,6 +129,7 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         default_mode=get("PARITY_DEFAULT_MODE", Settings.default_mode),
         live_enabled=_bool(get("PARITY_LIVE_ENABLED", "true")),
         live_per_ip_per_hour=int(get("PARITY_LIVE_PER_IP_PER_HOUR", "3")),
+        url_lookups_per_ip_per_hour=int(get("PARITY_URL_LOOKUPS_PER_IP_PER_HOUR", "20")),
         live_global_per_day=int(get("PARITY_LIVE_GLOBAL_PER_DAY", "40")),
         trust_proxy=_bool(get("PARITY_TRUST_PROXY", "0")),
         replay_keep=int(get("PARITY_REPLAY_KEEP", str(Settings.replay_keep))),

@@ -270,7 +270,7 @@ A fair comparison, not a strawman: the multi-agent variant gets the same models,
 
 ## 17. Public-site sample (P4) [D7]
 - **CLI only** (amended by D12): `parity audit --url <start> --goal "<text>" --public` runs locally; the hosted app accepts a visitor's public URL under §19.3, with the same guard, no fixes and its own caps.
-- **Read-only guard:** in public mode the Navigator's action executor refuses, and ends the flow before, any click on an element whose AX name or text matches pay/buy/place order/submit/sign up/subscribe/confirm/delete, any typing into password, card, email or phone fields, and any form submit. The refusal is logged as `nav.blocked` and the run ends with status `done` and reason `stopped before irreversible step`.
+- **Read-only guard:** in public mode the Navigator's action executor refuses, and ends the flow before, any click on an element whose AX name or text matches pay/buy/place order/submit/sign up/subscribe/confirm/delete, any typing into password, card, email or phone fields, and any form submit. The refusal is logged as `nav.blocked` and the run ends with status `done` and reason `stopped before irreversible step`; the one non-fatal refusal is a consent banner's accept button (added 3 Nov, 26F.2): the click is dropped, logged, and the walk goes on.
 - **Bot walls:** consent banners may be dismissed only with the most privacy-preserving option; CAPTCHAs, bot challenges and logins end the run with reason `blocked by site`. Never bypassed.
 - **Politeness:** respect robots.txt for the start URL, one run per site, no parallel requests, ≤ 12 navigator turns.
 - **Disclosure:** results are stored as Replay bundles under `fixtures/replay/runs/public-<letter>/` with the host, its URLs and the brand name replaced by "Site A/B/C" in every text file; the agent's own screenshots and transcript are not copied; a step screenshot is kept only where a finding was verified, and masked to the findings' boxes (the evidence stays, the rest of the page does not travel). A bot wall ends the run as `blocked by site` before anything is sent to a model (revised 1 Nov after the P4 review). Counts of verified findings appear in the README and the Eval tab. A site is named only after its owner has been notified.
@@ -301,7 +301,7 @@ A fair comparison, not a strawman: the multi-agent variant gets the same models,
   returns `public` and `attribution`; the runner takes `public=flow.public` and the flow's origin as `base_url`.
 - The workbench groups them as "External page (W3C demo, read-only)", shows the attribution line, and passes `fixesExpected=false` (no fixer, no
   re-audit: §17 stands, we never patch a page we do not serve). The header names the site from the flow, never "ShopRight".
-- Replay bundles `fixtures/replay/runs/bad-<page>` recorded once each with the Spark model (~$0.10 each), not anonymised (the pages are a public
+- Replay bundles `fixtures/replay/runs/w3c-<page>` (named after the page, not the flow: Replay rewrites the source run id throughout a copy, and a bundle id equal to its flow id would lose the flow id) recorded once each with the contributor model for the seer and comparator and standard Spark as the judge ($0.08 for the four, revised 3 Nov), not anonymised (the pages are a public
   demonstration published for this purpose), with a `NOTICE` carrying the W3C copyright line. Rate limits unchanged; `PARITY_EXTERNAL_FLOWS=0`
   hides the group.
 
@@ -317,7 +317,7 @@ audit of someone else's page defensible under R4, and the takedown path needs de
 is `metadata.google.internal`, ends in `.internal`, or is our own origin. A deny list (`PARITY_URL_DENY`, comma-separated hosts, default empty)
 and the existing `robots_allows()` complete the check. Every `Refusal` carries one sentence for the UI and never contains the URL ("This address
 is not public.", "robots.txt disallows this page.", "This site asked not to be audited."). **Re-checked in the browser:** an external run's page
-installs `page.route("**/*", request_guard)`, which resolves each request's host once per run (a per-run cache) and aborts any request whose
+installs `context.route("**/*", request_guard)` on the whole browser context, so a popup's requests are judged too, with `service_workers="block"` (revised 3 Nov after the 6c review); the guard resolves each request's host once per run (a per-run cache) and aborts any request whose
 host fails `resolve_public`; redirects are covered because every hop is a new request. Chromium is launched with
 `--host-resolver-rules="MAP metadata.google.internal ~NOTFOUND"` for external runs. Residual risk, stated: DNS rebinding between our resolver
 and Chromium's; mitigated by the Cloud Run service account holding no role beyond the bucket, and by external bundles living under their own
@@ -340,7 +340,7 @@ raise towards 10 only if the field is popular and the credits allow): the day's 
 `PARITY_OPEN_URL=0` hides the mode through `/api/health` and refuses the route.
 
 **19.3.4 Consent, policy page, retention.** The visitor ticks "This page is public and I may audit it"; the timestamp is stored on the run.
-`GET /audit-policy` serves `parity/static/audit-policy.html`: what Parity does (reads the page as a visitor, never submits, never signs in,
+`GET /audit-policy` serves `parity/pages/audit-policy.html` (not `static/`, which every web build empties): what Parity does (reads the page as a visitor, never submits, never signs in,
 honours robots.txt, one run per origin at a time), what is stored (the screenshot, the accessibility tree and the findings, for 24 hours,
 visible only to whoever holds the run link), that nothing from it enters public samples or the evaluation, the opt-out (a host joins the deny
 list on request) and the takedown contact (`PARITY_CONTACT_EMAIL`, default the repository author's address). Retention is enforced, not

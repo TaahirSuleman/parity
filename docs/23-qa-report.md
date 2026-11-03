@@ -421,3 +421,88 @@ Cold judge, UX and UI (ranked by effect on the score; the three essentials and t
   `voice.transcribed`): the background wrapper reported its trailing echo's exit code, and the first fix chained `pytest | tail && git push`, which
   hid the second failure. Fixed in `6b8ad03` and `839c393`. Rule since then: a push is gated on pytest's own return code, read from the log.
 - Spend this section: $0.21 of model calls (the probe and the run).
+
+## 10. QA gate before the 6c merge: "Live on a page you choose" (3 Nov 2026, 13:40–15:30 SAST)
+
+The pass the user asked for before the branch reaches the hosted app: three fresh reviewers on the branch (backend and security; UX, UI,
+API and accessibility; a requirement-by-requirement audit), a cold start from a fresh clone, and a Live run through the real UI.
+
+### 10.1 First-hand checks
+- **Cold start:** a fresh clone of `feat/open-url` into a scratch folder, `make setup`, then the full suite: 461 passed in 170 s on the branch
+  as handed over (d199587).
+- **Live run through the field (local, real model calls):** a loopback address on the app's own port was refused with "Only the standard web
+  ports are accepted."; `http://127.0.0.1/` with "This address is not public."; then `https://developer.mozilla.org/en-US/docs/Web/Accessibility`
+  (one screen, a hint): the header named `developer.mozilla.org` with the attribution line, the run ended `done` in 2 m 38 s at $0.12
+  (8 model calls, 110 k tokens; the five judge calls were $0.02–0.03 each), 5 verified and 2 rejected by the Verifier, 4 axe-core violations,
+  the judge calling four of the five "not a barrier in context". Replay of "W3C demo: home" from the picker afterwards showed W3C's attribution.
+  The policy page read as written. At 375 px nothing overflowed.
+- **What the live run showed that the tests had not:** the URL panel (≈170 px) squeezed the screenshot to a 110 px strip at 1024×768; the selected
+  card on a read-only page offered a disabled "Approve fix" and a "Reject" above the sentence that says fixes are not offered; the idle paragraph
+  still framed "the Checkout page" in the URL mode; the third pill was clipped to "Li a ch" at phone width (the pill group did not wrap); the
+  header's site label ended in a dangling "·"; the submit button is `disabled` while the run goes, so keyboard focus fell to the page on every submit.
+
+### 10.2 Reviewer findings and what was done
+**Backend and security (verdict: with fixes).** Probed 29 addresses against a scratch instance (every spelling of loopback, link-local, metadata,
+`.internal`, nip.io, credentials, ports, `file:`/`javascript:`, 2,049 characters, the deny list in three spellings, the own origin): all refused
+with the right sentence, nothing echoed, no key in the log.
+- **C1 (fixed, test first):** the guard pre-walked a redirect chain and then handed Chromium the 3xx; Chromium's own follow is not routed, so a
+  server that answers 200 to the guard's fetch and 302-to-loopback to the browser's landed the page on `127.0.0.1`. Reproduced by the reviewer in
+  under a minute. Now a 3xx never reaches Chromium: a subresource's chain is walked and answered with its final hop; a main-frame redirect is
+  answered with a small page of ours that refreshes to the judged location, so each hop is a routed navigation judged afresh, and
+  `settle_redirects` waits those pages out after every navigation (the runner's open and the agent's actions). The server sees one fetch per hop.
+  Tests: the flip server (`/flip` answers 200 once, then a redirect to loopback), a redirecting image fetched once, a redirect loop ending as
+  an aborted navigation. `tests/test_browser_guard.py`.
+- **I1 (fixed):** the deny list and robots.txt applied only to the typed address; a start URL that redirects onto a deny-listed host was audited.
+  `landing_refusal` now runs where the page landed, before any model call. `tests/test_runner.py`, `tests/test_urlpolicy.py`.
+- **I2 (fixed):** host names were not IDNA-folded, so `ｅxample.com` passed the deny list, the own-origin check and the per-origin cap. One
+  `fold_host` for the policy, the landing check and the cap's key. `tests/test_urlpolicy.py`.
+- **I3 (the user's call):** the runs bucket has soft delete at 7 days (checked: `retentionDurationSeconds=604800`), so a "deleted" screenshot is
+  restorable for a week after the 24 hours the policy page promises. Fix is one command on the bucket (`--soft-delete-duration=0`); not run here.
+- **I4 (fixed):** policy lookups were unmetered outbound work: a visitor could queue everyone behind a slow host at no cost. Now lookups are
+  counted per visitor (`PARITY_URL_LOOKUPS_PER_IP_PER_HOUR`, 20), bounded to 20 s each, and a full gate answers 429 "busy" instead of
+  queueing. `tests/test_api.py`.
+- Minors fixed: M1 the cost cap is checked before every comparator attempt and every judge call; M3 site-local IPv6 refused; M4 a visitor run's
+  screenshot is `Cache-Control: private`; M5 httpx's per-request log line is off and the guard logs a host it could not judge at DEBUG; M6 at most
+  100 hosts judged per run, the rest refused and reported once; M9 a test holds that no WebSocket leaves a routed context (an explicit `route_web_socket` handler was tried and reverted: it left a task the event loop's teardown could not cancel, a hang after that test); M2 (hex-looking names
+  refused as literals) rewritten so only numeric and `0x` parts spell an address.
+- Deferred, ledgered: M7 subresource ports on public hosts; M8 (gone with C1); M10 the per-origin cap keys on the typed origin, the day cap
+  bounds it; M11 the Host header behind the front end.
+
+**UX, UI, API and accessibility (verdict: with fixes).**
+- **C1 (fixed):** the URL mode was a UI flag no run start reconciled: a W3C replay from the Eval tab while the third pill was on kept the pill
+  pressed and dropped W3C's attribution; a finished store run stayed on screen under "a page you choose"; a linked visitor run loaded with
+  "Live (rate-limited)" pressed. Now every start sets the flag, a linked visitor run presses the pill, toggling the flag resets the run on
+  screen, and the header reads a public run's site and attribution from the run itself. `App.test.tsx`, `Header.test.tsx`.
+- **I1 (fixed):** the submit button is `aria-disabled` while the run goes (as the header's Run button already was), and a refusal moves focus
+  to the address field. **I2 (fixed):** an early end is said in the assertive region with its reason, not only "0 verified findings".
+  **I3 (fixed):** the idle paragraph and the Sighted panel frame the page the visitor will choose (one sentence, ≤ 40 words, as docs/24 asks)
+  and a W3C flow without promising a fix. **I4 (fixed):** a 410 shows the server's expiry sentence verbatim. **I5 (fixed):** the third pill
+  is inert while a run goes.
+- Minors fixed: the day's budget is said once (the panel's status) with the pill kept, disabled and explained; no dangling "·"; suggested
+  pages named by host and path when a host repeats, focus to the field after a fill; the policy link opens in a new tab and says so; an address
+  typed without a scheme is sent as https; a validation body's messages are joined; a 429 in the URL mode lands in the panel with the wait and
+  no Replay suggestion; text fields get a 3:1 border. Plus the live run's own findings above: the panel folds to one line under its run
+  ("Audited developer.mozilla.org, read-only · Audit another page"), read-only cards offer no Approve or Reject, the pill group wraps at
+  phone width (a smoke test at 375 px holds it).
+
+**Requirements audit (verdict: with fixes).** 84 rows across the standing rules, D11/D12, spec §17 and §19 and Tasks 26E.4–26F.6: every bullet
+Met with a test, three benign deviations reasoned in code (bundle names `w3c-*`, the recording model, the policy page under `parity/pages/`).
+- **Risk 1 (fixed):** `deploy/cloudrun.sh` used `--set-env-vars`, so a value set on the service by hand (`PARITY_SUGGESTED_URLS`, `PARITY_URL_DENY`,
+  the `PARITY_OPEN_URL=0` kill switch) would have been erased by the next push to main. Now `--update-env-vars`; deploy/README.md says how to set them.
+- Stale text fixed: HACKATHON_SCOPE named `bad-*` bundles; README said Live runs "against the bundled store" and listed two public samples; the
+  README now says the prompts gained the `page_data` rule after the measured eval; spec §19.2/§19.3.1/§19.3.4/§17, plan 26E.5/26F.2/26F.4 and
+  the handoff synced to the code; the W3C NOTICE files name the document licence.
+- Open (the user's): three suggested pages after the hosted verification; the bucket's soft delete (I3 above).
+
+### 10.3 Verification of this gate
+- Every fix above has a test that failed before the change and passed after it: 21 new vitest cases (`App.test.tsx`, `Header.test.tsx`,
+  `UrlRun.test.tsx`, `Workbench.test.tsx`, `FindingCard.test.tsx`, `api.test.ts`), 15 new pytest cases (`test_browser_guard.py`,
+  `test_urlpolicy.py`, `test_runner.py`, `test_api.py`) and one smoke test at 375 px. vitest 154 of 154; pytest 475 passed on the merged tree
+  (`main` 7dbe48a merged in first); the SPA builds.
+- One suite hang found and fixed on the way: an explicit `route_web_socket` handler left a task the event loop's teardown could not cancel, so
+  the suite stalled after the WebSocket test (15 minutes, twice, only in the full run). The handler is gone; the test that holds the behaviour stays.
+- A second Live run through the field after the backend fixes, on the apex address typed without a scheme (`w3.org/WAI/demos/bad/before/home.html`):
+  `https://` prepended, the http→https and apex→www redirects followed hop by hop through the guard's own pages, the run recorded
+  `origin: https://www.w3.org`, ended `done` in 2 m 55 s at $0.05 with 2 verified and 14 rejected, no request refused. Found on the way, deferred: the
+  header names the typed host (`w3.org`) until the page is reloaded; the record and the attribution carry the landed one after the run.
+- Spend this gate: $0.17 of model calls (two Live runs through the field).

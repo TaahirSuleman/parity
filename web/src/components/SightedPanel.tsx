@@ -16,6 +16,7 @@ interface Props {
   onSelect: (id: string) => void;
   finished?: boolean;
   isPublic?: boolean; // an anonymised sample keeps screenshots only where a finding was verified
+  idleHint?: string; // what to press before anything runs: the header's button, or the URL panel's
 }
 
 const pathOf = (url: string) => { try { const u = new URL(url, "http://x"); return u.pathname + u.search; } catch { return url; } };
@@ -34,7 +35,7 @@ export function stageBadge(stage: string | null, model: string, hasBoxes = false
   return <CodeBadge what="Chromium · screenshot" />;
 }
 
-export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect, finished = false, isPublic = false }: Props) {
+export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, stage, model, timeline, steps = [], stepIndex = null, onStepChange, onSelect, finished = false, isPublic = false, idleHint = "Run the audit to see the page" }: Props) {
   const [withheld, setWithheld] = useState(false);  // the image did not load: an anonymised sample keeps screenshots only where a finding was verified
   useEffect(() => setWithheld(false), [screenshotUrl]);
   const onScreen = stepIndex === null ? findings : findings.filter((f) => f.step_index === stepIndex);
@@ -65,7 +66,7 @@ export function SightedPanel({ screenshotUrl, findings, percepts, selectedId, st
         ) : screenshotUrl ? (
           <img src={screenshotUrl} alt="The audited page as a sighted user sees it" className="block w-full h-full" style={{ objectFit: "contain" }} onError={() => setWithheld(true)} />
         ) : (
-          <div className="absolute inset-0 grid place-items-center muted text-center px-6">{finished ? "No screen was captured on this run." : "Run the audit to see the page"}</div>
+          <div className="absolute inset-0 grid place-items-center muted text-center px-6">{finished ? "No screen was captured on this run." : idleHint}</div>
         )}
         {shownPercepts.map((p, i) => <span key={`p${i}`} className="percept" style={pct(p.bbox)} aria-hidden="true" />)}
         {shown.map((f) => (

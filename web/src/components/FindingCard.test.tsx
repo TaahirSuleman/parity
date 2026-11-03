@@ -240,3 +240,15 @@ describe("FindingCard Voice (P6)", () => {
     expect(screen.getAllByRole("listitem", { name: /passed/i })).toHaveLength(5); // Voice is evidence, never a sixth gate
   });
 });
+
+describe("QA gate before the 6c merge: read-only pages", () => {
+  it("offers no Approve or Reject on a page we do not serve, only the sentence", async () => {
+    const hero = (await import("../fixtures/hero.json")).default as unknown as { findings: import("../state/types").Finding[] };
+    const finding = { ...hero.findings[0], fix: null, reaudit: null, fix_note: null, decision: null };
+    render(<FindingCard finding={finding} selected onSelect={() => {}} onDecision={() => {}} readOnly />);
+    expect(screen.queryByRole("button", { name: /approve/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /reject/i })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: /reason/i })).toBeNull();
+    expect(screen.getByText(/Fixes and re-audits are not offered on pages we do not serve/)).toBeInTheDocument();
+  });
+});

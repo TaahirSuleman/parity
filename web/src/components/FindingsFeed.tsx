@@ -18,10 +18,11 @@ interface Props {
   steps?: Step[]; // to name the screen a card belongs to when there are several
   fixesExpected?: boolean; // false once the run is over, or for a read-only public sample: no fix will follow
   readOnly?: boolean; // a page we do not serve: fixes and re-audits are not offered
+  urlMode?: boolean; // "Live on a page you choose" is selected: the idle framing is about the visitor's page, not a flow
   comparatorModel?: string;
 }
 
-export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow", notice = null, outcome = null, steps = [], fixesExpected = true, readOnly = false, comparatorModel }: Props) {
+export function FindingsFeed({ findings, rejected, selectedId, phase, error, onSelect, onDecision, flowName = "flow", notice = null, outcome = null, steps = [], fixesExpected = true, readOnly = false, urlMode = false, comparatorModel }: Props) {
   const noticeRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {  // on a phone the feed sits below the screenshot: a notice must come to the reader, not wait to be found
     if (notice) noticeRef.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
@@ -73,7 +74,11 @@ export function FindingsFeed({ findings, rejected, selectedId, phase, error, onS
       )}
       {items.length === 0 && (
         <p className="muted m-0 p-5" role={phase === "idle" ? undefined : "status"}>
-          {phase === "idle" && `Parity walks the ${flowName} as a sighted shopper and a screen-reader user, proves each gap and proposes a fix for a human to approve: Run the audit to start (Replay is a recorded run with no model calls).`}
+          {phase === "idle" && (urlMode  // one sentence of at most 40 words each: VoiceOver reads it on load (docs/24 Question A)
+            ? "Parity reads the page you choose as a sighted visitor and a screen-reader user, proves each gap against its accessibility tree and proposes no fix on a page it does not serve: enter an address and press Audit this page."
+            : readOnly
+              ? `Parity reads the ${flowName} as a sighted visitor and a screen-reader user, proves each gap against the page's accessibility tree and proposes no fix on a page it does not serve (read-only): Run the audit to start.`
+              : `Parity walks the ${flowName} as a sighted shopper and a screen-reader user, proves each gap and proposes a fix for a human to approve: Run the audit to start (Replay is a recorded run with no model calls).`)}
           {phase === "running" && "Capturing the page and comparing what is seen with what is announced…"}
           {phase === "finished" && (outcome
             ? (steps.length === 0 ? `The site stopped the walk before any screen was audited: ${outcome}.` : `The walk ended early (${outcome}); no divergences passed the verifier on the screens it audited.`)

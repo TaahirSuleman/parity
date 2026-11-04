@@ -90,3 +90,30 @@ Problem statement Push the Frontier (software) (doc 18 §10). Purchase bundle: t
 **Acted on (4 Nov 22:40 SAST).** "prove a blind shopper can buy" → "find what stops a blind shopper from buying, prove each one, and fix it" (narration, doc 18, docs/21); Card A cut from five figures to the three the narration says; "a proven finding" → "a verified finding"; "Every check passed" → "All six checks passed on this finding"; "no false positives" → "no false alarms on twenty clean controls"; the EAA fine attributed to Germany in the narration; the live chip now reads "Live run · recorded 4 Nov 21:38 · reopened by link"; Card B's $674bn labelled as US working-age adults with disabilities; docs/21 §6 states the store is four pages, adds the shipped W3C figures beside the 7 of 14, and cites docs/24 for the VoiceOver pass; the click-miss range unified to 5–18 px; the YouTube chapters follow v5.
 
 **Not acted on, with the reason.** The ablation rows are from 1 Nov and the full row from 4 Nov: stated in the README and the eval tab, and a re-run is an hour and $5 the schedule does not have. "A twelfth of the price" (per token) and "1/18 the cost" (per judged finding) measure different things and both stand. The Ticketmaster shot is a recorded Live run (4 Nov 12:01, `tm.webm`), labelled as a bot wall; it is the product doing what it does. The 13-year-old Deque figure is labelled vendor and dated on the card.
+
+## 7. Cold-review checklist (docs/submission-checklist.md, ticked 4 Nov 22:45 SAST on the silent cut `parity-demo-v5-silent.mp4`)
+
+| Item | State |
+|---|---|
+| Length ≤ 2:55 | 2:54.8 measured on the rendered file |
+| Product visible at 0:05 | yes; the checkout Replay from 0:00 |
+| No slide > 10 s | Card A 10 s, Card B 10 s, the end card 5 s; nothing else off the product |
+| Hero moment uncut or labelled | the walk is labelled "Replay · recorded run · sped up in the edit" on its chip; the fix, re-audit and Approve run at 1× |
+| Human approval click visible | yes, 1:41 |
+| Impact lands before 2:50 | the impact block runs 2:10–2:50; the end card 2:50–2:55 |
+| Burned-in captions | every narration line and the VoiceOver clip; an SRT beside the file |
+| No failed or test runs on screen | none |
+| Every number matches the README | reconciled in §1 and §6 of this ledger |
+| No statement contradicts the README | the compliance-shaped job line was rewritten (§6) |
+| Every Meta feature named matches the code | computer use, perception grounding, multimodal comparison, judge, fixer, Voice Transcribe, each beside its artefact |
+| Titles, slides and file names belong to this project | yes |
+| Public URL loads without login | yes (health ok, revision parity-00025-jl8) |
+| Golden-case button runs to completion | Replay hero-checkout and hero-purchase end awaiting_review on the hosted app |
+| No mock data unlabelled | Replay and Live chips on every beat |
+| CLAUDE.md and .claude untracked | yes (never tracked) |
+| Third-party documents gone | pending the pre-submission docs split (the builder's go) |
+| Every file the README links to exists | test_docs passes |
+| README states what is deterministic | yes |
+| Architecture diagram is an image | yes, plus docs/31 |
+| Hackathon-built scope stated | README first paragraph, HACKATHON_SCOPE, the scope caption at 0:09, the end card |
+| YouTube public, links open, no Drive links, contributors listed | pending the upload and the form |

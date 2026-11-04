@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "judged",
- "sighted_text": "product thumbnail - light outline shape",
+ "sighted_text": "product image thumbnail outline",
  "sr_role": "image",
  "sr_name": "decorative divider graphic",
- "why_it_matters": "Labelled decorative so a blind user will ignore what is actually a product thumbnail.",
+ "why_it_matters": "Mislabeled as decorative so blind user is told to ignore a product thumbnail.",
  "voice": null,
  "bbox": {
   "x_min": 259,
@@ -15,7 +15,7 @@
   "y_max": 364
  },
  "element": {
-  "backend_id": 36,
+  "backend_id": 37,
   "css_path": "img#divider-1",
   "box_px": [
    331,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 36,
+   "backend_id": 37,
    "css_path": "img#divider-1",
    "box_px": [
     331,
@@ -68,12 +72,12 @@
   "is_barrier": false,
   "severity": "minor",
   "wcag": [],
-  "impact": "The sighted user sees only a light outline shape with no product detail, so a screen-reader user who ignores it as decorative loses no information or ability to act.",
+  "impact": "User still understands the element is only a decorative outline and loses no product information or ability to act.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "09d7afce-8fca-47fb-b964-6419b3cc82b6",
-   "response_id": "resp_6ae7449e498f2f31646a4246",
+   "request_id": "435cf46e-02c7-4410-a38e-522609a398ea",
+   "response_id": "resp_6aeafdae0eaabdff77b648a7",
    "status": "completed",
    "incomplete_reason": null
   }

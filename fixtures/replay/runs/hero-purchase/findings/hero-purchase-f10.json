@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Standard (selected)",
+ "sighted_text": "Standard (visually selected with black background)",
  "sr_role": "button",
  "sr_name": "Standard",
- "why_it_matters": "Blind user is not told this size is currently selected.",
+ "why_it_matters": "Selection is shown only by black background colour with no state announced.",
  "voice": null,
  "bbox": {
   "x_min": 172,
@@ -15,7 +15,7 @@
   "y_max": 464
  },
  "element": {
-  "backend_id": 44,
+  "backend_id": 45,
   "css_path": "button#size-standard",
   "box_px": [
    220,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 44,
+   "backend_id": 45,
    "css_path": "button#size-standard",
    "box_px": [
     220,
@@ -71,34 +75,38 @@
    {
     "sc": "4.1.2",
     "name": "Name, Role, Value"
+   },
+   {
+    "sc": "1.4.1",
+    "name": "Use of Color"
    }
   ],
-  "impact": "Blind user cannot tell that Standard is the currently selected size and cannot verify their size choice before purchase.",
+  "impact": "Screen-reader user cannot tell that Standard is currently selected and cannot verify the chosen size before adding to cart.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "c37251e1-dd8b-45eb-9e5b-988cd51c260b",
-   "response_id": "resp_6ae7449c2cfd3847e7ec46ed",
+   "request_id": "659db324-2b03-4dbd-8059-06cc55bf852a",
+   "response_id": "resp_6aeafdaf129e798369a84f51",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>",
-  "after_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-current=\"true\" aria-label=\"Standard (selected)\">Standard</button>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -30,7 +30,7 @@\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n-      <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n+      <button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-current=\"true\" aria-label=\"Standard (selected)\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n       <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n     </p>\n",
-  "explanation": "Added aria-current and an aria-label including \"(selected)\" so the accessible name/state conveys the visible selected styling to screen readers.",
+  "after_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\">Standard</button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -30,7 +30,7 @@\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n-      <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n+      <button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n       <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n     </p>\n",
+  "explanation": "Added aria-pressed=\"true\" to announce the selected state that was previously shown only by black background colour.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "413ea15d-8754-4e4d-9bad-99a7976182b8",
-   "response_id": "resp_6ae746304bccb6c0153443d3",
+   "request_id": "174ab36c-5dbe-4f1d-bdbd-8f7e9b9bc8ca",
+   "response_id": "resp_6aeaff639259f915e46b4af4",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
+  "gap_closed": false,
   "sr_name_before": "Standard",
-  "sr_name_after": "Standard (selected)",
+  "sr_name_after": "Standard",
   "comparator_still_flags": false
  },
  "decision": null

@@ -64,7 +64,9 @@ export function reduce(state: RunState, ev: ParityEvent): RunState {
     }
     case "nav.actions": {
       const actions = (ev.actions as string[] | undefined) ?? [];
-      return { ...state, stage: "navigator", timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "actions", label: `computer: ${actions.join(", ") || "no actions"}`, at: ev.at }] };
+      const snapped = ((ev.snapped as { target?: string }[] | undefined) ?? []).map((s) => String(s.target ?? "")).filter(Boolean);  // a near-miss click moved to its control by code
+      const label = `computer: ${actions.join(", ") || "no actions"}${snapped.length ? ` (snapped to ${snapped.join(", ")})` : ""}`;
+      return { ...state, stage: "navigator", timeline: [...state.timeline, { turn: Number(ev.turn ?? 0), kind: "actions", label, at: ev.at }] };
     }
     case "nav.safety_check": {
       const codes = (ev.codes as string[] | undefined) ?? [];

@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "product thumbnail - black oval shape",
+ "sighted_text": "product image thumbnail showing black oval",
  "sr_role": "image",
  "sr_name": "photo 1",
- "why_it_matters": "Generic name gives no product information about the thumbnail content.",
+ "why_it_matters": "Generic name gives no product information about colour or shape.",
  "voice": null,
  "bbox": {
   "x_min": 146,
@@ -15,7 +15,7 @@
   "y_max": 364
  },
  "element": {
-  "backend_id": 34,
+  "backend_id": 35,
   "css_path": "img#gallery-1",
   "box_px": [
    187,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 34,
+   "backend_id": 35,
    "css_path": "img#gallery-1",
    "box_px": [
     187,
@@ -73,33 +77,33 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The user cannot tell what the first product thumbnail shows and cannot distinguish this view from the other gallery images.",
+  "impact": "The blind user cannot tell that this thumbnail shows the black oval graphite product view and hears only the generic label photo 1.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "07f33124-39d7-44d7-937d-8c9d0106e286",
-   "response_id": "resp_6ae7449149cc443513744eac",
+   "request_id": "db03da86-0541-45fc-8ec8-bdde3c8c1e60",
+   "response_id": "resp_6aeafd995eeaeb707dac4c65",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">",
-  "after_html": "<img id=\"gallery-1\" alt=\"black oval shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -20,7 +20,7 @@\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n-      <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-1\" alt=\"black oval shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n       <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n",
-  "explanation": "Changed alt from generic 'photo 1' to 'black oval shape' so the accessible name describes the visible thumbnail content.",
+  "after_html": "<img id=\"gallery-1\" alt=\"Black oval graphite product view\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -20,7 +20,7 @@\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n-      <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-1\" alt=\"Black oval graphite product view\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n       <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n",
+  "explanation": "Changed alt from generic photo 1 to describe the visible black oval graphite product view.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "690ffe58-9e2d-46f5-a5ad-bb80de730e83",
-   "response_id": "resp_6ae746120ad9fff5893f47c1",
+   "request_id": "293f9685-bacf-446c-8625-5765dd7dc937",
+   "response_id": "resp_6aeaff52450c6fa87d834472",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
   "sr_name_before": "photo 1",
-  "sr_name_after": "black oval shape",
-  "comparator_still_flags": true
+  "sr_name_after": "Black oval graphite product view",
+  "comparator_still_flags": false
  },
  "decision": null
 }

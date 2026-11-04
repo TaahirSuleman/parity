@@ -6,7 +6,7 @@
  "sighted_text": "★★★★☆",
  "sr_role": "",
  "sr_name": "",
- "why_it_matters": "Blind user misses the star rating because the stars render pixels with no accessibility entry.",
+ "why_it_matters": "Star graphic has no accessibility entry so blind user loses the visual rating.",
  "voice": null,
  "bbox": {
   "x_min": 146,
@@ -15,7 +15,7 @@
   "y_max": 242
  },
  "element": {
-  "backend_id": 28,
+  "backend_id": 29,
   "css_path": "span#rating-css",
   "box_px": [
    187,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 28,
+   "backend_id": 29,
    "css_path": "span#rating-css",
    "box_px": [
     187,
@@ -66,39 +70,39 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "The user hears only 'based on 212 reviews' and cannot learn the 4-out-of-5 star rating that sighted users see.",
+  "impact": "The blind user gets no rating value and cannot learn the 4-out-of-5 star score sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "2f8f9698-1dd0-41a1-80f7-00af52cf4894",
-   "response_id": "resp_6ae74490a0cf4ba890fb4b6c",
+   "request_id": "c1ff8f3a-6915-49b5-a09c-e5ec3978c40b",
+   "response_id": "resp_6aeafd9724e40624b8f243d6",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<span id=\"rating-css\" class=\"stars four\"></span>",
-  "after_html": "<span id=\"rating-css\" class=\"stars four\" role=\"img\" aria-label=\"4 out of 5 stars\"></span>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -16,7 +16,7 @@\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n+    <p class=\"row\"><span id=\"rating-css\" class=\"stars four\" role=\"img\" aria-label=\"4 out of 5 stars\"></span><span class=\"small\">based on 212 reviews</span></p>\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n",
-  "explanation": "Added role=\"img\" and aria-label=\"4 out of 5 stars\" so the CSS-only stars expose the visible 4-out-of-5 rating to screen readers.",
+  "after_html": "<span id=\"rating-css\" class=\"stars four\" role=\"img\" aria-label=\"Rated 4 out of 5 stars\"></span>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -16,7 +16,7 @@\n     <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n-    <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n+    <p class=\"row\"><span id=\"rating-css\" class=\"stars four\" role=\"img\" aria-label=\"Rated 4 out of 5 stars\"></span><span class=\"small\">based on 212 reviews</span></p>\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n",
+  "explanation": "Added role=\"img\" and aria-label describing the 4-out-of-5 score so the CSS star graphic announces the visual rating to screen readers.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "444267b9-d1a3-4a34-988c-bc391ca07eab",
-   "response_id": "resp_6ae746112ba8c141497d405e",
+   "request_id": "54d95a40-d3c3-4532-98c2-e0639801b5ce",
+   "response_id": "resp_6aeaff5832ef064603bb48f6",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
   "sr_name_before": "",
-  "sr_name_after": "4 out of 5 stars",
+  "sr_name_after": "Rated 4 out of 5 stars",
   "comparator_still_flags": false
  },
  "decision": null

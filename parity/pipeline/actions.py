@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import io
 import logging
+import math
 import re
 import time
 from collections import Counter
@@ -28,6 +29,23 @@ KEY_MAP = {
     "LEFT": "ArrowLeft", "RIGHT": "ArrowRight", "SPACE": " ",
 }
 SETTLE_MS = 300
+# Click snap (4 Nov): the recorded purchase walks clicked the store's buttons 6 px below, 12 px right and 18 px left of their
+# boxes and spent turns re-clicking. A click that lands on nothing clickable within SNAP_PX of a control is moved to that
+# control's centre by code, before the public-site guard judges it, and the correction is logged in nav.actions.
+SNAP_PX = 20
+INTERACTIVE = "button, a[href], input, select, textarea, summary, [role=button], [role=link], [role=checkbox], [role=radio], [role=menuitem], [role=tab]"
+_SNAP_JS = """([x, y, sel]) => {
+  const el = document.elementFromPoint(x, y);
+  const hit = !!(el && el.closest && el.closest(sel));
+  const label = (n) => n.id ? "#" + n.id : ((n.getAttribute("aria-label") || n.innerText || n.textContent || n.tagName).replace(/\\s+/g, " ").trim().slice(0, 40));
+  const boxes = [];
+  for (const n of document.querySelectorAll(sel)) {
+    const r = n.getBoundingClientRect(); if (r.width <= 0 || r.height <= 0) continue;
+    const cs = getComputedStyle(n); if (cs.visibility === "hidden" || cs.display === "none") continue;
+    boxes.push([[r.left, r.top, r.right, r.bottom], label(n)]);
+  }
+  return { hit, boxes };
+}"""
 # A page we do not serve may paint a loading screen at load and fill itself in from scripts (www.takealot.com, found by the hosted
 # verification of 26F.6, 3 Nov): before its first capture it gets a bounded wait for its words, and one that never shows any is reported, not audited.
 RENDER_WAIT_S = 20.0
@@ -138,6 +156,44 @@ def is_allowed_target(url: str, settings: Settings, base_url: str) -> bool:
         _origin(o.strip()) for o in settings.live_target_origins.split(",") if o.strip()
     }
     return _origin(url) in allowed
+
+
+Box = tuple[float, float, float, float]
+
+
+def snap_point(x: float, y: float, hit: bool, candidates: list[tuple[Box, str]], pad: float = SNAP_PX) -> dict | None:
+    """The correction for a click at (x, y): None when the point already hits a control or no control's box, grown by ``pad``
+    on each side, contains it; else {from, to, target} for the nearest such control by edge distance, ``to`` its centre."""
+    if hit:
+        return None
+    best: tuple[float, Box, str] | None = None
+    for (left, top, right, bottom), name in candidates:
+        if not (left - pad <= x <= right + pad and top - pad <= y <= bottom + pad):
+            continue
+        d = math.hypot(max(left - x, 0, x - right), max(top - y, 0, y - bottom))
+        if best is None or d < best[0]:
+            best = (d, (left, top, right, bottom), name)
+    if best is None:
+        return None
+    _, (left, top, right, bottom), name = best
+    return {"from": [x, y], "to": [(left + right) / 2, (top + bottom) / 2], "target": name}
+
+
+async def snap_click(page: Page, action: dict) -> tuple[dict, dict | None]:
+    """A click or double-click, moved to the nearest control when it would land on nothing clickable within SNAP_PX of one:
+    (the action to run, the correction or None). Anything else, or a page that cannot be read, comes back unchanged."""
+    if not isinstance(action, dict) or action.get("type") not in ("click", "double_click"):
+        return action, None
+    try:
+        x, y = float(action["x"]), float(action["y"])
+        info = await page.evaluate(_SNAP_JS, [x, y, INTERACTIVE])
+    except Exception:
+        return action, None
+    boxes = [((float(b[0]), float(b[1]), float(b[2]), float(b[3])), str(name)) for b, name in (info or {}).get("boxes") or []]
+    snap = snap_point(x, y, bool((info or {}).get("hit")), boxes)
+    if snap is None:
+        return action, None
+    return {**action, "x": snap["to"][0], "y": snap["to"][1]}, snap
 
 
 async def execute(page: Page, action: dict) -> bool:

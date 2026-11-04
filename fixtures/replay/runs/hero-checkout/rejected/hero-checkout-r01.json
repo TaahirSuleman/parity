@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "Terms",
-  "sr_quote": "link, \"Click here\"",
-  "why_it_matters": "Blind user hears generic Click here instead of Terms and loses the link purpose.",
+  "sighted_text": "Payment",
+  "sr_quote": "text, \"Payment\"",
+  "why_it_matters": "A blind user is not told that Payment is the current step in the Cart Payment Done progress.",
   "bbox": {
-   "x_min": 672,
-   "y_min": 450,
-   "x_max": 703,
-   "y_max": 471
+   "x_min": 177,
+   "y_min": 511,
+   "x_max": 223,
+   "y_max": 533
   },
   "attempt": 1
  },
@@ -20,15 +20,15 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "text at body > main:nth-of-type(1) > section:nth-of-type(2) > p:nth-of-type(1)"
+    "detail": "text at li#step-payment"
    },
    "sr_quote_exact": {
-    "passed": false,
-    "detail": "quote differs from the accessibility tree entry"
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
-    "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "passed": false,
+    "detail": "visible text equals the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -37,20 +37,24 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 91,
-   "css_path": "body > main:nth-of-type(1) > section:nth-of-type(2) > p:nth-of-type(1)",
+   "backend_id": 80,
+   "css_path": "li#step-payment",
    "box_px": [
-    877,
-    327,
-    881,
-    342
+    227,
+    368,
+    286,
+    384
    ],
-   "outer_html": "<p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>.</p>",
-   "dom_id": null
+   "outer_html": "<li id=\"step-payment\" class=\"current\">Payment</li>",
+   "dom_id": "step-payment"
   },
-  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
  }
 }

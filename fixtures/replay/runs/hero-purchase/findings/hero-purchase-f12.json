@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "R1,599.00 crossed-out original price",
+ "sighted_text": "R1,599.00 (greyed-out struck-through original price)",
  "sr_role": "text",
  "sr_name": "R1,599.00",
- "why_it_matters": "Blind user hears the price without knowing it is the struck-through original price, not the current price.",
+ "why_it_matters": "Blind user hears the price but not that it is the crossed-out original price versus the sale price.",
  "voice": null,
  "bbox": {
   "x_min": 146,
@@ -48,6 +48,10 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
@@ -73,25 +77,25 @@
     "name": "Info and Relationships"
    }
   ],
-  "impact": "User cannot tell R1,599.00 is the crossed-out original price and may mistake it for the current price instead of R1,249.00.",
+  "impact": "Blind user hears two prices without knowing R1,599 is the struck-out original price and R1,249 is the current price to pay.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "047f60c9-722a-4e44-90b6-1c80df7aa455",
-   "response_id": "resp_6ae744a3f348284bbd4f40b4",
+   "request_id": "79fe468e-b5cb-4ead-8c0d-323da700df93",
+   "response_id": "resp_6aeafdc00132153652194c21",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<s id=\"was-price\" class=\"small\">R1,599.00</s>",
-  "after_html": "<s id=\"was-price\" class=\"small\"><span style=\"position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;\">Original price: </span>R1,599.00</s>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -35,7 +35,7 @@\n       <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n-    <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n+    <p class=\"total\"><s id=\"was-price\" class=\"small\"><span style=\"position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;\">Original price: </span>R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n       <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n     <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n     <div class=\"actions\">\n",
-  "explanation": "Added visually-hidden prefix Original price: inside the same s element so screen readers hear it as the crossed-out original price while the visual price is unchanged.",
+  "after_html": "<s id=\"was-price\" class=\"small\"><span style=\"position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;\">Original price: </span>R1,599.00</s>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -35,7 +35,7 @@\n       <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n-    <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n+    <p class=\"total\"><s id=\"was-price\" class=\"small\"><span style=\"position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;\">Original price: </span>R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n       <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n     <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n     <div class=\"actions\">\n",
+  "explanation": "Added a visually-hidden 'Original price: ' prefix inside the existing s element so screen readers announce the struck-through meaning while the visual look stays the same.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "9f1cb674-f458-4967-bd68-eae4d1c58585",
-   "response_id": "resp_6ae74632a7bdf6e48f794327",
+   "request_id": "16cda22a-2208-41bc-9c1c-dcfd15bcdcff",
+   "response_id": "resp_6aeaff6e69329df793714139",
    "status": "completed"
   }
  },

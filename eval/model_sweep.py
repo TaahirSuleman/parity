@@ -641,7 +641,7 @@ METHOD = ("One stage at a time, every other stage at today's default. Seer and C
           "Accuracy is over the faults and the clean controls: a clean control with no finding is a true negative. A row with n = 1 is a sample, not a measurement of spread. "
           "A gap counts as closed only when the sighted text appears in the new accessible name, so a barrier sighted as a description (\"trash icon button\") cannot pass with a correct name such as \"Remove item\": read gaps closed with \"Comparator still flags\". "
           "muse-spark-1.1 has no price in our table; its rows print the price as unknown and cannot win on cost. "
-          "A Navigator run that an API error ended counts for screens but not for turns. All 3 such runs here had audited all four screens and failed on turn 12, the last turn, which offers only finish after an audit_view: a request our agent loop builds, not a limit of the effort setting. The walks predate the executor's click correction (1e43af0).")
+          "A Navigator run that an API error ended counts for screens but not for turns. All 3 such runs here had audited all four screens and failed on turn 12, the last turn, which offers only finish after an audit_view: a request our agent loop built at every effort, since fixed (d293707). The walks ran with twelve turns and before the executor's click correction (1e43af0), and were not re-measured.")
 
 
 def _spec(stage: str, model: str, effort: str) -> dict[str, Any]:

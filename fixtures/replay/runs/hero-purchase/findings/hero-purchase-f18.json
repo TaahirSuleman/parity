@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 1,
  "status": "reaudited",
- "sighted_text": "trash icon remove Noise-cancelling headphones",
- "sr_role": "button",
- "sr_name": "Close",
- "why_it_matters": "Blind user is told Close instead of remove, so they do not know the button deletes the item from the cart.",
+ "sighted_text": "red border indicating invalid quantity",
+ "sr_role": "textbox",
+ "sr_name": "Qty",
+ "why_it_matters": "Blind user gets no invalid or error announcement and does not know the quantity 12 is rejected.",
  "voice": null,
  "bbox": {
-  "x_min": 438,
-  "y_min": 186,
-  "x_max": 474,
-  "y_max": 253
+  "x_min": 393,
+  "y_min": 326,
+  "x_max": 435,
+  "y_max": 372
  },
  "element": {
-  "backend_id": 134,
-  "css_path": "button#k3",
+  "backend_id": 140,
+  "css_path": "input#case-qty",
   "box_px": [
-   561,
-   134,
-   607,
-   182
+   503,
+   235,
+   557,
+   268
   ],
-  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-  "dom_id": "k3"
+  "outer_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" style=\"\">",
+  "dom_id": "case-qty"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#k3"
+    "detail": "textbox at input#case-qty"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -48,19 +48,23 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 134,
-   "css_path": "button#k3",
+   "backend_id": 140,
+   "css_path": "input#case-qty",
    "box_px": [
-    561,
-    134,
-    607,
-    182
+    503,
+    235,
+    557,
+    268
    ],
-   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-   "dom_id": "k3"
+   "outer_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "case-qty"
   },
   "feedback": null
  },
@@ -69,40 +73,40 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "3.3.1",
+    "name": "Error Identification"
    },
    {
-    "sc": "2.4.6",
-    "name": "Headings and Labels"
+    "sc": "1.4.1",
+    "name": "Use of Color"
    }
   ],
-  "impact": "The user hears only \"Close\" and cannot know the button will remove the Noise-cancelling headphones from the cart.",
+  "impact": "Screen-reader user does not know the quantity 12 is rejected as invalid and cannot correct it before checkout.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "8183d57d-adc4-41a2-b2a6-bbb16eb54fac",
-   "response_id": "resp_6ae7450464e79d12d460479f",
+   "request_id": "233fbe3c-ea71-459c-9b6d-833064c96e51",
+   "response_id": "resp_6aeafe33ff9d55f861c2406a",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
-  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -20,7 +20,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\">\n",
-  "explanation": "Changed aria-label from Close to Remove Noise-cancelling headphones so the accessible name matches the visible delete action.",
+  "before_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\">",
+  "after_html": "<input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Qty invalid\">",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -25,7 +25,7 @@\n     </div>\n     <div class=\"line\">\n       <span>Carry case</span>\n-      <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n+      <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Qty invalid\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n     <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n",
+  "explanation": "Added aria-invalid=\"true\" and aria-label \"Qty invalid\" to programmatically expose the invalid state previously conveyed only by the red border color.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "c69170ea-3efd-485f-b013-63010bc44191",
-   "response_id": "resp_6ae74639a94135b2f3324b49",
+   "request_id": "2e0f6d4c-5285-4fc8-8500-488388470e06",
+   "response_id": "resp_6aeaff76a8a329c0dae1492b",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "Close",
-  "sr_name_after": "Remove Noise-cancelling headphones",
+  "sr_name_before": "Qty",
+  "sr_name_after": "Qty invalid",
   "comparator_still_flags": false
  },
  "decision": null

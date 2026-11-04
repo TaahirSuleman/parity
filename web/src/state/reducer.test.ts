@@ -72,6 +72,16 @@ describe("agent timeline", () => {
     expect(s2.stage).toBe("navigator");
     expect(s3.timeline[2].turn).toBe(3);
   });
+
+  it("names the control a near-miss click was snapped to", () => {
+    const started = play(events.filter((e) => e.type === "run.started"));
+    const at = "2026-11-04T00:00:00Z";
+    const snapped = [{ from: [237, 494], to: [243.7, 467], target: "#p4" }];
+    const s = reduce(started, { type: "nav.actions", run_id: started.run!.id, at, turn: 2, actions: ["click"], n: 1, snapped });
+    expect(s.timeline[0].label).toBe("computer: click (snapped to #p4)");
+    const plain = reduce(started, { type: "nav.actions", run_id: started.run!.id, at, turn: 2, actions: ["click"], n: 1, snapped: [] });
+    expect(plain.timeline[0].label).toBe("computer: click");
+  });
 });
 
 describe("agent outcome", () => {

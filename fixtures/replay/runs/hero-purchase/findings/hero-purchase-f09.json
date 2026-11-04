@@ -6,7 +6,7 @@
  "sighted_text": "blue colour option",
  "sr_role": "button",
  "sr_name": "Option 3",
- "why_it_matters": "Generic name hides which colour the button selects.",
+ "why_it_matters": "Generic name hides the colour being chosen.",
  "voice": null,
  "bbox": {
   "x_min": 235,
@@ -15,7 +15,7 @@
   "y_max": 411
  },
  "element": {
-  "backend_id": 41,
+  "backend_id": 42,
   "css_path": "button#swatch-3",
   "box_px": [
    301,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 41,
+   "backend_id": 42,
    "css_path": "button#swatch-3",
    "box_px": [
     301,
@@ -73,12 +77,12 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The user cannot know that Option 3 is the blue colour and cannot confidently select the intended colour variant.",
+  "impact": "The user cannot tell that Option 3 is the blue colour option and cannot confidently select the intended colour, risking ordering the wrong variant.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "fe405971-5efd-4cc4-9484-91772368ab6c",
-   "response_id": "resp_6ae7449897ca8ab35144469f",
+   "request_id": "5f358b5c-29b0-4cab-b1f2-fdf0f9822086",
+   "response_id": "resp_6aeafdb3ab4351fb809c4f66",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -87,11 +91,11 @@
   "before_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
   "after_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>",
   "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -27,7 +27,7 @@\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n-      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n+      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n",
-  "explanation": "Changed aria-label from generic Option 3 to Blue so the screen reader announces the actual blue colour.",
+  "explanation": "Changed aria-label from \"Option 3\" to \"Blue\" so the accessible name announces the actual blue colour shown visually.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "b4146f0d-0832-4519-8378-342fb514d449",
-   "response_id": "resp_6ae7461c5b6bd39a0dd44bb7",
+   "request_id": "41dc5f36-1a43-4744-bd25-5aa73ba12795",
+   "response_id": "resp_6aeaff613f0130472d4342f0",
    "status": "completed"
   }
  },

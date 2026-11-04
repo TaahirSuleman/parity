@@ -1,7 +1,7 @@
 {
  "run_id": "hero-purchase",
  "index": 0,
- "url": "http://127.0.0.1:50380/store/product.html",
+ "url": "http://127.0.0.1:52142/store/product.html",
  "actions": [],
  "screenshot": "steps/0/screenshot.png",
  "ax_tree": "steps/0/ax.json",
@@ -12,5 +12,5 @@
  ],
  "axe_violations": 0,
  "ax_nodes": 50,
- "captured_at": "2026-11-01T13:53:16.968899Z"
+ "captured_at": "2026-11-04T09:38:58.434606Z"
 }

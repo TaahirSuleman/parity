@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 1,
  "status": "reaudited",
- "sighted_text": "-R125.00",
+ "sighted_text": "–R125.00",
  "sr_role": "",
  "sr_name": "",
- "why_it_matters": "Blind user misses the coupon discount amount needed to understand the total.",
+ "why_it_matters": "Blind user never hears the coupon discount amount so cannot verify savings or total.",
  "voice": null,
  "bbox": {
   "x_min": 404,
@@ -15,7 +15,7 @@
   "y_max": 481
  },
  "element": {
-  "backend_id": 148,
+  "backend_id": 149,
   "css_path": "canvas#coupon-savings",
   "box_px": [
    517,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 148,
+   "backend_id": 149,
    "css_path": "canvas#coupon-savings",
    "box_px": [
     517,
@@ -73,32 +77,32 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears 'Coupon' with no value and cannot know the R125.00 discount or verify how the total was calculated.",
+  "impact": "Screen-reader user hears 'Coupon' with no value and cannot verify the R125 discount or confirm the total is correct.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "bf60f4f8-5b20-4472-b233-9be03d051a86",
-   "response_id": "resp_6ae744ffa62567894fa94faf",
+   "request_id": "8b281f3b-37a2-4736-bce4-e21194446b72",
+   "response_id": "resp_6aeafe2fc695361b85764f13",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
-  "after_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"-R125.00\">-R125.00</canvas>",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -28,7 +28,7 @@\n       <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n-    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n+    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"-R125.00\">-R125.00</canvas></span></div>\n     <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,323.00</p>\n     <div class=\"actions\">\n",
-  "explanation": "Removed role=presentation and added aria-label and fallback text -R125.00 so the canvas discount amount is announced to screen readers.",
+  "after_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"–R125.00\">–R125.00</canvas>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -28,7 +28,7 @@\n       <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n-    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n+    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"–R125.00\">–R125.00</canvas></span></div>\n     <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,323.00</p>\n     <div class=\"actions\">\n",
+  "explanation": "Removed role=presentation and added matching aria-label with fallback text so the canvas discount is announced as –R125.00.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "5a652877-3f69-459e-ad1f-bf0fe601e586",
-   "response_id": "resp_6ae7463bcae9d785af2a4c57",
+   "request_id": "26615346-8adc-4c6e-ae89-cce3dd751d5c",
+   "response_id": "resp_6aeaff72875e7c1809f343f7",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
   "sr_name_before": "",
-  "sr_name_after": "-R125.00",
+  "sr_name_after": "–R125.00",
   "comparator_still_flags": false
  },
  "decision": null

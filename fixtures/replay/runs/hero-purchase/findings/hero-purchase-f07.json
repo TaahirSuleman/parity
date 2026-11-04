@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "black colour option (selected - black border)",
+ "sighted_text": "black colour option selected",
  "sr_role": "button",
  "sr_name": "Option 1",
- "why_it_matters": "Generic name hides the colour and the selected state shown by the border.",
+ "why_it_matters": "Generic name hides the colour and the selected state.",
  "voice": null,
  "bbox": {
   "x_min": 182,
@@ -15,7 +15,7 @@
   "y_max": 411
  },
  "element": {
-  "backend_id": 39,
+  "backend_id": 40,
   "css_path": "button#swatch-1",
   "box_px": [
    233,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 39,
+   "backend_id": 40,
    "css_path": "button#swatch-1",
    "box_px": [
     233,
@@ -69,40 +73,40 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
-   },
-   {
     "sc": "4.1.2",
     "name": "Name, Role, Value"
+   },
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user cannot tell which colour Option 1 represents or that it is currently selected, so cannot knowingly choose the desired colour.",
+  "impact": "Screen-reader user hears only Option 1 with no colour name or selected state, so cannot identify the black/Graphite option or choose the intended colour.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "a58f31e2-5fcd-464b-aee0-cccdb7ec1b5d",
-   "response_id": "resp_6ae74497202a131179294fa9",
+   "request_id": "541d4760-cb49-49be-909b-869dc22e160e",
+   "response_id": "resp_6aeafda4fb7c45e44f064c2b",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>",
-  "after_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Black, selected\" style=\"background:#3a3d44\"></button>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -25,7 +25,7 @@\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n-      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n+      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Black, selected\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n",
-  "explanation": "Replaced generic aria-label with Black, selected so the accessible name conveys the colour and selected state sighted users see.",
+  "after_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Graphite\" aria-pressed=\"true\" style=\"background:#3a3d44\"></button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -25,7 +25,7 @@\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n-      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n+      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Graphite\" aria-pressed=\"true\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n",
+  "explanation": "Changed generic aria-label from Option 1 to Graphite and added aria-pressed true to convey the visible colour name and selected state.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "9e8adbc1-980c-43ac-b809-cdf590b189ae",
-   "response_id": "resp_6ae746227f04b737fce44df1",
+   "request_id": "aeb6f8c7-50f5-4291-ae03-1487b07b2ce9",
+   "response_id": "resp_6aeaff5c1b7dbb39cdb04313",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
   "sr_name_before": "Option 1",
-  "sr_name_after": "Black, selected",
+  "sr_name_after": "Graphite",
   "comparator_still_flags": false
  },
  "decision": null

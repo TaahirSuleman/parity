@@ -6,7 +6,7 @@
  "sighted_text": "beige colour option",
  "sr_role": "button",
  "sr_name": "Option 2",
- "why_it_matters": "Generic name hides which colour the button selects.",
+ "why_it_matters": "Generic name hides the colour being chosen.",
  "voice": null,
  "bbox": {
   "x_min": 209,
@@ -15,7 +15,7 @@
   "y_max": 411
  },
  "element": {
-  "backend_id": 40,
+  "backend_id": 41,
   "css_path": "button#swatch-2",
   "box_px": [
    267,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 40,
+   "backend_id": 41,
    "css_path": "button#swatch-2",
    "box_px": [
     267,
@@ -73,12 +77,12 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "User cannot tell that this button selects the beige colour and cannot reliably choose the intended colour variant.",
+  "impact": "User cannot tell this swatch is the beige colour and cannot reliably choose the intended colour.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "2b7c2919-8aad-4365-8fff-99f1269fdb91",
-   "response_id": "resp_6ae74499fb69b4bc29ce46da",
+   "request_id": "8e01834f-eaf0-4ff1-bfd6-6948efa920a3",
+   "response_id": "resp_6aeafda4cedab06f30244755",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -87,11 +91,11 @@
   "before_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
   "after_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>",
   "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -26,7 +26,7 @@\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n-      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n+      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n",
-  "explanation": "Changed the generic aria-label from \"Option 2\" to \"Beige\" so the accessible name matches the beige colour the sighted user sees.",
+  "explanation": "Changed aria-label from \"Option 2\" to \"Beige\" so the accessible name identifies the beige colour sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "ca253df4-3a3d-4a31-80b7-c310b649f9db",
-   "response_id": "resp_6ae746180095adc34bbb4b9a",
+   "request_id": "ccfc0a65-afcf-4922-b921-41bf8a090d34",
+   "response_id": "resp_6aeaff5bbdab07738ae54230",
    "status": "completed"
   }
  },

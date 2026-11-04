@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "green in-stock dot",
+ "sighted_text": "green dot meaning in stock",
  "sr_role": "image",
  "sr_name": "status",
- "why_it_matters": "Generic name loses the green in-stock meaning conveyed by colour.",
+ "why_it_matters": "Generic name and lost green colour means blind user does not get in-stock meaning.",
  "voice": null,
  "bbox": {
   "x_min": 299,
@@ -15,7 +15,7 @@
   "y_max": 450
  },
  "element": {
-  "backend_id": 46,
+  "backend_id": 47,
   "css_path": "span#stock-dot",
   "box_px": [
    383,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 46,
+   "backend_id": 47,
    "css_path": "span#stock-dot",
    "box_px": [
     383,
@@ -77,32 +81,32 @@
     "name": "Use of Color"
    }
   ],
-  "impact": "The user cannot tell the product is in stock and available because the green colour meaning is announced only as \"status\".",
+  "impact": "The user cannot tell that the green dot means the product is in stock and available to order.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "10ce4494-60fa-4b21-840e-8016300579ed",
-   "response_id": "resp_6ae744a14dcab1cae9054418",
+   "request_id": "0267044a-6cd9-408c-b6c1-a0eb4438cd84",
+   "response_id": "resp_6aeafdc290566f1073db404e",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
-  "after_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"in stock\"></span>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -32,7 +32,7 @@\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n-      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n+      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"in stock\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n",
-  "explanation": "Changed aria-label from generic \"status\" to \"in stock\" so screen readers convey the green in-stock meaning sighted users get from colour.",
+  "after_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"In stock\"></span>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -32,7 +32,7 @@\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n-      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n+      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"In stock\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n",
+  "explanation": "Replaced generic aria-label \"status\" with \"In stock\" so the screen reader conveys the green dot's in-stock meaning.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "0a238140-01a8-4865-87c1-61ceadf2c7d5",
-   "response_id": "resp_6ae746231897fb74bf7d428d",
+   "request_id": "2aa322fa-01a5-45c6-8086-79341f4949e7",
+   "response_id": "resp_6aeaff62a6f0a2e206e94588",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
   "sr_name_before": "status",
-  "sr_name_after": "in stock",
+  "sr_name_after": "In stock",
   "comparator_still_flags": false
  },
  "decision": null

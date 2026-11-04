@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f31",
  "run_id": "hero-purchase",
- "step_index": 2,
- "status": "reaudited",
- "sighted_text": "Terms",
- "sr_role": "link",
- "sr_name": "Click here",
- "why_it_matters": "Blind user hears generic Click here with no destination and does not know it is the Terms.",
+ "step_index": 3,
+ "status": "judged",
+ "sighted_text": "status progress dots",
+ "sr_role": "image",
+ "sr_name": "celebration graphic",
+ "why_it_matters": "A blind user hears a decorative celebration description and misses that the dots indicate order progress status.",
  "voice": null,
  "bbox": {
-  "x_min": 649,
-  "y_min": 454,
-  "x_max": 685,
-  "y_max": 475
+  "x_min": 148,
+  "y_min": 131,
+  "x_max": 230,
+  "y_max": 153
  },
  "element": {
-  "backend_id": 256,
-  "css_path": "a#f4",
+  "backend_id": 322,
+  "css_path": "img#confetti",
   "box_px": [
-   831,
-   327,
-   877,
-   342
+   187,
+   91,
+   307,
+   115
   ],
-  "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
-  "dom_id": "f4"
+  "outer_html": "<img id=\"confetti\" alt=\"celebration graphic\" width=\"120\" height=\"24\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='24'&gt;&lt;circle cx='10' cy='12' r='4' fill='%23f5a623'/&gt;&lt;circle cx='40' cy='8' r='4' fill='%230a7d3b'/&gt;&lt;circle cx='70' cy='14' r='4' fill='%23d0021b'/&gt;&lt;circle cx='100' cy='9' r='4' fill='%231f3b73'/&gt;&lt;/svg&gt;\">",
+  "dom_id": "confetti"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#f4"
+    "detail": "image at img#confetti"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -48,62 +48,41 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 256,
-   "css_path": "a#f4",
+   "backend_id": 322,
+   "css_path": "img#confetti",
    "box_px": [
-    831,
-    327,
-    877,
-    342
+    187,
+    91,
+    307,
+    115
    ],
-   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
-   "dom_id": "f4"
+   "outer_html": "<img id=\"confetti\" alt=\"celebration graphic\" width=\"120\" height=\"24\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='24'&gt;&lt;circle cx='10' cy='12' r='4' fill='%23f5a623'/&gt;&lt;circle cx='40' cy='8' r='4' fill='%230a7d3b'/&gt;&lt;circle cx='70' cy='14' r='4' fill='%23d0021b'/&gt;&lt;circle cx='100' cy='9' r='4' fill='%231f3b73'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "confetti"
   },
   "feedback": null
  },
  "judgement": {
-  "is_barrier": true,
-  "severity": "serious",
-  "wcag": [
-   {
-    "sc": "2.4.4",
-    "name": "Link Purpose (In Context)"
-   },
-   {
-    "sc": "2.5.3",
-    "name": "Label in Name"
-   }
-  ],
-  "impact": "When navigating links the user hears only generic Click here and cannot tell the link is the Terms they agree to by paying.",
+  "is_barrier": false,
+  "severity": "minor",
+  "wcag": [],
+  "impact": "Screen-reader user still gets order progress from the Order confirmed heading and Packed/Shipped/Delivered text, so the extra celebration graphic announcement causes no loss of information or action.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "226f43d5-bc79-4887-869f-b997bb6d0775",
-   "response_id": "resp_6ae7458227255b1656c7425e",
+   "request_id": "4eae3851-a2b7-40ca-a7b8-fa57001c6a4d",
+   "response_id": "resp_6aeaff3af20530914f834b3a",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": {
-  "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
-  "after_html": "<a id=\"f4\" href=\"#terms\"><img alt=\"Terms\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -29,7 +29,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\"><img alt=\"Terms\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
-  "explanation": "Removed the generic aria-label and set the image alt to Terms so the accessible name matches the visible link text.",
-  "model_meta": {
-   "model": "muse-spark-1.3-contributor",
-   "request_id": "55cc4cce-f874-499f-a562-6ca096bb3b3e",
-   "response_id": "resp_6ae7465d5781a68cacbb4ec9",
-   "status": "completed"
-  }
- },
- "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "Click here",
-  "sr_name_after": "Terms",
-  "comparator_still_flags": false
- },
+ "fix": null,
+ "reaudit": null,
  "decision": null
 }

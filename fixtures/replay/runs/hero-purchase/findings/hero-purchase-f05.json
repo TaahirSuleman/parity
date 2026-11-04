@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "product thumbnail - dark square shape",
+ "sighted_text": "product image thumbnail showing black square",
  "sr_role": "image",
  "sr_name": "photo 2",
- "why_it_matters": "Generic name gives no product information about the thumbnail content.",
+ "why_it_matters": "Generic name gives no product information about colour or shape.",
  "voice": null,
  "bbox": {
   "x_min": 202,
@@ -15,7 +15,7 @@
   "y_max": 364
  },
  "element": {
-  "backend_id": 35,
+  "backend_id": 36,
   "css_path": "img#gallery-2",
   "box_px": [
    259,
@@ -48,10 +48,14 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 35,
+   "backend_id": 36,
    "css_path": "img#gallery-2",
    "box_px": [
     259,
@@ -73,32 +77,32 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "User cannot tell what product view the second thumbnail shows and misses the visual detail a sighted user gets.",
+  "impact": "The user cannot tell that the second thumbnail shows a black square view and cannot confirm the product's appearance from that image.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "756602ce-4006-4c0a-af2a-4ed0b8d567c4",
-   "response_id": "resp_6ae744937259edb1d5b54eef",
+   "request_id": "94d984f4-b814-4218-a0bd-b037216a92a4",
+   "response_id": "resp_6aeafdaa7dfd27732b89413b",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">",
-  "after_html": "<img id=\"gallery-2\" alt=\"product thumbnail - dark square shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -21,7 +21,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n       <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n-      <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-2\" alt=\"product thumbnail - dark square shape\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n",
-  "explanation": "Changed alt from 'photo 2' to 'product thumbnail - dark square shape' so the accessible name describes the visible thumbnail content.",
+  "after_html": "<img id=\"gallery-2\" alt=\"product image thumbnail showing black square\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -21,7 +21,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n       <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n-      <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-2\" alt=\"product image thumbnail showing black square\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n",
+  "explanation": "Changed alt from generic \"photo 2\" to \"product image thumbnail showing black square\" so the accessible name conveys the colour and shape sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "a04da976-9e4c-4325-869c-bfaf110e1403",
-   "response_id": "resp_6ae74623f4062558e80a4484",
+   "request_id": "505efe1e-195c-4436-87e5-554c119b5706",
+   "response_id": "resp_6aeaff5a77d51714880541c3",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
   "sr_name_before": "photo 2",
-  "sr_name_after": "product thumbnail - dark square shape",
+  "sr_name_after": "product image thumbnail showing black square",
   "comparator_still_flags": false
  },
  "decision": null

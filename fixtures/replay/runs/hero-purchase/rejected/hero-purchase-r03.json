@@ -1,0 +1,60 @@
+{
+ "id": "hero-purchase-r03",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "blue colour option",
+  "sr_quote": "button, \"Option 3\"",
+  "why_it_matters": "A blind user cannot tell which colour Option 3 is.",
+  "bbox": {
+   "x_min": 301,
+   "y_min": 376,
+   "x_max": 333,
+   "y_max": 414
+  },
+  "attempt": 2
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "region at body > main:nth-of-type(1) > section:nth-of-type(1)"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": {
+   "backend_id": 25,
+   "css_path": "body > main:nth-of-type(1) > section:nth-of-type(1)",
+   "box_px": [
+    166,
+    70,
+    628,
+    511
+   ],
+   "outer_html": "<section class=\"card\" aria-labelledby=\"product-h\">\n    <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">\n    <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n    <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'&gt;&lt;text x='0' y='16' font-size='16' fill='%23f5a623'&gt;★★★★☆&lt;/text&gt;&lt;text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'&gt;4.3&lt;/text&gt;&lt;/svg&gt;\"> <span class=\"small\">(212 reviews)</span></p>\n    <div class=\"thumbs\">\n      <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/&gt;&lt;/svg&gt;\">\n      <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/&gt;&lt;/svg&gt;\">\n      <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/&gt;&lt;/svg&gt;\">\n    </div>\n    <p class=\"row\"><span class=\"small\">Colour</span>\n      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria",
+   "dom_id": null
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+ }
+}

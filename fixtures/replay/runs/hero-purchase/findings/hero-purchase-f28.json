@@ -3,35 +3,41 @@
  "run_id": "hero-purchase",
  "step_index": 2,
  "status": "reaudited",
- "sighted_text": "Pay R1,249",
+ "sighted_text": "trash icon",
  "sr_role": "button",
- "sr_name": "Submit",
- "why_it_matters": "Blind user hears a generic Submit with no amount and cannot confirm what will be paid.",
- "voice": null,
+ "sr_name": "Close",
+ "why_it_matters": "A blind user is told Close and will not know the button deletes with a trash meaning.",
+ "voice": {
+  "clip_key": "checkout.wav",
+  "start_ms": 96086,
+  "end_ms": 104205,
+  "transcript": "close button you are currently on a button to click this button press control option space",
+  "agrees": true
+ },
  "bbox": {
-  "x_min": 526,
-  "y_min": 500,
-  "x_max": 646,
-  "y_max": 567
+  "x_min": 654,
+  "y_min": 501,
+  "x_max": 690,
+  "y_max": 565
  },
  "element": {
-  "backend_id": 259,
-  "css_path": "button#f5",
+  "backend_id": 261,
+  "css_path": "button#f6",
   "box_px": [
-   673,
+   837,
    360,
-   827,
+   883,
    408
   ],
-  "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-  "dom_id": "f5"
+  "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
+  "dom_id": "f6"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f5"
+    "detail": "button at button#f6"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -48,19 +54,23 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
-   "backend_id": 259,
-   "css_path": "button#f5",
+   "backend_id": 261,
+   "css_path": "button#f6",
    "box_px": [
-    673,
+    837,
     360,
-    827,
+    883,
     408
    ],
-   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-   "dom_id": "f5"
+   "outer_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "f6"
   },
   "feedback": null
  },
@@ -69,36 +79,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "2.5.3",
-    "name": "Label in Name"
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears only generic Submit and cannot confirm at the button that activating it will pay R1,249.",
+  "impact": "User hears Close instead of delete and cannot know the button performs a destructive trash action, risking unintended loss.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "267b41d4-72a5-4b15-9ea2-eb68c2af2a17",
-   "response_id": "resp_6ae74573a994906290a145c8",
+   "request_id": "e5d574a4-eabe-4b35-b27d-14ceb15d5ea9",
+   "response_id": "resp_6aeafebf232fe07540aa42c8",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "after_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Pay R1,249\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -31,7 +31,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n+      <button id=\"f5\" class=\"btn\" aria-label=\"Pay R1,249\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n",
-  "explanation": "Changed the aria-label from Submit to Pay R1,249 and gave the image matching alt text so the accessible name equals the visible label.",
+  "before_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>",
+  "after_html": "<button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -32,7 +32,7 @@\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n-      <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n+      <button id=\"f6\" class=\"icon\" aria-label=\"Delete\">🗑️</button>\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n",
+  "explanation": "Changed aria-label from Close to Delete so the accessible name matches the visible trash-icon delete action.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "ec612dae-a7d5-48a6-a1a1-1720144d89cb",
-   "response_id": "resp_6ae746595d88d8456d7c41f7",
+   "request_id": "f13c3e6e-e34a-4ad2-bf74-d428c10e7d12",
+   "response_id": "resp_6aeaff87b8b9105ed0454724",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "Submit",
-  "sr_name_after": "Pay R1,249",
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Delete",
   "comparator_still_flags": false
  },
  "decision": null

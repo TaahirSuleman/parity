@@ -27,7 +27,7 @@ axe-core reports **0 violations** on the demo checkout. Parity's Replay then sho
 
 **Live on a page you choose** (hosted, third mode in the header): type a public address, affirm it is public and yours to audit, and Parity audits that screen as a visitor would see it, read-only, with no fixer and no re-audit. A private or internal address is refused in one sentence; robots.txt is honoured; a bot wall or a login ends the run as `blocked by site` and the workbench says so. Four W3C "Before and After Demonstration" pages are also offered as flows.
 
-The Purchase flow (one pick away) is the agent walk: Muse Spark's computer use takes the store from product to order confirmation, auditing each screen on the way (34 verified findings over four screens in the recorded run, re-recorded 4 Nov on the six-check Verifier; that walk used all twelve of the agent's turns, the last audit being code's on the confirmation screen).
+The Purchase flow (one pick away) is the agent walk: Muse Spark's computer use takes the store from product to order confirmation, auditing each screen on the way (34 verified findings over four screens in the recorded run, re-recorded 4 Nov on the six-check Verifier; that walk used all twelve of the agent's turns, its budget at the time, the last audit being code's on the confirmation screen). The budget is now sixteen turns, a safety stop rather than a target: a clean walk is nine, and the two recorded twelve-turn walks each lost three or four turns to clicks that landed a few pixels off a button.
 
 ## Architecture
 

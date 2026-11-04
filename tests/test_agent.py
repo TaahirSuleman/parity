@@ -154,7 +154,10 @@ async def test_finish_forced_after_three_refusals(tmp_path, server_url, page):
     assert run.status == RunStatus.done and len(auditor_calls(client)) == 4
 
 
-async def test_last_turn_offers_only_finish(tmp_path, server_url, page):
+async def test_last_turn_carries_the_full_tool_set_after_a_function_call(tmp_path, server_url, page):
+    """The purchase recording of 4 Nov (run 20261104-100417) failed on its last turn: the request answered audit_view with a
+    finish-only tool set and the API returned 400 invalid_request_error. The last turn carries the same tools as every other;
+    the finish notice rides in the instructions."""
     script = [
         turn(function_call("audit_view", {"reason": "product"}, "c1")),
         turn(function_call("finish", {"summary": "out of turns"}, "c2")),
@@ -168,7 +171,26 @@ async def test_last_turn_offers_only_finish(tmp_path, server_url, page):
     assert run.status == RunStatus.done
     agent_calls = auditor_calls(client)
     assert [t.get("name", t["type"]) for t in agent_calls[0]["tools"]] == ["computer", "audit_view", "finish"]
-    assert [t.get("name", t["type"]) for t in agent_calls[1]["tools"]] == ["finish"]
+    assert [t.get("name", t["type"]) for t in agent_calls[1]["tools"]] == ["computer", "audit_view", "finish"]
+    assert "last turn" in agent_calls[1]["instructions"]
+
+
+async def test_a_store_walk_gets_sixteen_turns_by_default(tmp_path, server_url, page):
+    """A clean purchase walk is nine turns; two recorded walks (4 Nov) spent three or four on near-miss clicks and ran out at
+    twelve. The store budget is sixteen, a safety stop rather than a target, and it is the default so the hosted app, the
+    recorder and a judge's own Live run share it."""
+    script = [turn(computer_call([{"type": "wait", "seconds": 0}], f"c{i}")) for i in range(17)]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory)
+        loaded = await bundle.load(run.id)
+    assert run.status == RunStatus.done and loaded.run.error is None
+    finished = next(e for e in loaded.events if e.type == "run.finished")
+    assert finished.data["agent"]["turns"] == 16 and finished.data["agent"]["finished"] is False
+    assert len(auditor_calls(client)) == 16
 
 
 async def test_run_ends_when_turns_run_out(tmp_path, server_url, page):
@@ -227,7 +249,7 @@ async def test_tool_infrastructure_error_fails_the_run(tmp_path, server_url, pag
 
 
 async def test_last_turn_audits_current_screen_before_finish(tmp_path, server_url, page):
-    """finish is the only tool on the last turn; code audits the screen first so it is reachable."""
+    """On the last turn code audits the screen first, so finish (whose precondition is an audited screen) is reachable."""
     store = server_url + "/store/"
     add = await centre(page, store + "product.html", "#p4")
     script = [turn(computer_call([{"type": "click", **add}], "c1")), turn(function_call("finish", {"summary": "done"}, "c2"))]
@@ -541,13 +563,13 @@ async def test_last_turn_request_answers_the_pending_call_only(tmp_path, server_
     assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
     last = auditor_calls(client)[-1]
     assert [i.get("type") or i.get("role") for i in last["input"]] == ["function_call_output"]
-    assert "last turn" in last["instructions"] and [t["name"] for t in last["tools"] if t.get("type") == "function"] == ["finish"]
+    assert "last turn" in last["instructions"] and [t["name"] for t in last["tools"] if t.get("type") == "function"] == ["audit_view", "finish"]
 
 
 async def test_last_turn_keeps_the_computer_tool_when_it_answers_a_computer_call(tmp_path, server_url, page):
     """Live HTTP 400s on a purchase run (1 Nov): "`computer_call_output` input items are not supported" without the computer
-    tool, then "invalid parameters" with a reduced tool set. A last turn that answers a computer call carries the same tools as
-    the turn that made it; the instructions carry the "finish now" notice."""
+    tool, then "invalid parameters" with a reduced tool set (and again on 4 Nov when the set answered a function call). The last
+    turn carries the same tools as the turn it answers; the instructions carry the "finish now" notice."""
     script = [turn(computer_call([{"type": "wait", "ms": 10}], "c1")), turn(function_call("finish", {"summary": "x"}, "c2"))]
 
     async def factory():

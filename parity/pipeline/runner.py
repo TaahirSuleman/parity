@@ -30,6 +30,10 @@ from parity.store.bundle import RunBundle
 from parity.store.models import Run, RunMode, RunStatus, now
 
 log = logging.getLogger(__name__)
+# A store walk's turn budget: a clean purchase walk is nine turns (audit, click, audit, click, audit, type, pay, audit, finish);
+# two recorded walks (4 Nov) spent three or four turns on near-miss clicks and ran out at twelve. Sixteen is a safety stop, not
+# a target, and the one default for the hosted app, the recorder and a judge's own Live run. The URL mode sets its own (routes).
+STORE_MAX_TURNS = 16
 PageFactory = Callable[..., Awaitable[Page]]  # called bare for the store; with external=True, own_origin and on_blocked for a page we do not serve
 
 
@@ -49,7 +53,7 @@ def new_run_id() -> str:
 async def run_flow(
     settings: Settings, client, bus: EventBus, bundle: RunBundle, index, flow: Flow, *, base_url: str,
     mode: RunMode = RunMode.live, run_id: str | None = None, client_ip_hash: str = "", ablation: Ablation | None = None,
-    page_factory: PageFactory = browser.new_page, max_turns: int = 12, agent_mode: AgentMode = "tools", public: bool = False, own_origin: str = "",
+    page_factory: PageFactory = browser.new_page, max_turns: int = STORE_MAX_TURNS, agent_mode: AgentMode = "tools", public: bool = False, own_origin: str = "",
     visitor: VisitorRequest | None = None, cost_cap_usd: float | None = None, timeout_s: int | None = None, max_screens: int | None = None,
     landing: Callable[[str], str | None] | None = None, render_wait_s: float = RENDER_WAIT_S,
 ) -> Run:

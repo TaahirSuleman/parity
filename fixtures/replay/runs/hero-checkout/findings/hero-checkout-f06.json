@@ -6,7 +6,7 @@
  "sighted_text": "Pay with wallet",
  "sr_role": "button",
  "sr_name": "Button",
- "why_it_matters": "Blind user hears only generic Button and does not know it pays with wallet.",
+ "why_it_matters": "A blind user hears only generic Button and cannot identify the wallet payment action.",
  "voice": {
   "clip_key": "checkout.wav",
   "start_ms": 128377,
@@ -15,10 +15,10 @@
   "agrees": true
  },
  "bbox": {
-  "x_min": 639,
-  "y_min": 577,
-  "x_max": 756,
-  "y_max": 633
+  "x_min": 636,
+  "y_min": 578,
+  "x_max": 745,
+  "y_max": 635
  },
  "element": {
   "backend_id": 66,
@@ -54,6 +54,10 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
@@ -75,33 +79,33 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "4.1.2",
-    "name": "Name, Role, Value"
-   },
-   {
     "sc": "2.5.3",
     "name": "Label in Name"
+   },
+   {
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "User hears only generic \"Button\" and cannot know it pays with wallet or choose that payment option.",
+  "impact": "User hears only generic Button and cannot identify or confidently use the Pay with wallet option.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "e8d5c22e-0a6e-4fa4-b168-09dc33ba7ced",
-   "response_id": "resp_6aea120a560f779b15da4c3f",
+   "request_id": "09952fe7-0758-4518-9885-d4d80cbe7d92",
+   "response_id": "resp_6aea7d970b1be3f4a0d84085",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button>",
-  "after_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -36,7 +36,7 @@\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n-      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n+      <button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button></p>\n   </section>\n </main>\n <script>\n",
-  "explanation": "Replaced the generic aria-label and empty-alt image-of-text with real button text matching the visible label so screen readers announce Pay with wallet.",
+  "after_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Pay with wallet\"><img alt=\"Pay with wallet\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -36,7 +36,7 @@\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n-      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n+      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Pay with wallet\"><img alt=\"Pay with wallet\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n   </section>\n </main>\n <script>\n",
+  "explanation": "Changed the generic aria-label to Pay with wallet and gave the image matching alt text so the accessible name matches the visible text.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "cde17d62-1b1c-4102-842b-93d3377efdd4",
-   "response_id": "resp_6aea1261104499a19efe48d7",
+   "request_id": "655433f3-d4a4-4890-ae27-34acdaacaefa",
+   "response_id": "resp_6aea7dc97c7be2ef96d54f7b",
    "status": "completed"
   }
  },

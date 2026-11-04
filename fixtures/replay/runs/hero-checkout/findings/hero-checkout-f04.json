@@ -6,19 +6,19 @@
  "sighted_text": "Pay R1,249",
  "sr_role": "button",
  "sr_name": "Submit",
- "why_it_matters": "Blind user hears Submit without the amount and loses price confirmation before paying.",
+ "why_it_matters": "A blind user does not hear the action and the amount to be paid.",
  "voice": {
   "clip_key": "checkout.wav",
   "start_ms": 87916,
   "end_ms": 96086,
-  "transcript": "submit button you are currently on a button to click this button press control option space",
+  "transcript": "submit button you are are currently on a button to click this this button press control option space",
   "agrees": true
  },
  "bbox": {
-  "x_min": 524,
-  "y_min": 499,
-  "x_max": 670,
-  "y_max": 568
+  "x_min": 526,
+  "y_min": 500,
+  "x_max": 646,
+  "y_max": 567
  },
  "element": {
   "backend_id": 57,
@@ -54,6 +54,10 @@
    "unique": {
     "passed": true,
     "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
    }
   },
   "element": {
@@ -77,31 +81,27 @@
    {
     "sc": "2.5.3",
     "name": "Label in Name"
-   },
-   {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
    }
   ],
-  "impact": "User hears only generic Submit on the payment button and cannot confirm they are paying R1,249 at the moment of payment.",
+  "impact": "The user hears only Submit and cannot confirm the button will pay R1,249 at the moment of payment.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "63367279-1ac4-4135-a232-8cc8cf4fcc88",
-   "response_id": "resp_6aea11feb7ac529865bd4bb1",
+   "request_id": "1c00eb8a-be0f-4d65-934f-cfc00f4a5d33",
+   "response_id": "resp_6aea7d837dc0e9d65c954706",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "after_html": "<button id=\"f5\" class=\"btn\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -31,7 +31,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n+      <button id=\"f5\" class=\"btn\"><img alt=\"Pay R1,249\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n",
-  "explanation": "Removed the misleading aria-label \"Submit\" and set the image alt to \"Pay R1,249\" so the button's accessible name matches the visible text.",
+  "after_html": "<button id=\"f5\" class=\"btn\">Pay R1,249</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -31,7 +31,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n+      <button id=\"f5\" class=\"btn\">Pay R1,249</button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n",
+  "explanation": "Replaced the wrong aria-label and empty-alt image-of-text with real text Pay R1,249 so the accessible name matches the visible label.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "ab3161bf-65cc-4a5d-b5df-1d641599ffa8",
-   "response_id": "resp_6aea12544f53d151d90d43b6",
+   "request_id": "77acd072-b9ba-44d8-bf5b-ca8bb77b21b7",
+   "response_id": "resp_6aea7dbd085c5236834c4583",
    "status": "completed"
   }
  },

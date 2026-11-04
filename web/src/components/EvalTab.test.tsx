@@ -177,6 +177,12 @@ describe("EvalTab per-stage model sweep", () => {
     expect(within(within(comparator).getByRole("row", { name: /muse-spark-1\.2-contributor/ })).getByText(/failed: HTTP 400/)).toBeInTheDocument();
   });
 
+  it("carries the SAM note when the block has one", () => {
+    const withSam = { ...results, model_sweep: { ...model_sweep, sam_note: "replayed on box prompts" } } as unknown as import("./EvalTab").EvalResults;
+    render(<EvalTab results={withSam} onReplay={() => {}} />);
+    expect(screen.getByRole("note", { name: /SAM 3\.1 note/ })).toHaveTextContent(/replayed on box prompts/);
+  });
+
   it("shows no sweep section when the block is absent", () => {
     render(<EvalTab results={results} onReplay={() => {}} />);
     expect(screen.queryByRole("region", { name: /model and effort, per stage/i })).toBeNull();

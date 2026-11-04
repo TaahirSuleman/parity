@@ -21,7 +21,7 @@ export interface StageRow {
   screens?: number; turns?: number; refusals?: number; safety_checks?: number; cost_usd_stage?: number;
 }
 export interface StageBest { model: string | null; effort: string | null; reason: string; margin: string; clears_bar: boolean; runs: number }
-export interface ModelSweep { stages?: Record<string, { rows?: StageRow[] }>; best?: Record<string, StageBest> }
+export interface ModelSweep { stages?: Record<string, { rows?: StageRow[] }>; best?: Record<string, StageBest>; sam_note?: string }
 export interface EvalResults {
   updated_at?: string; model?: string; judge_model?: string; n_faults?: number; n_clean?: number; runs?: number;
   configs?: Record<string, { runs?: number; total: Total }>;
@@ -110,6 +110,7 @@ export function ModelSweepSection({ sweep }: { sweep: ModelSweep }) {
           </div>
         );
       })}
+      {sweep.sam_note && <p className="text-sm mt-3 mb-0 muted" role="note" aria-label="SAM 3.1 note"><strong>SAM 3.1, not in the tables.</strong> {sweep.sam_note}</p>}
     </section>
   );
 }

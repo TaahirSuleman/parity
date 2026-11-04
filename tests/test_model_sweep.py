@@ -340,3 +340,16 @@ def test_model_sweep_flag_rebuilds_from_the_committed_file_without_a_key_or_a_ca
     (tmp_path / "model-sweep.json").write_text(json.dumps(block))
     assert harness.main(["--model-sweep"]) == 0
     assert (tmp_path / "model-sweep.md").exists()
+
+
+def test_sam_sentence_states_the_replay_and_what_it_did_not_test():
+    sam = {"candidates": 114, "percepts": 341, "runs": 3, "images": 40, "estimated_cost_usd": 0.1, "baseline_recall": 0.85, "sam_recall": 0.83, "baseline_precision": 0.99, "sam_precision": 1.0,
+           "baseline_verified": 98, "sam_verified": 95, "baseline_located_failures": 2, "sam_located_failures": 2, "median_iou_node_recorded": 1.0, "median_iou_node_sam": 0.86,
+           "median_iou_percept_recorded": 0.61, "median_iou_percept_sam": 0.75, "sam_percepts_recall": 0.85, "sam_percepts_precision": 0.99, "concepts": {"button": 10, "link": 0}}
+    from eval import model_sweep as ms
+
+    text = ms.sam_sentence(sam)
+    assert "recall 85% to 83%" in text and "1.00 to 0.86" in text and "1 of 2 nouns" in text and "Not tested" in text
+    assert "### SAM 3.1 box prompts" in ms.render_sweep({"sam_boxes": sam})
+    public = ms._public({"sam_boxes": {**sam, "request_ids": ["r"]}})
+    assert public["sam_note"] == text and "request_ids" not in public["sam_boxes"]

@@ -221,6 +221,16 @@ def merge_sweep_block(block: dict[str, Any]) -> dict[str, Any]:
     return {"labels_sha256": block.get("labels_sha256"), "model_sweep": block}
 
 
+def sam_sentence(sam: dict[str, Any]) -> str:
+    """What the replay in eval/sam_boxes.py found, and what it did not test. The tab shows the same sentence."""
+    concepts = sam.get("concepts", {})
+    found = sum(1 for v in concepts.values() if v > 0)
+    return (f"The spike's Spark-style requests were not SAM's prompt format, so {sam['candidates']} recorded candidate boxes and {sam['percepts']} Seer boxes from {sam['runs']} runs went to sam-3.1 as box prompts ({sam['images']} images, about ${sam['estimated_cost_usd']:.2f} at a price from our notes, not from Meta's API), "
+            f"and the Verifier and scoring ran again. Candidate boxes: recall {sam['baseline_recall']:.0%} to {sam['sam_recall']:.0%}, precision {sam['baseline_precision']:.0%} to {sam['sam_precision']:.0%}, verified {sam['baseline_verified']} to {sam['sam_verified']}, box failures {sam['baseline_located_failures']} to {sam['sam_located_failures']}, "
+            f"median overlap with the element the box lands on {sam['median_iou_node_recorded']:.2f} to {sam['median_iou_node_sam']:.2f} (the Comparator already copies the tree's boxes). Seer boxes: overlap with the nearest element {sam['median_iou_percept_recorded']:.2f} to {sam['median_iou_percept_sam']:.2f}, tighter, with recall and precision unchanged ({sam['sam_percepts_recall']:.0%}, {sam['sam_percepts_precision']:.0%}). "
+            f"Noun-phrase prompts found objects for {found} of {len(concepts)} nouns on one screen, and SAM returns boxes and masks, no text. Not tested: a Comparator shown SAM's boxes, which would need new walks.")
+
+
 def render_sweep(block: dict[str, Any]) -> str:
     """model-sweep.md, and the section of latest.md the README quotes."""
     pct = lambda x: "—" if x is None else f"{100 * x:.0f}%"  # noqa: E731
@@ -232,6 +242,8 @@ def render_sweep(block: dict[str, Any]) -> str:
         for model, caps in block["spike"].items():
             lines.append(f"| {model} | {cell(caps.get('json', {}))} | {cell(caps.get('grounding', {}))} | {cell(caps.get('computer', {}))} |")
         lines.append("")
+    if sam := block.get("sam_boxes"):
+        lines += ["### SAM 3.1 box prompts, replayed on the recorded runs", "", sam_sentence(sam), ""]
     best = block.get("best", {})
     if best:
         lines += ["### Best model per stage", "", "| Stage | Best model | Effort | Runs | Why | Margin | Clears the bar to change the default |", "|---|---|---|---|---|---|---|"]
@@ -655,8 +667,10 @@ def build_block(sweep_dir: Path, *, judge_default: dict | None, git_sha: str, la
     best = {s: choose_best(s, e["rows"], spread_labels=spread, n_faults=n_faults) for s, e in stages.items() if e["rows"]}
     spike_path = sweep_dir / "spike.json"
     spike = json.loads(spike_path.read_text()) if spike_path.exists() else {}
+    sam_path = sweep_dir / "sam-boxes.json"
+    sam_boxes = json.loads(sam_path.read_text()) if sam_path.exists() else None
     return {"generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "git_sha": git_sha, "labels_sha256": labels_sha, "method": METHOD, "n_faults": n_faults, "n_clean": n_clean,
-            "defaults": {s: {"model": m, "effort": e} for s, (m, e) in DEFAULTS.items()}, "spread_labels": spread, "spend_usd": spend, "wall_s": wall, "spike": spike,
+            "defaults": {s: {"model": m, "effort": e} for s, (m, e) in DEFAULTS.items()}, "spread_labels": spread, "spend_usd": spend, "wall_s": wall, "spike": spike, **({"sam_boxes": sam_boxes} if sam_boxes else {}),
             "stages": {s: e for s, e in stages.items() if e["rows"]}, "best": best, "records": records}
 
 
@@ -664,6 +678,9 @@ def _public(block: dict[str, Any]) -> dict[str, Any]:
     """latest.json carries the rows and the best block; the per-run records and request ids stay in model-sweep.json."""
     out = {k: v for k, v in block.items() if k != "records"}
     out["stages"] = {s: {"rows": [{k: v for k, v in r.items() if k != "request_ids"} for r in e["rows"]]} for s, e in block.get("stages", {}).items()}
+    if sam := block.get("sam_boxes"):
+        out["sam_boxes"] = {k: v for k, v in sam.items() if k != "request_ids"}
+        out["sam_note"] = sam_sentence(sam)
     return out
 
 

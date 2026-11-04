@@ -76,6 +76,18 @@ How to read it: the accessibility tree carries most of the recall; the screensho
 
 What the numbers say: Parity found two in-scope barriers in every run, both invisible to axe-core (a CSS background image named only by `title="image"`, and an image of a phone number whose alt reads "music line phone number"). The other candidates it proposed on these pages were rejected by the Verifier because axe-core already reports them (missing alt, unlabelled radios and a select, empty image links) or because the announced name equals the visible text; that is Parity's own definition of a finding, so "Beyond axe-core" is its recall on the nine in-scope barriers axe-core misses, and Parity and axe-core together reach 7 of 14. The three false alarms per run on the repaired pages, all on the repaired home page, are the three photos W3C marks decorative (`alt=""`) that Parity reports as pictures a sighted user sees and a screen reader skips; they count against precision by construction (on 3 Nov, with five checks, a misread heading and a navigation item with hidden "Accessible" text made it four). Eight pages, two runs each: a small sample, shown as such in the About & Evals tab.
 
+**Best model per stage** (4 Nov; one stage changed at a time, the rest at today's defaults; a row with n = 1 is a sample; full tables in `eval/results/model-sweep.md` and on the About & Evals tab). No shipped model or effort changed.
+
+| Stage | Best model, effort | n | Result | Against today's default |
+|---|---|---|---|---|
+| Comparator | `muse-spark-1.3-contributor`, medium (default) | 3 | 85% / 99%, $0.37 a page set | Nothing beats it beyond the spread of 3 labels |
+| Seer | `muse-spark-1.3-contributor`, medium (default) | 3 | 85% / 99%, $0.37 a page set | Nothing beats it beyond the spread of 3 labels |
+| Judge | `muse-spark-1.3-contributor`, high | 2 | 94% agreement, $0.0006 a finding | Same agreement as `muse-spark-1.3` (94%, $0.0108, n = 1), about 18 times cheaper; severity matches it on 84% |
+| Fixer | `muse-wonder-1.0`, medium | 2 | 62% of gaps closed, $0.0252 a fix | The default closes 53% at $0.0004 a fix, so it stays |
+| Navigator | `muse-spark-1.3-contributor`, low (default) | 2 | 4 of 4 screens, 11 turns, no API error | Every row reached 4 of 4; turns are inside the default's spread of 2 |
+
+**SAM 3.1 was tested and left out.** The API refuses it computer use, and replaying its box prompts over three recorded runs did not improve recall or precision: replacing the candidate boxes moved recall from 85% to 83% and precision from 99% to 100%, and replacing the Seer boxes changed neither. Noun prompts return no text, which the Seer has to report. We did not test a Comparator shown SAM's boxes.
+
 ## Observability
 
 Every run is a bundle on disk (or in a Cloud Storage bucket): `run.json`, each screen's screenshot, accessibility tree, axe result and served source, each finding and rejected candidate, `trace.jsonl` (every model call) and `events.jsonl` (what the workbench streamed). Replay plays a committed bundle back; a run's URL reopens it with its decisions. The SQLite index is a cache rebuilt at boot.

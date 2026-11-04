@@ -96,3 +96,27 @@ Per page (full): product 96% / 100% (16 of 16 found), cart 85% / 100% (8 of 9), 
 **Real-world sample** (read-only, anonymised; spec §17): Site A, 2 screens, 6 verified and 0 rejected — five CSS-drawn star ratings that announce nothing (judged barriers, moderate) and a cover image named by its title alone (judged not a barrier); axe-core reports none of them. Site B: a bot challenge in front of the first page ended the run as `blocked by site` in 1.2 s with nothing sent to a model.
 
 **An earlier pass** (31 Oct, pre-review code, 37 labels, 3 runs) gave full 74% / 91% and no grounding 78% / 93%; it is not quoted. The difference comes from the review fixes: CSS-drawn elements captured as silent nodes and generated text kept, labels on wrappers scored under the nearest id, and the comparator's retry after a non-JSON answer no longer served from the cache.
+
+## Per-stage model and effort sweep (4 Nov)
+
+`eval/results/model-sweep.md` is the full report and `latest.md` carries the same section; `python -m eval.harness --model-sweep` rebuilds both from `cache/model-sweep/` with no model call. One stage changed at a time, the rest at today's defaults, on the same labels (sha256 `43b432f8abea`). Spend $6.28 plus about $0.10 for SAM, 281 min of model and browser time, on our own store only. A row with n = 1 is a sample.
+
+| Stage | Best | n | Result | Default change? |
+|---|---|---|---|---|
+| Comparator | `muse-spark-1.3-contributor`, medium (default) | 3 | 85% / 99%, F1 0.91, $0.37 | No. High effort and Wonder reach 88% recall, inside the 3-label spread; Wonder costs $0.66 |
+| Seer | `muse-spark-1.3-contributor`, medium (default) | 3 | 85% / 99%, F1 0.91, $0.37 | No. `muse-spark-1.2-contributor` scores 83% / 98% at 8 s a call against 26 s: not scored by the rule, worth knowing |
+| Judge | `muse-spark-1.3-contributor`, high | 2 | 94% agreement in both runs, $0.0006 a finding | Clears the bar against `muse-spark-1.3` (94%, $0.0108, n = 1). Not changed: the builder's decision |
+| Fixer | `muse-wonder-1.0`, medium | 2 | 62% of gaps closed (17 and 19 of 29), $0.0252 a fix | No. The default closes 53% (15 and 16) at $0.0004, about 60 times cheaper |
+| Navigator | `muse-spark-1.3-contributor`, low (default) | 2 | 4 of 4 screens, no API error, 11 turns | No. Every row reached 4 of 4; turns are inside the default's spread of 2 |
+
+**Judge.** The contributor tier at high effort agreed with the labels on 29 of 31 findings in each of two runs, the same as the default, at about 18 times less per finding; a page set would fall from about $0.37 to about $0.04. It keeps the default's severity on 81% and 87% of findings; the default model itself moves 13% to 16% when only its effort changes (low 84%, high 87%). The labels hold no severity, so severity is compared with the default judge, not with a truth. The default judge row is one run. Private mode cannot use a contributor tier; `muse-spark-1.3` at low has the same 94% at $0.0071 (n = 1).
+
+**Fixer.** Gaps closed is a strict text match: the sighted text has to appear in the new accessible name. Ten of the 29 barriers were closed in none of the six runs, and all ten were sighted as a description ("trash icon button", "red border around Card number field"), which a correct name does not repeat. So about 19 of 29 is the ceiling this measure allows, and Wonder's better run reached it. "Comparator still flags" is the second reading: 14% for the default, 7% for `muse-spark-1.3`, 2% for Wonder.
+
+**Navigator.** Three of the eight walks ended in HTTP 400, all on turn 12, the last, after `audit_view` on turn 11, with all four screens audited: both medium runs and one high run. On that turn `parity/agent/loop.py` offers only `finish`. No run reached that state at low effort here, and two runs are too few to clear it; the request is built the same way at every effort. An earlier version of this report picked high effort at "5 turns" because a failed run counted as 0 turns; failed runs now count for screens only. These walks predate the click correction in the executor (`1e43af0`), which was added for walks that spent turns on near misses, so today's turn counts may be lower.
+
+### SAM 3.1
+
+SAM 3.1 was tested and left out. The API refuses it computer use, and replaying its box prompts over three recorded runs did not improve recall or precision: replacing the candidate boxes moved recall from 85% to 83% and precision from 99% to 100%, and replacing the Seer boxes changed neither. Noun prompts return no text, which the Seer has to report. We did not test a Comparator shown SAM's boxes, which needs new walks.
+
+Method: `python -m eval.sam_boxes` sent 114 recorded candidate boxes and 341 Seer boxes as box prompts in SAM's own format (40 images, about $0.10 at a price from our notes, not from Meta's API), ran the Verifier and scoring again, and reproduced the recorded baseline exactly first. Replacing candidate boxes: verified findings 98 to 95, box failures 2 to 2, median overlap with the element the box lands on 1.00 to 0.86 (the Comparator already copies the tree's boxes). Replacing Seer boxes: overlap with the nearest element 0.61 to 0.75, tighter, with nothing gained in the score. Noun prompts found objects for 3 of 10 nouns on one product screen. The first one-call check showed SAM giving no usable answer only because it used Spark-style requests; on its own format SAM works, and that is what the numbers above measure.

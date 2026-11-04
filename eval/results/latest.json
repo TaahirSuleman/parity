@@ -2523,5 +2523,1638 @@
     ]
    }
   }
+ },
+ "model_sweep": {
+  "generated_at": "2026-11-04T13:25:22+00:00",
+  "git_sha": "76d98b6819453da015eaf52455e470603b924e1d",
+  "labels_sha256": "43b432f8abea1deb13f6158e3a20bb3d25fb3b78f8f10053ddb31a2c7755b1c7",
+  "method": "One stage at a time, every other stage at today's default. Seer and Comparator rows run the store's page set (38 seeded faults, 20 clean controls); Judge and Fixer rows re-use the verified findings of the first recorded run of 4 Nov, so every model sees the same findings; Navigator rows walk the purchase flow with no fixes. In Seer, Comparator and Navigator rows the judge ran on the contributor tier of the same model (a judgement enters neither recall nor precision); \"Cost with the default judge\" projects the row at the default judge's price per finding. Accuracy is over the faults and the clean controls: a clean control with no finding is a true negative. A row with n = 1 is a sample, not a measurement of spread. A gap counts as closed only when the sighted text appears in the new accessible name, so a barrier sighted as a description (\"trash icon button\") cannot pass with a correct name such as \"Remove item\": read gaps closed with \"Comparator still flags\". muse-spark-1.1 has no price in our table; its rows print the price as unknown and cannot win on cost.",
+  "n_faults": 38,
+  "n_clean": 20,
+  "defaults": {
+   "comparator": {
+    "model": "muse-spark-1.3-contributor",
+    "effort": "medium"
+   },
+   "seer": {
+    "model": "muse-spark-1.3-contributor",
+    "effort": "medium"
+   },
+   "judge": {
+    "model": "muse-spark-1.3",
+    "effort": "medium"
+   },
+   "fixer": {
+    "model": "muse-spark-1.3-contributor",
+    "effort": "medium"
+   },
+   "navigator": {
+    "model": "muse-spark-1.3-contributor",
+    "effort": "low"
+   }
+  },
+  "spread_labels": 3,
+  "spend_usd": 6.276905031999998,
+  "wall_s": 16858.942314665986,
+  "spike": {
+   "muse-spark-1.3-contributor": {
+    "json": {
+     "ok": true,
+     "request_id": "962f9ccc-4bf8-47ad-9dcf-5825113a2f30",
+     "tokens": 1524,
+     "status": "completed"
+    },
+    "grounding": {
+     "ok": true,
+     "boxes": 29,
+     "request_id": "e096bf18-bf02-43de-b8c6-31ad7326b140",
+     "tokens": 5173,
+     "status": "completed"
+    },
+    "computer": {
+     "ok": true,
+     "safety_checks": 0,
+     "request_id": "2ca81b0a-de55-41b0-aba1-ce7ec011179d",
+     "tokens": 1534,
+     "status": "completed"
+    }
+   },
+   "muse-spark-1.3": {
+    "json": {
+     "ok": true,
+     "request_id": "32bc80f8-10b7-4b7a-a517-902619f0ca9a",
+     "tokens": 1525,
+     "status": "completed"
+    },
+    "grounding": {
+     "ok": true,
+     "boxes": 32,
+     "request_id": "61a520c9-0466-4cdc-bfed-57d7179f817d",
+     "tokens": 5114,
+     "status": "completed"
+    },
+    "computer": {
+     "ok": true,
+     "safety_checks": 1,
+     "request_id": "8a49c994-7bfd-48ac-82aa-bd24ed14e8a0",
+     "tokens": 1378,
+     "status": "completed"
+    }
+   },
+   "muse-spark-1.2-contributor": {
+    "json": {
+     "ok": true,
+     "request_id": "52826ee3-96de-447f-9b00-d2556aa74f4a",
+     "tokens": 1713,
+     "status": "completed"
+    },
+    "grounding": {
+     "ok": true,
+     "boxes": 31,
+     "request_id": "6eb788f6-da66-43dd-ab7a-20b329af5f3b",
+     "tokens": 5142,
+     "status": "completed"
+    },
+    "computer": {
+     "ok": true,
+     "safety_checks": 0,
+     "request_id": "198a2dea-ce27-4ec6-9589-87d8b6d0dd09",
+     "tokens": 1433,
+     "status": "completed"
+    }
+   },
+   "muse-spark-1.2": {
+    "json": {
+     "ok": true,
+     "request_id": "c7ba9a97-9835-4bf2-9b18-13a9b1c3930c",
+     "tokens": 1744,
+     "status": "completed"
+    },
+    "grounding": {
+     "ok": true,
+     "boxes": 32,
+     "request_id": "f1c6b9ad-d56a-41b8-a0a4-683c86d684f5",
+     "tokens": 4211,
+     "status": "completed"
+    },
+    "computer": {
+     "ok": true,
+     "safety_checks": 0,
+     "request_id": "acbac63f-3aea-4b95-9361-2cc206dc2c99",
+     "tokens": 1480,
+     "status": "completed"
+    }
+   },
+   "muse-spark-1.1": {
+    "json": {
+     "ok": true,
+     "request_id": "693a2bed-093f-4ba9-ad82-03b103caafae",
+     "tokens": 1570,
+     "status": "completed"
+    },
+    "grounding": {
+     "ok": true,
+     "boxes": 30,
+     "request_id": "539f0928-b16c-4885-bc3e-a6a4a3845f2c",
+     "tokens": 3813,
+     "status": "completed"
+    },
+    "computer": {
+     "ok": true,
+     "safety_checks": 0,
+     "request_id": "eabc221c-4758-459e-b59a-000c1010073f",
+     "tokens": 1381,
+     "status": "completed"
+    }
+   },
+   "muse-wonder-1.0": {
+    "json": {
+     "ok": true,
+     "request_id": "f57d00ec-08f7-4a49-b196-3bdcdf824b1f",
+     "tokens": 1536,
+     "status": "completed"
+    },
+    "grounding": {
+     "ok": true,
+     "boxes": 33,
+     "request_id": "434a0623-e15a-4ef8-a174-d3c626501857",
+     "tokens": 3806,
+     "status": "completed"
+    },
+    "computer": {
+     "ok": false,
+     "refused": "HTTP 400: {\"error\":{\"code\":null,\"message\":\"Unsupported tool type: 'computer'\",\"param\":\"tools\",\"type\":\"invalid_request_error\"}}",
+     "http_status": 400,
+     "request_id": "e3d70021-12f9-4c96-87eb-0dd2c9b4f9a3"
+    }
+   },
+   "sam-3.1": {
+    "json": {
+     "ok": false,
+     "request_id": "4728e5b3-0178-4324-895a-41c43a791ae1",
+     "tokens": 0,
+     "status": "completed",
+     "answer": ""
+    },
+    "grounding": {
+     "ok": false,
+     "boxes": 0,
+     "request_id": "93f79c61-99de-4585-a7a2-3641cbd6f4cc",
+     "tokens": 0,
+     "status": "completed",
+     "answer": ""
+    },
+    "computer": {
+     "ok": false,
+     "refused": "HTTP 400: {\"error\":{\"code\":null,\"message\":\"Unsupported tool type: 'computer'\",\"param\":\"tools\",\"type\":\"invalid_request_error\"}}",
+     "http_status": 400,
+     "request_id": "cf2f5abc-53d1-4e1a-8773-6af95d019c2e"
+    }
+   }
+  },
+  "sam_boxes": {
+   "model": "sam-3.1",
+   "runs": 3,
+   "candidates": 114,
+   "recorded_verified": 98,
+   "baseline_verified": 98,
+   "sam_verified": 95,
+   "baseline_located_failures": 2,
+   "sam_located_failures": 2,
+   "no_box_returned": 0,
+   "node_moved": 4,
+   "lost": [
+    {
+     "page": "product.html",
+     "sighted": "Standard (visually selected size)",
+     "failed": [
+      "sr_quote_exact"
+     ]
+    },
+    {
+     "page": "product.html",
+     "sighted": "product thumbnail 2 - headphones front view",
+     "failed": [
+      "unique"
+     ]
+    },
+    {
+     "page": "cart.html",
+     "sighted": "Standard (free) selected",
+     "failed": [
+      "sr_quote_exact"
+     ]
+    },
+    {
+     "page": "confirm.html",
+     "sighted": "Packed, Shipped, Delivered with Packed visually emphasized as current",
+     "failed": [
+      "sr_quote_exact"
+     ]
+    }
+   ],
+   "gained": [
+    {
+     "page": "product.html",
+     "sighted": "product thumbnail 2 - headphones front view"
+    }
+   ],
+   "median_iou_node_recorded": 1.0,
+   "median_iou_node_sam": 0.8617654081796118,
+   "recorded_recall": 0.850877192982456,
+   "recorded_precision": 0.98989898989899,
+   "recorded_f1": 0.9148012065954503,
+   "recorded_accuracy": 0.9022988505747126,
+   "baseline_recall": 0.850877192982456,
+   "baseline_precision": 0.98989898989899,
+   "baseline_f1": 0.9148012065954503,
+   "baseline_accuracy": 0.9022988505747126,
+   "sam_recall": 0.8333333333333334,
+   "sam_precision": 1.0,
+   "sam_f1": 0.9084493700861986,
+   "sam_accuracy": 0.8908045977011495,
+   "hits_per_run": {
+    "recorded": [
+     31,
+     32,
+     34
+    ],
+    "baseline": [
+     31,
+     32,
+     34
+    ],
+    "sam": [
+     31,
+     30,
+     34
+    ]
+   },
+   "labels_only_recorded": [
+    "cart.html#delivery-standard",
+    "product.html#size-standard"
+   ],
+   "labels_only_sam": [],
+   "images": 40,
+   "estimated_cost_usd": 0.1,
+   "seconds": 32.54035266698338,
+   "percepts": 341,
+   "percepts_boxed": 335,
+   "median_iou_percept_recorded": 0.6069364161849711,
+   "median_iou_percept_sam": 0.746268656716418,
+   "sam_percepts_verified": 98,
+   "sam_percepts_recall": 0.850877192982456,
+   "sam_percepts_precision": 0.98989898989899,
+   "sam_percepts_f1": 0.9148012065954503,
+   "concepts": {
+    "button": 10,
+    "link": 0,
+    "icon": 8,
+    "price": 0,
+    "star": 10,
+    "logo": 0,
+    "input field": 0,
+    "photo": 0,
+    "image": 0,
+    "text": 0
+   }
+  },
+  "stages": {
+   "comparator": {
+    "rows": [
+     {
+      "stage": "comparator",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "medium",
+      "is_default": true,
+      "unpriced": false,
+      "runs": 3,
+      "recall": 0.850877192982456,
+      "precision": 0.98989898989899,
+      "f1": 0.9148012065954503,
+      "accuracy": 0.9022988505747126,
+      "fp_on_clean": 0.0,
+      "n_per_run": 32.666666666666664,
+      "unlabelled": 0.3333333333333333,
+      "candidates": 46.666666666666664,
+      "rejected": 5.333333333333333,
+      "rejection_rate": 0.09993612944432617,
+      "jaccard": 0.8321750321750322,
+      "hits_spread": 3,
+      "tokens": 207773.66666666666,
+      "cost_usd": 0.3689557399999999,
+      "cost_default_judge_usd": 0.3689557399999999,
+      "seconds": 495.186,
+      "stages": {
+       "comparator": {
+        "calls": 5.333333333333333,
+        "tokens": 39604.333333333336,
+        "cost_usd": 0.005928866666666667,
+        "latency_ms_mean": 32787.49523809524
+       },
+       "judge": {
+        "calls": 32.666666666666664,
+        "tokens": 149304.66666666666,
+        "cost_usd": 0.3511666666666666,
+        "latency_ms_mean": 19354.20586318594
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 18864.666666666668,
+        "cost_usd": 0.002864202,
+        "latency_ms_mean": 25788.0
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 27531.0
+       }
+      },
+      "status": [
+       "done"
+      ],
+      "note": "the recorded 4 Nov run"
+     },
+     {
+      "stage": "comparator",
+      "model": "muse-spark-1.1",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": true,
+      "runs": 1,
+      "recall": 0.7631578947368421,
+      "precision": 0.9666666666666667,
+      "f1": 0.8529411764705883,
+      "accuracy": 0.8448275862068966,
+      "fp_on_clean": 0.0,
+      "n_per_run": 30.0,
+      "unlabelled": 1.0,
+      "candidates": 38.0,
+      "rejected": 3.0,
+      "rejection_rate": 0.07894736842105263,
+      "jaccard": null,
+      "hits_spread": 0,
+      "tokens": 185684.0,
+      "cost_usd": 0.02971413,
+      "cost_default_judge_usd": 0.33401936399999993,
+      "seconds": 321.552,
+      "stages": {
+       "comparator": {
+        "calls": 5.0,
+        "tokens": 31520.0,
+        "cost_usd": 0.0,
+        "latency_ms_mean": 10665.8
+       },
+       "judge": {
+        "calls": 30.0,
+        "tokens": 136504.0,
+        "cost_usd": 0.018194766,
+        "latency_ms_mean": 15281.1
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17660.0,
+        "cost_usd": 0.0025234720000000006,
+        "latency_ms_mean": 19099.75
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 25979.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "comparator",
+      "model": "muse-spark-1.2-contributor",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.7894736842105263,
+      "precision": 0.9833333333333334,
+      "f1": 0.8757459505541347,
+      "accuracy": 0.8620689655172413,
+      "fp_on_clean": 0.0,
+      "n_per_run": 30.5,
+      "unlabelled": 0.5,
+      "candidates": 39.0,
+      "rejected": 3.0,
+      "rejection_rate": 0.07474747474747476,
+      "jaccard": 0.90625,
+      "hits_spread": 2,
+      "tokens": 189374.0,
+      "cost_usd": 0.035188225,
+      "cost_default_judge_usd": 0.344501617,
+      "seconds": 318.15250000000003,
+      "stages": {
+       "comparator": {
+        "calls": 4.5,
+        "tokens": 31947.5,
+        "cost_usd": 0.004599925000000001,
+        "latency_ms_mean": 11529.475
+       },
+       "judge": {
+        "calls": 30.5,
+        "tokens": 139257.0,
+        "cost_usd": 0.018561608000000004,
+        "latency_ms_mean": 15938.332795698925
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 18169.5,
+        "cost_usd": 0.0030307980000000003,
+        "latency_ms_mean": 20953.875
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 24594.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "comparator",
+      "model": "muse-spark-1.3",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.7894736842105263,
+      "precision": 0.9677083333333334,
+      "f1": 0.869327731092437,
+      "accuracy": 0.8620689655172413,
+      "fp_on_clean": 0.0,
+      "n_per_run": 31.0,
+      "unlabelled": 1.0,
+      "candidates": 36.5,
+      "rejected": 5.0,
+      "rejection_rate": 0.13197586726998492,
+      "jaccard": 0.9375,
+      "hits_spread": 2,
+      "tokens": 190255.0,
+      "cost_usd": 0.11632019999999998,
+      "cost_default_judge_usd": 0.43071007399999994,
+      "seconds": 397.145,
+      "stages": {
+       "comparator": {
+        "calls": 4.5,
+        "tokens": 32118.0,
+        "cost_usd": 0.08553000000000001,
+        "latency_ms_mean": 26850.6
+       },
+       "judge": {
+        "calls": 31.0,
+        "tokens": 140475.0,
+        "cost_usd": 0.018860126,
+        "latency_ms_mean": 16593.27291666667
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17662.0,
+        "cost_usd": 0.002934149,
+        "latency_ms_mean": 21045.625
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 26086.5
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "comparator",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "high",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.881578947368421,
+      "precision": 0.9848484848484849,
+      "f1": 0.9301562801466332,
+      "accuracy": 0.9224137931034483,
+      "fp_on_clean": 0.0,
+      "n_per_run": 34.0,
+      "unlabelled": 0.5,
+      "candidates": 46.0,
+      "rejected": 2.5,
+      "rejection_rate": 0.05380200860832138,
+      "jaccard": 0.8888888888888888,
+      "hits_spread": 3,
+      "tokens": 214049.5,
+      "cost_usd": 0.03861424,
+      "cost_default_judge_usd": 0.38376142,
+      "seconds": 450.738,
+      "stages": {
+       "comparator": {
+        "calls": 5.5,
+        "tokens": 43227.0,
+        "cost_usd": 0.00654895,
+        "latency_ms_mean": 30780.15
+       },
+       "judge": {
+        "calls": 34.0,
+        "tokens": 153210.5,
+        "cost_usd": 0.02035282,
+        "latency_ms_mean": 16151.448917748916
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17612.0,
+        "cost_usd": 0.002716585,
+        "latency_ms_mean": 20806.875
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 22358.5
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "comparator",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "low",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.7894736842105263,
+      "precision": 0.9375,
+      "f1": 0.8571428571428572,
+      "accuracy": 0.8620689655172413,
+      "fp_on_clean": 0.0,
+      "n_per_run": 32.0,
+      "unlabelled": 2.0,
+      "candidates": 42.0,
+      "rejected": 7.5,
+      "rejection_rate": 0.1789563244469654,
+      "jaccard": 0.7777777777777778,
+      "hits_spread": 0,
+      "tokens": 193135.5,
+      "cost_usd": 0.034950640000000005,
+      "cost_default_judge_usd": 0.35998266599999995,
+      "seconds": 385.89300000000003,
+      "stages": {
+       "comparator": {
+        "calls": 5.0,
+        "tokens": 29754.0,
+        "cost_usd": 0.00405095,
+        "latency_ms_mean": 19020.5
+       },
+       "judge": {
+        "calls": 32.0,
+        "tokens": 145349.0,
+        "cost_usd": 0.018967974000000002,
+        "latency_ms_mean": 17747.484375
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 18032.5,
+        "cost_usd": 0.0029358270000000002,
+        "latency_ms_mean": 24141.5
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 25718.5
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "comparator",
+      "model": "muse-wonder-1.0",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.881578947368421,
+      "precision": 0.9714285714285714,
+      "f1": 0.9242770167427702,
+      "accuracy": 0.9224137931034483,
+      "fp_on_clean": 0.0,
+      "n_per_run": 34.5,
+      "unlabelled": 1.0,
+      "candidates": 40.0,
+      "rejected": 2.5,
+      "rejection_rate": 0.061868686868686865,
+      "jaccard": 0.9166666666666666,
+      "hits_spread": 1,
+      "tokens": 203797.0,
+      "cost_usd": 0.30689385,
+      "cost_default_judge_usd": 0.656481514,
+      "seconds": 369.679,
+      "stages": {
+       "comparator": {
+        "calls": 4.5,
+        "tokens": 27203.5,
+        "cost_usd": 0.273766,
+        "latency_ms_mean": 19533.275
+       },
+       "judge": {
+        "calls": 34.5,
+        "tokens": 159379.0,
+        "cost_usd": 0.021287335999999997,
+        "latency_ms_mean": 16400.84285714286
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17214.5,
+        "cost_usd": 0.0028446490000000003,
+        "latency_ms_mean": 19727.875
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 26167.5
+       }
+      },
+      "status": [
+       "done"
+      ]
+     }
+    ]
+   },
+   "seer": {
+    "rows": [
+     {
+      "stage": "seer",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "medium",
+      "is_default": true,
+      "unpriced": false,
+      "runs": 3,
+      "recall": 0.850877192982456,
+      "precision": 0.98989898989899,
+      "f1": 0.9148012065954503,
+      "accuracy": 0.9022988505747126,
+      "fp_on_clean": 0.0,
+      "n_per_run": 32.666666666666664,
+      "unlabelled": 0.3333333333333333,
+      "candidates": 46.666666666666664,
+      "rejected": 5.333333333333333,
+      "rejection_rate": 0.09993612944432617,
+      "jaccard": 0.8321750321750322,
+      "hits_spread": 3,
+      "tokens": 207773.66666666666,
+      "cost_usd": 0.3689557399999999,
+      "cost_default_judge_usd": 0.3689557399999999,
+      "seconds": 495.186,
+      "stages": {
+       "comparator": {
+        "calls": 5.333333333333333,
+        "tokens": 39604.333333333336,
+        "cost_usd": 0.005928866666666667,
+        "latency_ms_mean": 32787.49523809524
+       },
+       "judge": {
+        "calls": 32.666666666666664,
+        "tokens": 149304.66666666666,
+        "cost_usd": 0.3511666666666666,
+        "latency_ms_mean": 19354.20586318594
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 18864.666666666668,
+        "cost_usd": 0.002864202,
+        "latency_ms_mean": 25788.0
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 27531.0
+       }
+      },
+      "status": [
+       "done"
+      ],
+      "note": "the recorded 4 Nov run"
+     },
+     {
+      "stage": "seer",
+      "model": "muse-spark-1.1",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": true,
+      "runs": 2,
+      "recall": 0.7763157894736842,
+      "precision": 0.984375,
+      "f1": 0.867099567099567,
+      "accuracy": 0.853448275862069,
+      "fp_on_clean": 0.0,
+      "n_per_run": 30.0,
+      "unlabelled": 0.5,
+      "candidates": 47.0,
+      "rejected": 6.5,
+      "rejection_rate": 0.12351825509720246,
+      "jaccard": 0.875,
+      "hits_spread": 3,
+      "tokens": 193395.0,
+      "cost_usd": 0.033388810000000005,
+      "cost_default_judge_usd": 0.33776664399999995,
+      "seconds": 396.3365,
+      "stages": {
+       "comparator": {
+        "calls": 5.5,
+        "tokens": 42144.0,
+        "cost_usd": 0.00627076,
+        "latency_ms_mean": 32270.583333333336
+       },
+       "judge": {
+        "calls": 30.0,
+        "tokens": 136426.5,
+        "cost_usd": 0.018122166000000002,
+        "latency_ms_mean": 17476.323660714286
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 14824.5,
+        "cost_usd": 0.0,
+        "latency_ms_mean": 6813.0
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 24547.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "seer",
+      "model": "muse-spark-1.2-contributor",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.8289473684210527,
+      "precision": 0.984375,
+      "f1": 0.8999999999999999,
+      "accuracy": 0.8879310344827587,
+      "fp_on_clean": 0.0,
+      "n_per_run": 32.0,
+      "unlabelled": 0.5,
+      "candidates": 38.5,
+      "rejected": 3.5,
+      "rejection_rate": 0.08755129958960328,
+      "jaccard": 0.9393939393939394,
+      "hits_spread": 1,
+      "tokens": 194856.5,
+      "cost_usd": 0.035737025000000006,
+      "cost_default_judge_usd": 0.360281445,
+      "seconds": 355.2125,
+      "stages": {
+       "comparator": {
+        "calls": 4.5,
+        "tokens": 32343.5,
+        "cost_usd": 0.004761605,
+        "latency_ms_mean": 27406.65
+       },
+       "judge": {
+        "calls": 32.0,
+        "tokens": 146153.5,
+        "cost_usd": 0.01945558,
+        "latency_ms_mean": 16567.796875
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 16359.5,
+        "cost_usd": 0.002523954,
+        "latency_ms_mean": 7577.5
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 24289.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "seer",
+      "model": "muse-spark-1.3",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.8157894736842105,
+      "precision": 0.9540719696969697,
+      "f1": 0.879476861167002,
+      "accuracy": 0.8793103448275862,
+      "fp_on_clean": 0.0,
+      "n_per_run": 32.5,
+      "unlabelled": 1.5,
+      "candidates": 45.0,
+      "rejected": 6.0,
+      "rejection_rate": 0.13041314086610253,
+      "jaccard": 0.8571428571428571,
+      "hits_spread": 0,
+      "tokens": 199469.5,
+      "cost_usd": 0.090702855,
+      "cost_default_judge_usd": 0.421173844,
+      "seconds": 414.87149999999997,
+      "stages": {
+       "comparator": {
+        "calls": 5.0,
+        "tokens": 36441.5,
+        "cost_usd": 0.005300020000000001,
+        "latency_ms_mean": 27575.6
+       },
+       "judge": {
+        "calls": 32.5,
+        "tokens": 144761.0,
+        "cost_usd": 0.018904011000000005,
+        "latency_ms_mean": 15990.348484848484
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 18267.0,
+        "cost_usd": 0.05750295,
+        "latency_ms_mean": 22737.375
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 24341.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "seer",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "high",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.8289473684210527,
+      "precision": 0.96875,
+      "f1": 0.8933601609657948,
+      "accuracy": 0.8879310344827587,
+      "fp_on_clean": 0.0,
+      "n_per_run": 32.5,
+      "unlabelled": 1.0,
+      "candidates": 44.5,
+      "rejected": 2.0,
+      "rejection_rate": 0.04206349206349206,
+      "jaccard": 0.8055555555555556,
+      "hits_spread": 3,
+      "tokens": 207765.0,
+      "cost_usd": 0.03814438,
+      "cost_default_judge_usd": 0.36735999599999997,
+      "seconds": 472.2915,
+      "stages": {
+       "comparator": {
+        "calls": 5.5,
+        "tokens": 38352.0,
+        "cost_usd": 0.00561825,
+        "latency_ms_mean": 27272.916666666664
+       },
+       "judge": {
+        "calls": 32.5,
+        "tokens": 149205.5,
+        "cost_usd": 0.020159384000000002,
+        "latency_ms_mean": 18466.236268939392
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 20207.5,
+        "cost_usd": 0.0033708270000000003,
+        "latency_ms_mean": 28318.875
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 27117.5
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "seer",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "low",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.8421052631578947,
+      "precision": 0.9848484848484849,
+      "f1": 0.9078470824949698,
+      "accuracy": 0.896551724137931,
+      "fp_on_clean": 0.0,
+      "n_per_run": 32.5,
+      "unlabelled": 0.5,
+      "candidates": 59.0,
+      "rejected": 10.0,
+      "rejection_rate": 0.16796536796536796,
+      "jaccard": 0.8571428571428571,
+      "hits_spread": 0,
+      "tokens": 211404.5,
+      "cost_usd": 0.03831324999999999,
+      "cost_default_judge_usd": 0.36777342799999996,
+      "seconds": 458.321,
+      "stages": {
+       "comparator": {
+        "calls": 6.5,
+        "tokens": 48553.0,
+        "cost_usd": 0.0071597100000000006,
+        "latency_ms_mean": 29757.630952380954
+       },
+       "judge": {
+        "calls": 32.5,
+        "tokens": 148622.0,
+        "cost_usd": 0.019914822000000002,
+        "latency_ms_mean": 17196.59659090909
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 14229.5,
+        "cost_usd": 0.0022427980000000003,
+        "latency_ms_mean": 15402.625
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 22957.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "seer",
+      "model": "muse-wonder-1.0",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "recall": 0.7763157894736843,
+      "precision": 0.967741935483871,
+      "f1": 0.8614663256606991,
+      "accuracy": 0.853448275862069,
+      "fp_on_clean": 0.0,
+      "n_per_run": 30.5,
+      "unlabelled": 1.0,
+      "candidates": 52.5,
+      "rejected": 17.0,
+      "rejection_rate": 0.3138888888888889,
+      "jaccard": 0.90625,
+      "hits_spread": 1,
+      "tokens": 201501.0,
+      "cost_usd": 0.237655785,
+      "cost_default_judge_usd": 0.547244912,
+      "seconds": 467.88649999999996,
+      "stages": {
+       "comparator": {
+        "calls": 6.5,
+        "tokens": 48813.0,
+        "cost_usd": 0.00726801,
+        "latency_ms_mean": 30944.940476190473
+       },
+       "judge": {
+        "calls": 30.5,
+        "tokens": 137785.5,
+        "cost_usd": 0.018285873,
+        "latency_ms_mean": 16965.304301075266
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 14902.5,
+        "cost_usd": 0.203106,
+        "latency_ms_mean": 17221.125
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 24901.5
+       }
+      },
+      "status": [
+       "done"
+      ]
+     }
+    ]
+   },
+   "judge": {
+    "rows": [
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.3",
+      "effort": "medium",
+      "is_default": true,
+      "runs": 1,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9354838709677419,
+      "needs_review_rate": 0.0,
+      "severity_same": 1.0,
+      "cost_per_finding": 0.010802522580645162,
+      "cost_usd": 0.3348782,
+      "tokens": 141776,
+      "latency_ms_mean": 19817.322580645163,
+      "note": "the recorded run (seen-full, run 1)"
+     },
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.1",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": true,
+      "runs": 1,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9032258064516129,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.8064516129032258,
+      "cost_per_finding": 0.0,
+      "cost_usd": 0.0,
+      "tokens": 120859,
+      "latency_ms_mean": 5381.290322580645,
+      "seconds": 43.01384666701779
+     },
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.2",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 1,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9032258064516129,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.8064516129032258,
+      "cost_per_finding": 0.008075216129032258,
+      "cost_usd": 0.2503317,
+      "tokens": 140672,
+      "latency_ms_mean": 8606.09677419355,
+      "seconds": 69.56245212489739
+     },
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.2-contributor",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 1,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.8709677419354839,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.6774193548387096,
+      "cost_per_finding": 0.0006707792903225807,
+      "cost_usd": 0.020794158,
+      "tokens": 151003,
+      "latency_ms_mean": 10427.870967741936,
+      "seconds": 84.51760737481527
+     },
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.3",
+      "effort": "high",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 1,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9354838709677419,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.8709677419354839,
+      "cost_per_finding": 0.013708014516129031,
+      "cost_usd": 0.42494845,
+      "tokens": 162969,
+      "latency_ms_mean": 22529.387096774193,
+      "seconds": 179.84236904093996
+     },
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.3",
+      "effort": "low",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 1,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9354838709677419,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.8387096774193549,
+      "cost_per_finding": 0.007065814516129032,
+      "cost_usd": 0.21904025,
+      "tokens": 114285,
+      "latency_ms_mean": 8714.064516129032,
+      "seconds": 71.80429816711694
+     },
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "high",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9354838709677419,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.8387096774193548,
+      "cost_per_finding": 0.0006487383225806452,
+      "cost_usd": 0.020110888,
+      "tokens": 153547.5,
+      "latency_ms_mean": 21529.6935483871,
+      "seconds": 173.7884514995385,
+      "agreement_runs": [
+       0.9354838709677419,
+       0.9354838709677419
+      ],
+      "agreement_spread": 0.0
+     },
+     {
+      "stage": "judge",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9032258064516129,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.8064516129032258,
+      "cost_per_finding": 0.0005901136129032259,
+      "cost_usd": 0.018293522,
+      "tokens": 138491.0,
+      "latency_ms_mean": 17951.41935483871,
+      "seconds": 147.2410256670555,
+      "agreement_runs": [
+       0.9032258064516129,
+       0.9032258064516129
+      ],
+      "agreement_spread": 0.0
+     },
+     {
+      "stage": "judge",
+      "model": "muse-wonder-1.0",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 1,
+      "n": 31,
+      "decided": 31,
+      "agreement": 0.9354838709677419,
+      "needs_review_rate": 0.0,
+      "severity_same": 0.7741935483870968,
+      "cost_per_finding": 0.026562193548387097,
+      "cost_usd": 0.823428,
+      "tokens": 112317,
+      "latency_ms_mean": 10040.967741935483,
+      "seconds": 82.7512907080818
+     }
+    ]
+   },
+   "fixer": {
+    "rows": [
+     {
+      "stage": "fixer",
+      "model": "muse-spark-1.3",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "n": 29,
+      "proposed": 29,
+      "rejected": 0.0,
+      "gap_closed": 16.5,
+      "gap_closed_rate": 0.5689655172413792,
+      "still_flags_rate": 0.06896551724137931,
+      "reaudit_errors": 0.0,
+      "cost_per_fix": 0.006918080172413793,
+      "cost_usd": 0.216599633,
+      "cost_fixer_usd": 0.200624325,
+      "tokens": 235937.0,
+      "latency_ms_mean": 10428.982758620688,
+      "seconds": 222.68965704145376,
+      "gap_closed_spread": 1
+     },
+     {
+      "stage": "fixer",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "medium",
+      "is_default": true,
+      "unpriced": false,
+      "runs": 2,
+      "n": 29,
+      "proposed": 29,
+      "rejected": 0.0,
+      "gap_closed": 15.5,
+      "gap_closed_rate": 0.5344827586206897,
+      "still_flags_rate": 0.13793103448275862,
+      "reaudit_errors": 0.0,
+      "cost_per_fix": 0.0003978873448275862,
+      "cost_usd": 0.029211077000000002,
+      "cost_fixer_usd": 0.011538733,
+      "tokens": 233646.5,
+      "latency_ms_mean": 10334.862068965518,
+      "seconds": 228.60769583354704,
+      "gap_closed_spread": 1
+     },
+     {
+      "stage": "fixer",
+      "model": "muse-wonder-1.0",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "n": 29,
+      "proposed": 29,
+      "rejected": 0.0,
+      "gap_closed": 18.0,
+      "gap_closed_rate": 0.6206896551724137,
+      "still_flags_rate": 0.017241379310344827,
+      "reaudit_errors": 0.0,
+      "cost_per_fix": 0.025193793103448277,
+      "cost_usd": 0.747026977,
+      "cost_fixer_usd": 0.73062,
+      "tokens": 225237.5,
+      "latency_ms_mean": 8783.948275862069,
+      "seconds": 210.3663952499628,
+      "gap_closed_spread": 2
+     }
+    ]
+   },
+   "navigator": {
+    "rows": [
+     {
+      "stage": "navigator",
+      "model": "muse-spark-1.1",
+      "effort": "low",
+      "is_default": false,
+      "unpriced": true,
+      "runs": 1,
+      "screens": 4.0,
+      "turns": 9.0,
+      "turns_spread": 0,
+      "api_errors": 0,
+      "finished": 1.0,
+      "refusals": 0.0,
+      "blocked": 0.0,
+      "safety_checks": 4.0,
+      "cost_usd_stage": 0.0,
+      "cost_usd": 0.03875335,
+      "tokens": 289704.0,
+      "seconds": 694.437,
+      "n_per_run": 33.0,
+      "latency_ms_mean": 10799.666666666666,
+      "stages": {
+       "auditor": {
+        "calls": 9.0,
+        "tokens": 76697.0,
+        "cost_usd": 0.0,
+        "latency_ms_mean": 10799.666666666666
+       },
+       "comparator": {
+        "calls": 6.0,
+        "tokens": 46434.0,
+        "cost_usd": 0.006993200000000001,
+        "latency_ms_mean": 41436.833333333336
+       },
+       "judge": {
+        "calls": 33.0,
+        "tokens": 149367.0,
+        "cost_usd": 0.019916442,
+        "latency_ms_mean": 21532.696969696968
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17206.0,
+        "cost_usd": 0.0028477999999999997,
+        "latency_ms_mean": 26274.0
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 29549.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "navigator",
+      "model": "muse-spark-1.2-contributor",
+      "effort": "low",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 1,
+      "screens": 4.0,
+      "turns": 11.0,
+      "turns_spread": 0,
+      "api_errors": 0,
+      "finished": 1.0,
+      "refusals": 0.0,
+      "blocked": 0.0,
+      "safety_checks": 6.0,
+      "cost_usd_stage": 0.003163046,
+      "cost_usd": 0.04028459,
+      "tokens": 307219.0,
+      "seconds": 575.761,
+      "n_per_run": 33.0,
+      "latency_ms_mean": 12905.545454545454,
+      "stages": {
+       "auditor": {
+        "calls": 11.0,
+        "tokens": 106141.0,
+        "cost_usd": 0.003163046,
+        "latency_ms_mean": 12905.545454545454
+       },
+       "comparator": {
+        "calls": 5.0,
+        "tokens": 33432.0,
+        "cost_usd": 0.0048932,
+        "latency_ms_mean": 26720.6
+       },
+       "judge": {
+        "calls": 33.0,
+        "tokens": 150527.0,
+        "cost_usd": 0.020402018000000008,
+        "latency_ms_mean": 19074.60606060606
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17119.0,
+        "cost_usd": 0.0028304000000000003,
+        "latency_ms_mean": 21979.0
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 26999.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "navigator",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "high",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "screens": 4.0,
+      "turns": 10.0,
+      "turns_spread": 0,
+      "api_errors": 1,
+      "finished": 0.5,
+      "refusals": 0.0,
+      "blocked": 0.0,
+      "safety_checks": 6.0,
+      "cost_usd_stage": 0.0033897460000000003,
+      "cost_usd": 0.042009865,
+      "tokens": 317032.0,
+      "seconds": 673.5375,
+      "n_per_run": 34.5,
+      "latency_ms_mean": 19029.613636363636,
+      "stages": {
+       "auditor": {
+        "calls": 11.5,
+        "tokens": 105847.0,
+        "cost_usd": 0.003389746,
+        "latency_ms_mean": 19029.613636363636
+       },
+       "comparator": {
+        "calls": 4.5,
+        "tokens": 32954.0,
+        "cost_usd": 0.0048901050000000005,
+        "latency_ms_mean": 30168.425
+       },
+       "judge": {
+        "calls": 34.5,
+        "tokens": 160869.0,
+        "cost_usd": 0.021864819,
+        "latency_ms_mean": 19053.903781512607
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17362.0,
+        "cost_usd": 0.002869298,
+        "latency_ms_mean": 22125.625
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 28096.0
+       }
+      },
+      "status": [
+       "done",
+       "failed"
+      ]
+     },
+     {
+      "stage": "navigator",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "low",
+      "is_default": true,
+      "unpriced": false,
+      "runs": 2,
+      "screens": 4.0,
+      "turns": 11.0,
+      "turns_spread": 2,
+      "api_errors": 0,
+      "finished": 0.5,
+      "refusals": 0.0,
+      "blocked": 0.0,
+      "safety_checks": 7.0,
+      "cost_usd_stage": 0.004112572,
+      "cost_usd": 0.041833595,
+      "tokens": 308163.0,
+      "seconds": 617.396,
+      "n_per_run": 31.0,
+      "latency_ms_mean": 11796.808333333334,
+      "stages": {
+       "auditor": {
+        "calls": 11.0,
+        "tokens": 105190.5,
+        "cost_usd": 0.004112572,
+        "latency_ms_mean": 11796.808333333334
+       },
+       "comparator": {
+        "calls": 5.5,
+        "tokens": 43797.0,
+        "cost_usd": 0.00660095,
+        "latency_ms_mean": 33554.357142857145
+       },
+       "judge": {
+        "calls": 31.0,
+        "tokens": 142743.0,
+        "cost_usd": 0.019356833000000004,
+        "latency_ms_mean": 18162.809375
+       },
+       "seer": {
+        "calls": 3.5,
+        "tokens": 16432.5,
+        "cost_usd": 0.0027673000000000003,
+        "latency_ms_mean": 25350.25
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 25008.0
+       }
+      },
+      "status": [
+       "done"
+      ]
+     },
+     {
+      "stage": "navigator",
+      "model": "muse-spark-1.3-contributor",
+      "effort": "medium",
+      "is_default": false,
+      "unpriced": false,
+      "runs": 2,
+      "screens": 4.0,
+      "turns": null,
+      "turns_spread": 0.0,
+      "api_errors": 2,
+      "finished": 0.0,
+      "refusals": 0.0,
+      "blocked": 0.5,
+      "safety_checks": 6.5,
+      "cost_usd_stage": 0.004128092,
+      "cost_usd": 0.040760384999999996,
+      "tokens": 308176.5,
+      "seconds": 607.6965,
+      "n_per_run": 32.5,
+      "latency_ms_mean": 10947.583333333334,
+      "stages": {
+       "auditor": {
+        "calls": 12.0,
+        "tokens": 109589.0,
+        "cost_usd": 0.004128092,
+        "latency_ms_mean": 10947.583333333334
+       },
+       "comparator": {
+        "calls": 4.5,
+        "tokens": 31980.5,
+        "cost_usd": 0.0047075,
+        "latency_ms_mean": 30445.025
+       },
+       "judge": {
+        "calls": 32.5,
+        "tokens": 148665.5,
+        "cost_usd": 0.020006415,
+        "latency_ms_mean": 20080.68406072106
+       },
+       "seer": {
+        "calls": 4.0,
+        "tokens": 17941.5,
+        "cost_usd": 0.002922478,
+        "latency_ms_mean": 24321.625
+       },
+       "voice": {
+        "calls": 1.0,
+        "tokens": 0.0,
+        "cost_usd": 0.008996,
+        "latency_ms_mean": 25155.0
+       }
+      },
+      "status": [
+       "failed"
+      ]
+     }
+    ]
+   }
+  },
+  "best": {
+   "comparator": {
+    "stage": "comparator",
+    "model": "muse-spark-1.3-contributor",
+    "effort": "medium",
+    "reason": "muse-spark-1.3-contributor at medium (today's default): recall 85%, precision 99%, F1 0.91, $0.37 a page set; nothing beats it by more than the between-run spread of 3 labels.",
+    "margin": "+0 recall, +0 precision points against the default, F1 +0.00",
+    "clears_bar": false,
+    "runs": 3
+   },
+   "seer": {
+    "stage": "seer",
+    "model": "muse-spark-1.3-contributor",
+    "effort": "medium",
+    "reason": "muse-spark-1.3-contributor at medium (today's default): recall 85%, precision 99%, F1 0.91, $0.37 a page set; nothing beats it by more than the between-run spread of 3 labels.",
+    "margin": "+0 recall, +0 precision points against the default, F1 +0.00",
+    "clears_bar": false,
+    "runs": 3
+   },
+   "judge": {
+    "stage": "judge",
+    "model": "muse-spark-1.3-contributor",
+    "effort": "high",
+    "reason": "muse-spark-1.3-contributor at high: 94% agreement with the labels, 0% needing review, $0.0006 a finding; the highest agreement; cheaper than the default.",
+    "margin": "94% agreement with the labels, 0% needing review, $0.0006 a finding against 94% agreement with the labels, 0% needing review, $0.0108 a finding",
+    "clears_bar": true,
+    "runs": 2
+   },
+   "fixer": {
+    "stage": "fixer",
+    "model": "muse-wonder-1.0",
+    "effort": "medium",
+    "reason": "muse-wonder-1.0 at medium: 62% of gaps closed, 0.0 fixes rejected, $0.0252 a fix; the most gaps closed.",
+    "margin": "62% of gaps closed, 0.0 fixes rejected, $0.0252 a fix against 53% of gaps closed, 0.0 fixes rejected, $0.0004 a fix",
+    "clears_bar": false,
+    "runs": 2
+   },
+   "navigator": {
+    "stage": "navigator",
+    "model": "muse-spark-1.3-contributor",
+    "effort": "low",
+    "reason": "muse-spark-1.3-contributor at low (today's default): 4.0 of 4 screens, 0 of 2 runs ended by an API error, 11.0 turns, $0.004 of navigator calls; nothing reaches more screens without an API error, or finishes in fewer turns by more than the default's spread of 2.",
+    "margin": "the default is the best row",
+    "clears_bar": false,
+    "runs": 2
+   }
+  },
+  "sam_note": "The spike's Spark-style requests were not SAM's prompt format, so 114 recorded candidate boxes and 341 Seer boxes from 3 runs went to sam-3.1 as box prompts (40 images, about $0.10 at a price from our notes, not from Meta's API), and the Verifier and scoring ran again. Candidate boxes: recall 85% to 83%, precision 99% to 100%, verified 98 to 95, box failures 2 to 2, median overlap with the element the box lands on 1.00 to 0.86 (the Comparator already copies the tree's boxes). Seer boxes: overlap with the nearest element 0.61 to 0.75, tighter, with recall and precision unchanged (85%, 99%). Noun-phrase prompts found objects for 3 of 10 nouns on one screen, and SAM returns boxes and masks, no text. Not tested: a Comparator shown SAM's boxes, which would need new walks."
  }
 }

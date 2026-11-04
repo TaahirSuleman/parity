@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f21",
  "run_id": "hero-purchase",
- "step_index": 1,
+ "step_index": 2,
  "status": "reaudited",
- "sighted_text": "gift wrap toggle switched on",
- "sr_role": "button",
- "sr_name": "Gift wrap",
- "why_it_matters": "Blind user hears no on or pressed state and cannot tell gift wrap is currently enabled.",
+ "sighted_text": "50% OFF TODAY",
+ "sr_role": "image",
+ "sr_name": "image",
+ "why_it_matters": "Blind user hears only generic image and misses the promotional information sighted users see.",
  "voice": null,
  "bbox": {
-  "x_min": 582,
-  "y_min": 303,
-  "x_max": 616,
-  "y_max": 336
+  "x_min": 146,
+  "y_min": 175,
+  "x_max": 380,
+  "y_max": 300
  },
  "element": {
-  "backend_id": 166,
-  "css_path": "button#gift-wrap",
+  "backend_id": 224,
+  "css_path": "img#f1",
   "box_px": [
-   745,
-   218,
-   789,
-   242
+   187,
+   126,
+   487,
+   216
   ],
-  "outer_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
-  "dom_id": "gift-wrap"
+  "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "f1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#gift-wrap"
+    "detail": "image at img#f1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,55 +55,55 @@
    }
   },
   "element": {
-   "backend_id": 166,
-   "css_path": "button#gift-wrap",
+   "backend_id": 224,
+   "css_path": "img#f1",
    "box_px": [
-    745,
-    218,
-    789,
-    242
+    187,
+    126,
+    487,
+    216
    ],
-   "outer_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
-   "dom_id": "gift-wrap"
+   "outer_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'&gt;&lt;rect width='300' height='90' fill='%23ffcc00'/&gt;&lt;text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'&gt;50%25 OFF TODAY&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "f1"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "moderate",
   "wcag": [
    {
-    "sc": "4.1.2",
-    "name": "Name, Role, Value"
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "Blind user cannot tell gift wrap is currently switched on or verify the result of activating the control.",
+  "impact": "Screen-reader user hears only generic image and misses the 50% OFF TODAY promotion sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "ea215618-8b8a-4847-b8fa-8625535b998d",
-   "response_id": "resp_6aeafe3a02f3bd33a8924cf4",
+   "request_id": "f7bcd825-d574-4041-ad7d-d7f6b3e21a49",
+   "response_id": "resp_6aeb38788178706879db4142",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
-  "after_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\" role=\"switch\" aria-checked=\"true\"><span class=\"knob\"></span></button>",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -39,7 +39,7 @@\n   <section class=\"card\" aria-labelledby=\"options-h\">\n     <h2 id=\"options-h\">Options</h2>\n     <p class=\"row\"><input id=\"promo-input\" placeholder=\"Promo code\"> <button id=\"promo-apply\" class=\"ghost\" type=\"button\">Apply</button></p>\n-    <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button></p>\n+    <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\" role=\"switch\" aria-checked=\"true\"><span class=\"knob\"></span></button></p>\n     <p class=\"row\"><span class=\"small\">Delivery</span>\n       <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n",
-  "explanation": "Added role=\"switch\" and aria-checked=\"true\" to expose the visible on state to screen readers.",
+  "before_html": "<img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">",
+  "after_html": "<img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -14,8 +14,7 @@\n <main>\n   <section class=\"card\" aria-labelledby=\"order-h\">\n     <h1 id=\"order-h\">Your order</h1>\n-    <img id=\"f1\" alt=\"image\" width=\"300\" height=\"90\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n+    <img id=\"f1\" alt=\"50% OFF TODAY\" width=\"300\" height=\"90\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='90'><rect width='300' height='90' fill='%23ffcc00'/><text x='20' y='58' font-size='34' font-family='Arial' font-weight='bold'>50%25 OFF TODAY</text></svg>\">\n     <div class=\"line\"><span>Noise-cancelling headphones × 1</span><span>R1,249.00</span></div>\n     <div class=\"line\"><span>Delivery</span><span>Free</span></div>\n     <p class=\"total\">Total: <canvas id=\"f2\" width=\"140\" height=\"30\" role=\"presentation\"></canvas></p>\n",
+  "explanation": "Changed alt from generic \"image\" to \"50% OFF TODAY\" so the screen reader announces the same promotion sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "1c2268e4-b299-40f8-8203-1ad0dc6106b1",
-   "response_id": "resp_6aeaff7a194bc287930447b5",
+   "request_id": "90fea36e-c3de-4506-8c07-f9531bf40a92",
+   "response_id": "resp_6aeb3997ce7abd2819e34c0b",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": false,
-  "sr_name_before": "Gift wrap",
-  "sr_name_after": "Gift wrap",
-  "comparator_still_flags": true
+  "gap_closed": true,
+  "sr_name_before": "image",
+  "sr_name_after": "50% OFF TODAY",
+  "comparator_still_flags": false
  },
  "decision": null
 }

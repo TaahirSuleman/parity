@@ -3,41 +3,41 @@
  "run_id": "hero-purchase",
  "step_index": 2,
  "status": "reaudited",
- "sighted_text": "Pay R1,249",
+ "sighted_text": "Pay with wallet",
  "sr_role": "button",
- "sr_name": "Submit",
- "why_it_matters": "A blind user misses the payment amount and hears only a generic submit action.",
+ "sr_name": "Button",
+ "why_it_matters": "Blind user hears only generic Button and cannot identify the wallet payment action.",
  "voice": {
   "clip_key": "checkout.wav",
-  "start_ms": 87916,
-  "end_ms": 96086,
-  "transcript": "submit button you are currently currently on a button to click this button press control option space",
+  "start_ms": 128377,
+  "end_ms": 133208,
+  "transcript": "button button you are currently on a button button to click this button press control option space",
   "agrees": true
  },
  "bbox": {
-  "x_min": 524,
-  "y_min": 499,
-  "x_max": 647,
-  "y_max": 569
+  "x_min": 636,
+  "y_min": 578,
+  "x_max": 745,
+  "y_max": 635
  },
  "element": {
-  "backend_id": 259,
-  "css_path": "button#f5",
+  "backend_id": 268,
+  "css_path": "button#express-pay",
   "box_px": [
-   673,
-   360,
-   827,
-   408
+   814,
+   416,
+   954,
+   457
   ],
-  "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-  "dom_id": "f5"
+  "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "dom_id": "express-pay"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#f5"
+    "detail": "button at button#express-pay"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -61,16 +61,16 @@
    }
   },
   "element": {
-   "backend_id": 259,
-   "css_path": "button#f5",
+   "backend_id": 268,
+   "css_path": "button#express-pay",
    "box_px": [
-    673,
-    360,
-    827,
-    408
+    814,
+    416,
+    954,
+    457
    ],
-   "outer_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'&gt;&lt;text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'&gt;Pay R1,249&lt;/text&gt;&lt;/svg&gt;\"></button>",
-   "dom_id": "f5"
+   "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "express-pay"
   },
   "feedback": null
  },
@@ -79,40 +79,40 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "2.5.3",
-    "name": "Label in Name"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    },
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "2.5.3",
+    "name": "Label in Name"
    }
   ],
-  "impact": "The user cannot know at the point of action that the button will pay R1,249 and hears only generic Submit.",
+  "impact": "User hears only generic Button and cannot identify or confidently choose the Pay with wallet payment option.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "2bccfdcd-2e62-4a8a-b5f3-f6c06fb55fb6",
-   "response_id": "resp_6aeafeb5c7eddd02be7644a5",
+   "request_id": "bf8715ac-57cd-40fe-8e8a-2175f43538b7",
+   "response_id": "resp_6aeb3894913bcc2f4d594664",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>",
-  "after_html": "<button id=\"f5\" class=\"btn\">Pay R1,249</button>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -31,7 +31,7 @@\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n-      <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n+      <button id=\"f5\" class=\"btn\">Pay R1,249</button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n",
-  "explanation": "Replaced the wrong aria-label and image-of-text with real text Pay R1,249 so the accessible name matches the visible label.",
+  "before_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button>",
+  "after_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -36,7 +36,7 @@\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n-      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n+      <button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button></p>\n   </section>\n </main>\n <script>\n",
+  "explanation": "Replaced the generic aria-label and empty-alt image with real text matching the visible label so screen readers announce Pay with wallet.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "45f6b317-6b30-4679-9cc4-01f5d47c7539",
-   "response_id": "resp_6aeaff889f67fa8d6bf84ba2",
+   "request_id": "9e58b42c-e1a7-4c3c-8631-c8225bd8c889",
+   "response_id": "resp_6aeb39b219acdc33d98b4253",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "Submit",
-  "sr_name_after": "Pay R1,249",
+  "sr_name_before": "Button",
+  "sr_name_after": "Pay with wallet",
   "comparator_still_flags": false
  },
  "decision": null

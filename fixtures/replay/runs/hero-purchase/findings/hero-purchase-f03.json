@@ -3,10 +3,10 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "★★★★☆ 4.3",
+ "sighted_text": "★★★★☆ 4.3 (212 reviews)",
  "sr_role": "image",
  "sr_name": "rating",
- "why_it_matters": "Generic name rating does not convey the 4.3 star value sighted users see.",
+ "why_it_matters": "A blind user hears only generic rating without the 4.3 star value sighted users see.",
  "voice": null,
  "bbox": {
   "x_min": 146,
@@ -15,7 +15,7 @@
   "y_max": 281
  },
  "element": {
-  "backend_id": 32,
+  "backend_id": 31,
   "css_path": "img#p2",
   "box_px": [
    187,
@@ -55,7 +55,7 @@
    }
   },
   "element": {
-   "backend_id": 32,
+   "backend_id": 31,
    "css_path": "img#p2",
    "box_px": [
     187,
@@ -77,32 +77,32 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears only \"rating\" and cannot learn the product is rated 4.3 out of 5 stars.",
+  "impact": "Screen-reader user hears only generic \"rating\" and cannot learn the 4.3 out of 5 star value sighted users see when evaluating the product.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "ef41b5d2-b71d-4ec3-81f6-c274e8eba449",
-   "response_id": "resp_6aeafd8eb55573aaf62046f3",
+   "request_id": "d136b310-7ec7-430c-a810-24a688681ef1",
+   "response_id": "resp_6aeb375d7763834ab8694654",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
-  "after_html": "<img id=\"p2\" alt=\"★★★★☆ 4.3\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -17,8 +17,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n     <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n-    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n+    <p><img id=\"p2\" alt=\"★★★★☆ 4.3\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n       <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n       <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n",
-  "explanation": "Changed alt from generic \"rating\" to \"★★★★☆ 4.3\" to match the visible rating text.",
+  "after_html": "<img id=\"p2\" alt=\"★★★★☆ 4.3 (212 reviews)\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -17,8 +17,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n     <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n-    <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n+    <p><img id=\"p2\" alt=\"★★★★☆ 4.3 (212 reviews)\" width=\"110\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n       <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n       <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n",
+  "explanation": "Changed alt from generic \"rating\" to match the visible \"★★★★☆ 4.3 (212 reviews)\" so screen readers announce the same star value sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "9c3076c3-1ffd-407a-86f4-0727e63820d1",
-   "response_id": "resp_6aeaff54d86aa635dc244f91",
+   "request_id": "5671acc6-4827-4ff0-822d-67c30f25b894",
+   "response_id": "resp_6aeb3963f36e97407dca4b5e",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
   "sr_name_before": "rating",
-  "sr_name_after": "★★★★☆ 4.3",
+  "sr_name_after": "★★★★☆ 4.3 (212 reviews)",
   "comparator_still_flags": false
  },
  "decision": null

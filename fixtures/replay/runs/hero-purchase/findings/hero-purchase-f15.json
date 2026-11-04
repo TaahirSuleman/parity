@@ -1,37 +1,37 @@
 {
  "id": "hero-purchase-f15",
  "run_id": "hero-purchase",
- "step_index": 0,
+ "step_index": 1,
  "status": "reaudited",
- "sighted_text": "Compare",
- "sr_role": "link",
- "sr_name": "More",
- "why_it_matters": "Name contradicts visible text so blind user cannot find the Compare action.",
+ "sighted_text": "trash icon - remove headphones",
+ "sr_role": "button",
+ "sr_name": "Close",
+ "why_it_matters": "Blind user is told Close and does not know the button will remove the headphones from the cart.",
  "voice": null,
  "bbox": {
-  "x_min": 323,
-  "y_min": 635,
-  "x_max": 373,
-  "y_max": 662
+  "x_min": 438,
+  "y_min": 186,
+  "x_max": 474,
+  "y_max": 253
  },
  "element": {
-  "backend_id": 11,
-  "css_path": "a#compare-link",
+  "backend_id": 134,
+  "css_path": "button#k3",
   "box_px": [
-   414,
-   457,
-   478,
-   477
+   561,
+   134,
+   607,
+   182
   ],
-  "outer_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'&gt;Compare&lt;/text&gt;&lt;/svg&gt;\"></a>",
-  "dom_id": "compare-link"
+  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "dom_id": "k3"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#compare-link"
+    "detail": "button at button#k3"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 11,
-   "css_path": "a#compare-link",
+   "backend_id": 134,
+   "css_path": "button#k3",
    "box_px": [
-    414,
-    457,
-    478,
-    477
+    561,
+    134,
+    607,
+    182
    ],
-   "outer_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'&gt;Compare&lt;/text&gt;&lt;/svg&gt;\"></a>",
-   "dom_id": "compare-link"
+   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "k3"
   },
   "feedback": null
  },
@@ -73,36 +73,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "2.5.3",
-    "name": "Label in Name"
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears only \"More\" and cannot identify, find, or voice-activate the visible Compare action.",
+  "impact": "The user hears only \"Close\" and cannot know the button removes the noise-cancelling headphones from the cart.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "89e07fd7-232c-42b5-8b27-68e049c14e8e",
-   "response_id": "resp_6aeafdcb7f3a88c2da304fa3",
+   "request_id": "d75adedd-1176-4047-b234-832694a46e41",
+   "response_id": "resp_6aeb380bedb38f469fbf44a5",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>",
-  "after_html": "<a id=\"compare-link\" href=\"#compare\">Compare</a>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -42,7 +42,7 @@\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n       <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n       <button id=\"share-btn\" class=\"icon\" type=\"button\" aria-label=\"Share\">⇪</button>\n-      <a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>\n+      <a id=\"compare-link\" href=\"#compare\">Compare</a>\n     </div>\n   </section>\n   <section class=\"card\" aria-labelledby=\"details-h\">\n",
-  "explanation": "Replaced the mismatched aria-label \"More\" and empty-alt text-image with real text \"Compare\" so the accessible name matches the visible label.",
+  "before_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove noise-cancelling headphones\">🗑️</button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -20,7 +20,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove noise-cancelling headphones\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\">\n",
+  "explanation": "Changed aria-label from Close to Remove noise-cancelling headphones so the screen reader announces the visible remove action.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "af434305-a31d-4ab6-b3a6-1b1087ef28e9",
-   "response_id": "resp_6aeaff6b0d70dfa304944a70",
+   "request_id": "66f2cc2d-a519-43c5-93af-ef7cf22bf42c",
+   "response_id": "resp_6aeb3983b07c4274e5cb4712",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "More",
-  "sr_name_after": "Compare",
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Remove noise-cancelling headphones",
   "comparator_still_flags": false
  },
  "decision": null

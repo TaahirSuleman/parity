@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "beige colour option",
- "sr_role": "button",
- "sr_name": "Option 2",
- "why_it_matters": "Generic name hides the colour being chosen.",
+ "sighted_text": "green dot - in stock indicator",
+ "sr_role": "image",
+ "sr_name": "status",
+ "why_it_matters": "A blind user hears generic status and misses the green in-stock meaning conveyed by colour.",
  "voice": null,
  "bbox": {
-  "x_min": 209,
-  "y_min": 375,
-  "x_max": 229,
-  "y_max": 411
+  "x_min": 299,
+  "y_min": 436,
+  "x_max": 307,
+  "y_max": 450
  },
  "element": {
-  "backend_id": 41,
-  "css_path": "button#swatch-2",
+  "backend_id": 46,
+  "css_path": "span#stock-dot",
   "box_px": [
-   267,
-   270,
-   293,
-   296
+   383,
+   314,
+   393,
+   324
   ],
-  "outer_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
-  "dom_id": "swatch-2"
+  "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+  "dom_id": "stock-dot"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#swatch-2"
+    "detail": "image at span#stock-dot"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 41,
-   "css_path": "button#swatch-2",
+   "backend_id": 46,
+   "css_path": "span#stock-dot",
    "box_px": [
-    267,
-    270,
-    293,
-    296
+    383,
+    314,
+    393,
+    324
    ],
-   "outer_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
-   "dom_id": "swatch-2"
+   "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+   "dom_id": "stock-dot"
   },
   "feedback": null
  },
@@ -75,34 +75,38 @@
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
+   },
+   {
+    "sc": "1.4.1",
+    "name": "Use of Color"
    }
   ],
-  "impact": "User cannot tell this swatch is the beige colour and cannot reliably choose the intended colour.",
+  "impact": "The user cannot tell the product is in stock because the green dot's in-stock meaning is announced only as generic status.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "8e01834f-eaf0-4ff1-bfd6-6948efa920a3",
-   "response_id": "resp_6aeafda4cedab06f30244755",
+   "request_id": "d89785e8-51da-4e76-8460-a5c0ff8b49fb",
+   "response_id": "resp_6aeb3787e3517bbc70d8479d",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
-  "after_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -26,7 +26,7 @@\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n-      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n+      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n",
-  "explanation": "Changed aria-label from \"Option 2\" to \"Beige\" so the accessible name identifies the beige colour sighted users see.",
+  "before_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+  "after_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"in stock\"></span>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -32,7 +32,7 @@\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n-      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n+      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"in stock\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n",
+  "explanation": "Changed the generic aria-label from status to in stock so the green dot conveys in-stock status to screen-reader users.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "ccfc0a65-afcf-4922-b921-41bf8a090d34",
-   "response_id": "resp_6aeaff5bbdab07738ae54230",
+   "request_id": "2de51539-9082-49f3-87ae-8a17e71a925f",
+   "response_id": "resp_6aeb39784dcb7abc3d354b36",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "Option 2",
-  "sr_name_after": "Beige",
+  "sr_name_before": "status",
+  "sr_name_after": "in stock",
   "comparator_still_flags": false
  },
  "decision": null

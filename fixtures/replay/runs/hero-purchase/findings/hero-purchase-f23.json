@@ -1,37 +1,43 @@
 {
  "id": "hero-purchase-f23",
  "run_id": "hero-purchase",
- "step_index": 1,
+ "step_index": 2,
  "status": "reaudited",
- "sighted_text": "lock icon meaning secure - Secure checkout",
- "sr_role": "image",
- "sr_name": "image",
- "why_it_matters": "Blind user hears only generic image and misses the Secure checkout reassurance sighted users get.",
- "voice": null,
+ "sighted_text": "red border around Card number field indicating error",
+ "sr_role": "textbox",
+ "sr_name": "Card number",
+ "why_it_matters": "Blind user gets no error state or message and does not know the card number is invalid.",
+ "voice": {
+  "clip_key": "checkout.wav",
+  "start_ms": 53231,
+  "end_ms": 68374,
+  "transcript": "4111 1111 1111 1111 content selected card number edit text you are currently on a text field to enter text in this this field type zero nine slash",
+  "agrees": true
+ },
  "bbox": {
   "x_min": 526,
-  "y_min": 400,
-  "x_max": 620,
-  "y_max": 439
+  "y_min": 288,
+  "x_max": 854,
+  "y_max": 344
  },
  "element": {
-  "backend_id": 173,
-  "css_path": "img#trust-seal",
+  "backend_id": 250,
+  "css_path": "input#card",
   "box_px": [
    673,
-   288,
-   793,
-   316
+   207,
+   1093,
+   248
   ],
-  "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": "trust-seal"
+  "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+  "dom_id": "card"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#trust-seal"
+    "detail": "textbox at input#card"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,54 +61,58 @@
    }
   },
   "element": {
-   "backend_id": 173,
-   "css_path": "img#trust-seal",
+   "backend_id": 250,
+   "css_path": "input#card",
    "box_px": [
     673,
-    288,
-    793,
-    316
+    207,
+    1093,
+    248
    ],
-   "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "trust-seal"
+   "outer_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" style=\"\">",
+   "dom_id": "card"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "minor",
+  "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "1.4.1",
+    "name": "Use of Color"
+   },
+   {
+    "sc": "3.3.1",
+    "name": "Error Identification"
    }
   ],
-  "impact": "Screen-reader user hears only 'image' and misses the Secure checkout reassurance that sighted users receive.",
+  "impact": "The screen-reader user cannot know the card number field is flagged as invalid and needs correction to complete payment.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "fa9e062c-6942-4afc-b6f3-1da48433bb94",
-   "response_id": "resp_6aeafe4172613a85937c46c4",
+   "request_id": "9ab47e22-1b42-45b1-9dcb-8ee4c528ec90",
+   "response_id": "resp_6aeb3882ce0f82e66d3145c5",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
-  "after_html": "<img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -44,7 +44,7 @@\n       <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n     </p>\n-    <p><img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n+    <p><img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n   </section>\n </main>\n <script>\n",
-  "explanation": "Changed alt from 'image' to 'Secure checkout' so screen-reader users hear the same reassurance sighted users see.",
+  "before_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">",
+  "after_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number, invalid\">",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -27,7 +27,7 @@\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n     <h2 id=\"pay-h\">Payment</h2>\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n-    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n+    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number, invalid\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n",
+  "explanation": "Added aria-invalid=\"true\" and included \"invalid\" in the aria-label so the screen reader announces the error state shown visually by the red border.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "b3caf77a-ed36-4b63-a69c-f0258aa1e04c",
-   "response_id": "resp_6aeaff7a0e2d6fa0017544a7",
+   "request_id": "aae5768f-5c17-4fcc-8a4e-28322c052b32",
+   "response_id": "resp_6aeb39a10a26acf1d4e24163",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "image",
-  "sr_name_after": "Secure checkout",
+  "sr_name_before": "Card number",
+  "sr_name_after": "Card number, invalid",
   "comparator_still_flags": false
  },
  "decision": null

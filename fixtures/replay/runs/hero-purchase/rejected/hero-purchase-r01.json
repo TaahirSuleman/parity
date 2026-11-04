@@ -4,14 +4,14 @@
  "step_index": 0,
  "candidate": {
   "step_index": 0,
-  "sighted_text": "or 4 x R312.25",
-  "sr_quote": "not announced",
-  "why_it_matters": "Instalment payment information exists only in pixels and is never announced.",
+  "sighted_text": "ShopRight",
+  "sr_quote": "text, \"ShopRight\"",
+  "why_it_matters": "A blind user hears plain text and cannot activate the homepage link that sighted users get.",
   "bbox": {
-   "x_min": 359,
-   "y_min": 517,
-   "x_max": 465,
-   "y_max": 538
+   "x_min": 19,
+   "y_min": 19,
+   "x_max": 84,
+   "y_max": 44
   },
   "attempt": 1
  },
@@ -19,16 +19,16 @@
   "passed": false,
   "checks": {
    "located": {
-    "passed": false,
-    "detail": "no element at that box"
+    "passed": true,
+    "detail": "text at body > header:nth-of-type(1) > span:nth-of-type(1)"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
-    "passed": true,
-    "detail": "visible content has no announcement"
+    "passed": false,
+    "detail": "visible text equals the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -43,7 +43,18 @@
     "detail": "the sighted pass saw it"
    }
   },
-  "element": null,
-  "feedback": "the box does not land on an element; tighten it around the exact element you mean"
+  "element": {
+   "backend_id": 78,
+   "css_path": "body > header:nth-of-type(1) > span:nth-of-type(1)",
+   "box_px": [
+    24,
+    14,
+    108,
+    32
+   ],
+   "outer_html": "<span class=\"brand\">ShopRight</span>",
+   "dom_id": null
+  },
+  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
  }
 }

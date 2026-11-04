@@ -6,7 +6,7 @@
  "sighted_text": "SALE -20%",
  "sr_role": "image",
  "sr_name": "badge",
- "why_it_matters": "Blind user hears only generic badge and misses the 20% sale information.",
+ "why_it_matters": "A blind user hears only generic badge and misses the 20 percent sale information.",
  "voice": null,
  "bbox": {
   "x_min": 146,
@@ -15,7 +15,7 @@
   "y_max": 165
  },
  "element": {
-  "backend_id": 26,
+  "backend_id": 25,
   "css_path": "img#p1",
   "box_px": [
    187,
@@ -55,7 +55,7 @@
    }
   },
   "element": {
-   "backend_id": 26,
+   "backend_id": 25,
    "css_path": "img#p1",
    "box_px": [
     187,
@@ -77,12 +77,12 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears only \"badge\" and does not learn the product is on a 20% sale.",
+  "impact": "Screen-reader user hears only 'badge' and cannot know the product is advertised as 20% off on sale.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "f83a764f-8341-42cc-bb27-ea2b81646c12",
-   "response_id": "resp_6aeafd995d4845dd421f4956",
+   "request_id": "134c132b-68c2-41c2-9622-8cb8094040cb",
+   "response_id": "resp_6aeb3765d25214c74faa44f9",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -91,11 +91,11 @@
   "before_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">",
   "after_html": "<img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">",
   "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -13,8 +13,7 @@\n </header>\n <main>\n   <section class=\"card\" aria-labelledby=\"product-h\">\n-    <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n+    <img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n     <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n",
-  "explanation": "Changed alt from generic \"badge\" to \"SALE -20%\" to match the visible text.",
+  "explanation": "Changed alt text from 'badge' to 'SALE -20%' to match the visible badge text.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "6db06505-d54a-489b-8e44-31ab5b837ce4",
-   "response_id": "resp_6aeaff52aee42a16ffb04d53",
+   "request_id": "c655f717-172d-4572-92a3-86c21eeb0564",
+   "response_id": "resp_6aeb39610c83e7f60b2e4c18",
    "status": "completed"
   }
  },

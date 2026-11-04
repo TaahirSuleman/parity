@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "green dot meaning in stock",
- "sr_role": "image",
- "sr_name": "status",
- "why_it_matters": "Generic name and lost green colour means blind user does not get in-stock meaning.",
+ "sighted_text": "Offer ends in 02:14:09",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "A blind user misses the time-limited offer countdown that creates urgency for sighted users.",
  "voice": null,
  "bbox": {
-  "x_min": 299,
-  "y_min": 436,
-  "x_max": 307,
-  "y_max": 450
+  "x_min": 146,
+  "y_min": 556,
+  "x_max": 302,
+  "y_max": 586
  },
  "element": {
-  "backend_id": 47,
-  "css_path": "span#stock-dot",
+  "backend_id": 55,
+  "css_path": "canvas#promo-timer",
   "box_px": [
-   383,
-   314,
-   393,
-   324
+   187,
+   400,
+   387,
+   422
   ],
-  "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
-  "dom_id": "stock-dot"
+  "outer_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
+  "dom_id": "promo-timer"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at span#stock-dot"
+    "detail": "silent:canvas at canvas#promo-timer"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "quote equals the accessibility tree entry"
+    "detail": "no accessibility node with a name at that box"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "detail": "visible content has no announcement"
    },
    "not_axe": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 47,
-   "css_path": "span#stock-dot",
+   "backend_id": 55,
+   "css_path": "canvas#promo-timer",
    "box_px": [
-    383,
-    314,
-    393,
-    324
+    187,
+    400,
+    387,
+    422
    ],
-   "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
-   "dom_id": "stock-dot"
+   "outer_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
+   "dom_id": "promo-timer"
   },
   "feedback": null
  },
@@ -75,38 +75,34 @@
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
-   },
-   {
-    "sc": "1.4.1",
-    "name": "Use of Color"
    }
   ],
-  "impact": "The user cannot tell that the green dot means the product is in stock and available to order.",
+  "impact": "Screen-reader user cannot know the sale price is time-limited or how much time remains to claim it.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "0267044a-6cd9-408c-b6c1-a0eb4438cd84",
-   "response_id": "resp_6aeafdc290566f1073db404e",
+   "request_id": "52781b73-3816-450d-a219-6f20b46ccdb6",
+   "response_id": "resp_6aeb37855e7d95e75f8048fb",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
-  "after_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"In stock\"></span>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -32,7 +32,7 @@\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n-      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n+      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"In stock\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n",
-  "explanation": "Replaced generic aria-label \"status\" with \"In stock\" so the screen reader conveys the green dot's in-stock meaning.",
+  "before_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
+  "after_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"img\" aria-label=\"Offer ends in 02:14:09\">Offer ends in 02:14:09</canvas>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -37,7 +37,7 @@\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n       <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n-    <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n+    <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"img\" aria-label=\"Offer ends in 02:14:09\">Offer ends in 02:14:09</canvas></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n       <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n",
+  "explanation": "Removed role=presentation that hid the canvas and added matching aria-label plus fallback text so screen readers announce the visible countdown.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "2aa322fa-01a5-45c6-8086-79341f4949e7",
-   "response_id": "resp_6aeaff62a6f0a2e206e94588",
+   "request_id": "8313b2a7-ff3e-4bac-a326-09d92ee0cae3",
+   "response_id": "resp_6aeb397f40a2a1e249754a9f",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": false,
-  "sr_name_before": "status",
-  "sr_name_after": "In stock",
+  "gap_closed": true,
+  "sr_name_before": "",
+  "sr_name_after": "Offer ends in 02:14:09",
   "comparator_still_flags": false
  },
  "decision": null

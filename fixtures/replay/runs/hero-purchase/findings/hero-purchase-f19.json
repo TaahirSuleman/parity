@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 1,
  "status": "reaudited",
- "sighted_text": "–R125.00",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "Blind user never hears the coupon discount amount so cannot verify savings or total.",
+ "sighted_text": "Standard (free) - visibly selected",
+ "sr_role": "button",
+ "sr_name": "Standard (free)",
+ "why_it_matters": "Blind user gets no selected or pressed state and cannot tell which delivery option is active.",
  "voice": null,
  "bbox": {
-  "x_min": 404,
-  "y_min": 453,
-  "x_max": 474,
-  "y_max": 481
+  "x_min": 569,
+  "y_min": 347,
+  "x_max": 659,
+  "y_max": 389
  },
  "element": {
-  "backend_id": 149,
-  "css_path": "canvas#coupon-savings",
+  "backend_id": 170,
+  "css_path": "button#delivery-standard",
   "box_px": [
-   517,
-   326,
-   607,
-   346
+   728,
+   250,
+   844,
+   280
   ],
-  "outer_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
-  "dom_id": "coupon-savings"
+  "outer_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>",
+  "dom_id": "delivery-standard"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:canvas at canvas#coupon-savings"
+    "detail": "button at button#delivery-standard"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 149,
-   "css_path": "canvas#coupon-savings",
+   "backend_id": 170,
+   "css_path": "button#delivery-standard",
    "box_px": [
-    517,
-    326,
-    607,
-    346
+    728,
+    250,
+    844,
+    280
    ],
-   "outer_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
-   "dom_id": "coupon-savings"
+   "outer_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>",
+   "dom_id": "delivery-standard"
   },
   "feedback": null
  },
@@ -73,37 +73,37 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "Screen-reader user hears 'Coupon' with no value and cannot verify the R125 discount or confirm the total is correct.",
+  "impact": "Screen-reader user cannot tell that Standard is currently selected or verify which delivery option is active when choosing between free and paid shipping.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "8b281f3b-37a2-4736-bce4-e21194446b72",
-   "response_id": "resp_6aeafe2fc695361b85764f13",
+   "request_id": "49439ca7-06a1-4a3f-a936-844a31168871",
+   "response_id": "resp_6aeb381bd5bbaf1b584d45ba",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
-  "after_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"–R125.00\">–R125.00</canvas>",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -28,7 +28,7 @@\n       <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n-    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n+    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"–R125.00\">–R125.00</canvas></span></div>\n     <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,323.00</p>\n     <div class=\"actions\">\n",
-  "explanation": "Removed role=presentation and added matching aria-label with fallback text so the canvas discount is announced as –R125.00.",
+  "before_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>",
+  "after_html": "<button id=\"delivery-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\">Standard (free)</button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -41,7 +41,7 @@\n     <p class=\"row\"><input id=\"promo-input\" placeholder=\"Promo code\"> <button id=\"promo-apply\" class=\"ghost\" type=\"button\">Apply</button></p>\n     <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button></p>\n     <p class=\"row\"><span class=\"small\">Delivery</span>\n-      <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n+      <button id=\"delivery-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n     </p>\n     <p><img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n",
+  "explanation": "Added aria-pressed=\"true\" to expose the visibly selected state that was previously conveyed only by the current styling.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "26615346-8adc-4c6e-ae89-cce3dd751d5c",
-   "response_id": "resp_6aeaff72875e7c1809f343f7",
+   "request_id": "d3367f00-3c4e-458d-9f45-17b873081f8d",
+   "response_id": "resp_6aeb399501a2f17f76ec49db",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "–R125.00",
-  "comparator_still_flags": false
+  "gap_closed": false,
+  "sr_name_before": "Standard (free)",
+  "sr_name_after": "Standard (free)",
+  "comparator_still_flags": true
  },
  "decision": null
 }

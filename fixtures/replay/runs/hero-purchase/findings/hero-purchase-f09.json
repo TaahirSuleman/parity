@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "blue colour option",
+ "sighted_text": "Standard - visually selected",
  "sr_role": "button",
- "sr_name": "Option 3",
- "why_it_matters": "Generic name hides the colour being chosen.",
+ "sr_name": "Standard",
+ "why_it_matters": "A blind user hears no selected state and cannot tell Standard is the chosen size.",
  "voice": null,
  "bbox": {
-  "x_min": 235,
-  "y_min": 375,
-  "x_max": 255,
-  "y_max": 411
+  "x_min": 172,
+  "y_min": 422,
+  "x_max": 234,
+  "y_max": 464
  },
  "element": {
-  "backend_id": 42,
-  "css_path": "button#swatch-3",
+  "backend_id": 44,
+  "css_path": "button#size-standard",
   "box_px": [
-   301,
-   270,
-   327,
-   296
+   220,
+   304,
+   299,
+   334
   ],
-  "outer_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
-  "dom_id": "swatch-3"
+  "outer_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>",
+  "dom_id": "size-standard"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#swatch-3"
+    "detail": "button at button#size-standard"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 42,
-   "css_path": "button#swatch-3",
+   "backend_id": 44,
+   "css_path": "button#size-standard",
    "box_px": [
-    301,
-    270,
-    327,
-    296
+    220,
+    304,
+    299,
+    334
    ],
-   "outer_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
-   "dom_id": "swatch-3"
+   "outer_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>",
+   "dom_id": "size-standard"
   },
   "feedback": null
  },
@@ -73,36 +73,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "The user cannot tell that Option 3 is the blue colour option and cannot confidently select the intended colour, risking ordering the wrong variant.",
+  "impact": "User cannot tell that Standard is the currently selected size and may add the wrong variant to cart.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "5f358b5c-29b0-4cab-b1f2-fdf0f9822086",
-   "response_id": "resp_6aeafdb3ab4351fb809c4f66",
+   "request_id": "4c5d3861-d8d9-4caf-a6e9-106779fb2d9b",
+   "response_id": "resp_6aeb377819f02a004e844cfa",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
-  "after_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -27,7 +27,7 @@\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n-      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n+      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n",
-  "explanation": "Changed aria-label from \"Option 3\" to \"Blue\" so the accessible name announces the actual blue colour shown visually.",
+  "before_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>",
+  "after_html": "<button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\">Standard</button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -30,7 +30,7 @@\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n-      <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n+      <button id=\"size-standard\" class=\"tab current\" type=\"button\" aria-pressed=\"true\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n       <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n     </p>\n",
+  "explanation": "Added aria-pressed=\"true\" to expose the visually selected state to screen readers while keeping the visible text \"Standard\".",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "41dc5f36-1a43-4744-bd25-5aa73ba12795",
-   "response_id": "resp_6aeaff613f0130472d4342f0",
+   "request_id": "fba9daf9-1412-4b12-a0f8-1ce715534eaa",
+   "response_id": "resp_6aeb397ad531e783f9024fba",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "Option 3",
-  "sr_name_after": "Blue",
+  "sr_name_before": "Standard",
+  "sr_name_after": "Standard",
   "comparator_still_flags": false
  },
  "decision": null

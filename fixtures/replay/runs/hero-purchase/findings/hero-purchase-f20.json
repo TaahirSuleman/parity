@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 1,
  "status": "reaudited",
- "sighted_text": "Free",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "Blind user never hears delivery cost is Free and misses key checkout cost information.",
+ "sighted_text": "Secure checkou",
+ "sr_role": "image",
+ "sr_name": "image",
+ "why_it_matters": "Blind user hears only generic image and misses the assurance that checkout is secure.",
  "voice": null,
  "bbox": {
-  "x_min": 443,
-  "y_min": 510,
-  "x_max": 474,
-  "y_max": 535
+  "x_min": 526,
+  "y_min": 400,
+  "x_max": 620,
+  "y_max": 439
  },
  "element": {
-  "backend_id": 153,
-  "css_path": "span#k4 > img:nth-of-type(1)",
+  "backend_id": 173,
+  "css_path": "img#trust-seal",
   "box_px": [
-   567,
-   367,
-   607,
-   385
+   673,
+   288,
+   793,
+   316
   ],
-  "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": null
+  "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": "trust-seal"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:img at span#k4 > img:nth-of-type(1)"
+    "detail": "image at img#trust-seal"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -55,54 +55,54 @@
    }
   },
   "element": {
-   "backend_id": 153,
-   "css_path": "span#k4 > img:nth-of-type(1)",
+   "backend_id": 173,
+   "css_path": "img#trust-seal",
    "box_px": [
-    567,
-    367,
-    607,
-    385
+    673,
+    288,
+    793,
+    316
    ],
-   "outer_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'&gt;&lt;text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'&gt;Free&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": null
+   "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": "trust-seal"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "minor",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears 'Delivery' with no value in the cart summary and cannot directly confirm delivery is Free without inferring it from the separate Standard (free) control and total.",
+  "impact": "User hears only generic \"image\" and cannot perceive the visible \"Secure checkout\" assurance sighted users get.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "2c85ef86-90a5-411b-9210-d2da43645584",
-   "response_id": "resp_6aeafe3f0885fc5a0c3d494c",
+   "request_id": "c6149acf-b096-4797-b83e-39694544c201",
+   "response_id": "resp_6aeb38173cf112cb88f94e3f",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\">",
-  "after_html": "<img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\">",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -29,7 +29,7 @@\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n     <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n-    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n+    <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"Free\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,323.00</p>\n     <div class=\"actions\">\n       <a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>\n",
-  "explanation": "Changed empty alt to \"Free\" so screen reader announces the same delivery cost sighted users see.",
+  "before_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
+  "after_html": "<img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -44,7 +44,7 @@\n       <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n     </p>\n-    <p><img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n+    <p><img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n   </section>\n </main>\n <script>\n",
+  "explanation": "Changed alt from \"image\" to \"Secure checkout\" to match the visible text so screen-reader users hear the same assurance.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "d1d1409f-fdec-49a5-9c8a-18779255ffb4",
-   "response_id": "resp_6aeaff735344f9f4defc4502",
+   "request_id": "113d8768-1409-4cc0-a4df-2ddfd3f1a1e0",
+   "response_id": "resp_6aeb399568c17061fbe640db",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "Free",
+  "sr_name_before": "image",
+  "sr_name_after": "Secure checkout",
   "comparator_still_flags": false
  },
  "decision": null

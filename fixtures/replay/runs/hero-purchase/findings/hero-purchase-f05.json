@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "product image thumbnail showing black square",
- "sr_role": "image",
- "sr_name": "photo 2",
- "why_it_matters": "Generic name gives no product information about colour or shape.",
+ "sighted_text": "Colour Black selected",
+ "sr_role": "button",
+ "sr_name": "Option 1",
+ "why_it_matters": "A blind user hears generic Option 1 with no colour or selected state.",
  "voice": null,
  "bbox": {
-  "x_min": 202,
-  "y_min": 297,
-  "x_max": 252,
-  "y_max": 364
+  "x_min": 182,
+  "y_min": 375,
+  "x_max": 202,
+  "y_max": 411
  },
  "element": {
-  "backend_id": 36,
-  "css_path": "img#gallery-2",
+  "backend_id": 39,
+  "css_path": "button#swatch-1",
   "box_px": [
+   233,
+   270,
    259,
-   214,
-   323,
-   262
+   296
   ],
-  "outer_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
-  "dom_id": "gallery-2"
+  "outer_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>",
+  "dom_id": "swatch-1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#gallery-2"
+    "detail": "button at button#swatch-1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,54 +55,58 @@
    }
   },
   "element": {
-   "backend_id": 36,
-   "css_path": "img#gallery-2",
+   "backend_id": 39,
+   "css_path": "button#swatch-1",
    "box_px": [
+    233,
+    270,
     259,
-    214,
-    323,
-    262
+    296
    ],
-   "outer_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
-   "dom_id": "gallery-2"
+   "outer_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>",
+   "dom_id": "swatch-1"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
+   },
+   {
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "The user cannot tell that the second thumbnail shows a black square view and cannot confirm the product's appearance from that image.",
+  "impact": "The user cannot tell that Option 1 means Black or that it is currently selected, so cannot knowingly choose the intended colour.",
   "model_meta": {
    "model": "muse-spark-1.3",
    "fallback": false,
-   "request_id": "94d984f4-b814-4218-a0bd-b037216a92a4",
-   "response_id": "resp_6aeafdaa7dfd27732b89413b",
+   "request_id": "11f74a54-7606-4670-8cb3-a531f38c8108",
+   "response_id": "resp_6aeb376dc315388c34ef4e53",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">",
-  "after_html": "<img id=\"gallery-2\" alt=\"product image thumbnail showing black square\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -21,7 +21,7 @@\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n       <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n-      <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-2\" alt=\"product image thumbnail showing black square\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n",
-  "explanation": "Changed alt from generic \"photo 2\" to \"product image thumbnail showing black square\" so the accessible name conveys the colour and shape sighted users see.",
+  "before_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>",
+  "after_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Black\" aria-pressed=\"true\" style=\"background:#3a3d44\"></button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -25,7 +25,7 @@\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n-      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n+      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Black\" aria-pressed=\"true\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n",
+  "explanation": "Changed generic aria-label to Black and added aria-pressed true to convey the colour and selected state sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "505efe1e-195c-4436-87e5-554c119b5706",
-   "response_id": "resp_6aeaff5a77d51714880541c3",
+   "request_id": "67f219f8-0e6a-4a34-98d0-dca2ca262cd3",
+   "response_id": "resp_6aeb3969b2ff120e0e494c7d",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "photo 2",
-  "sr_name_after": "product image thumbnail showing black square",
+  "gap_closed": false,
+  "sr_name_before": "Option 1",
+  "sr_name_after": "Black",
   "comparator_still_flags": false
  },
  "decision": null

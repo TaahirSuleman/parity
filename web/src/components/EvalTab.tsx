@@ -17,8 +17,8 @@ export interface StageRow {
   model: string; effort: string; runs?: number; is_default?: boolean; unpriced?: boolean; failed?: string;
   recall?: number; precision?: number; f1?: number; fp_on_clean?: number; cost_default_judge_usd?: number; seconds?: number;
   n?: number; agreement?: number; needs_review_rate?: number; cost_per_finding?: number;
-  gap_closed_rate?: number; rejected?: number; cost_per_fix?: number;
-  screens?: number; turns?: number; refusals?: number; safety_checks?: number; cost_usd_stage?: number;
+  gap_closed_rate?: number; still_flags_rate?: number; rejected?: number; cost_per_fix?: number;
+  screens?: number; api_errors?: number; turns?: number | null; refusals?: number; safety_checks?: number; cost_usd_stage?: number;
 }
 export interface StageBest { model: string | null; effort: string | null; reason: string; margin: string; clears_bar: boolean; runs: number }
 export interface ModelSweep { stages?: Record<string, { rows?: StageRow[] }>; best?: Record<string, StageBest>; sam_note?: string }
@@ -65,16 +65,16 @@ function HowItWorks() {
 const TabHeading = () => <h2 id="eval-h" className="text-xs uppercase tracking-wider muted font-medium m-0 px-1">About &amp; Evals</h2>;
 
 const money = (r: StageRow, x: number | undefined, places = 2) => (r.unpriced ? "price unknown" : x === undefined ? "—" : `$${x.toFixed(places)}`);
-const num = (x: number | undefined, places = 1) => (x === undefined ? "—" : x.toFixed(places));
+const num = (x: number | null | undefined, places = 1) => (x === undefined || x === null ? "—" : x.toFixed(places));
 const nRuns = (r: StageRow) => `n = ${r.runs ?? 0}`;
 const nItems = (r: StageRow) => `n = ${r.n ?? 0}`;
 const DETECTION: [string, (r: StageRow) => string][] = [["n", nRuns], ["Recall", (r) => pct(r.recall)], ["Precision", (r) => pct(r.precision)], ["F1", (r) => num(r.f1, 2)], ["False alarms on clean", (r) => num(r.fp_on_clean)], ["Cost / 3 pages", (r) => money(r, r.cost_default_judge_usd)], ["Time / 3 pages", (r) => (r.seconds === undefined ? "—" : fmtDuration(Math.round(r.seconds * 1000)))]];
 const STAGE_COLUMNS: Record<string, [string, (r: StageRow) => string][]> = {
   comparator: DETECTION,
   seer: DETECTION,
-  judge: [["n findings", nItems], ["Agreement with labels", (r) => pct(r.agreement)], ["Needs review", (r) => pct(r.needs_review_rate)], ["Cost per finding", (r) => money(r, r.cost_per_finding, 4)]],
-  fixer: [["n barriers", nItems], ["Gaps closed", (r) => pct(r.gap_closed_rate)], ["Fixes rejected", (r) => String(r.rejected ?? "—")], ["Cost per fix", (r) => money(r, r.cost_per_fix, 4)]],
-  navigator: [["n", nRuns], ["Screens of 4", (r) => num(r.screens)], ["Turns", (r) => num(r.turns)], ["Refusals", (r) => num(r.refusals)], ["Safety checks", (r) => num(r.safety_checks)], ["Navigator cost", (r) => money(r, r.cost_usd_stage, 3)]],
+  judge: [["Runs", nRuns], ["n findings", nItems], ["Agreement with labels", (r) => pct(r.agreement)], ["Needs review", (r) => pct(r.needs_review_rate)], ["Cost per finding", (r) => money(r, r.cost_per_finding, 4)]],
+  fixer: [["Runs", nRuns], ["n barriers", nItems], ["Gaps closed", (r) => pct(r.gap_closed_rate)], ["Comparator still flags", (r) => pct(r.still_flags_rate)], ["Fixes rejected", (r) => String(r.rejected ?? "—")], ["Cost per fix", (r) => money(r, r.cost_per_fix, 4)]],
+  navigator: [["n", nRuns], ["Screens of 4", (r) => num(r.screens)], ["Runs ended by an API error", (r) => String(r.api_errors ?? 0)], ["Turns", (r) => num(r.turns)], ["Refusals", (r) => num(r.refusals)], ["Safety checks", (r) => num(r.safety_checks)], ["Navigator cost", (r) => money(r, r.cost_usd_stage, 3)]],
 };
 
 /** The per-stage sweep: one table a stage, the best row marked in words as well as weight, n on every row. */

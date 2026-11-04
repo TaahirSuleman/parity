@@ -141,6 +141,32 @@ def test_navigator_best_prefers_screens_then_turns_then_cost():
     assert choose_best("navigator", rows)["effort"] == "low"
 
 
+def test_navigator_row_ended_by_an_api_error_is_not_the_quickest_walk():
+    from eval.model_sweep import aggregate_navigator
+    base = {"screens": 4, "refusals": 0, "blocked": 0, "safety_checks": 1, "cost_usd_stage": 0.003, "cost_usd": 0.04, "tokens": 1, "seconds": 1, "n": 30, "stages": {}, "status": ["done"]}
+    spec = {"stage": "navigator", "model": "m", "effort": "high", "is_default": False}
+    row = aggregate_navigator(spec, [{**base, "turns": 10, "finished": True, "error": None}, {**base, "turns": 0, "finished": False, "error": "Meta API error 400"}])
+    assert row["turns"] == 10 and row["api_errors"] == 1
+    allfailed = aggregate_navigator(spec, [{**base, "turns": 0, "finished": False, "error": "Meta API error 400"}])
+    assert allfailed["turns"] is None and allfailed["api_errors"] == 1
+
+
+def test_navigator_best_keeps_the_default_inside_its_turn_spread_and_past_a_row_with_errors():
+    row = lambda effort, turns, errors=0, default=False, cost=0.004, **kw: {"stage": "navigator", "model": "m", "effort": effort, "screens": 4.0, "turns": turns, "turns_spread": 2.0, "api_errors": errors, "cost_usd_stage": cost, "is_default": default, "runs": 2, **kw}  # noqa: E731
+    rows = [row("low", 11.0, default=True), row("high", 10.0, errors=1), row("medium", None, errors=2), row("cheap", 9.0, cost=0.003)]
+    best = choose_best("navigator", rows)
+    assert best["effort"] == "low" and best["clears_bar"] is False
+    assert choose_best("navigator", [row("low", 11.0, default=True), row("quick", 6.0)])["effort"] == "quick"
+
+
+def test_judge_repeats_report_the_mean_and_how_far_apart_they_landed():
+    from eval.model_sweep import merge_judge_runs
+    one = {"model": "m", "n": 31, "agreement": 0.94, "needs_review_rate": 0.0, "severity_same": 0.8, "cost_per_finding": 0.001, "cost_usd": 0.03, "tokens": 10, "latency_ms_mean": 1.0, "seconds": 1.0, "runs": 1, "request_ids": ["a"], "outcomes": []}
+    merged = merge_judge_runs([one, {**one, "agreement": 0.90, "request_ids": ["b"]}])
+    assert merged["runs"] == 2 and abs(merged["agreement"] - 0.92) < 1e-9 and abs(merged["agreement_spread"] - 0.04) < 1e-9 and merged["request_ids"] == ["a", "b"]
+    assert merge_judge_runs([one]) is one
+
+
 def test_merge_sweep_block_leaves_the_main_tables_timestamp_and_commit_alone():
     from eval.harness import merge_latest
 

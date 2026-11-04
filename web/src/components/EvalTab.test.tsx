@@ -147,7 +147,7 @@ describe("EvalTab per-stage model sweep", () => {
       comparator: { rows: [detection, { ...detection, model: "muse-wonder-1.0", is_default: false, runs: 1, recall: 0.7, precision: 0.9, f1: 0.79, cost_default_judge_usd: 0.9 }, { ...detection, model: "muse-spark-1.1", is_default: false, runs: 1, unpriced: true }, { model: "muse-spark-1.2-contributor", effort: "medium", failed: "HTTP 400" }] },
       judge: { rows: [{ model: "muse-spark-1.3", effort: "medium", n: 33, is_default: true, agreement: 0.94, needs_review_rate: 0, cost_per_finding: 0.0108 }] },
       fixer: { rows: [{ model: "muse-spark-1.3-contributor", effort: "medium", n: 12, is_default: true, gap_closed_rate: 0.75, rejected: 1, cost_per_fix: 0.001 }] },
-      navigator: { rows: [{ model: "muse-spark-1.3-contributor", effort: "low", runs: 2, is_default: true, screens: 4, turns: 9.5, refusals: 0, safety_checks: 1, cost_usd_stage: 0.02 }] },
+      navigator: { rows: [{ model: "muse-spark-1.3-contributor", effort: "low", runs: 2, is_default: true, screens: 4, api_errors: 0, turns: 9.5, refusals: 0, safety_checks: 1, cost_usd_stage: 0.02 }, { model: "muse-spark-1.3-contributor", effort: "medium", runs: 2, screens: 4, api_errors: 2, turns: null, refusals: 0, safety_checks: 1, cost_usd_stage: 0.02 }] },
     },
     best: {
       comparator: { stage: "comparator", model: "muse-spark-1.3-contributor", effort: "medium", reason: "today's default holds", margin: "+0 recall", clears_bar: false, runs: 3 },
@@ -168,6 +168,15 @@ describe("EvalTab per-stage model sweep", () => {
     expect(within(within(comparator).getByRole("row", { name: /muse-wonder-1\.0/ })).getByText("n = 1")).toBeInTheDocument();
     expect(within(section).getByText(/one run is a sample/i)).toBeInTheDocument();
     expect(within(section).getByText(/today's default holds/)).toBeInTheDocument();
+  });
+
+  it("shows a walk an API error ended as that, with no turn count", () => {
+    render(<EvalTab results={swept} onReplay={() => {}} />);
+    const navigator = screen.getByRole("table", { name: /navigator/i });
+    expect(within(navigator).getByRole("columnheader", { name: /ended by an api error/i })).toBeInTheDocument();
+    const row = within(navigator).getByRole("row", { name: /medium/ });
+    expect(within(row).getByText("2")).toBeInTheDocument();
+    expect(within(row).getAllByText("—").length).toBeGreaterThan(0);
   });
 
   it("says a price is unknown rather than $0, and shows a failed row as failed", () => {

@@ -664,7 +664,7 @@ async def _model_sweep(args) -> int:
             else:
                 settings = load_settings(env={**env, **ms.row_env(stage, model, effort, cheap_judge=False)})
                 runner = ms.run_judge_row if stage == "judge" else ms.run_fixer_row
-                for r in range(args.sweep_runs if stage == "fixer" else 1):  # a repeat needs its own cache, or it replays the first run's answers
+                for r in range(args.sweep_runs):  # a repeat needs its own cache, or it replays the first run's answers
                     path = row_dir / ("row.json" if r == 0 else f"row-{r + 1}.json")
                     if path.exists():
                         continue
@@ -698,7 +698,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--external", action="store_true", help="the W3C BAD benchmark (doc 19 §19.1): its eight pages, --runs each, read-only; writes latest.json['external']")
     ap.add_argument("--model-sweep", action="store_true", help="the per-stage sweep: with no --sweep-row, rebuild its files from disk")
     ap.add_argument("--sweep-row", action="append", default=[], help="stage:model:effort, run in the order given (repeatable); a run already on disk is not paid for again")
-    ap.add_argument("--sweep-runs", type=int, default=1, help="runs a Seer, Comparator, Navigator or Fixer row should have in total")
+    ap.add_argument("--sweep-runs", type=int, default=1, help="runs a row should have in total")
     ap.add_argument("--sweep-budget", type=float, default=15.0, help="no new row starts once the sweep's recorded spend has reached this (USD)")
     ap.add_argument("--sweep-standard-judge", action="store_true", help="run walking rows with the default judge instead of its contributor tier")
     args = ap.parse_args(argv)

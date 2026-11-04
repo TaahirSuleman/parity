@@ -157,6 +157,10 @@ def _reason(best: dict, default: dict | None, metric_txt: str, why: str) -> str:
 COST_MARGIN = 0.10
 
 
+def _turns(row: dict) -> str:
+    return "—" if row.get("turns") is None else f"{row['turns']:.1f}"
+
+
 def _detection_best(stage: str, rows: list[dict], spread_labels: int, n_faults: int) -> dict[str, Any]:
     tol = spread_labels / n_faults if n_faults else 0.0
     default = next((r for r in rows if r.get("is_default")), None)
@@ -211,8 +215,18 @@ def choose_best(stage: str, rows: list[dict], *, spread_labels: int = 3, n_fault
     if stage == "fixer":
         return _ordered_best(stage, live, lambda r: (-round(r["gap_closed_rate"], 2), r["rejected"], r["cost_per_fix"], not r.get("is_default")),
                              lambda r: f"{r['gap_closed_rate']:.0%} of gaps closed, {r['rejected']} fixes rejected, {_usd(r['cost_per_fix'], 4)} a fix", "the most gaps closed")
-    return _ordered_best(stage, live, lambda r: (-r["screens"], r["turns"], r["cost_usd_stage"], not r.get("is_default")),
-                         lambda r: f"{r['screens']:.1f} of 4 screens, {r['turns']:.1f} turns, {_usd(r['cost_usd_stage'], 3)} of navigator calls", "the most screens in the fewest turns")
+    default = next((r for r in live if r.get("is_default")), None)
+    tol = (default or {}).get("turns_spread", 0.0)
+
+    def turns_gap(r: dict) -> float:  # a walk's turns move from run to run: inside the default's own spread they separate nothing
+        if r.get("turns") is None:
+            return inf
+        gap = r["turns"] - default["turns"] if default and default.get("turns") is not None else r["turns"]
+        return 0.0 if abs(gap) <= tol else gap
+
+    return _ordered_best(stage, live, lambda r: (-r["screens"], r.get("api_errors", 0) / (r.get("runs") or 1), turns_gap(r), not r.get("is_default"), r["cost_usd_stage"]),
+                         lambda r: f"{r['screens']:.1f} of 4 screens, {r.get('api_errors', 0)} of {r.get('runs', 1)} runs ended by an API error, {_turns(r)} turns, {_usd(r['cost_usd_stage'], 3)} of navigator calls",
+                         f"nothing reaches more screens without an API error, or finishes in fewer turns by more than the default's spread of {tol:.0f}")
 
 
 def merge_fixer_runs(runs: list[dict]) -> dict[str, Any]:
@@ -224,6 +238,18 @@ def merge_fixer_runs(runs: list[dict]) -> dict[str, Any]:
         merged[key] = _mean([r.get(key) or 0.0 for r in runs])
     closed = [r["gap_closed"] for r in runs]
     merged.update(runs=len(runs), gap_closed=_mean(closed), gap_closed_spread=max(closed) - min(closed), request_ids=[i for r in runs for i in r.get("request_ids", [])], outcomes=[o for r in runs for o in r.get("outcomes", [])])
+    return merged
+
+
+def merge_judge_runs(runs: list[dict]) -> dict[str, Any]:
+    """Repeat runs of a Judge row: the means, the same findings each time, and how far apart the runs landed."""
+    if len(runs) == 1:
+        return runs[0]
+    merged = dict(runs[0])
+    for key in ("agreement", "needs_review_rate", "severity_same", "cost_per_finding", "cost_usd", "tokens", "latency_ms_mean", "seconds"):
+        merged[key] = _mean([r.get(key) or 0.0 for r in runs])
+    agreement = [r["agreement"] for r in runs]
+    merged.update(runs=len(runs), agreement_runs=agreement, agreement_spread=max(agreement) - min(agreement), request_ids=[i for r in runs for i in r.get("request_ids", [])], outcomes=[o for r in runs for o in r.get("outcomes", [])])
     return merged
 
 
@@ -246,11 +272,12 @@ def sam_sentence(sam: dict[str, Any]) -> str:
 def render_sweep(block: dict[str, Any]) -> str:
     """model-sweep.md, and the section of latest.md the README quotes."""
     pct = lambda x: "—" if x is None else f"{100 * x:.0f}%"  # noqa: E731
+    money = lambda r, x, places: "price unknown" if r.get("unpriced") else f"${x:.{places}f}"  # noqa: E731
     lines = [f"Measured at commit `{str(block.get('git_sha', '?'))[:12]}`, labels sha256 `{str(block.get('labels_sha256', '?'))[:12]}`, {block.get('generated_at', '')}. "
              f"{block.get('method', '')} Spend ${block.get('spend_usd', 0):.2f}, {block.get('wall_s', 0) / 60:.0f} min of model and browser time.", ""]
     if block.get("spike"):
         lines += ["### What each model accepted (one call each)", "", "| Model | JSON | Grounding | Computer use |", "|---|---|---|---|"]
-        cell = lambda c: "yes" if c.get("ok") else f"no ({str(c.get('refused') or c.get('answer') or 'no usable answer')[:70]})".replace("|", "/").replace("\n", " ")  # noqa: E731
+        cell = lambda c: "yes" if c.get("ok") else f"no ({str(c.get('refused') or c.get('answer') or 'no usable answer')[:90]})".replace("|", "/").replace("\n", " ")  # noqa: E731
         for model, caps in block["spike"].items():
             lines.append(f"| {model} | {cell(caps.get('json', {}))} | {cell(caps.get('grounding', {}))} | {cell(caps.get('computer', {}))} |")
         lines.append("")
@@ -275,28 +302,28 @@ def render_sweep(block: dict[str, Any]) -> str:
                     continue
                 j = "—" if r.get("jaccard") is None else f"{r['jaccard']:.2f}"
                 lat = (r.get("stages") or {}).get(stage, {}).get("latency_ms_mean", 0) / 1000
-                lines.append(f"| {mark(r)} | {r['effort']} | n = {r['runs']} | {pct(r['recall'])} | {pct(r['precision'])} | {r['f1']:.2f} | {pct(r['accuracy'])} | {r['fp_on_clean']:.1f} | {r['n_per_run']:.0f} | {pct(r['rejection_rate'])} | {j} | {r['tokens']:,.0f} | ${r['cost_usd']:.3f} | ${r['cost_default_judge_usd']:.3f} | {r['seconds']:.0f} s | {lat:.0f} s |")
+                lines.append(f"| {mark(r)} | {r['effort']} | n = {r['runs']} | {pct(r['recall'])} | {pct(r['precision'])} | {r['f1']:.2f} | {pct(r['accuracy'])} | {r['fp_on_clean']:.1f} | {r['n_per_run']:.0f} | {pct(r['rejection_rate'])} | {j} | {r['tokens']:,.0f} | {money(r, r['cost_usd'], 3)} | {money(r, r['cost_default_judge_usd'], 3)} | {r['seconds']:.0f} s | {lat:.0f} s |")
         elif stage == "judge":
-            lines += ["| Model | Effort | n findings | Agreement with labels | Severity same as the default judge | Needs review (fail closed) | Cost per finding | Latency |", "|" + "---|" * 8]
+            lines += ["| Model | Effort | Runs | n findings | Agreement with labels | Severity same as the default judge | Needs review (fail closed) | Cost per finding | Latency |", "|" + "---|" * 9]
             for r in rows:
                 if r.get("failed"):
-                    lines.append(f"| {r['model']} | {r['effort']} | 0 | failed: {r['failed']} | — | — | — | — |")
+                    lines.append(f"| {r['model']} | {r['effort']} | n = 0 | 0 | failed: {r['failed']} | — | — | — | — |")
                     continue
-                lines.append(f"| {mark(r)} | {r['effort']} | {r['n']} | {pct(r['agreement'])} | {pct(r.get('severity_same'))} | {pct(r['needs_review_rate'])} | ${r['cost_per_finding']:.4f} | {r.get('latency_ms_mean', 0) / 1000:.0f} s |")
+                lines.append(f"| {mark(r)} | {r['effort']} | n = {r.get('runs', 1)} | {r['n']} | {pct(r['agreement'])} | {pct(r.get('severity_same'))} | {pct(r['needs_review_rate'])} | {money(r, r['cost_per_finding'], 4)} | {r.get('latency_ms_mean', 0) / 1000:.0f} s |")
         elif stage == "fixer":
             lines += ["| Model | Effort | n barriers | Runs | Gaps closed | Comparator still flags | Fixes rejected | Cost per fix | Fixer latency | Time |", "|" + "---|" * 10]
             for r in rows:
                 if r.get("failed"):
                     lines.append(f"| {r['model']} | {r['effort']} | 0 | 0 | failed: {r['failed']} | — | — | — | — | — |")
                     continue
-                lines.append(f"| {mark(r)} | {r['effort']} | {r['n']} | n = {r.get('runs', 1)} | {pct(r['gap_closed_rate'])} | {pct(r.get('still_flags_rate'))} | {r['rejected']} | ${r['cost_per_fix']:.4f} | {r.get('latency_ms_mean', 0) / 1000:.0f} s | {r.get('seconds', 0):.0f} s |")
+                lines.append(f"| {mark(r)} | {r['effort']} | {r['n']} | n = {r.get('runs', 1)} | {pct(r['gap_closed_rate'])} | {pct(r.get('still_flags_rate'))} | {r['rejected']} | {money(r, r['cost_per_fix'], 4)} | {r.get('latency_ms_mean', 0) / 1000:.0f} s | {r.get('seconds', 0):.0f} s |")
         else:
-            lines += ["| Model | Effort | n | Screens of 4 | Turns | Refusals | Safety checks | Navigator cost | Run cost | Navigator latency | Time |", "|" + "---|" * 11]
+            lines += ["| Model | Effort | n | Screens of 4 | Runs ended by an API error | Turns | Refusals | Safety checks | Navigator cost | Run cost | Navigator latency | Time |", "|" + "---|" * 12]
             for r in rows:
                 if r.get("failed"):
-                    lines.append(f"| {r['model']} | {r['effort']} | n = 0 | failed: {r['failed']} |" + " — |" * 7)
+                    lines.append(f"| {r['model']} | {r['effort']} | n = 0 | failed: {r['failed']} |" + " — |" * 8)
                     continue
-                lines.append(f"| {mark(r)} | {r['effort']} | n = {r['runs']} | {r['screens']:.1f} | {r['turns']:.1f} | {r['refusals']:.1f} | {r['safety_checks']:.1f} | ${r['cost_usd_stage']:.3f} | ${r['cost_usd']:.3f} | {r.get('latency_ms_mean', 0) / 1000:.0f} s | {r['seconds']:.0f} s |")
+                lines.append(f"| {mark(r)} | {r['effort']} | n = {r['runs']} | {r['screens']:.1f} | {r.get('api_errors', 0)} | {_turns(r)} | {r['refusals']:.1f} | {r['safety_checks']:.1f} | {money(r, r['cost_usd_stage'], 3)} | {money(r, r['cost_usd'], 3)} | {r.get('latency_ms_mean', 0) / 1000:.0f} s | {r['seconds']:.0f} s |")
         lines.append("")
     return "\n".join(lines) + "\n"
 
@@ -611,7 +638,10 @@ async def run_fixer_row(model: str, effort: str, data_dir: Path, run_ids: dict[s
 METHOD = ("One stage at a time, every other stage at today's default. Seer and Comparator rows run the store's page set (38 seeded faults, 20 clean controls); Judge and Fixer rows re-use "
           "the verified findings of the first recorded run of 4 Nov, so every model sees the same findings; Navigator rows walk the purchase flow with no fixes. "
           "In Seer, Comparator and Navigator rows the judge ran on the contributor tier of the same model (a judgement enters neither recall nor precision); \"Cost with the default judge\" projects the row at the default judge's price per finding. "
-          "Accuracy is over the faults and the clean controls: a clean control with no finding is a true negative. A row with n = 1 is a sample, not a measurement of spread.")
+          "Accuracy is over the faults and the clean controls: a clean control with no finding is a true negative. A row with n = 1 is a sample, not a measurement of spread. "
+          "A gap counts as closed only when the sighted text appears in the new accessible name, so a barrier sighted as a description (\"trash icon button\") cannot pass with a correct name such as \"Remove item\": read gaps closed with \"Comparator still flags\". "
+          "muse-spark-1.1 has no price in our table; its rows print the price as unknown and cannot win on cost. "
+          "A Navigator run that an API error ended counts for screens but not for turns. All 3 such runs here had audited all four screens and failed on turn 12, the last turn, which offers only finish after an audit_view: a request our agent loop builds, not a limit of the effort setting. The walks predate the executor's click correction (1e43af0).")
 
 
 def _spec(stage: str, model: str, effort: str) -> dict[str, Any]:
@@ -629,7 +659,8 @@ def _failed(records: list[dict]) -> str | None:
 def aggregate_navigator(spec: dict, records: list[dict]) -> dict[str, Any]:
     mean = lambda k: _mean([r[k] for r in records])  # noqa: E731
     stages = _merge_stage_means(records)
-    return {**spec, "runs": len(records), "screens": mean("screens"), "turns": mean("turns"), "finished": _mean([bool(r["finished"]) for r in records]), "refusals": mean("refusals"), "blocked": mean("blocked"),
+    ended = [r["turns"] for r in records if not r.get("error")]  # a run ended by an API error records 0 turns: in the mean that would read as the quickest walk
+    return {**spec, "runs": len(records), "screens": mean("screens"), "turns": _mean(ended) if ended else None, "turns_spread": max(ended) - min(ended) if ended else 0.0, "api_errors": sum(bool(r.get("error")) for r in records), "finished": _mean([bool(r["finished"]) for r in records]), "refusals": mean("refusals"), "blocked": mean("blocked"),
             "safety_checks": mean("safety_checks"), "cost_usd_stage": mean("cost_usd_stage"), "cost_usd": mean("cost_usd"), "tokens": mean("tokens"), "seconds": mean("seconds"), "n_per_run": mean("n"),
             "latency_ms_mean": stages.get("auditor", {}).get("latency_ms_mean", 0.0), "stages": stages, "status": sorted({s for r in records for s in r["status"]})}
 
@@ -659,7 +690,7 @@ def build_block(sweep_dir: Path, *, judge_default: dict | None, git_sha: str, la
             repeats = [json.loads(p.read_text()) for p in sorted(row_dir.glob("row*.json"))]
             spend += sum(r.get("cost_usd", 0.0) for r in repeats)
             wall += sum(r.get("seconds", 0.0) for r in repeats)
-            row = {**spec, **(merge_fixer_runs(repeats) if stage == "fixer" else repeats[0])}
+            row = {**spec, **(merge_fixer_runs(repeats) if stage == "fixer" else merge_judge_runs(repeats))}
             records[row_dir.name] = {"request_ids": row.pop("request_ids", []), "outcomes": row.pop("outcomes", [])}
             stages[stage]["rows"].append(row)
             continue
@@ -673,7 +704,7 @@ def build_block(sweep_dir: Path, *, judge_default: dict | None, git_sha: str, la
             row = aggregate_navigator(spec, recs)
         else:
             row = aggregate_detection(spec, recs, n_faults=n_faults, n_clean=n_clean, judge_per_finding=judge_per_finding)
-        if failed := _failed(recs):
+        if (failed := _failed(recs)) and not (stage == "navigator" and row["screens"] > 0):  # a walk that audited its screens and then hit an error is a result, not a row that did not run
             row["failed"] = failed
         stages[stage]["rows"].append(row)
     spread = max(2, max((r["hits_spread"] for r in stages["comparator"]["rows"] if r.get("is_default")), default=0))

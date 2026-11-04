@@ -154,12 +154,17 @@ def _reason(best: dict, default: dict | None, metric_txt: str, why: str) -> str:
     return f"{who}: {metric_txt}; {why}."
 
 
+COST_MARGIN = 0.10
+
+
 def _detection_best(stage: str, rows: list[dict], spread_labels: int, n_faults: int) -> dict[str, Any]:
     tol = spread_labels / n_faults if n_faults else 0.0
     default = next((r for r in rows if r.get("is_default")), None)
     top_f1 = max(r["f1"] for r in rows)
     tied = [r for r in rows if r["f1"] >= top_f1 - tol]  # inside the between-run spread nothing separates them: the cheaper one wins, then the default
-    pick = min(tied, key=lambda r: (round(r["cost_default_judge_usd"], 3), not r.get("is_default")))
+    cheapest = min(r["cost_default_judge_usd"] for r in tied)
+    near = [r for r in tied if r["cost_default_judge_usd"] <= cheapest * (1 + COST_MARGIN)]  # a page set's cost moves with how many findings it judges, so a small gap names no cheaper model
+    pick = next((r for r in near if r.get("is_default")), None) or max(near, key=lambda r: r["f1"])
     metric = f"recall {pick['recall']:.0%}, precision {pick['precision']:.0%}, F1 {pick['f1']:.2f}, {_usd(pick['cost_default_judge_usd'])} a page set"
     cheaper = default is not None and pick is not default and pick["cost_default_judge_usd"] < default["cost_default_judge_usd"]
     why = "cheaper inside the between-run spread" if cheaper else f"nothing beats it by more than the between-run spread of {spread_labels} labels" if pick is default else "the highest F1"

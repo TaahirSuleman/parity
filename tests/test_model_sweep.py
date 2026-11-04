@@ -101,6 +101,13 @@ def test_a_tie_inside_the_spread_goes_to_the_cheaper_row():
     assert best["model"] == "x" and best["clears_bar"] is False and "cheaper" in best["reason"]
 
 
+def test_a_cost_gap_inside_the_margin_does_not_unseat_the_default():
+    """$0.349 against $0.369 is two fewer findings to judge, not a cheaper model (seen on the first Comparator rows, 4 Nov)."""
+    rows = [_row("comparator", "d", "medium", 0.85, 0.99, 0.369, default=True), _row("comparator", "x", "medium", 0.82, 1.0, 0.349)]
+    best = choose_best("comparator", rows, spread_labels=3, n_faults=38)
+    assert best["model"] == "d" and "cheaper" not in best["reason"]
+
+
 def test_a_clear_winner_clears_the_bar_only_at_no_higher_cost():
     d = _row("seer", "d", "medium", 0.70, 0.95, 0.37, default=True)
     assert choose_best("seer", [d, _row("seer", "x", "medium", 0.90, 0.96, 0.37)], spread_labels=3, n_faults=38)["clears_bar"] is True

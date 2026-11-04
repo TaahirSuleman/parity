@@ -91,16 +91,16 @@ Problem statement Push the Frontier (software) (doc 18 §10). Purchase bundle: t
 
 **Not acted on, with the reason.** The ablation rows are from 1 Nov and the full row from 4 Nov: stated in the README and the eval tab, and a re-run is an hour and $5 the schedule does not have. "A twelfth of the price" (per token) and "1/18 the cost" (per judged finding) measure different things and both stand. The Ticketmaster shot is a recorded Live run (4 Nov 12:01, `tm.webm`), labelled as a bot wall; it is the product doing what it does. The 13-year-old Deque figure is labelled vendor and dated on the card.
 
-## 7. Cold-review checklist (docs/submission-checklist.md, ticked 4 Nov 22:45 SAST on the silent cut `parity-demo-v5-silent.mp4`)
+## 7. Cold-review checklist (ticked 4 Nov 22:45 SAST on the first silent cut; re-checked 23:50 on the v5.1 cut `parity-demo-v5-silent.mp4`)
 
 | Item | State |
 |---|---|
-| Length ≤ 2:55 | 2:54.8 measured on the rendered file |
+| Length ≤ 2:55 | 2:55.0 measured on the rendered v5.1 file (the plan's 175 s exactly; cross-fades padded into the segments) |
 | Product visible at 0:05 | yes; the checkout Replay from 0:00 |
 | No slide > 10 s | Card A 10 s, Card B 10 s, the end card 5 s; nothing else off the product |
 | Hero moment uncut or labelled | the walk is labelled "Replay · recorded run · sped up in the edit" on its chip; the fix, re-audit and Approve run at 1× |
-| Human approval click visible | yes, 1:41 |
-| Impact lands before 2:50 | the impact block runs 2:10–2:50; the end card 2:50–2:55 |
+| Human approval click visible | yes, about 1:40 |
+| Impact lands before 2:50 | Card B 2:35–2:45 and the theme line 2:43–2:52; only "Findings, not compliance. Try it, no login" sits on the end card |
 | Burned-in captions | every narration line and the VoiceOver clip; an SRT beside the file |
 | No failed or test runs on screen | none |
 | Every number matches the README | reconciled in §1 and §6 of this ledger |
@@ -111,7 +111,7 @@ Problem statement Push the Frontier (software) (doc 18 §10). Purchase bundle: t
 | Golden-case button runs to completion | Replay hero-checkout and hero-purchase end awaiting_review on the hosted app |
 | No mock data unlabelled | Replay and Live chips on every beat |
 | CLAUDE.md and .claude untracked | yes (never tracked) |
-| Third-party documents gone | pending the pre-submission docs split (the builder's go) |
+| Third-party documents gone | done at 770682c: the internal documents live in `local-docs/` outside the repository; 15 docs remain |
 | Every file the README links to exists | test_docs passes |
 | README states what is deterministic | yes |
 | Architecture diagram is an image | yes, plus docs/31 |

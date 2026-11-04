@@ -1,0 +1,322 @@
+{
+ "generated_at": "2026-11-04T15:03:20+00:00",
+ "model": "muse-spark-1.3-contributor",
+ "judge_model": "muse-spark-1.3-contributor",
+ "effort": "medium",
+ "runs": 1,
+ "pages": [
+  "product.html",
+  "cart.html",
+  "checkout.html",
+  "confirm.html"
+ ],
+ "labels": "eval/labels.json",
+ "n_faults": 38,
+ "n_clean": 20,
+ "git_sha": "0ccc2fa55dbdea3ac0dd44aaab7200c6c1364659",
+ "git_dirty": true,
+ "labels_sha256": "43b432f8abea1deb13f6158e3a20bb3d25fb3b78f8f10053ddb31a2c7755b1c7",
+ "configs": {
+  "full": {
+   "runs": 1,
+   "per_page": {
+    "product.html": {
+     "recall": 1.0,
+     "precision": 1.0,
+     "fp_on_clean": 0.0,
+     "n": 16.0,
+     "n_labels": 16,
+     "hits": [
+      "compare-link",
+      "divider-1",
+      "gallery-1",
+      "gallery-2",
+      "instalment-price",
+      "p1",
+      "p2",
+      "p5",
+      "promo-timer",
+      "rating-css",
+      "size-standard",
+      "stock-dot",
+      "swatch-1",
+      "swatch-2",
+      "swatch-3",
+      "was-price"
+     ],
+     "hits_every_run": [
+      "compare-link",
+      "divider-1",
+      "gallery-1",
+      "gallery-2",
+      "instalment-price",
+      "p1",
+      "p2",
+      "p5",
+      "promo-timer",
+      "rating-css",
+      "size-standard",
+      "stock-dot",
+      "swatch-1",
+      "swatch-2",
+      "swatch-3",
+      "was-price"
+     ],
+     "tokens": 105337.0,
+     "cost_usd": 0.0153312,
+     "seconds": 208.4766159581486,
+     "runs": [
+      {
+       "recall": 1.0,
+       "precision": 1.0,
+       "fp_on_clean": 0,
+       "n": 16,
+       "n_labels": 16,
+       "hits": [
+        "compare-link",
+        "divider-1",
+        "gallery-1",
+        "gallery-2",
+        "instalment-price",
+        "p1",
+        "p2",
+        "p5",
+        "promo-timer",
+        "rating-css",
+        "size-standard",
+        "stock-dot",
+        "swatch-1",
+        "swatch-2",
+        "swatch-3",
+        "was-price"
+       ],
+       "missed": [],
+       "fp_ids": [],
+       "unlabelled": 0,
+       "tokens": 105337,
+       "cost_usd": 0.0153312,
+       "seconds": 208.4766159581486,
+       "run_id": "20261104-150320-ae731b37",
+       "status": "done",
+       "error": null,
+       "judge_cost_usd": 0.011992708000000001
+      }
+     ]
+    },
+    "cart.html": {
+     "recall": 0.8888888888888888,
+     "precision": 1.0,
+     "fp_on_clean": 0.0,
+     "n": 8.0,
+     "n_labels": 9,
+     "hits": [
+      "case-qty",
+      "coupon-savings",
+      "delivery-standard",
+      "gift-wrap",
+      "item-thumb",
+      "k3",
+      "k4",
+      "trust-seal"
+     ],
+     "hits_every_run": [
+      "case-qty",
+      "coupon-savings",
+      "delivery-standard",
+      "gift-wrap",
+      "item-thumb",
+      "k3",
+      "k4",
+      "trust-seal"
+     ],
+     "tokens": 51131.0,
+     "cost_usd": 0.0073219,
+     "seconds": 105.34778870898299,
+     "runs": [
+      {
+       "recall": 0.8888888888888888,
+       "precision": 1.0,
+       "fp_on_clean": 0,
+       "n": 8,
+       "n_labels": 9,
+       "hits": [
+        "case-qty",
+        "coupon-savings",
+        "delivery-standard",
+        "gift-wrap",
+        "item-thumb",
+        "k3",
+        "k4",
+        "trust-seal"
+       ],
+       "missed": [
+        "promo-input"
+       ],
+       "fp_ids": [],
+       "unlabelled": 0,
+       "tokens": 51131,
+       "cost_usd": 0.0073219,
+       "seconds": 105.34778870898299,
+       "run_id": "20261104-150649-6344b68b",
+       "status": "done",
+       "error": null,
+       "judge_cost_usd": 0.005306816000000001
+      }
+     ]
+    },
+    "checkout.html": {
+     "recall": 0.7777777777777778,
+     "precision": 1.0,
+     "fp_on_clean": 0.0,
+     "n": 7.0,
+     "n_labels": 9,
+     "hits": [
+      "card",
+      "express-pay",
+      "f1",
+      "f2",
+      "f4",
+      "f5",
+      "f6"
+     ],
+     "hits_every_run": [
+      "card",
+      "express-pay",
+      "f1",
+      "f2",
+      "f4",
+      "f5",
+      "f6"
+     ],
+     "tokens": 58630.0,
+     "cost_usd": 0.01769315,
+     "seconds": 170.66194720799103,
+     "runs": [
+      {
+       "recall": 0.7777777777777778,
+       "precision": 1.0,
+       "fp_on_clean": 0,
+       "n": 7,
+       "n_labels": 9,
+       "hits": [
+        "card",
+        "express-pay",
+        "f1",
+        "f2",
+        "f4",
+        "f5",
+        "f6"
+       ],
+       "missed": [
+        "cvv",
+        "step-payment"
+       ],
+       "fp_ids": [],
+       "unlabelled": 0,
+       "tokens": 58630,
+       "cost_usd": 0.01769315,
+       "seconds": 170.66194720799103,
+       "run_id": "20261104-150834-e03a9ae8",
+       "status": "done",
+       "error": null,
+       "judge_cost_usd": 0.005554562
+      }
+     ]
+    },
+    "confirm.html": {
+     "recall": 0.75,
+     "precision": 1.0,
+     "fp_on_clean": 0.0,
+     "n": 3.0,
+     "n_labels": 4,
+     "hits": [
+      "invoice-link",
+      "status-packed",
+      "tracking-canvas"
+     ],
+     "hits_every_run": [
+      "invoice-link",
+      "status-packed",
+      "tracking-canvas"
+     ],
+     "tokens": 20209.0,
+     "cost_usd": 0.00286565,
+     "seconds": 55.16225483408198,
+     "runs": [
+      {
+       "recall": 0.75,
+       "precision": 1.0,
+       "fp_on_clean": 0,
+       "n": 3,
+       "n_labels": 4,
+       "hits": [
+        "invoice-link",
+        "status-packed",
+        "tracking-canvas"
+       ],
+       "missed": [
+        "confetti"
+       ],
+       "fp_ids": [],
+       "unlabelled": 0,
+       "tokens": 20209,
+       "cost_usd": 0.00286565,
+       "seconds": 55.16225483408198,
+       "run_id": "20261104-151125-3e8b18e7",
+       "status": "done",
+       "error": null,
+       "judge_cost_usd": 0.0015360620000000004
+      }
+     ]
+    }
+   },
+   "total": {
+    "recall": 0.8947368421052632,
+    "precision": 1.0,
+    "fp_on_clean": 0.0,
+    "n": 34.0,
+    "n_labels": 38,
+    "tokens": 235307.0,
+    "cost_usd": 0.0432119,
+    "seconds": 539.6486067092046
+   }
+  }
+ },
+ "axe": {
+  "per_page": {
+   "product.html": {
+    "recall": 0.0,
+    "violations": 0,
+    "hits": []
+   },
+   "cart.html": {
+    "recall": 0.0,
+    "violations": 0,
+    "hits": []
+   },
+   "checkout.html": {
+    "recall": 0.0,
+    "violations": 0,
+    "hits": []
+   },
+   "confirm.html": {
+    "recall": 0.0,
+    "violations": 0,
+    "hits": []
+   }
+  },
+  "recall": 0.0,
+  "violations": 0,
+  "hits": []
+ },
+ "judge": {
+  "muse-spark-1.3-contributor": {
+   "agreement": 0.9411764705882353,
+   "needs_review_rate": 0.0,
+   "cost_per_finding": 0.0007173572941176472,
+   "n": 34,
+   "decided": 34,
+   "cost_usd": 0.024390148000000004
+  }
+ }
+}

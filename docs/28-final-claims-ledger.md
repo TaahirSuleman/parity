@@ -95,13 +95,13 @@ Problem statement Push the Frontier (software) (doc 18 §10). Purchase bundle: t
 
 | Item | State |
 |---|---|
-| Length ≤ 2:55 | 2:55.0 measured on the rendered v5.1 file (the plan's 175 s exactly; cross-fades padded into the segments) |
+| Length ≤ 2:55 | the silent cut is 2:55.0; the final with the builder's voice-over is 2:59.0 (the end card held 7 s so the last line lands inside the file; the builder allowed up to 2:59; judges stop at 3:00) |
 | Product visible at 0:05 | yes; the checkout Replay from 0:00 |
 | No slide > 10 s | Card A 10 s, Card B 10 s, the end card 5 s; nothing else off the product |
 | Hero moment uncut or labelled | the walk is labelled "Replay · recorded run · sped up in the edit" on its chip; the fix, re-audit and Approve run at 1× |
 | Human approval click visible | yes, about 1:40 |
 | Impact lands before 2:50 | Card B 2:35–2:45 and the theme line 2:43–2:52; only "Findings, not compliance. Try it, no login" sits on the end card |
-| Burned-in captions | every narration line and the VoiceOver clip; an SRT beside the file |
+| Burned-in captions | every spoken line, written from the voice-over as read (43 cues, 493 words; where the read paraphrased the sheet the caption follows the voice), plus the VoiceOver clip; the SRT beside the file |
 | No failed or test runs on screen | none |
 | Every number matches the README | reconciled in §1 and §6 of this ledger |
 | No statement contradicts the README | the compliance-shaped job line was rewritten (§6) |

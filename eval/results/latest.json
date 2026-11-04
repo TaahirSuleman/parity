@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-02T22:31:31+00:00",
+ "generated_at": "2026-11-03T23:59:15+00:00",
  "model": "muse-spark-1.3-contributor",
  "judge_model": "muse-spark-1.3",
  "effort": "medium",
@@ -13,7 +13,7 @@
  "labels": "eval/labels.json",
  "n_faults": 38,
  "n_clean": 20,
- "git_sha": "839c39334d3e8341db1944a96dc7c5e6d3beca35",
+ "git_sha": "3221905baa83e27ff1795e8b8b69b2cb60cf7624",
  "git_dirty": true,
  "labels_sha256": "43b432f8abea1deb13f6158e3a20bb3d25fb3b78f8f10053ddb31a2c7755b1c7",
  "configs": {
@@ -21,10 +21,10 @@
    "runs": 3,
    "per_page": {
     "product.html": {
-     "recall": 0.9583333333333334,
+     "recall": 0.9166666666666666,
      "precision": 1.0,
      "fp_on_clean": 0.0,
-     "n": 15.333333333333334,
+     "n": 14.666666666666666,
      "n_labels": 16,
      "hits": [
       "compare-link",
@@ -49,27 +49,25 @@
       "divider-1",
       "gallery-1",
       "gallery-2",
-      "instalment-price",
       "p1",
       "p2",
       "p5",
       "promo-timer",
       "rating-css",
-      "size-standard",
       "stock-dot",
       "swatch-1",
       "swatch-2",
       "swatch-3"
      ],
-     "tokens": 87485.0,
-     "cost_usd": 0.17906110333333333,
-     "seconds": 94.90932851397277,
+     "tokens": 86824.0,
+     "cost_usd": 0.16809205666666668,
+     "seconds": 181.09891736134887,
      "runs": [
       {
-       "recall": 0.9375,
+       "recall": 0.875,
        "precision": 1.0,
        "fp_on_clean": 0,
-       "n": 15,
+       "n": 14,
        "n_labels": 16,
        "hits": [
         "compare-link",
@@ -82,37 +80,36 @@
         "p5",
         "promo-timer",
         "rating-css",
-        "size-standard",
         "stock-dot",
         "swatch-1",
         "swatch-2",
         "swatch-3"
        ],
        "missed": [
+        "size-standard",
         "was-price"
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 89839,
-       "cost_usd": 0.1866409,
-       "seconds": 108.08416029193904,
-       "run_id": "20261031-224518-ad55",
+       "tokens": 80792,
+       "cost_usd": 0.1607152,
+       "seconds": 165.67436249996535,
+       "run_id": "20261103-231003-9f05a3a4",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.1841125
+       "judge_cost_usd": 0.1584474
       },
       {
-       "recall": 0.9375,
+       "recall": 0.875,
        "precision": 1.0,
        "fp_on_clean": 0,
-       "n": 15,
+       "n": 14,
        "n_labels": 16,
        "hits": [
         "compare-link",
         "divider-1",
         "gallery-1",
         "gallery-2",
-        "instalment-price",
         "p1",
         "p2",
         "p5",
@@ -125,17 +122,18 @@
         "swatch-3"
        ],
        "missed": [
+        "instalment-price",
         "was-price"
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 83730,
-       "cost_usd": 0.17007615,
-       "seconds": 78.6787501249928,
-       "run_id": "20261031-224706-b318",
+       "tokens": 89977,
+       "cost_usd": 0.16696341,
+       "seconds": 212.22617604210973,
+       "run_id": "20261103-231249-ae1f19c7",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.16799055000000002
+       "judge_cost_usd": 0.16372974999999998
       },
       {
        "recall": 1.0,
@@ -164,21 +162,21 @@
        "missed": [],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 88886,
-       "cost_usd": 0.18046626,
-       "seconds": 97.96507512498647,
-       "run_id": "20261031-224824-62d1",
+       "tokens": 89703,
+       "cost_usd": 0.17659756,
+       "seconds": 165.39621354197152,
+       "run_id": "20261103-231621-a9fb08a5",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.1783885
+       "judge_cost_usd": 0.17437719999999998
       }
      ]
     },
     "cart.html": {
-     "recall": 0.8518518518518517,
+     "recall": 0.8148148148148149,
      "precision": 1.0,
      "fp_on_clean": 0.0,
-     "n": 7.666666666666667,
+     "n": 7.333333333333333,
      "n_labels": 9,
      "hits": [
       "case-qty",
@@ -191,7 +189,6 @@
       "trust-seal"
      ],
      "hits_every_run": [
-      "case-qty",
       "coupon-savings",
       "gift-wrap",
       "item-thumb",
@@ -199,18 +196,17 @@
       "k4",
       "trust-seal"
      ],
-     "tokens": 48376.666666666664,
-     "cost_usd": 0.08079241999999999,
-     "seconds": 71.7273405136463,
+     "tokens": 49602.333333333336,
+     "cost_usd": 0.07488097333333334,
+     "seconds": 117.50357818036962,
      "runs": [
       {
-       "recall": 0.8888888888888888,
+       "recall": 0.7777777777777778,
        "precision": 1.0,
        "fp_on_clean": 0,
-       "n": 8,
+       "n": 7,
        "n_labels": 9,
        "hits": [
-        "case-qty",
         "coupon-savings",
         "delivery-standard",
         "gift-wrap",
@@ -220,17 +216,18 @@
         "trust-seal"
        ],
        "missed": [
+        "case-qty",
         "promo-input"
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 47153,
-       "cost_usd": 0.08493425,
-       "seconds": 63.168339999974705,
-       "run_id": "20261031-225002-5557",
+       "tokens": 52124,
+       "cost_usd": 0.07123185,
+       "seconds": 142.07736441586167,
+       "run_id": "20261103-231906-b4b60056",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.08315285
+       "judge_cost_usd": 0.06778714999999999
       },
       {
        "recall": 0.8888888888888888,
@@ -253,13 +250,13 @@
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 55060,
-       "cost_usd": 0.08683025,
-       "seconds": 85.65587516594678,
-       "run_id": "20261031-225106-9796",
+       "tokens": 54248,
+       "cost_usd": 0.08362066,
+       "seconds": 125.1579707080964,
+       "run_id": "20261103-232128-8559f62f",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.08389485
+       "judge_cost_usd": 0.0809358
       },
       {
        "recall": 0.7777777777777778,
@@ -282,21 +279,21 @@
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 42917,
-       "cost_usd": 0.07061276,
-       "seconds": 66.35780637501739,
-       "run_id": "20261031-225231-1aeb",
+       "tokens": 42435,
+       "cost_usd": 0.06979041,
+       "seconds": 85.27539941715077,
+       "run_id": "20261103-232334-02f1d33b",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.0687178
+       "judge_cost_usd": 0.06806605
       }
      ]
     },
     "checkout.html": {
-     "recall": 0.7407407407407408,
-     "precision": 0.9523809523809524,
+     "recall": 0.8148148148148149,
+     "precision": 1.0,
      "fp_on_clean": 0.0,
-     "n": 7.0,
+     "n": 7.333333333333333,
      "n_labels": 9,
      "hits": [
       "card",
@@ -305,23 +302,25 @@
       "f2",
       "f4",
       "f5",
-      "f6"
+      "f6",
+      "step-payment"
      ],
      "hits_every_run": [
       "card",
       "express-pay",
       "f1",
+      "f2",
       "f4",
       "f5",
       "f6"
      ],
-     "tokens": 46275.0,
-     "cost_usd": 0.08806610666666666,
-     "seconds": 67.13941056968179,
+     "tokens": 47914.333333333336,
+     "cost_usd": 0.09652962,
+     "seconds": 128.1773346667178,
      "runs": [
       {
-       "recall": 0.6666666666666666,
-       "precision": 0.8571428571428571,
+       "recall": 0.7777777777777778,
+       "precision": 1.0,
        "fp_on_clean": 0,
        "n": 7,
        "n_labels": 9,
@@ -329,24 +328,24 @@
         "card",
         "express-pay",
         "f1",
+        "f2",
         "f4",
         "f5",
         "f6"
        ],
        "missed": [
         "cvv",
-        "f2",
         "step-payment"
        ],
        "fp_ids": [],
-       "unlabelled": 1,
-       "tokens": 45719,
-       "cost_usd": 0.0881832,
-       "seconds": 64.34722437500022,
-       "run_id": "20261031-225338-792a",
+       "unlabelled": 0,
+       "tokens": 45915,
+       "cost_usd": 0.0929569,
+       "seconds": 125.15644937497564,
+       "run_id": "20261103-232459-033310eb",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.0864786
+       "judge_cost_usd": 0.0820863
       },
       {
        "recall": 0.7777777777777778,
@@ -369,19 +368,19 @@
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 46801,
-       "cost_usd": 0.08745611,
-       "seconds": 68.02419091702905,
-       "run_id": "20261031-225442-cc73",
+       "tokens": 46486,
+       "cost_usd": 0.09127355,
+       "seconds": 132.0550236250274,
+       "run_id": "20261103-232704-ffa89355",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.08562595
+       "judge_cost_usd": 0.08019275
       },
       {
-       "recall": 0.7777777777777778,
+       "recall": 0.8888888888888888,
        "precision": 1.0,
        "fp_on_clean": 0,
-       "n": 7,
+       "n": 8,
        "n_labels": 9,
        "hits": [
         "card",
@@ -390,66 +389,67 @@
         "f2",
         "f4",
         "f5",
-        "f6"
+        "f6",
+        "step-payment"
        ],
        "missed": [
-        "cvv",
-        "step-payment"
+        "cvv"
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 46305,
-       "cost_usd": 0.08855901,
-       "seconds": 69.04681641701609,
-       "run_id": "20261031-225550-249c",
+       "tokens": 51342,
+       "cost_usd": 0.10535841,
+       "seconds": 127.32053100015037,
+       "run_id": "20261103-232916-d83dd168",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.08688485
+       "judge_cost_usd": 0.09452355
       }
      ]
     },
     "confirm.html": {
-     "recall": 0.5833333333333334,
-     "precision": 0.8055555555555555,
+     "recall": 0.75,
+     "precision": 0.9166666666666666,
      "fp_on_clean": 0.0,
-     "n": 3.0,
+     "n": 3.3333333333333335,
      "n_labels": 4,
      "hits": [
       "confetti",
       "invoice-link",
+      "status-packed",
       "tracking-canvas"
      ],
      "hits_every_run": [
       "invoice-link",
       "tracking-canvas"
      ],
-     "tokens": 20327.666666666668,
-     "cost_usd": 0.026164789999999997,
-     "seconds": 46.81349691663248,
+     "tokens": 23433.0,
+     "cost_usd": 0.02945309,
+     "seconds": 68.44452284734386,
      "runs": [
       {
-       "recall": 0.5,
-       "precision": 0.6666666666666666,
+       "recall": 0.75,
+       "precision": 1.0,
        "fp_on_clean": 0,
        "n": 3,
        "n_labels": 4,
        "hits": [
         "invoice-link",
+        "status-packed",
         "tracking-canvas"
        ],
        "missed": [
-        "confetti",
-        "status-packed"
+        "confetti"
        ],
        "fp_ids": [],
-       "unlabelled": 1,
-       "tokens": 19497,
-       "cost_usd": 0.02410155,
-       "seconds": 44.16668454091996,
-       "run_id": "20261031-225659-e292",
+       "unlabelled": 0,
+       "tokens": 20472,
+       "cost_usd": 0.02798945,
+       "seconds": 61.359248334076256,
+       "run_id": "20261103-233123-50fda023",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.02265545
+       "judge_cost_usd": 0.02655735
       },
       {
        "recall": 0.75,
@@ -467,50 +467,50 @@
        ],
        "fp_ids": [],
        "unlabelled": 1,
-       "tokens": 23946,
-       "cost_usd": 0.03651801,
-       "seconds": 43.54665179201402,
-       "run_id": "20261031-225743-4dcd",
+       "tokens": 29432,
+       "cost_usd": 0.03335106,
+       "seconds": 82.09169887495227,
+       "run_id": "20261103-233225-9e867412",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.03524805
+       "judge_cost_usd": 0.0311194
       },
       {
-       "recall": 0.5,
+       "recall": 0.75,
        "precision": 1.0,
        "fp_on_clean": 0,
-       "n": 2,
+       "n": 3,
        "n_labels": 4,
        "hits": [
         "invoice-link",
+        "status-packed",
         "tracking-canvas"
        ],
        "missed": [
-        "confetti",
-        "status-packed"
+        "confetti"
        ],
        "fp_ids": [],
        "unlabelled": 0,
-       "tokens": 17540,
-       "cost_usd": 0.01787481,
-       "seconds": 52.72715441696346,
-       "run_id": "20261031-225827-d6a8",
+       "tokens": 20395,
+       "cost_usd": 0.02701876,
+       "seconds": 61.882621333003044,
+       "run_id": "20261103-233347-59f36ed5",
        "status": "done",
        "error": null,
-       "judge_cost_usd": 0.016338850000000002
+       "judge_cost_usd": 0.0256773
       }
      ]
     }
    },
    "total": {
-    "recall": 0.8421052631578947,
-    "precision": 0.9696969696969697,
+    "recall": 0.8508771929824562,
+    "precision": 0.989795918367347,
     "fp_on_clean": 0.0,
-    "n": 33.0,
+    "n": 32.666666666666664,
     "n_labels": 38,
-    "tokens": 202464.33333333334,
-    "cost_usd": 0.37408442,
-    "seconds": 280.5895765139333
+    "tokens": 207773.6666666667,
+    "cost_usd": 0.36895574000000003,
+    "seconds": 495.22435305578017
    }
   },
   "screenshot_only": {
@@ -1979,21 +1979,13 @@
   "muse-spark-1.3": {
    "agreement": 0.9354838709677419,
    "needs_review_rate": 0.0,
-   "cost_per_finding": 0.011406042424242426,
-   "n": 33,
+   "cost_per_finding": 0.01080252258064516,
+   "n": 31,
    "decided": 31,
-   "cost_usd": 0.37639940000000005
-  },
-  "muse-wonder-1.0": {
-   "agreement": 0.9354838709677419,
-   "needs_review_rate": 0.0,
-   "cost_per_finding": 0.026297078787878788,
-   "n": 33,
-   "decided": 31,
-   "cost_usd": 0.8678036
+   "cost_usd": 0.33487819999999996
   }
  },
- "updated_at": "2026-11-02T22:31:31+00:00",
+ "updated_at": "2026-11-03T23:59:15+00:00",
  "effort_sweep": {
   "low": {
    "recall": 0.8421052631578947,
@@ -2039,7 +2031,7 @@
   "seconds": 167.16838400100823
  },
  "external": {
-  "generated_at": "2026-11-02T22:31:31+00:00",
+  "generated_at": "2026-11-03T23:59:15+00:00",
   "model": "muse-spark-1.3-contributor",
   "judge_model": "muse-spark-1.3",
   "effort": "medium",
@@ -2059,11 +2051,11 @@
   "labels": "eval/labels_external.json",
   "labels_sha256": "f5f6a7114e11550ee796a4b4cfb4960349141ec2133933d629702d2adfc63dad",
   "in_scope_recall": 0.14285714285714285,
-  "precision": 0.34285714285714286,
-  "fp_on_after_pages": 4.0,
+  "precision": 0.4,
+  "fp_on_after_pages": 3.0,
   "out_of_scope_hits": 0.0,
   "unlabelled_on_before": 1.0,
-  "n": 7.0,
+  "n": 6.0,
   "n_in_scope": 14,
   "out_of_scope_count": 21,
   "n_clean": 35,
@@ -2159,8 +2151,8 @@
     }
    }
   },
-  "cost_usd": 0.165176355,
-  "seconds": 1030.9417014372302,
+  "cost_usd": 0.15085077,
+  "seconds": 732.9995753536932,
   "per_page": {
    "bad/before/home.html": {
     "n_in_scope": 7,
@@ -2181,9 +2173,9 @@
     "n": 2.0,
     "fp": 0.0,
     "unlabelled": 1.0,
-    "tokens": 60758.0,
-    "cost_usd": 0.049820674999999995,
-    "seconds": 158.34404104144778,
+    "tokens": 60474.0,
+    "cost_usd": 0.051680205,
+    "seconds": 129.44689710403327,
     "runs": [
      {
       "hits": [
@@ -2194,10 +2186,10 @@
       "unlabelled": 1,
       "fp": 0,
       "n": 2,
-      "tokens": 60261,
-      "cost_usd": 0.04877255,
-      "seconds": 148.97928650001995,
-      "run_id": "20261102-215709-0fefb4aa",
+      "tokens": 59632,
+      "cost_usd": 0.0526674,
+      "seconds": 122.58519483311102,
+      "run_id": "20261103-233449-476e81a0",
       "status": "done",
       "error": null
      },
@@ -2210,10 +2202,10 @@
       "unlabelled": 1,
       "fp": 0,
       "n": 2,
-      "tokens": 61255,
-      "cost_usd": 0.0508688,
-      "seconds": 167.7087955828756,
-      "run_id": "20261102-215938-edd22f03",
+      "tokens": 61316,
+      "cost_usd": 0.05069301,
+      "seconds": 136.30859937495552,
+      "run_id": "20261103-233652-1ef4ef9c",
       "status": "done",
       "error": null
      }
@@ -2231,9 +2223,9 @@
     "n": 0.0,
     "fp": 0.0,
     "unlabelled": 0.0,
-    "tokens": 40316.0,
-    "cost_usd": 0.00576265,
-    "seconds": 187.06267699995078,
+    "tokens": 20476.0,
+    "cost_usd": 0.002862075,
+    "seconds": 63.880946416640654,
     "runs": [
      {
       "hits": [],
@@ -2242,10 +2234,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 40538,
-      "cost_usd": 0.0058161,
-      "seconds": 201.63946862495504,
-      "run_id": "20261102-220225-f6859aa4",
+      "tokens": 20569,
+      "cost_usd": 0.0028921,
+      "seconds": 65.60010645817965,
+      "run_id": "20261103-233908-810e8758",
       "status": "done",
       "error": null
      },
@@ -2256,10 +2248,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 40094,
-      "cost_usd": 0.0057092,
-      "seconds": 172.48588537494652,
-      "run_id": "20261102-220547-e1e4ef19",
+      "tokens": 20383,
+      "cost_usd": 0.00283205,
+      "seconds": 62.161786375101656,
+      "run_id": "20261103-234014-5336e8e1",
       "status": "done",
       "error": null
      }
@@ -2279,9 +2271,9 @@
     "n": 1.0,
     "fp": 0.0,
     "unlabelled": 0.0,
-    "tokens": 42211.5,
-    "cost_usd": 0.021358175,
-    "seconds": 104.4766135000391,
+    "tokens": 44324.5,
+    "cost_usd": 0.022683324999999997,
+    "seconds": 102.32106831250712,
     "runs": [
      {
       "hits": [
@@ -2292,10 +2284,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 1,
-      "tokens": 50253,
-      "cost_usd": 0.0224253,
-      "seconds": 120.94260758301243,
-      "run_id": "20261102-220840-e40aa9dd",
+      "tokens": 35805,
+      "cost_usd": 0.02335725,
+      "seconds": 75.76332345907576,
+      "run_id": "20261103-234116-889909c7",
       "status": "done",
       "error": null
      },
@@ -2308,10 +2300,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 1,
-      "tokens": 34170,
-      "cost_usd": 0.02029105,
-      "seconds": 88.01061941706575,
-      "run_id": "20261102-221040-2083b01e",
+      "tokens": 52844,
+      "cost_usd": 0.0220094,
+      "seconds": 128.87881316593848,
+      "run_id": "20261103-234232-f3f0830a",
       "status": "done",
       "error": null
      }
@@ -2328,9 +2320,9 @@
     "n": 0.0,
     "fp": 0.0,
     "unlabelled": 0.0,
-    "tokens": 24450.5,
-    "cost_usd": 0.00309103,
-    "seconds": 75.64833058335353,
+    "tokens": 25139.5,
+    "cost_usd": 0.003189135,
+    "seconds": 61.05461620807182,
     "runs": [
      {
       "hits": [],
@@ -2339,10 +2331,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 24882,
-      "cost_usd": 0.0032449,
-      "seconds": 79.83951716683805,
-      "run_id": "20261102-221208-bbee2b9b",
+      "tokens": 24953,
+      "cost_usd": 0.0032472,
+      "seconds": 59.139002750162035,
+      "run_id": "20261103-234441-3e9464ce",
       "status": "done",
       "error": null
      },
@@ -2353,10 +2345,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 24019,
-      "cost_usd": 0.00293716,
-      "seconds": 71.457143999869,
-      "run_id": "20261102-221328-eec1a214",
+      "tokens": 25326,
+      "cost_usd": 0.00313107,
+      "seconds": 62.970229665981606,
+      "run_id": "20261103-234540-befc1fc0",
       "status": "done",
       "error": null
      }
@@ -2370,9 +2362,9 @@
     "n": 3.0,
     "fp": 3.0,
     "unlabelled": 2.0,
-    "tokens": 48205.5,
-    "cost_usd": 0.0537923,
-    "seconds": 103.25695756205823,
+    "tokens": 58493.0,
+    "cost_usd": 0.058940725,
+    "seconds": 120.40262004151009,
     "runs": [
      {
       "hits": [],
@@ -2381,10 +2373,10 @@
       "unlabelled": 2,
       "fp": 3,
       "n": 3,
-      "tokens": 50522,
-      "cost_usd": 0.05738415,
-      "seconds": 104.33446016605012,
-      "run_id": "20261102-221440-eec7a55b",
+      "tokens": 63265,
+      "cost_usd": 0.05315605,
+      "seconds": 123.04744279198349,
+      "run_id": "20261103-234643-0f026f1a",
       "status": "done",
       "error": null
      },
@@ -2395,10 +2387,10 @@
       "unlabelled": 2,
       "fp": 3,
       "n": 3,
-      "tokens": 45889,
-      "cost_usd": 0.05020045,
-      "seconds": 102.17945495806634,
-      "run_id": "20261102-221624-1688d6b0",
+      "tokens": 53721,
+      "cost_usd": 0.0647254,
+      "seconds": 117.7577972910367,
+      "run_id": "20261103-234846-6f72977e",
       "status": "done",
       "error": null
      }
@@ -2409,12 +2401,12 @@
     "hits": [],
     "hits_every_run": [],
     "missed": [],
-    "n": 0.5,
-    "fp": 0.5,
+    "n": 0.0,
+    "fp": 0.0,
     "unlabelled": 0.0,
-    "tokens": 25759.0,
-    "cost_usd": 0.0111736,
-    "seconds": 100.70000814588275,
+    "tokens": 35274.0,
+    "cost_usd": 0.0048379,
+    "seconds": 111.35367822949775,
     "runs": [
      {
       "hits": [],
@@ -2423,24 +2415,24 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 21329,
-      "cost_usd": 0.0030856,
-      "seconds": 107.51540874992497,
-      "run_id": "20261102-221806-71327b3f",
+      "tokens": 34666,
+      "cost_usd": 0.0047087,
+      "seconds": 100.15455591701902,
+      "run_id": "20261103-235044-1f326ab4",
       "status": "done",
       "error": null
      },
      {
       "hits": [],
       "out_of_scope_hits": [],
-      "on_clean": 1,
+      "on_clean": 0,
       "unlabelled": 0,
-      "fp": 1,
-      "n": 1,
-      "tokens": 30189,
-      "cost_usd": 0.0192616,
-      "seconds": 93.88460754184052,
-      "run_id": "20261102-221954-164008eb",
+      "fp": 0,
+      "n": 0,
+      "tokens": 35882,
+      "cost_usd": 0.0049671,
+      "seconds": 122.55280054197647,
+      "run_id": "20261103-235224-e5aaabf7",
       "status": "done",
       "error": null
      }
@@ -2451,12 +2443,12 @@
     "hits": [],
     "hits_every_run": [],
     "missed": [],
-    "n": 0.5,
-    "fp": 0.5,
-    "unlabelled": 0.5,
-    "tokens": 41985.0,
-    "cost_usd": 0.016602975,
-    "seconds": 197.33763445843942,
+    "n": 0.0,
+    "fp": 0.0,
+    "unlabelled": 0.0,
+    "tokens": 22852.0,
+    "cost_usd": 0.003176505,
+    "seconds": 74.3482185829198,
     "runs": [
      {
       "hits": [],
@@ -2465,10 +2457,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 26710,
-      "cost_usd": 0.003977,
-      "seconds": 143.15309845795855,
-      "run_id": "20261102-222128-3bb2dcd5",
+      "tokens": 22485,
+      "cost_usd": 0.0031189,
+      "seconds": 70.10032154084183,
+      "run_id": "20261103-235426-c04ee47b",
       "status": "done",
       "error": null
      },
@@ -2476,13 +2468,13 @@
       "hits": [],
       "out_of_scope_hits": [],
       "on_clean": 0,
-      "unlabelled": 1,
-      "fp": 1,
-      "n": 1,
-      "tokens": 57260,
-      "cost_usd": 0.02922895,
-      "seconds": 251.5221704589203,
-      "run_id": "20261102-222351-bff6e1ba",
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 23219,
+      "cost_usd": 0.00323411,
+      "seconds": 78.59611562499776,
+      "run_id": "20261103-235536-cedb15f6",
       "status": "done",
       "error": null
      }
@@ -2496,9 +2488,9 @@
     "n": 0.0,
     "fp": 0.0,
     "unlabelled": 0.0,
-    "tokens": 26076.0,
-    "cost_usd": 0.0035749500000000003,
-    "seconds": 104.11543914605863,
+    "tokens": 25687.5,
+    "cost_usd": 0.0034809,
+    "seconds": 70.19153045851272,
     "runs": [
      {
       "hits": [],
@@ -2507,10 +2499,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 23837,
-      "cost_usd": 0.0031261,
-      "seconds": 76.9113678750582,
-      "run_id": "20261102-222802-763cc454",
+      "tokens": 26638,
+      "cost_usd": 0.003665,
+      "seconds": 75.11577604198828,
+      "run_id": "20261103-235655-ea649ede",
       "status": "done",
       "error": null
      },
@@ -2521,10 +2513,10 @@
       "unlabelled": 0,
       "fp": 0,
       "n": 0,
-      "tokens": 28315,
-      "cost_usd": 0.0040238,
-      "seconds": 131.31951041705906,
-      "run_id": "20261102-222919-88c38be8",
+      "tokens": 24737,
+      "cost_usd": 0.0032968,
+      "seconds": 65.26728487503715,
+      "run_id": "20261103-235810-31c5f9c6",
       "status": "done",
       "error": null
      }

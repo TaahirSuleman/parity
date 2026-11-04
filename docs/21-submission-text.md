@@ -8,7 +8,7 @@ Parity is an agent that walks a site's key flows the way a shopper would and com
 
 Parity screenshots each screen, reads Chrome's accessibility tree, asks Muse Spark to say what a sighted user sees and where that diverges from what is announced, and then lets code decide: a candidate becomes a finding only if its box lands on a real element, its quote equals the accessibility tree exactly, the visible text differs, axe does not already report it, and it is not a duplicate. A separate judge call rates severity and cites WCAG; a fixer proposes a minimal change; a re-audit loads the patched page in a sandbox and checks the gap closed; a human approves or rejects each fix and downloads one patch.
 
-On our demo store, 38 seeded faults that axe passes: full Parity recall 84%, precision 97%, zero false positives on 20 clean controls, 37 cents per page set. Findings are evidence, never a conformance claim.
+On our demo store, 38 seeded faults that axe passes: full Parity recall 85%, precision 99%, zero false positives on 20 clean controls, 37 cents per page set. Findings are evidence, never a conformance claim.
 
 ## 7. "Describe your use of Meta products to build the submitted project"
 
@@ -16,10 +16,10 @@ Every model call at runtime is a Meta model through the Model API. Muse Spark 1.
 
 ## 8. "Why are Meta's models important to your solution?"
 
-Remove them and Parity collapses into axe-core. The accessibility tree says what is announced; only a model that can look at the rendered page can say what a sighted user *sees* there, and only one that returns boxes lets code verify the claim element by element. The ablations show the dependency: with the screenshot alone recall is 17%; with the tree alone 75%; the full stack with Spark's grounding reaches 84% at 97% precision, with no false positives on clean controls. Computer use is what makes it an agent rather than a page checker: it reaches the screens a shopper reaches (a filled-in payment form, the confirmation), auditing each one, while code screens every action. Meta's models perceive; our code decides.
+Remove them and Parity collapses into axe-core. The accessibility tree says what is announced; only a model that can look at the rendered page can say what a sighted user *sees* there, and only one that returns boxes lets code verify the claim element by element. The ablations show the dependency: with the screenshot alone recall is 17%; with the tree alone 75%; the full stack with Spark's grounding reaches 85% at 99% precision, with no false positives on clean controls. Computer use is what makes it an agent rather than a page checker: it reaches the screens a shopper reaches (a filled-in payment form, the confirmation), auditing each one, while code screens every action. Meta's models perceive; our code decides.
 
 ## One-line scope statement (video 0:00 and README)
 "Parity was built this week on Meta's Muse Spark; Playwright and axe-core are pre-existing open source."
 
 ## X post (Most Viral)
-axe-core says 0 violations. A blind shopper still can't tell what the Pay button charges. Parity (built this week on Meta's Muse Spark) walks the checkout as a sighted user and as a screen reader, proves each gap against the accessibility tree, proposes the fix and re-checks it. 84% recall / 97% precision on faults axe passes. [video] https://parity-u7lcbbxuia-uc.a.run.app
+axe-core says 0 violations. A blind shopper still can't tell what the Pay button charges. Parity (built this week on Meta's Muse Spark) walks the checkout as a sighted user and as a screen reader, proves each gap against the accessibility tree, proposes the fix and re-checks it. 85% recall / 99% precision on faults axe passes. [video] https://parity-u7lcbbxuia-uc.a.run.app

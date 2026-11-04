@@ -71,6 +71,8 @@ via `scripts/variance_runs.py`; full data in `docs/variance.json`.
 
 ## Eval on the seeded store (Phase 4, 1 Nov)
 
+> **Re-measured 4 Nov** at commit `3221905`, after the Verifier's sixth check `seen` (full configuration only, 3 runs: recall 85%, precision 99%, 33 per run, 0.0 FP on clean, $0.37, 495 s; `eval/results/seen-full.json`). The W3C block the same night: 14% / 22% / 40%, 6 per run, 3.0 on repaired pages, $0.15 (`eval/results/external-external-seen.json`). The README and the Eval tab quote those; the tables below are the 1 Nov measurement they replace, kept as the record of Phase 4.
+
 Measured with `eval/harness.py` at commit `1e6caad` (labels sha256 `43b432f8abea`): 4 configurations × 3 runs × 4 pages, effort `medium`, judge `muse-spark-1.3`. The file is `eval/results/final.json`; `latest.md` is its rendering and the only number set the README, the Eval tab and the video quote. "Verified findings" is the mean number of findings that passed the Verifier per run (recall counts distinct labels found). A finding is scored under its element's id or the nearest id above it; the labels never reach the agent (`tests/test_store_v2.py` checks `parity/` does not import `eval/`).
 
 | System | Recall | Precision | Verified findings | FP on clean | Cost / page set | Time |

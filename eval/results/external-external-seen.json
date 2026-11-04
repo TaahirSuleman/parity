@@ -1,0 +1,500 @@
+{
+ "generated_at": "2026-11-03T23:59:15+00:00",
+ "git_sha": "3221905baa83e27ff1795e8b8b69b2cb60cf7624",
+ "git_dirty": true,
+ "labels_sha256": "43b432f8abea1deb13f6158e3a20bb3d25fb3b78f8f10053ddb31a2c7755b1c7",
+ "external": {
+  "generated_at": "2026-11-03T23:59:15+00:00",
+  "model": "muse-spark-1.3-contributor",
+  "judge_model": "muse-spark-1.3",
+  "effort": "medium",
+  "runs": 2,
+  "pages": [
+   "bad/before/home.html",
+   "bad/before/news.html",
+   "bad/before/tickets.html",
+   "bad/before/survey.html",
+   "bad/after/home.html",
+   "bad/after/news.html",
+   "bad/after/tickets.html",
+   "bad/after/survey.html"
+  ],
+  "origin": "https://www.w3.org",
+  "attribution": "W3C WAI Before and After Demonstration, Copyright \u00a9 2012 W3C\u00ae (MIT, ERCIM, Keio), W3C Document License; audited read-only",
+  "labels": "eval/labels_external.json",
+  "labels_sha256": "f5f6a7114e11550ee796a4b4cfb4960349141ec2133933d629702d2adfc63dad",
+  "in_scope_recall": 0.14285714285714285,
+  "precision": 0.4,
+  "fp_on_after_pages": 3.0,
+  "out_of_scope_hits": 0.0,
+  "unlabelled_on_before": 1.0,
+  "n": 6.0,
+  "n_in_scope": 14,
+  "out_of_scope_count": 21,
+  "n_clean": 35,
+  "n_beyond_axe": 9,
+  "recall_beyond_axe": 0.2222222222222222,
+  "union_recall": 0.5,
+  "axe_recall": 0.35714285714285715,
+  "axe": {
+   "violations": 38,
+   "hits": [
+    "home-02",
+    "home-07",
+    "survey-03",
+    "survey-04",
+    "tickets-01"
+   ],
+   "out_of_scope": [
+    "survey-01",
+    "survey-06",
+    "tickets-06",
+    "tickets-07"
+   ],
+   "per_page": {
+    "bad/before/home.html": {
+     "recall": 0.2857142857142857,
+     "violations": 7,
+     "hits": [
+      "home-02",
+      "home-07"
+     ],
+     "out_of_scope": [],
+     "on_clean": 0
+    },
+    "bad/before/news.html": {
+     "recall": 0.0,
+     "violations": 6,
+     "hits": [],
+     "out_of_scope": [],
+     "on_clean": 0
+    },
+    "bad/before/tickets.html": {
+     "recall": 0.5,
+     "violations": 8,
+     "hits": [
+      "tickets-01"
+     ],
+     "out_of_scope": [
+      "tickets-06",
+      "tickets-07"
+     ],
+     "on_clean": 0
+    },
+    "bad/before/survey.html": {
+     "recall": 1.0,
+     "violations": 7,
+     "hits": [
+      "survey-03",
+      "survey-04"
+     ],
+     "out_of_scope": [
+      "survey-01",
+      "survey-06"
+     ],
+     "on_clean": 0
+    },
+    "bad/after/home.html": {
+     "recall": 0.0,
+     "violations": 2,
+     "hits": [],
+     "out_of_scope": [],
+     "on_clean": 1
+    },
+    "bad/after/news.html": {
+     "recall": 0.0,
+     "violations": 2,
+     "hits": [],
+     "out_of_scope": [],
+     "on_clean": 0
+    },
+    "bad/after/tickets.html": {
+     "recall": 0.0,
+     "violations": 2,
+     "hits": [],
+     "out_of_scope": [],
+     "on_clean": 0
+    },
+    "bad/after/survey.html": {
+     "recall": 0.0,
+     "violations": 4,
+     "hits": [],
+     "out_of_scope": [],
+     "on_clean": 3
+    }
+   }
+  },
+  "cost_usd": 0.15085077,
+  "seconds": 732.9995753536932,
+  "per_page": {
+   "bad/before/home.html": {
+    "n_in_scope": 7,
+    "hits": [
+     "home-04"
+    ],
+    "hits_every_run": [
+     "home-04"
+    ],
+    "missed": [
+     "home-01",
+     "home-02",
+     "home-05",
+     "home-07",
+     "home-08",
+     "home-10"
+    ],
+    "n": 2.0,
+    "fp": 0.0,
+    "unlabelled": 1.0,
+    "tokens": 60474.0,
+    "cost_usd": 0.051680205,
+    "seconds": 129.44689710403327,
+    "runs": [
+     {
+      "hits": [
+       "home-04"
+      ],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 1,
+      "fp": 0,
+      "n": 2,
+      "tokens": 59632,
+      "cost_usd": 0.0526674,
+      "seconds": 122.58519483311102,
+      "run_id": "20261103-233449-476e81a0",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [
+       "home-04"
+      ],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 1,
+      "fp": 0,
+      "n": 2,
+      "tokens": 61316,
+      "cost_usd": 0.05069301,
+      "seconds": 136.30859937495552,
+      "run_id": "20261103-233652-1ef4ef9c",
+      "status": "done",
+      "error": null
+     }
+    ]
+   },
+   "bad/before/news.html": {
+    "n_in_scope": 3,
+    "hits": [],
+    "hits_every_run": [],
+    "missed": [
+     "news-05",
+     "news-09",
+     "news-10"
+    ],
+    "n": 0.0,
+    "fp": 0.0,
+    "unlabelled": 0.0,
+    "tokens": 20476.0,
+    "cost_usd": 0.002862075,
+    "seconds": 63.880946416640654,
+    "runs": [
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 20569,
+      "cost_usd": 0.0028921,
+      "seconds": 65.60010645817965,
+      "run_id": "20261103-233908-810e8758",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 20383,
+      "cost_usd": 0.00283205,
+      "seconds": 62.161786375101656,
+      "run_id": "20261103-234014-5336e8e1",
+      "status": "done",
+      "error": null
+     }
+    ]
+   },
+   "bad/before/tickets.html": {
+    "n_in_scope": 2,
+    "hits": [
+     "tickets-04"
+    ],
+    "hits_every_run": [
+     "tickets-04"
+    ],
+    "missed": [
+     "tickets-01"
+    ],
+    "n": 1.0,
+    "fp": 0.0,
+    "unlabelled": 0.0,
+    "tokens": 44324.5,
+    "cost_usd": 0.022683324999999997,
+    "seconds": 102.32106831250712,
+    "runs": [
+     {
+      "hits": [
+       "tickets-04"
+      ],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 1,
+      "tokens": 35805,
+      "cost_usd": 0.02335725,
+      "seconds": 75.76332345907576,
+      "run_id": "20261103-234116-889909c7",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [
+       "tickets-04"
+      ],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 1,
+      "tokens": 52844,
+      "cost_usd": 0.0220094,
+      "seconds": 128.87881316593848,
+      "run_id": "20261103-234232-f3f0830a",
+      "status": "done",
+      "error": null
+     }
+    ]
+   },
+   "bad/before/survey.html": {
+    "n_in_scope": 2,
+    "hits": [],
+    "hits_every_run": [],
+    "missed": [
+     "survey-03",
+     "survey-04"
+    ],
+    "n": 0.0,
+    "fp": 0.0,
+    "unlabelled": 0.0,
+    "tokens": 25139.5,
+    "cost_usd": 0.003189135,
+    "seconds": 61.05461620807182,
+    "runs": [
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 24953,
+      "cost_usd": 0.0032472,
+      "seconds": 59.139002750162035,
+      "run_id": "20261103-234441-3e9464ce",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 25326,
+      "cost_usd": 0.00313107,
+      "seconds": 62.970229665981606,
+      "run_id": "20261103-234540-befc1fc0",
+      "status": "done",
+      "error": null
+     }
+    ]
+   },
+   "bad/after/home.html": {
+    "n_in_scope": 0,
+    "hits": [],
+    "hits_every_run": [],
+    "missed": [],
+    "n": 3.0,
+    "fp": 3.0,
+    "unlabelled": 2.0,
+    "tokens": 58493.0,
+    "cost_usd": 0.058940725,
+    "seconds": 120.40262004151009,
+    "runs": [
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 1,
+      "unlabelled": 2,
+      "fp": 3,
+      "n": 3,
+      "tokens": 63265,
+      "cost_usd": 0.05315605,
+      "seconds": 123.04744279198349,
+      "run_id": "20261103-234643-0f026f1a",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 1,
+      "unlabelled": 2,
+      "fp": 3,
+      "n": 3,
+      "tokens": 53721,
+      "cost_usd": 0.0647254,
+      "seconds": 117.7577972910367,
+      "run_id": "20261103-234846-6f72977e",
+      "status": "done",
+      "error": null
+     }
+    ]
+   },
+   "bad/after/news.html": {
+    "n_in_scope": 0,
+    "hits": [],
+    "hits_every_run": [],
+    "missed": [],
+    "n": 0.0,
+    "fp": 0.0,
+    "unlabelled": 0.0,
+    "tokens": 35274.0,
+    "cost_usd": 0.0048379,
+    "seconds": 111.35367822949775,
+    "runs": [
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 34666,
+      "cost_usd": 0.0047087,
+      "seconds": 100.15455591701902,
+      "run_id": "20261103-235044-1f326ab4",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 35882,
+      "cost_usd": 0.0049671,
+      "seconds": 122.55280054197647,
+      "run_id": "20261103-235224-e5aaabf7",
+      "status": "done",
+      "error": null
+     }
+    ]
+   },
+   "bad/after/tickets.html": {
+    "n_in_scope": 0,
+    "hits": [],
+    "hits_every_run": [],
+    "missed": [],
+    "n": 0.0,
+    "fp": 0.0,
+    "unlabelled": 0.0,
+    "tokens": 22852.0,
+    "cost_usd": 0.003176505,
+    "seconds": 74.3482185829198,
+    "runs": [
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 22485,
+      "cost_usd": 0.0031189,
+      "seconds": 70.10032154084183,
+      "run_id": "20261103-235426-c04ee47b",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 23219,
+      "cost_usd": 0.00323411,
+      "seconds": 78.59611562499776,
+      "run_id": "20261103-235536-cedb15f6",
+      "status": "done",
+      "error": null
+     }
+    ]
+   },
+   "bad/after/survey.html": {
+    "n_in_scope": 0,
+    "hits": [],
+    "hits_every_run": [],
+    "missed": [],
+    "n": 0.0,
+    "fp": 0.0,
+    "unlabelled": 0.0,
+    "tokens": 25687.5,
+    "cost_usd": 0.0034809,
+    "seconds": 70.19153045851272,
+    "runs": [
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 26638,
+      "cost_usd": 0.003665,
+      "seconds": 75.11577604198828,
+      "run_id": "20261103-235655-ea649ede",
+      "status": "done",
+      "error": null
+     },
+     {
+      "hits": [],
+      "out_of_scope_hits": [],
+      "on_clean": 0,
+      "unlabelled": 0,
+      "fp": 0,
+      "n": 0,
+      "tokens": 24737,
+      "cost_usd": 0.0032968,
+      "seconds": 65.26728487503715,
+      "run_id": "20261103-235810-31c5f9c6",
+      "status": "done",
+      "error": null
+     }
+    ]
+   }
+  }
+ }
+}

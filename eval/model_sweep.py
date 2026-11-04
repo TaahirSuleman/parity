@@ -215,6 +215,18 @@ def choose_best(stage: str, rows: list[dict], *, spread_labels: int = 3, n_fault
                          lambda r: f"{r['screens']:.1f} of 4 screens, {r['turns']:.1f} turns, {_usd(r['cost_usd_stage'], 3)} of navigator calls", "the most screens in the fewest turns")
 
 
+def merge_fixer_runs(runs: list[dict]) -> dict[str, Any]:
+    """Repeat runs of a Fixer row: the means, the same barriers each time, and how far apart the runs landed."""
+    if len(runs) == 1:
+        return runs[0]
+    merged = dict(runs[0])
+    for key in ("gap_closed_rate", "still_flags_rate", "rejected", "cost_per_fix", "cost_usd", "cost_fixer_usd", "tokens", "latency_ms_mean", "seconds", "reaudit_errors"):
+        merged[key] = _mean([r.get(key) or 0.0 for r in runs])
+    closed = [r["gap_closed"] for r in runs]
+    merged.update(runs=len(runs), gap_closed=_mean(closed), gap_closed_spread=max(closed) - min(closed), request_ids=[i for r in runs for i in r.get("request_ids", [])], outcomes=[o for r in runs for o in r.get("outcomes", [])])
+    return merged
+
+
 def merge_sweep_block(block: dict[str, Any]) -> dict[str, Any]:
     """What goes into latest.json: only the labels (so the merge keeps the file) and the block. No generated_at or git_sha at the top:
     those date and name the main table's numbers, which this sweep did not re-measure."""
@@ -272,12 +284,12 @@ def render_sweep(block: dict[str, Any]) -> str:
                     continue
                 lines.append(f"| {mark(r)} | {r['effort']} | {r['n']} | {pct(r['agreement'])} | {pct(r.get('severity_same'))} | {pct(r['needs_review_rate'])} | ${r['cost_per_finding']:.4f} | {r.get('latency_ms_mean', 0) / 1000:.0f} s |")
         elif stage == "fixer":
-            lines += ["| Model | Effort | n barriers | Gaps closed | Comparator still flags | Fixes rejected | Cost per fix | Fixer latency | Time |", "|" + "---|" * 9]
+            lines += ["| Model | Effort | n barriers | Runs | Gaps closed | Comparator still flags | Fixes rejected | Cost per fix | Fixer latency | Time |", "|" + "---|" * 10]
             for r in rows:
                 if r.get("failed"):
-                    lines.append(f"| {r['model']} | {r['effort']} | 0 | failed: {r['failed']} | — | — | — | — | — |")
+                    lines.append(f"| {r['model']} | {r['effort']} | 0 | 0 | failed: {r['failed']} | — | — | — | — | — |")
                     continue
-                lines.append(f"| {mark(r)} | {r['effort']} | {r['n']} | {pct(r['gap_closed_rate'])} | {pct(r.get('still_flags_rate'))} | {r['rejected']} | ${r['cost_per_fix']:.4f} | {r.get('latency_ms_mean', 0) / 1000:.0f} s | {r.get('seconds', 0):.0f} s |")
+                lines.append(f"| {mark(r)} | {r['effort']} | {r['n']} | n = {r.get('runs', 1)} | {pct(r['gap_closed_rate'])} | {pct(r.get('still_flags_rate'))} | {r['rejected']} | ${r['cost_per_fix']:.4f} | {r.get('latency_ms_mean', 0) / 1000:.0f} s | {r.get('seconds', 0):.0f} s |")
         else:
             lines += ["| Model | Effort | n | Screens of 4 | Turns | Refusals | Safety checks | Navigator cost | Run cost | Navigator latency | Time |", "|" + "---|" * 11]
             for r in rows:
@@ -644,9 +656,10 @@ def build_block(sweep_dir: Path, *, judge_default: dict | None, git_sha: str, la
         stage, model, effort = row_dir.name.split("--")
         spec = _spec(stage, model, effort)
         if (row_dir / "row.json").exists():
-            row = {**spec, **json.loads((row_dir / "row.json").read_text())}
-            spend += row.get("cost_usd", 0.0)
-            wall += row.get("seconds", 0.0)
+            repeats = [json.loads(p.read_text()) for p in sorted(row_dir.glob("row*.json"))]
+            spend += sum(r.get("cost_usd", 0.0) for r in repeats)
+            wall += sum(r.get("seconds", 0.0) for r in repeats)
+            row = {**spec, **(merge_fixer_runs(repeats) if stage == "fixer" else repeats[0])}
             records[row_dir.name] = {"request_ids": row.pop("request_ids", []), "outcomes": row.pop("outcomes", [])}
             stages[stage]["rows"].append(row)
             continue

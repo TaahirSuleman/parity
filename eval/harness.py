@@ -661,13 +661,17 @@ async def _model_sweep(args) -> int:
                 await ms.run_detection_row(stage, model, effort, runs=args.sweep_runs, base_url=base_url, row_dir=row_dir, env_base=env, client_factory=factory, cheap_judge=cheap)
             elif stage == "navigator":
                 await ms.run_navigator_row(model, effort, runs=args.sweep_runs, base_url=base_url, row_dir=row_dir, env_base=env, client_factory=factory, cheap_judge=cheap)
-            elif not (row_dir / "row.json").exists():
+            else:
                 settings = load_settings(env={**env, **ms.row_env(stage, model, effort, cheap_judge=False)})
-                client = MetaClient(settings, cache_dir=row_dir / "cache", trace=ms.ListTraceSink())
                 runner = ms.run_judge_row if stage == "judge" else ms.run_fixer_row
-                row = await runner(model, effort, data, run_ids[0], base_url=base_url, client=client)
-                row_dir.mkdir(parents=True, exist_ok=True)
-                (row_dir / "row.json").write_text(json.dumps(row, indent=1) + "\n")
+                for r in range(args.sweep_runs if stage == "fixer" else 1):  # a repeat needs its own cache, or it replays the first run's answers
+                    path = row_dir / ("row.json" if r == 0 else f"row-{r + 1}.json")
+                    if path.exists():
+                        continue
+                    client = MetaClient(settings, cache_dir=row_dir / ("cache" if r == 0 else f"cache-{r + 1}"), trace=ms.ListTraceSink())
+                    row = await runner(model, effort, data, run_ids[0], base_url=base_url, client=client)
+                    row_dir.mkdir(parents=True, exist_ok=True)
+                    path.write_text(json.dumps(row, indent=1) + "\n")
             ms.write_sweep(await _sweep_rebuild(ms), RESULTS_DIR)  # after every row: a cut-off still leaves the rows that ran
     finally:
         server.should_exit = True
@@ -694,7 +698,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--external", action="store_true", help="the W3C BAD benchmark (doc 19 §19.1): its eight pages, --runs each, read-only; writes latest.json['external']")
     ap.add_argument("--model-sweep", action="store_true", help="the per-stage sweep: with no --sweep-row, rebuild its files from disk")
     ap.add_argument("--sweep-row", action="append", default=[], help="stage:model:effort, run in the order given (repeatable); a run already on disk is not paid for again")
-    ap.add_argument("--sweep-runs", type=int, default=1, help="runs a Seer, Comparator or Navigator row should have in total")
+    ap.add_argument("--sweep-runs", type=int, default=1, help="runs a Seer, Comparator, Navigator or Fixer row should have in total")
     ap.add_argument("--sweep-budget", type=float, default=15.0, help="no new row starts once the sweep's recorded spend has reached this (USD)")
     ap.add_argument("--sweep-standard-judge", action="store_true", help="run walking rows with the default judge instead of its contributor tier")
     args = ap.parse_args(argv)

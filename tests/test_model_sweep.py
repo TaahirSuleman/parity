@@ -353,3 +353,14 @@ def test_sam_sentence_states_the_replay_and_what_it_did_not_test():
     assert "### SAM 3.1 box prompts" in ms.render_sweep({"sam_boxes": sam})
     public = ms._public({"sam_boxes": {**sam, "request_ids": ["r"]}})
     assert public["sam_note"] == text and "request_ids" not in public["sam_boxes"]
+
+
+def test_merge_fixer_runs_means_the_rates_and_reports_the_spread():
+    from eval import model_sweep as ms
+
+    a = {"n": 29, "gap_closed": 15, "gap_closed_rate": 15 / 29, "rejected": 0, "cost_per_fix": 0.01, "cost_usd": 1.0, "seconds": 10, "request_ids": ["a"], "outcomes": [{"id": "x"}]}
+    b = {**a, "gap_closed": 19, "gap_closed_rate": 19 / 29, "cost_per_fix": 0.03, "request_ids": ["b"]}
+    assert ms.merge_fixer_runs([a]) is a
+    merged = ms.merge_fixer_runs([a, b])
+    assert merged["runs"] == 2 and merged["gap_closed"] == 17 and merged["gap_closed_spread"] == 4 and merged["request_ids"] == ["a", "b"]
+    assert abs(merged["gap_closed_rate"] - 17 / 29) < 1e-9 and abs(merged["cost_per_fix"] - 0.02) < 1e-9

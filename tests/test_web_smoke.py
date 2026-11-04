@@ -198,9 +198,11 @@ async def test_screenshot_keeps_its_shape_with_the_trace_open(page, server_url):
 
 async def test_eval_tab_shows_the_results_table(page, server_url):
     await page.goto(server_url + "/")
-    await page.get_by_role("button", name=re.compile(r"^Eval")).click()
+    await page.get_by_role("button", name=re.compile(r"^About & Evals")).click()
     await page.get_by_role("heading", name=re.compile(r"Parity vs axe-core")).wait_for(timeout=10000)
-    assert "seeded faults" in await page.locator("main").inner_text()
+    text = await page.locator("main").inner_text()
+    assert "seeded faults" in text
+    assert text.index("How Parity works") < text.index("Parity vs axe-core")
 
 
 async def test_index_html_is_never_cached_but_hashed_assets_are(api):

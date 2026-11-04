@@ -12,6 +12,16 @@ export interface External {
   axe_recall: number; axe?: { violations?: number; out_of_scope?: string[] }; cost_usd: number; seconds: number; attribution?: string;
   recall_beyond_axe?: number; union_recall?: number; n_beyond_axe?: number;
 }
+/** A row of the per-stage sweep. Which fields are set depends on the stage (eval/model_sweep.py); `failed` replaces them all. */
+export interface StageRow {
+  model: string; effort: string; runs?: number; is_default?: boolean; unpriced?: boolean; failed?: string;
+  recall?: number; precision?: number; f1?: number; fp_on_clean?: number; cost_default_judge_usd?: number; seconds?: number;
+  n?: number; agreement?: number; needs_review_rate?: number; cost_per_finding?: number;
+  gap_closed_rate?: number; rejected?: number; cost_per_fix?: number;
+  screens?: number; turns?: number; refusals?: number; safety_checks?: number; cost_usd_stage?: number;
+}
+export interface StageBest { model: string | null; effort: string | null; reason: string; margin: string; clears_bar: boolean; runs: number }
+export interface ModelSweep { stages?: Record<string, { rows?: StageRow[] }>; best?: Record<string, StageBest> }
 export interface EvalResults {
   updated_at?: string; model?: string; judge_model?: string; n_faults?: number; n_clean?: number; runs?: number;
   configs?: Record<string, { runs?: number; total: Total }>;
@@ -21,6 +31,7 @@ export interface EvalResults {
   standard_tier_check?: { model: string } & SweepRow;
   public?: PublicSample[];
   external?: External;
+  model_sweep?: ModelSweep;
 }
 
 const CONFIG_LABELS: Record<string, string> = { full: "Parity (full)", screenshot_only: "screenshot only", tree_only: "tree only", no_grounding: "no grounding" };
@@ -41,13 +52,76 @@ export function ablationSentence(keys: string[], configs: Record<string, { total
   return parts.join(" ");
 }
 
+function HowItWorks() {
+  return (
+    <section className="surface p-4" aria-labelledby="eval-arch-h">
+      <h2 id="eval-arch-h" className="m-0" style={{ fontSize: 16 }}>How Parity works, in ten seconds</h2>
+      <img src="/architecture.png" alt="Parity's pipeline: per screen, the Navigator walks, Capture records, the Seer grounds, the Comparator compares and the Verifier checks; per verified finding, the Judge rates, the Fixer proposes, the Re-audit confirms and a human decides" className="block w-full mt-2" style={{ maxWidth: 1100, height: "auto", border: "1px solid var(--line)", borderRadius: 6 }} />
+      <p className="text-sm mt-2 mb-0 muted">Blue boxes are Meta models (Muse Spark 1.3); grey boxes are deterministic code. A finding exists only after the Verifier's six checks; a patch is exported only after a human approves each fix.</p>
+    </section>
+  );
+}
+
+const TabHeading = () => <h2 id="eval-h" className="text-xs uppercase tracking-wider muted font-medium m-0 px-1">About &amp; Evals</h2>;
+
+const money = (r: StageRow, x: number | undefined, places = 2) => (r.unpriced ? "price unknown" : x === undefined ? "—" : `$${x.toFixed(places)}`);
+const num = (x: number | undefined, places = 1) => (x === undefined ? "—" : x.toFixed(places));
+const nRuns = (r: StageRow) => `n = ${r.runs ?? 0}`;
+const nItems = (r: StageRow) => `n = ${r.n ?? 0}`;
+const DETECTION: [string, (r: StageRow) => string][] = [["n", nRuns], ["Recall", (r) => pct(r.recall)], ["Precision", (r) => pct(r.precision)], ["F1", (r) => num(r.f1, 2)], ["False alarms on clean", (r) => num(r.fp_on_clean)], ["Cost / 3 pages", (r) => money(r, r.cost_default_judge_usd)], ["Time / 3 pages", (r) => (r.seconds === undefined ? "—" : fmtDuration(Math.round(r.seconds * 1000)))]];
+const STAGE_COLUMNS: Record<string, [string, (r: StageRow) => string][]> = {
+  comparator: DETECTION,
+  seer: DETECTION,
+  judge: [["n findings", nItems], ["Agreement with labels", (r) => pct(r.agreement)], ["Needs review", (r) => pct(r.needs_review_rate)], ["Cost per finding", (r) => money(r, r.cost_per_finding, 4)]],
+  fixer: [["n barriers", nItems], ["Gaps closed", (r) => pct(r.gap_closed_rate)], ["Fixes rejected", (r) => String(r.rejected ?? "—")], ["Cost per fix", (r) => money(r, r.cost_per_fix, 4)]],
+  navigator: [["n", nRuns], ["Screens of 4", (r) => num(r.screens)], ["Turns", (r) => num(r.turns)], ["Refusals", (r) => num(r.refusals)], ["Safety checks", (r) => num(r.safety_checks)], ["Navigator cost", (r) => money(r, r.cost_usd_stage, 3)]],
+};
+
+/** The per-stage sweep: one table a stage, the best row marked in words as well as weight, n on every row. */
+export function ModelSweepSection({ sweep }: { sweep: ModelSweep }) {
+  const stages = Object.entries(sweep.stages ?? {}).filter(([stage, entry]) => STAGE_COLUMNS[stage] && (entry.rows ?? []).length > 0);
+  if (stages.length === 0) return null;
+  return (
+    <section className="surface p-4" aria-labelledby="eval-sweep-h">
+      <h2 id="eval-sweep-h" className="m-0" style={{ fontSize: 16 }}>Model and effort, per stage</h2>
+      <p className="text-sm mt-2 mb-0 muted">One stage changed at a time, every other stage at today's default, on the same labels and findings; one run is a sample, so n is on every row. Cost / 3 pages is projected at the default judge.</p>
+      {stages.map(([stage, entry]) => {
+        const best = sweep.best?.[stage];
+        const columns = STAGE_COLUMNS[stage];
+        return (
+          <div key={stage} className="mt-3 overflow-x-auto">
+            <table className="eval" data-stage={stage}>
+              <caption className="text-left text-sm font-medium pb-1">{stage[0].toUpperCase() + stage.slice(1)}</caption>
+              <thead><tr><th scope="col">Model</th><th scope="col">Effort</th>{columns.map(([label]) => <th key={label} scope="col">{label}</th>)}</tr></thead>
+              <tbody>
+                {(entry.rows ?? []).map((r) => {
+                  const isBest = best !== undefined && r.model === best.model && r.effort === best.effort && !r.failed;
+                  return (
+                    <tr key={`${r.model}:${r.effort}`} data-best={isBest || undefined} style={isBest ? { fontWeight: 700 } : undefined}>
+                      <th scope="row" className="mono" style={{ fontWeight: "inherit" }}>{isBest && <span>best: </span>}{r.model}{r.is_default && <span className="muted"> (default)</span>}</th>
+                      <td>{r.effort}</td>
+                      {r.failed ? <td colSpan={columns.length}>failed: {r.failed}</td> : columns.map(([label, cell]) => <td key={label}>{cell(r)}</td>)}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {best?.model && <p className="text-xs muted mt-1 mb-0">{best.reason}{best.margin ? ` ${best.margin}.` : ""}</p>}
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
 export function EvalTab({ results, onReplay }: { results: EvalResults | null; onReplay: (runId: string) => void }) {
   if (!results) {
     return (
-      <section className="surface p-5 m-3" aria-labelledby="eval-h">
-        <h2 id="eval-h" className="text-xs uppercase tracking-wider muted font-medium m-0">Eval</h2>
-        <p className="muted">No eval results are published on this server yet.</p>
-      </section>
+      <div className="m-3 flex flex-col gap-3 overflow-auto" style={{ minHeight: 0 }}>
+        <TabHeading />
+        <HowItWorks />
+        <p className="muted m-0 px-1">No eval results are published on this server yet.</p>
+      </div>
     );
   }
   const model = results.model ?? "muse-spark-1.3-contributor";
@@ -56,6 +130,8 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
   const full = configs.full?.total;
   return (
     <div className="m-3 flex flex-col gap-3 overflow-auto" style={{ minHeight: 0 }}>
+      <TabHeading />
+      <HowItWorks />
       <section className="surface p-4" aria-labelledby="eval-main-h">
         <div className="flex items-center gap-3 flex-wrap">
           <h2 id="eval-main-h" className="m-0" style={{ fontSize: 16 }}>Parity vs axe-core, same labels</h2>
@@ -124,11 +200,6 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
       ) : (
         <p className="muted text-sm m-0 px-1">External pages (W3C BAD): not run yet; no number is claimed.</p>
       )}
-      <section className="surface p-4" aria-labelledby="eval-arch-h">
-        <h2 id="eval-arch-h" className="m-0" style={{ fontSize: 16 }}>How Parity works, in ten seconds</h2>
-        <img src="/architecture.png" alt="Parity's pipeline: per screen, the Navigator walks, Capture records, the Seer grounds, the Comparator compares and the Verifier checks; per verified finding, the Judge rates, the Fixer proposes, the Re-audit confirms and a human decides" className="block w-full mt-2" style={{ maxWidth: 1100, height: "auto", border: "1px solid var(--line)", borderRadius: 6 }} />
-        <p className="text-sm mt-2 mb-0 muted">Blue boxes are Meta models (Muse Spark 1.3); grey boxes are deterministic code. A finding exists only after the Verifier's six checks; a patch is exported only after a human approves each fix.</p>
-      </section>
       {results.judge && Object.keys(results.judge).length > 0 && (
         <section className="surface p-4" aria-labelledby="eval-judge-h">
           <h2 id="eval-judge-h" className="m-0" style={{ fontSize: 16 }}>Judge comparison, same verified findings</h2>
@@ -156,6 +227,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
           {results.standard_tier_check && <p className="text-sm muted mb-0">Standard tier ({results.standard_tier_check.model}): recall {pct(results.standard_tier_check.recall)}, precision {pct(results.standard_tier_check.precision)} — the same model as the contributor tier.</p>}
         </section>
       )}
+      {results.model_sweep && <ModelSweepSection sweep={results.model_sweep} />}
       <section className="surface p-4" aria-labelledby="eval-public-h">
         <h2 id="eval-public-h" className="m-0" style={{ fontSize: 16 }}>Real-world sample, read-only (Sites A and B anonymised; the W3C demo pages named)</h2>
         {(results.public ?? []).length === 0 ? (

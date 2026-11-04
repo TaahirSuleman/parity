@@ -194,7 +194,7 @@ async def test_public_run_responses_carry_no_ip_hash_or_internal_url(api):
 
 
 async def test_eval_route_serves_the_latest_results(tmp_path, monkeypatch):
-    """GET /api/eval is the one number set the Eval tab, the README and the video quote."""
+    """GET /api/eval is the one number set the About & Evals tab, the README and the video quote."""
     from parity.app import create_app
     from parity.config import load_settings
 
@@ -222,7 +222,7 @@ async def test_eval_route_serves_the_latest_results(tmp_path, monkeypatch):
 
 
 async def test_replay_by_run_id_for_a_public_sample(tmp_path):
-    """A public bundle has no flow in FLOWS: Replay starts it by run id (the Eval tab's 'open in Replay')."""
+    """A public bundle has no flow in FLOWS: Replay starts it by run id (the About & Evals tab's 'open in Replay')."""
     from parity.app import create_app
     from parity.config import load_settings
     from tests.helpers import make_replay_bundle
@@ -456,7 +456,7 @@ async def test_a_corrupt_stored_record_is_a_clean_500_not_a_traceback_or_a_422(a
 
 
 async def test_eval_results_that_do_not_parse_are_a_404_not_a_500(tmp_path):
-    """The Eval tab treats 404 as 'no results yet'; a truncated or list-shaped latest.json is an operator error to log, not a crash."""
+    """The About & Evals tab treats 404 as 'no results yet'; a truncated or list-shaped latest.json is an operator error to log, not a crash."""
     import httpx
 
     results = tmp_path / "results"

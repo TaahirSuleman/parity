@@ -132,8 +132,8 @@ export function Header({ flows, flowId, onFlowChange, run, mode, canLive, runnin
           </button>
         )}
         {onViewChange && (
-          <button type="button" className="btn-quiet" aria-pressed={view === "eval"} onClick={() => onViewChange(view === "eval" ? "workbench" : "eval")} title="Recall and precision against the seeded labels, the ablations, the judge comparison and the real-world sample">
-            Eval
+          <button type="button" className="btn-quiet" aria-pressed={view === "eval"} onClick={() => onViewChange(view === "eval" ? "workbench" : "eval")} title="How Parity works, then recall and precision against the seeded labels, the ablations, the model each stage runs on and the real-world sample">
+            About &amp; Evals
           </button>
         )}
         <div className="ml-auto flex items-center gap-5 flex-wrap">

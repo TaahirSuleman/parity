@@ -121,3 +121,64 @@ describe("EvalTab public samples with the W3C demo pages (Task 26E.5)", () => {
     expect(screen.getByRole("button", { name: "Replay W3C demo: home" })).toBeInTheDocument();
   });
 });
+
+describe("About & Evals: the tab's name and its order", () => {
+  it("names the tab and opens with how Parity works, above the numbers", () => {
+    render(<EvalTab results={results} onReplay={() => {}} />);
+    expect(screen.getByRole("heading", { name: "About & Evals" })).toHaveAttribute("id", "eval-h");
+    const ids = screen.getAllByRole("heading").map((h) => h.id);
+    expect(ids.slice(0, 3)).toEqual(["eval-h", "eval-arch-h", "eval-main-h"]);
+    const levels = screen.getAllByRole("heading").map((h) => h.tagName);
+    expect(new Set(levels)).toEqual(new Set(["H2"]));
+  });
+
+  it("still says how Parity works when no results are published", () => {
+    render(<EvalTab results={null} onReplay={() => {}} />);
+    expect(screen.getByRole("heading", { name: "About & Evals" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /How Parity works/ })).toBeInTheDocument();
+    expect(screen.getByText(/no eval results/i)).toBeInTheDocument();
+  });
+});
+
+describe("EvalTab per-stage model sweep", () => {
+  const detection = { model: "muse-spark-1.3-contributor", effort: "medium", runs: 3, is_default: true, recall: 0.85, precision: 0.99, f1: 0.91, fp_on_clean: 0, cost_default_judge_usd: 0.37, seconds: 495 };
+  const model_sweep = {
+    stages: {
+      comparator: { rows: [detection, { ...detection, model: "muse-wonder-1.0", is_default: false, runs: 1, recall: 0.7, precision: 0.9, f1: 0.79, cost_default_judge_usd: 0.9 }, { ...detection, model: "muse-spark-1.1", is_default: false, runs: 1, unpriced: true }, { model: "muse-spark-1.2-contributor", effort: "medium", failed: "HTTP 400" }] },
+      judge: { rows: [{ model: "muse-spark-1.3", effort: "medium", n: 33, is_default: true, agreement: 0.94, needs_review_rate: 0, cost_per_finding: 0.0108 }] },
+      fixer: { rows: [{ model: "muse-spark-1.3-contributor", effort: "medium", n: 12, is_default: true, gap_closed_rate: 0.75, rejected: 1, cost_per_fix: 0.001 }] },
+      navigator: { rows: [{ model: "muse-spark-1.3-contributor", effort: "low", runs: 2, is_default: true, screens: 4, turns: 9.5, refusals: 0, safety_checks: 1, cost_usd_stage: 0.02 }] },
+    },
+    best: {
+      comparator: { stage: "comparator", model: "muse-spark-1.3-contributor", effort: "medium", reason: "today's default holds", margin: "+0 recall", clears_bar: false, runs: 3 },
+      judge: { stage: "judge", model: "muse-spark-1.3", effort: "medium", reason: "the highest agreement", margin: "", clears_bar: false, runs: 1 },
+    },
+  };
+  const swept = { ...results, model_sweep } as unknown as import("./EvalTab").EvalResults;
+
+  it("renders a table per stage, marks the best row in words and discloses n", () => {
+    render(<EvalTab results={swept} onReplay={() => {}} />);
+    const section = screen.getByRole("region", { name: /model and effort, per stage/i });
+    expect(within(section).getAllByRole("table")).toHaveLength(4);
+    const comparator = within(section).getByRole("table", { name: /comparator/i });
+    const best = within(comparator).getByRole("row", { name: /best.*muse-spark-1\.3-contributor/i });
+    expect(within(best).getByText("85%")).toBeInTheDocument();
+    expect(within(best).getByText("$0.37")).toBeInTheDocument();
+    expect(within(best).getByText("n = 3")).toBeInTheDocument();
+    expect(within(within(comparator).getByRole("row", { name: /muse-wonder-1\.0/ })).getByText("n = 1")).toBeInTheDocument();
+    expect(within(section).getByText(/one run is a sample/i)).toBeInTheDocument();
+    expect(within(section).getByText(/today's default holds/)).toBeInTheDocument();
+  });
+
+  it("says a price is unknown rather than $0, and shows a failed row as failed", () => {
+    render(<EvalTab results={swept} onReplay={() => {}} />);
+    const comparator = screen.getByRole("table", { name: /comparator/i });
+    expect(within(within(comparator).getByRole("row", { name: /muse-spark-1\.1/ })).getByText("price unknown")).toBeInTheDocument();
+    expect(within(within(comparator).getByRole("row", { name: /muse-spark-1\.2-contributor/ })).getByText(/failed: HTTP 400/)).toBeInTheDocument();
+  });
+
+  it("shows no sweep section when the block is absent", () => {
+    render(<EvalTab results={results} onReplay={() => {}} />);
+    expect(screen.queryByRole("region", { name: /model and effort, per stage/i })).toBeNull();
+  });
+});

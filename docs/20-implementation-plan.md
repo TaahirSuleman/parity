@@ -294,7 +294,7 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
   - Capture batching: one CDP round trip per page for the AX tree and box lookups, not three per node (public pages have thousands of nodes). Test: node count and output unchanged on `checkout.html`; CDP call count bounded.
 
 ### Task 20: Eval in the product
-- Route `GET /api/eval` reads `eval/results/latest.json` and `public.json`; UI **Eval** tab: table (Parity vs axe-core: recall, precision, n), ablation strip (screenshot-only / tree-only / no grounding / full), judge comparison row, cost and time per page, and a "Real-world sample" list of anonymised public runs opening in Replay. Header numbers come from the same file. Commit; push; tag `p4`.
+- Route `GET /api/eval` reads `eval/results/latest.json` and `public.json`; UI **About & Evals** tab: table (Parity vs axe-core: recall, precision, n), ablation strip (screenshot-only / tree-only / no grounding / full), judge comparison row, cost and time per page, and a "Real-world sample" list of anonymised public runs opening in Replay. Header numbers come from the same file. Commit; push; tag `p4`.
 
 ---
 
@@ -320,7 +320,7 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
 - `README.md`: one line pre-existing vs built this week; the hero; architecture diagram image (`docs/img/architecture.png`, exported from a Mermaid or Excalidraw source in `docs/img/`); "How it acts" (the model decides; allow-listed code acts); what is deterministic; run locally (`cp .env.example .env`, `make setup`, `make demo`); eval numbers from `eval/results/latest.md`; limits and honesty (no compliance claims; the prompts do not yet mark page text as untrusted — hosted Live is restricted to our store and public runs sit behind the read-only guard; model-facing tests answer from recorded stage responses). Form essays drafted in `docs/21-submission-text.md`.
 
 ### Task 24: UI polish for judges
-- Replay selected by default with a visible label; a "Live (rate-limited)" toggle; friendly 429; a ≤10 s architecture card in the Eval tab; keyboard focus order and visible focus rings in the workbench itself (it must pass axe too: add `test_workbench_axe_clean`).
+- Replay selected by default with a visible label; a "Live (rate-limited)" toggle; friendly 429; a ≤10 s architecture card in the About & Evals tab; keyboard focus order and visible focus rings in the workbench itself (it must pass axe too: add `test_workbench_axe_clean`).
 - Carried in from the P1/P2 reviews and the post-P2 hardening pass (ledger: `.superpowers/sdd/20-implementation-plan/progress.md`):
   - Already done in the hardening pass: workbench axe-clean in all three states; keyboard tab ring and visible focus rings (`test_workbench_is_keyboard_reachable_with_visible_focus`).
   - Finding card: one button for selection, not a button wrapping the whole card (invalid content model, very long accessible name). Test: the card's button name is the sighted text only.
@@ -329,7 +329,7 @@ Exit check: `make demo` opens the workbench, **Run the audit** (Live) walks `/st
   - Boxes drawn on the screenshot need a minimum 24×24 px hit area (WCAG 2.5.8) without changing the visible box; the sighted panel should take more of the width at 1280 px.
   - Timeline wording for judges: `audit_view` → "audit this screen", `computer_action_requires_confirmation` → "confirm-to-proceed", "gated tool" explained once.
   - Verifier check details and request ids are hover-only (`title`); expose them to keyboard and touch (a details row or a tooltip on focus).
-  - Idle state: one line saying what Parity is, that Replay is a recorded run with no model calls, and a legend of the Meta models in the pipeline; a glossary line for recall and precision on the Eval tab.
+  - Idle state: one line saying what Parity is, that Replay is a recorded run with no model calls, and a legend of the Meta models in the pipeline; a glossary line for recall and precision on the About & Evals tab.
   - "Rejected" means two things (the Verifier's rejected candidates in the header; a human's Reject on a card): rename one.
 
 ### Task 25: P5 close
@@ -372,7 +372,7 @@ Runs use `muse-spark-1.3-contributor` for the eval and `muse-spark-1.3` for the 
 
 ### Task 26E.3: The runs and the numbers
 - `python -m eval.harness --external --runs 2` (16 runs, ~$1.50). Record cost and seconds. Write the `external` block; `eval/report.py` renders it;
-  the Eval tab gains the row group "External pages (W3C BAD)" with the in-scope note (vitest `EvalTab.test.tsx: renders the external row with its
+  the About & Evals tab gains the row group "External pages (W3C BAD)" with the in-scope note (vitest `EvalTab.test.tsx: renders the external row with its
   subset note`); the README eval table gains the row with the subset stated in words. Commit `eval/results/latest.json` and `final.json` as for Task 19.
 - **Gate (core):** numbers exist with n stated, or the row says "not run" and nothing is claimed.
 
@@ -492,4 +492,4 @@ Exit check: in Replay, selecting the hero finding plays the VoiceOver segment sa
 - Create `parity/agent/multi.py` (coordinator with `delegate`; navigator, inspector, critic loops; instructions in `parity/meta/prompts/multi_*.md`), `eval/architectures.py`; test `tests/test_multi_agent.py`.
 - Produces: `async run_multi_agent(ctx, page, flow, budget: Budget) -> AgentResult` with the same return type as `run_agent`; `Budget(max_turns: int, max_tokens: int)` shared by both architectures and enforced in the client wrapper; harness flag `--orchestration single|multi`; `jaccard(a: set[str], b: set[str]) -> float` over finding dom ids across runs.
 - Tests (FakeMetaClient): `test_multi_inspector_candidates_pass_through_verifier` (a bad candidate is rejected exactly as in single-agent); `test_multi_budget_exceeded_marks_unfinished`; `test_critic_unparseable_needs_review`; `test_jaccard_arithmetic`; `test_multi_never_served` (no API route can start a multi-agent run).
-- Run: 3 runs per architecture on product, cart and checkout with `muse-spark-1.3-contributor`; write `eval/results/architectures.json`; add the row to the Eval tab and README with n disclosed. Commit; push.
+- Run: 3 runs per architecture on product, cart and checkout with `muse-spark-1.3-contributor`; write `eval/results/architectures.json`; add the row to the About & Evals tab and README with n disclosed. Commit; push.

@@ -87,7 +87,7 @@ export default function App() {
     return () => closeRef.current?.();
   }, [follow]);
 
-  const focusMain = () => requestAnimationFrame(() => document.getElementById("main")?.focus());  // the Eval view may unmount under the button
+  const focusMain = () => requestAnimationFrame(() => document.getElementById("main")?.focus());  // the About & Evals view may unmount under the button
   const begin = useCallback(async (start: () => Promise<{ run_id: string }>, mode: RunMode, onError?: (e: unknown) => boolean) => {
     if (startingRef.current || state.phase === "running") return;  // one run at a time: a double click, or a click while a slow start is pending
     startingRef.current = true;
@@ -167,7 +167,7 @@ export default function App() {
     if (next === "eval" && evalResults === undefined) getEval().then(setEvalResults).catch(() => setEvalResults(null));
   }, [evalResults]);
 
-  const onReplayRun = useCallback((runId: string) => { setUrlMode(false); void begin(() => startRun(null, "replay", runId), "replay"); }, [begin]);  // a recorded public sample, from the Eval tab
+  const onReplayRun = useCallback((runId: string) => { setUrlMode(false); void begin(() => startRun(null, "replay", runId), "replay"); }, [begin]);  // a recorded public sample, from the About & Evals tab
 
   const onDecision = useCallback((id: string, decision: "approve" | "reject", reason: string) => {
     if (!state.run) return Promise.resolve();

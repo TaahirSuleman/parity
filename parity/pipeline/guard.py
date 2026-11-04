@@ -78,15 +78,18 @@ class Blocked:
 Verdict = Allowed | Blocked
 
 
-def guard_action(action: dict, target: AxNode | None, field_type: str | None, *, submits: bool = False) -> Verdict:
+def guard_action(action: dict, target: AxNode | None, field_type: str | None, *, submits: bool = False, in_form: bool = False) -> Verdict:
     """One action against the element under it. ``field_type`` is the input's type/autocomplete token; ``submits``
-    says the target submits a form (a submit button, or an input inside a form)."""
+    says the target submits a form (a submit button, or an input inside a form); ``in_form`` says it sits inside a <form>
+    at all (Muse Code R2, 4 Nov: a type=button may submit from a script, so such clicks are dropped, not made)."""
     kind = str(action.get("type") or "").lower()
     raw = (target.name if target else "") or ""
     # read the label both with hidden characters removed (P\u200bay) and with them as spaces (Pay\u200bnow): either spelling counts
     spellings = [unicodedata.normalize("NFKC", INVISIBLE.sub(gap, raw)) for gap in ("", " ")]
     name = spellings[1]
     if kind in ("click", "double_click"):
+        if target is None:
+            return Blocked("the element under the pointer could not be identified, so its effect is unknown; not clicked on a public site", fatal=False)
         if target is not None and target.role == "iframe":
             return Blocked("the click lands inside an embedded frame, whose content is not inspected; not allowed on a public site")
         if submits:
@@ -96,6 +99,8 @@ def guard_action(action: dict, target: AxNode | None, field_type: str | None, *,
             return Blocked(f"'{name}' looks like an irreversible step ({hit.group(1).lower()}); stopped before it")
         if any(CONSENT_ACCEPT.search(s) for s in spellings) and not any(CONSENT_DECLINE.search(s) for s in spellings):
             return Blocked(f"consent banner: '{name}' would accept cookies or terms on the visitor's behalf; only a reject-all or necessary-only choice is clicked", fatal=False)
+        if in_form:
+            return Blocked(f"'{name or target.role}' sits inside a form, which a script may submit on the click; not clicked on a public site", fatal=False)
         if target is not None and target.role in UNNAMED_CONTROLS and not name.strip():
             return Blocked(f"the {target.role} under the pointer has no accessible name, so its effect is unknown; not clicked on a public site")
         return Allowed()

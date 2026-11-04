@@ -16,7 +16,7 @@ STANDARD_SPARK = "muse-spark-1.3"
 CONTRIBUTOR_SPARK = "muse-spark-1.3-contributor"
 SPARK_STAGES = {"navigator", "seer", "comparator", "fixer", "reaudit", "auditor"}
 EFFORTS = ("low", "medium", "high")
-DEFAULT_EFFORT = {"navigator": "low", "seer": "medium", "comparator": "medium", "judge": "medium", "fixer": "medium", "reaudit": "low"}  # spec §6.1
+DEFAULT_EFFORT = {"navigator": "low", "seer": "medium", "comparator": "medium", "judge": "high", "fixer": "medium", "reaudit": "low"}  # spec §6.1; judge high since the 4 Nov sweep
 
 
 def _bool(value: str) -> bool:
@@ -40,7 +40,7 @@ class Settings:
     model_api_key: str = field(default="", repr=False)
     meta_api_base: str = "https://api.meta.ai/v1"
     model: str = CONTRIBUTOR_SPARK
-    judge_model: str = STANDARD_SPARK
+    judge_model: str = CONTRIBUTOR_SPARK  # since the 4 Nov sweep (eval/results/model-sweep.md): at high effort, the same 94% agreement as the standard tier at $0.0006 a finding against $0.0108
     judge_fallback_model: str = STANDARD_SPARK  # used when the judge model errors (D6: any Wonder error falls back to Spark)
     stage_models: Mapping[str, str] = field(default_factory=dict)  # PARITY_<STAGE>_MODEL: navigator, seer, comparator, fixer; the rest read `model`
     stage_efforts: Mapping[str, str] = field(default_factory=dict)  # PARITY_<STAGE>_EFFORT: navigator, seer, comparator, judge, fixer

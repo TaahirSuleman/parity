@@ -98,12 +98,13 @@ _TARGET_JS = """([x, y, kind]) => {
   const name = Array.from(new Set(sources.map(s => s.replace(/\\s+/g, " ").trim()).filter(Boolean))).join(" | ");
   const type = [attr(ctl, "type"), attr(ctl, "autocomplete")].join(" ").trim() || null;
   const submits = !!(ctl.form && (ctl.type === "submit" || ctl.tagName === "BUTTON" && !ctl.getAttribute("type")));
-  return { tag: ctl.tagName.toLowerCase(), role: attr(ctl, "role") || ctl.tagName.toLowerCase(), name: name.slice(0, 300), type, submits };
+  const inForm = !!(ctl.form || (ctl.closest && ctl.closest("form")));  // a type=button inside a form may submit it from a script (Muse Code R2)
+  return { tag: ctl.tagName.toLowerCase(), role: attr(ctl, "role") || ctl.tagName.toLowerCase(), name: name.slice(0, 300), type, submits, inForm };
 }"""
 
 
 async def inspect_target(page: Page, action: dict[str, Any]):
-    """The element an action would land on, for the public-site guard: (AxNode-ish, field type tokens, submits?).
+    """The element an action would land on, for the public-site guard: (AxNode-ish, field type tokens, submits?, inside a form?).
     Raises InspectionFailed when the page cannot be read: the guard then refuses rather than guesses."""
     from parity.store.models import AxNode
 
@@ -112,10 +113,10 @@ async def inspect_target(page: Page, action: dict[str, Any]):
     except Exception as exc:
         raise InspectionFailed(f"the element under the action could not be inspected: {type(exc).__name__}") from exc
     if not info:
-        return None, None, False
+        return None, None, False, False
     field_type = (info.get("type") or "").lower() or None
     node = AxNode(backend_id=0, role=str(info.get("role") or ""), name=str(info.get("name") or ""))
-    return node, field_type, bool(info.get("submits"))
+    return node, field_type, bool(info.get("submits")), bool(info.get("inForm"))
 
 
 _WALL_JS = """(probes) => {
@@ -239,8 +240,8 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                             snapped.append(snap)
                         if ctx.public:
                             try:
-                                target, field_type, submits = await inspect_target(page, action)
-                                verdict = guard_action(action, target, field_type, submits=submits)
+                                target, field_type, submits, in_form = await inspect_target(page, action)
+                                verdict = guard_action(action, target, field_type, submits=submits, in_form=in_form)
                             except InspectionFailed as exc:
                                 verdict = Blocked(f"{exc}; refused rather than guessed")
                             if isinstance(verdict, Blocked) and not verdict.fatal:  # a consent click: not made, the walk goes on

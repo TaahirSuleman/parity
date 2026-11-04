@@ -41,8 +41,10 @@ def name_after(cap: Capture, finding: Finding) -> str:
 
 
 def gap_closed(sighted: str, new_name: str) -> bool:
+    """Closed when a non-empty sighted text appears in the new accessible name (Muse Code R1, 4 Nov: an empty sighted text
+    used to close vacuously). Containment after normalisation: a one-letter sighted text closes against any name holding it."""
     s, n = normalise(sighted), normalise(new_name)
-    return bool(n) and (s in n or n == s)
+    return bool(s) and bool(n) and (s in n or n == s)
 
 
 def _without_fragment(url: str) -> str:

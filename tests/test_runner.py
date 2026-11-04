@@ -848,8 +848,8 @@ async def test_ablation_effort_still_drives_seer_and_comparator(tmp_path, server
     index = RunIndex(tmp_path / "index.db")
     await index.init()
     try:
-        await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory, ablation=Ablation(effort="high", run_fixes=False))
+        await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory, ablation=Ablation(effort="low", run_fixes=False))
     finally:
         await index.close()
-    assert {e for s, e in client.seen if s in ("seer", "comparator")} == {"high"}
-    assert {e for s, e in client.seen if s == "judge"} == {"medium"}
+    assert {e for s, e in client.seen if s in ("seer", "comparator")} == {"low"}
+    assert {e for s, e in client.seen if s == "judge"} == {"high"}  # the judge keeps its own default (high since 4 Nov), whatever the ablation sets

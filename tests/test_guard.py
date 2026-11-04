@@ -23,7 +23,7 @@ def test_allows_add_to_cart_click():
     assert guard_action({"type": "click", "x": 1, "y": 1}, node("button", "Add to cart"), None).allowed
     assert guard_action({"type": "click", "x": 1, "y": 1}, node("link", "Continue shopping"), None).allowed
     assert guard_action({"type": "scroll", "scroll_y": 300}, None, None).allowed
-    assert guard_action({"type": "click", "x": 1, "y": 1}, None, None).allowed  # nothing known under the pointer: a plain click is fine
+    assert not guard_action({"type": "click", "x": 1, "y": 1}, None, None).allowed  # nothing known under the pointer: refused since 4 Nov (Muse Code R2)
 
 
 def test_blocks_password_typing():
@@ -107,8 +107,8 @@ async def test_inspect_target_reads_every_name_source(page):
         return {"x": box["x"] + box["width"] / 2, "y": box["y"] + box["height"] / 2}
 
     async def verdict(action):
-        target, field_type, submits = await inspect_target(page, action)
-        return guard_action(action, target, field_type, submits=submits)
+        target, field_type, submits, in_form = await inspect_target(page, action)
+        return guard_action(action, target, field_type, submits=submits, in_form=in_form)
 
     for sel in ("#a", "#b", "#d span", "#img", "iframe"):
         assert isinstance(await verdict({"type": "click", **await centre(sel)}), Blocked), sel
@@ -320,3 +320,40 @@ def test_challenge_reason_reads_a_wall_from_its_title_or_its_words():
     assert challenge_reason("Router help", "https://help.example/", [], text="Press and hold the power button for 3 seconds to restart your router.") is None
     assert challenge_reason("Security", "https://bank.example/", [], text="We detected unusual activity on your account and sent a code.") is None
     assert challenge_reason("Bot Detection and Mitigation | Kasada", "https://kasada.example/", [], text="Stop bots. Our product detects and mitigates them.") is None
+
+
+GO_FORM_HTML = """<!doctype html><html><body style="margin:0">
+<form id="f" action="/search" onsubmit="return false">
+  <input id="q" name="q" type="search" placeholder="Search" style="position:absolute;left:20px;top:20px;width:200px;height:30px">
+  <button id="go" type="button" onclick="document.getElementById('f').submit()" style="position:absolute;left:240px;top:20px;width:60px;height:30px">Go</button>
+</form>
+<a id="about" href="/about" style="position:absolute;left:20px;top:100px">About</a>
+</body></html>"""
+
+
+async def test_a_click_inside_a_form_is_refused_on_a_public_site(page):
+    """Muse Code R2 (docs/27): a "Go" button of type=button submits its form from a script, so neither its name nor its type
+    says so. On a public site a click whose target sits inside a <form> is not made (dropped, the walk goes on); a link
+    outside any form is still allowed."""
+    from parity.agent.loop import inspect_target
+
+    await page.set_content(GO_FORM_HTML)
+
+    async def verdict(selector):
+        box = await page.locator(selector).bounding_box()
+        action = {"type": "click", "x": box["x"] + box["width"] / 2, "y": box["y"] + box["height"] / 2}
+        target, field_type, submits, in_form = await inspect_target(page, action)
+        return guard_action(action, target, field_type, submits=submits, in_form=in_form)
+
+    go = await verdict("#go")
+    assert isinstance(go, Blocked) and go.fatal is False and "form" in go.reason and "Go" in go.reason
+    assert isinstance(await verdict("#q"), Blocked)  # a field inside the form: not clicked either (typing needs focus the model may give it by Tab)
+    assert (await verdict("#about")).allowed
+
+
+def test_a_click_with_no_inspectable_target_is_refused_on_a_public_site():
+    """Muse Code R2: a click whose target resolves to nothing (the page background, or an element gone between inspection
+    and the click) was allowed. Its effect is unknown, so it is not made; the reason says so in the event."""
+    verdict = guard_action({"type": "click", "x": 5, "y": 5}, None, None)
+    assert isinstance(verdict, Blocked) and verdict.fatal is False and "could not be identified" in verdict.reason
+    assert guard_action({"type": "scroll", "x": 5, "y": 5}, None, None).allowed  # scrolling the background is harmless

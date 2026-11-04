@@ -8,9 +8,13 @@ def test_settings_defaults_replay():
 
 
 def test_model_for_defaults_contributor():
+    """The judge too, since the 4 Nov sweep (eval/results/model-sweep.md): the contributor tier at high effort matched the
+    standard tier's 94% agreement with 0% needing review at $0.0006 a finding against $0.0108. The fallback stays standard."""
     s = load_settings(env={})
     assert s.model_for("comparator") == "muse-spark-1.3-contributor"
-    assert s.model_for("judge") == "muse-spark-1.3"
+    assert s.model_for("judge") == "muse-spark-1.3-contributor"
+    assert s.model_for("judge_fallback") == "muse-spark-1.3"
+    assert s.effort_for("judge") == "high"
 
 
 def test_private_mode_uses_standard_spark():
@@ -97,15 +101,15 @@ def test_reaudit_follows_the_comparator_model_and_private_mode_still_maps():
 
 def test_defaults_are_unchanged_without_overrides():
     s = load_settings(env={})
-    for stage in ("navigator", "seer", "comparator", "fixer", "reaudit"):
+    for stage in ("navigator", "seer", "comparator", "fixer", "reaudit", "judge"):
         assert s.model_for(stage) == "muse-spark-1.3-contributor"
-    assert s.model_for("judge") == "muse-spark-1.3"
+    assert s.model_for("judge_fallback") == "muse-spark-1.3"
 
 
 def test_effort_for_defaults_match_the_spec():
     s = load_settings(env={})
     assert {x: s.effort_for(x) for x in ("navigator", "seer", "comparator", "judge", "fixer", "reaudit")} == {
-        "navigator": "low", "seer": "medium", "comparator": "medium", "judge": "medium", "fixer": "medium", "reaudit": "low"}
+        "navigator": "low", "seer": "medium", "comparator": "medium", "judge": "high", "fixer": "medium", "reaudit": "low"}
 
 
 def test_effort_for_reads_per_stage_overrides():

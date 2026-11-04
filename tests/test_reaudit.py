@@ -3,7 +3,7 @@
 import json
 
 from parity.meta.fake import FakeMetaClient
-from parity.pipeline.reaudit import reaudit
+from parity.pipeline.reaudit import gap_closed, reaudit
 from parity.store.models import Fix
 
 MODEL = "muse-spark-1.3-contributor"
@@ -144,3 +144,17 @@ async def test_patched_page_csp_holds_with_the_production_page_factory(store_url
             assert await patched.evaluate("() => window.__css") == "blocked"
     finally:
         await page.context.close()
+
+
+def test_gap_closed_needs_a_sighted_text():
+    """Muse Code R1 (docs/27): the substring test closed vacuously when the sighted text was empty. A gap is closed only
+    when a non-empty sighted text appears in the new accessible name; the hero still closes."""
+    assert gap_closed("", "Submit") is False and gap_closed("", "") is False
+    assert gap_closed("Pay R1,249", "Pay R1,249") is True and gap_closed("Pay R1,249", "Submit") is False
+    assert gap_closed("Submit", "") is False  # the element left the tree or lost its name
+
+
+def test_gap_closed_with_a_single_letter_sighted_text_is_a_substring_match():
+    """Documented, not changed: a one-letter sighted text ("P") closes against any name holding that letter, since the rule
+    is containment after normalisation. Such candidates are rare (the Verifier's seen check needs a percept behind them)."""
+    assert gap_closed("P", "Pay R1,249") is True and gap_closed("P", "Submit") is False

@@ -1,6 +1,6 @@
 # 26 — Muse Code as the reviewer: what judging rewards, how to run it review-only, and the prompts
 
-**Status:** plan, Wed 4 Nov 2026, afternoon SAST. Review-only: Muse Code reads and reports; nothing it suggests is actioned until the builder has read the suggestion. Submission is due 21:00 ET (Thu 5 Nov 01:00 SAST); the builder submits by 18:00 ET.
+**Status:** plan, Wed 4 Nov 2026, afternoon SAST. Review-only: Muse Code reads and reports; nothing it suggests is actioned until the builder has read the suggestion. Submission is due Wed 4 Nov 21:00 ET (Thu 5 Nov 04:00 SAST; ET is UTC-5 after the 1 Nov clock change); the builder submits by 18:00 ET (Thu 01:00 SAST).
 
 ## 1. Does Muse Code matter to judging? What the documents say
 

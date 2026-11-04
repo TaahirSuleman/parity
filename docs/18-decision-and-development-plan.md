@@ -116,6 +116,8 @@ Goal ("buy the headphones") ─► NAVIGATOR (Spark 1.3 computer use, truncation
 
 ## 9. Video (judged for Demo 25% and Tooling 25%; judges stop at 3:00)
 
+**Theme line (decided 4 Nov 19:00 SAST, §10; carried into v5 at Checkpoint 2 of prompt 28):** the video names the problem statement once, on screen and spoken, with its one-sentence justification: caption "Push the Frontier (software): a new sense for software"; narration "Push the Frontier, in software: Parity gives an agent a new sense, to see a page as a sighted shopper and hear it as a screen reader, and to prove where they differ." v4 below has no theme line; v5 adds it.
+
 **Storyboard v4 (Wed 4 Nov, 13:30 SAST; supersedes v3 after the first recorded cut).** Three changes from v3, from the builder's review of that cut: (1) **attention boxes and small captions**, drawn only where they direct the eye, so the video reads as one continuous take with a voice over it rather than a tour; (2) the **live beat doubled** (22 s to 44 s), because a page we did not write is the strongest proof of real-world value, and the beat now shows *every* finding's proof and the claim the Verifier refused, not just one card; (3) the **page for the live beat is chosen by a measured comparison** between BBC News and a Meta-owned public page (candidates and runs in the subagent report of 4 Nov; the decision is recorded below the table). Still written for a judge with no context: the product is on screen from 0:00; overlays total under 20 s; every number is the README's; hard stop 2:55, everything that matters by 2:50; narration at or under 2.6 words a second (measured).
 
 **How the boxes and captions are made.** They are not added in the edit: the recording script (`data/demo-takes/record2.py`, git-ignored) drives the hosted app with Playwright at 1280×720 and, at the moments listed below, draws a **spotlight** in the page: a 2.5 px orange rounded rectangle around the element's real bounding box, with a **caption pill** (13 px, dark, at most six words) under it, held for the stated seconds and faded out in 250 ms. A spotlight never covers the element and never moves the page; at most one is on screen at a time; beats without a listed spotlight have none. The spotlights and captions are editorial (orange, dashed outline) so they cannot be mistaken for product UI. A separate **context chip** (grey, bottom-left) names the run where it matters: "Replay · recorded run · no model calls", "Live · 3 Nov · 2 m 7 s · $0.09". The only things added in the edit are the voice-over, the VoiceOver audio segment at 0:00 and the end card.
@@ -143,8 +145,27 @@ Goal ("buy the headphones") ─► NAVIGATOR (Spark 1.3 computer use, truncation
 
 **Voice (3 Nov, after Gate G-V).** G-V passed at 0.96 word accuracy on the recorded checkout page (the transcript aligned to VoiceOver's own phrases, every hint spoken in full; a first take with the hints cut short scored 0.58 and was redone), so Voice is **primary evidence** on the **Checkout page Replay**: the Submit card plays the segment where VoiceOver says "Submit button", with the badge *Muse Voice Transcribe · real VoiceOver audio* and the agreement tick. The Purchase replay was not recorded with Voice; the cold open uses the Checkout replay for that reason, and the walk beat switches to Purchase.
 
-## 10. Problem statement
-**Build for Your World:** we ship software and its users include screen-reader users. The fallback is *Push the Frontier (software)*. This is our choice; the organisers' answer on it doesn't change scoring.
+## 10. Problem statement [decided 4 Nov 2026, 19:00 SAST: Push the Frontier (software)]
+
+**The answer on the form: Push the Frontier.** Until 4 Nov this section said Build for Your World with Push the Frontier as the fallback. The builder reversed it after reading both statements against what Parity can honestly claim. The Impact rubric scores "does it fit into one of the problem statements", so either fit earns the point; the choice is about which story the evidence carries and which question a judge then asks.
+
+**Both sides, as weighed.**
+
+| | Build for Your World | Push the Frontier (software) |
+|---|---|---|
+| The organisers' words | "Solve a problem you know firsthand, free up time and mental space, and make something possible that wasn't before." Kickoff: a problem "that you are an expert at, but that's keeping you up at night." | "Use Meta's models to tackle challenges in software, robotics, manufacturing, energy, materials and beyond. Give a machine a new capability… Show us what becomes possible when these models meet the real world." Kickoff: "bring something new to the world with the Meta models." |
+| What Parity can say | We ship web software whose users include screen-reader users, and Parity frees a front-end lead from manual screen-reader passes before a release. | Software is named in the statement. Parity gives an agent a new capability: to see a page as a sighted shopper and hear it as a screen-reader user, prove where the two differ, and fix it. |
+| The evidence behind it | Thin. The builder is not an accessibility practitioner or a screen-reader user; no real tester has used Parity; the honesty rules forbid implying one. | Measured. axe-core 4.14 reports 0 violations on the demo checkout; the best of ten automated tools caught 41% of barriers (UK GDS, 2017); the ablations show the capability comes from the models (17% from the screenshot alone, 75% from the tree alone, 85% with both and the code gate); computer use reaches the order confirmation; real VoiceOver audio becomes evidence through Voice Transcribe. |
+| The question a judge asks next | "Who are you to this problem?" The answer invites the "who benefits and how much" probe at Parity's weakest point. | "Is it really new?" The answer is the numbers above and the Tooling beats the video already shows, so nothing has to bend to fit. |
+| Fit with the Indie framing | Neutral. | "Creativity, technical ambition, and whether it works": ambition pairs with this statement. |
+| Risk | A firsthand claim we cannot back. | The statement's examples lean physical (robotics, energy), so a judge may read "frontier" as hardware. Held by naming the clause: software. |
+
+**Decision.** Push the Frontier (software). The reasons, in order: the statement names software and "give a machine a new capability", which is Parity's actual claim; that claim is the one the evidence supports with measured numbers, where Build for Your World would need a firsthand story the rules of honesty do not allow us to supply; and every essay and Tooling beat already argues it, so the fit costs no rewriting.
+
+**Where it is said (one wording everywhere).**
+- **Video (storyboard v5, block 1 or the impact close):** caption "Push the Frontier (software): a new sense for software"; narration, spoken once: "Push the Frontier, in software: Parity gives an agent a new sense, to see a page as a sighted shopper and hear it as a screen reader, and to prove where they differ." The buyer (the team shipping a checkout) and the beneficiary (the blind shopper) stay in the first 15 s, so "who benefits" is answered without a firsthand claim.
+- **Form:** the radio set to Push the Frontier; the Project Description's first paragraph carries the same sentence (docs/21 "Problem statement").
+- **README:** unchanged; it does not name a theme.
 
 ## 11. External pages: what exists, what ships before the freeze, what waits [D11, decided 1 Nov evening]
 

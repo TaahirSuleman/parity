@@ -2,6 +2,10 @@
 
 Form fields (constitution Art. V): 4 Project Description · 7 Use of Meta products · 8 Why Meta's models matter. Video: `docs/18 §9`.
 
+## Problem statement (form radio) — Push the Frontier
+
+**Answer:** Push the Frontier. Decided 4 Nov 2026 (doc 18 §10, with both statements weighed). One sentence of justification, used verbatim in the Project Description's first paragraph and spoken once in the video: *Push the Frontier, in software: Parity gives an agent a new sense, to see a page as a sighted shopper and hear it as a screen reader, and to prove where they differ.* Why this and not Build for Your World: the statement names software and "give a machine a new capability", which is what the evidence measures (axe-core 0 on the demo checkout; the ablations 17% / 75% / 85%); a "problem you know firsthand" claim would need a tester or a practitioner we do not have, and nothing may be implied. Every essay below stays consistent with this choice.
+
 ## 4. Project Description — "Describe your project and what problem it solves"
 
 Parity is an agent that walks a site's key flows the way a shopper would and compares, screen by screen, what a sighted user sees with what a screen-reader user gets. Rule engines such as axe-core check markup; they cannot see that a button drawn as "Pay R1,249" is announced as "Submit", that a star rating is only pixels, or that an error is only a red border. Those are the gaps blind users hit at checkout, and they pass every automated checker.

@@ -36,6 +36,7 @@ export interface EvalResults {
 
 const CONFIG_LABELS: Record<string, string> = { full: "Parity (full)", screenshot_only: "screenshot only", tree_only: "tree only", no_grounding: "no grounding" };
 const pct = (x: number | undefined) => (x === undefined || x === null ? "—" : `${Math.round(100 * x)}%`);
+const ofInScope = (x: number | undefined, n: number) => (x === undefined || x === null ? "—" : `${pct(x)} (${Math.round(x * n)} of ${n})`);
 const fmtWhen = (iso: string | undefined) => {
   if (!iso) return "";
   const d = new Date(iso);
@@ -58,6 +59,8 @@ function HowItWorks() {
       <h2 id="eval-arch-h" className="m-0" style={{ fontSize: 16 }}>How Parity works, in ten seconds</h2>
       <img src="/architecture.png" alt="Parity's pipeline: per screen, the Navigator walks, Capture records, the Seer grounds, the Comparator compares and the Verifier checks; per verified finding, the Judge rates, the Fixer proposes, the Re-audit confirms and a human decides" className="block w-full mt-2" style={{ maxWidth: 1100, height: "auto", border: "1px solid var(--line)", borderRadius: 6 }} />
       <p className="text-sm mt-2 mb-0 muted">Blue boxes are Meta models (Muse Spark 1.3); grey boxes are deterministic code. A finding exists only after the Verifier's six checks; a patch is exported only after a human approves each fix.</p>
+      <img src="/eval-loop.png" alt="The eval loop: labels, the harness, ablations, the per-stage sweep across seven Meta models, the bar, the judge default changed and four kept" className="block w-full mt-2" style={{ maxWidth: 1100, height: "auto", border: "1px solid var(--line)", borderRadius: 6 }} />
+      <p className="text-sm mt-2 mb-0 muted">Full architecture, one Live run's sequence, trust boundaries and every Meta API call: <a href="https://github.com/TaahirSuleman/parity/blob/main/docs/31-architecture.md" target="_blank" rel="noopener">docs/31 on GitHub</a></p>
     </section>
   );
 }
@@ -177,14 +180,20 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
           <table className="eval mt-3">
             <thead><tr><th scope="col">System</th><th scope="col">In-scope recall</th><th scope="col">Beyond axe-core</th><th scope="col">Precision</th><th scope="col">Verified findings</th><th scope="col">On repaired pages</th><th scope="col">On out-of-scope barriers</th><th scope="col">Cost / 8 pages</th><th scope="col">Time / 8 pages</th></tr></thead>
             <tbody>
-              <tr data-config="external-full">
-                <th scope="row">Parity (full)</th>
-                <td>{pct(results.external.in_scope_recall)}</td><td>{pct(results.external.recall_beyond_axe)}</td><td>{pct(results.external.precision)}</td><td>{Math.round(results.external.n)} per run · {results.external.n_in_scope} in-scope labels</td>
-                <td>{results.external.fp_on_after_pages.toFixed(1)}</td><td>{results.external.out_of_scope_hits.toFixed(1)}</td><td>{fmtCost(results.external.cost_usd)}</td><td>{fmtDuration(Math.round(results.external.seconds * 1000))}</td>
-              </tr>
               <tr data-config="external-axe">
                 <th scope="row">axe-core 4.14</th>
-                <td>{pct(results.external.axe_recall)}</td><td>—</td><td>—</td><td>{results.external.axe?.violations ?? 0} violations</td><td>—</td><td>{(results.external.axe?.out_of_scope ?? []).length}</td><td>$0</td><td>—</td>
+                <td>{ofInScope(results.external.axe_recall, results.external.n_in_scope)}</td><td>—</td><td>—</td><td>{results.external.axe?.violations ?? 0} violations</td><td>—</td><td>{(results.external.axe?.out_of_scope ?? []).length}</td><td>$0</td><td>—</td>
+              </tr>
+              {results.external.union_recall !== undefined && (
+                <tr data-config="external-candidates">
+                  <th scope="row">Parity's candidates, axe-reported barriers included</th>
+                  <td>{ofInScope(results.external.union_recall, results.external.n_in_scope)} <span className="muted text-xs">every barrier axe-core reports, plus two it misses</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                </tr>
+              )}
+              <tr data-config="external-full">
+                <th scope="row">Parity as shipped (reports only what axe-core cannot)</th>
+                <td>{ofInScope(results.external.in_scope_recall, results.external.n_in_scope)}</td><td>{pct(results.external.recall_beyond_axe)}</td><td>{pct(results.external.precision)}</td><td>{Math.round(results.external.n)} per run · {results.external.n_in_scope} in-scope labels</td>
+                <td>{results.external.fp_on_after_pages.toFixed(1)}</td><td>{results.external.out_of_scope_hits.toFixed(1)}</td><td>{fmtCost(results.external.cost_usd)}</td><td>{fmtDuration(Math.round(results.external.seconds * 1000))}</td>
               </tr>
             </tbody>
           </table>
@@ -194,7 +203,7 @@ export function EvalTab({ results, onReplay }: { results: EvalResults | null; on
             Precision counts a finding on an in-scope barrier as right and every finding on a repaired "after" page as wrong; findings on elements W3C did not annotate
             ({results.external.unlabelled_on_before.toFixed(1)} per run) are reported, not scored.
             {results.external.n_beyond_axe !== undefined && (
-              <> The Verifier drops what axe-core already reports, by design: {results.external.n_beyond_axe} of the {results.external.n_in_scope} in-scope barriers are ones axe-core does not report, and "Beyond axe-core" is Parity's recall on those; together they reach {pct(results.external.union_recall)}.</>
+              <> By design the Verifier reports only what axe-core cannot: Parity proposed all five barriers axe-core reports and two it misses ({Math.round((results.external.union_recall ?? 0) * results.external.n_in_scope)} of {results.external.n_in_scope}, {pct(results.external.union_recall)}, against axe-core's {Math.round(results.external.axe_recall * results.external.n_in_scope)} of {results.external.n_in_scope}), then handed the five to axe, so the shipped row counts only the two. "Beyond axe-core" is Parity's recall on the {results.external.n_beyond_axe} barriers axe-core does not report. The seven in-scope barriers neither tool found are, in six cases, judgements about the quality of a text alternative or link text that is present (a logo alt that describes the artwork instead of its words, a hotline image whose alt is the placeholder "1234 56789", a "Read More..." link, decorative bullets announced as "bullet", a photo alt that names the picture instead of the link's purpose, a caption that tells a story the picture does not show): Parity's checks are built for a gap between what is seen and what is announced, not for ranking the wording of a name that exists. The seventh, a chart with an empty alt and no text alternative, is the case Parity should have found and did not in either run.</>
             )} {results.external.attribution ?? "W3C WAI Before and After Demonstration, W3C Document License; audited read-only"}.
           </p>
         </section>

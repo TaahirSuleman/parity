@@ -49,6 +49,15 @@ describe("EvalTab", () => {
     expect(screen.getByText(/Precision: the share of/)).toBeInTheDocument();
   });
 
+  it("carries the eval-loop image and a link to the architecture document (4 Nov)", () => {
+    render(<EvalTab results={results} onReplay={() => {}} />);
+    expect(screen.getByRole("img", { name: /^The eval loop: labels, the harness, ablations/ })).toHaveAttribute("src", "/eval-loop.png");
+    const link = screen.getByRole("link", { name: /docs\/31 on GitHub/ });
+    expect(link).toHaveAttribute("href", "https://github.com/TaahirSuleman/parity/blob/main/docs/31-architecture.md");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener");
+  });
+
   it("reads the ablation sentence from the numbers, not from a script", () => {
     const flat = { ...results, configs: { ...results.configs, no_grounding: { runs: 3, total: { ...results.configs.no_grounding.total, recall: 0.81 } } } };
     render(<EvalTab results={flat} onReplay={() => {}} />);
@@ -85,7 +94,7 @@ describe("EvalTab external pages (W3C BAD, Phase 6b)", () => {
   it("renders the external row with its subset note", () => {
     render(<EvalTab results={{ ...results, external }} onReplay={() => {}} />);
     const section = screen.getByRole("region", { name: /external pages \(W3C BAD\)/i });
-    const full = within(section).getByRole("row", { name: /parity \(full\)/i });
+    const full = within(section).getByRole("row", { name: /parity as shipped/i });
     expect(full).toHaveTextContent("50%");
     expect(full).toHaveTextContent("80%");
     expect(full).toHaveTextContent("20 per run");
@@ -93,8 +102,7 @@ describe("EvalTab external pages (W3C BAD, Phase 6b)", () => {
     expect(within(section).getByRole("columnheader", { name: /beyond axe-core/i })).toBeInTheDocument();
     expect(full).toHaveTextContent("45%");
     const note = screen.getByLabelText("External scope note");
-    expect(note).toHaveTextContent(/11 of the 14 in-scope barriers are ones axe-core does not report/);
-    expect(note).toHaveTextContent(/together they reach 64%/);
+    expect(note).toHaveTextContent(/9 of 14, 64%, against axe-core's 3 of 14/);
     expect(note).toHaveTextContent("14 of W3C's 35 numbered barriers");
     expect(note).toHaveTextContent(/counted, never claimed/);
     expect(note).toHaveTextContent(/W3C Document License/);
@@ -107,6 +115,33 @@ describe("EvalTab external pages (W3C BAD, Phase 6b)", () => {
     render(<EvalTab results={results} onReplay={() => {}} />);
     expect(screen.getByText(/External pages \(W3C BAD\): not run yet/)).toBeInTheDocument();
     expect(screen.getAllByRole("row", { name: /parity \(full\)/i })).toHaveLength(1);
+  });
+
+  it("orders the rows axe-core, Parity's candidates, Parity as shipped, with counts out of the in-scope labels (4 Nov reframe)", () => {
+    const measured = { ...external, axe_recall: 5 / 14, union_recall: 0.5, in_scope_recall: 2 / 14, recall_beyond_axe: 2 / 9, n_beyond_axe: 9, precision: 0.4 };
+    render(<EvalTab results={{ ...results, external: measured }} onReplay={() => {}} />);
+    const section = screen.getByRole("region", { name: /external pages \(W3C BAD\)/i });
+    const rows = within(section).getAllByRole("row").slice(1); // after the header row
+    expect(rows.map((r) => r.getAttribute("data-config"))).toEqual(["external-axe", "external-candidates", "external-full"]);
+    const axe = within(section).getByRole("row", { name: /^axe-core 4\.14/i });
+    expect(axe).toHaveTextContent("36%");
+    expect(axe).toHaveTextContent("5 of 14");
+    const candidates = within(section).getByRole("row", { name: /Parity's candidates, axe-reported barriers included/i });
+    expect(candidates).toHaveTextContent("50%");
+    expect(candidates).toHaveTextContent("7 of 14");
+    expect(candidates).toHaveTextContent(/every barrier axe-core reports, plus two it misses/);
+    const shipped = within(section).getByRole("row", { name: /Parity as shipped \(reports only what axe-core cannot\)/i });
+    expect(shipped).toHaveTextContent("14%");
+    expect(shipped).toHaveTextContent("2 of 14");
+    expect(shipped).toHaveTextContent("22%");
+    expect(shipped).toHaveTextContent("40%");
+    const note = screen.getByLabelText("External scope note");
+    expect(note).toHaveTextContent(/Parity proposed all five barriers axe-core reports and two it misses \(7 of 14, 50%, against axe-core's 5 of 14\), then handed the five to axe/);
+    expect(note).toHaveTextContent(/quality of a text alternative or link text that is present/);
+    expect(note).toHaveTextContent(/a chart with an empty alt and no text alternative, is the case Parity should have found and did not/);
+    expect(note).toHaveTextContent(/Subset stated: 14 of W3C's 35/);
+    expect(note).toHaveTextContent(/W3C Document License/);
+    expect(screen.queryByText(/complian/i)).toBeNull();
   });
 });
 

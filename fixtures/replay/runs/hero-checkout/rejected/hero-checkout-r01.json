@@ -6,7 +6,7 @@
   "step_index": 0,
   "sighted_text": "Payment",
   "sr_quote": "text, \"Payment\"",
-  "why_it_matters": "A blind user is not told that Payment is the current step in the Cart Payment Done progress.",
+  "why_it_matters": "Blind user is not told that Payment is the current checkout step which sighted users see from bold styling.",
   "bbox": {
    "x_min": 177,
    "y_min": 511,

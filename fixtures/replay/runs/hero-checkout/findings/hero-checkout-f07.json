@@ -3,41 +3,41 @@
  "run_id": "hero-checkout",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Terms",
- "sr_role": "link",
- "sr_name": "Click here",
- "why_it_matters": "A blind user hears generic Click here instead of Terms and loses the link purpose.",
+ "sighted_text": "Pay with wallet",
+ "sr_role": "button",
+ "sr_name": "Button",
+ "why_it_matters": "Blind user hears only generic Button and cannot know it pays with wallet.",
  "voice": {
   "clip_key": "checkout.wav",
-  "start_ms": 79416,
-  "end_ms": 87916,
-  "transcript": "link click here you are currently on a link to click this link press control option space",
+  "start_ms": 128377,
+  "end_ms": 133208,
+  "transcript": "button button you are currently on a button to click this button press control option space",
   "agrees": true
  },
  "bbox": {
-  "x_min": 649,
-  "y_min": 454,
-  "x_max": 685,
-  "y_max": 475
+  "x_min": 636,
+  "y_min": 578,
+  "x_max": 745,
+  "y_max": 635
  },
  "element": {
-  "backend_id": 7,
-  "css_path": "a#f4",
+  "backend_id": 66,
+  "css_path": "button#express-pay",
   "box_px": [
-   831,
-   327,
-   877,
-   342
+   814,
+   416,
+   954,
+   457
   ],
-  "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
-  "dom_id": "f4"
+  "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+  "dom_id": "express-pay"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "link at a#f4"
+    "detail": "button at button#express-pay"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -61,54 +61,58 @@
    }
   },
   "element": {
-   "backend_id": 7,
-   "css_path": "a#f4",
+   "backend_id": 66,
+   "css_path": "button#express-pay",
    "box_px": [
-    831,
-    327,
-    877,
-    342
+    814,
+    416,
+    954,
+    457
    ],
-   "outer_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'&gt;&lt;text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'&gt;Terms&lt;/text&gt;&lt;/svg&gt;\"></a>",
-   "dom_id": "f4"
+   "outer_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' &gt;Pay with wallet&lt;/text&gt;&lt;/svg&gt;\"></button>",
+   "dom_id": "express-pay"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
-    "sc": "2.4.4",
-    "name": "Link Purpose (In Context)"
+    "sc": "2.5.3",
+    "name": "Label in Name"
+   },
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears only generic \"Click here\" and cannot know the link leads to the Terms they agree to when paying.",
+  "impact": "The screen-reader user hears only generic Button and cannot know it is the Pay with wallet option or choose that payment method.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "22518a3e-6e88-4d73-9c48-b6c20857902f",
-   "response_id": "resp_6aea7d9bd93caa34142f43f9",
+   "request_id": "5d09e50a-6351-4d59-b530-2171ebf33b82",
+   "response_id": "resp_6aeb89da778955dee14a488d",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>",
-  "after_html": "<a id=\"f4\" href=\"#terms\">Terms</a>",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -29,7 +29,7 @@\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n     <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n-    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n+    <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\">Terms</a>.</p>\n     <div class=\"actions\">\n       <button id=\"f5\" class=\"btn\" aria-label=\"Submit\"><img alt=\"\" width=\"118\" height=\"20\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='118' height='20'><text x='0' y='17' font-size='18' font-weight='bold' font-family='Arial' fill='white'>Pay R1,249</text></svg>\"></button>\n       <button id=\"f6\" class=\"icon\" aria-label=\"Close\">🗑️</button>\n",
-  "explanation": "Removed the generic aria-label \"Click here\" and image-of-text and replaced with real text \"Terms\" so the accessible name matches what sighted users see.",
+  "before_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button>",
+  "after_html": "<button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button>",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -36,7 +36,7 @@\n       <button id=\"save-later\" class=\"ghost\">Save for later</button>\n     </div>\n     <p class=\"row\"><input id=\"cvv\" class=\"short\" placeholder=\"CVV\" inputmode=\"numeric\"> <button id=\"help-icon\" class=\"icon\" type=\"button\" aria-label=\"Help\">?</button>\n-      <button id=\"express-pay\" class=\"ghost\" type=\"button\" aria-label=\"Button\"><img alt=\"\" width=\"110\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='bold' fill='%231b1b1f' >Pay with wallet</text></svg>\"></button></p>\n+      <button id=\"express-pay\" class=\"ghost\" type=\"button\">Pay with wallet</button></p>\n   </section>\n </main>\n <script>\n",
+  "explanation": "Replaced the generic aria-label and empty-alt image with real button text so the accessible name matches the visible Pay with wallet label.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "5486a190-7510-47cc-be25-60fd06fcbca7",
-   "response_id": "resp_6aea7dc83fcff8ac47f141ef",
+   "request_id": "387a38f9-97dc-42a4-a6f9-987e1628d92c",
+   "response_id": "resp_6aeb8a1cff64947769124348",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "Click here",
-  "sr_name_after": "Terms",
+  "sr_name_before": "Button",
+  "sr_name_after": "Pay with wallet",
   "comparator_still_flags": false
  },
  "decision": null

@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Colour Blue option",
+ "sighted_text": "Black colour option selected",
  "sr_role": "button",
- "sr_name": "Option 3",
- "why_it_matters": "A blind user hears generic Option 3 and cannot tell it is the Blue colour choice.",
+ "sr_name": "Option 1",
+ "why_it_matters": "A blind user cannot tell the button is the Black colour or that it is selected.",
  "voice": null,
  "bbox": {
-  "x_min": 235,
+  "x_min": 182,
   "y_min": 375,
-  "x_max": 255,
+  "x_max": 202,
   "y_max": 411
  },
  "element": {
-  "backend_id": 41,
-  "css_path": "button#swatch-3",
+  "backend_id": 39,
+  "css_path": "button#swatch-1",
   "box_px": [
-   301,
+   233,
    270,
-   327,
+   259,
    296
   ],
-  "outer_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
-  "dom_id": "swatch-3"
+  "outer_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>",
+  "dom_id": "swatch-1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#swatch-3"
+    "detail": "button at button#swatch-1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 41,
-   "css_path": "button#swatch-3",
+   "backend_id": 39,
+   "css_path": "button#swatch-1",
    "box_px": [
-    301,
+    233,
     270,
-    327,
+    259,
     296
    ],
-   "outer_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
-   "dom_id": "swatch-3"
+   "outer_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>",
+   "dom_id": "swatch-1"
   },
   "feedback": null
  },
@@ -73,36 +73,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "User cannot tell that Option 3 is the Blue colour and cannot reliably select the intended colour variant.",
+  "impact": "The user cannot tell that Option 1 is the Black colour or that it is selected, so cannot choose the intended colour with confidence.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "30234839-584a-4daa-bc56-e36fa9084b22",
-   "response_id": "resp_6aeb3776f5dd9f595f464c8b",
+   "request_id": "0b318248-96c8-4acd-98a5-4f1fa6812fb9",
+   "response_id": "resp_6aeb8b455a1cc61b5b804680",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>",
-  "after_html": "<button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -27,7 +27,7 @@\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n-      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n+      <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Blue\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n",
-  "explanation": "Changed aria-label from \"Option 3\" to \"Blue\" so the accessible name matches the visible blue colour choice.",
+  "before_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>",
+  "after_html": "<button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Black\" aria-pressed=\"true\" style=\"background:#3a3d44\"></button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -25,7 +25,7 @@\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n-      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n+      <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Black\" aria-pressed=\"true\" style=\"background:#3a3d44\"></button>\n       <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n",
+  "explanation": "Changed aria-label from Option 1 to Black and added aria-pressed=\"true\" so the name and selected state match what sighted users see from the colour and selection ring.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "5c0da0b9-900c-4ffc-99b8-ae0fddd63606",
-   "response_id": "resp_6aeb397144f49c37a5f24772",
+   "request_id": "a9f8cf5d-b469-49b1-af0d-0d2ff635aedd",
+   "response_id": "resp_6aeb8d229e134f794f6d44c8",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
-  "sr_name_before": "Option 3",
-  "sr_name_after": "Blue",
+  "sr_name_before": "Option 1",
+  "sr_name_after": "Black",
   "comparator_still_flags": false
  },
  "decision": null

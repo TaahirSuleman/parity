@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "SALE -20%",
- "sr_role": "image",
- "sr_name": "badge",
- "why_it_matters": "A blind user hears only generic badge and misses the 20 percent sale information.",
+ "sighted_text": "or 4 x R312.25",
+ "sr_role": "",
+ "sr_name": "",
+ "why_it_matters": "A blind user misses the instalment payment option that exists only in pixels.",
  "voice": null,
  "bbox": {
-  "x_min": 146,
-  "y_min": 126,
-  "x_max": 240,
-  "y_max": 165
+  "x_min": 270,
+  "y_min": 517,
+  "x_max": 387,
+  "y_max": 539
  },
  "element": {
-  "backend_id": 25,
-  "css_path": "img#p1",
+  "backend_id": 53,
+  "css_path": "span#instalment-price > img:nth-of-type(1)",
   "box_px": [
-   187,
-   91,
-   307,
-   119
+   345,
+   372,
+   495,
+   388
   ],
-  "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": "p1"
+  "outer_html": "<img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'&gt;&lt;text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' &gt;or 4 x R312.25&lt;/text&gt;&lt;/svg&gt;\">",
+  "dom_id": null
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#p1"
+    "detail": "silent:img at span#instalment-price > img:nth-of-type(1)"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "quote equals the accessibility tree entry"
+    "detail": "no accessibility node with a name at that box"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible text differs from the accessible name"
+    "detail": "visible content has no announcement"
    },
    "not_axe": {
     "passed": true,
@@ -55,54 +55,54 @@
    }
   },
   "element": {
-   "backend_id": 25,
-   "css_path": "img#p1",
+   "backend_id": 53,
+   "css_path": "span#instalment-price > img:nth-of-type(1)",
    "box_px": [
-    187,
-    91,
-    307,
-    119
+    345,
+    372,
+    495,
+    388
    ],
-   "outer_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23d0021b'/&gt;&lt;text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'&gt;SALE -20%25&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "p1"
+   "outer_html": "<img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'&gt;&lt;text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' &gt;or 4 x R312.25&lt;/text&gt;&lt;/svg&gt;\">",
+   "dom_id": null
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "moderate",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
    }
   ],
-  "impact": "Screen-reader user hears only 'badge' and cannot know the product is advertised as 20% off on sale.",
+  "impact": "The screen-reader user hears the sale price but cannot know the item can be paid as 4 installments of R312.25.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "134c132b-68c2-41c2-9622-8cb8094040cb",
-   "response_id": "resp_6aeb3765d25214c74faa44f9",
+   "request_id": "ffdb927b-c90d-4cde-a2df-b5bfc62c8f8a",
+   "response_id": "resp_6aeb8b3398311ad37e6141ad",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">",
-  "after_html": "<img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -13,8 +13,7 @@\n </header>\n <main>\n   <section class=\"card\" aria-labelledby=\"product-h\">\n-    <img id=\"p1\" alt=\"badge\" width=\"120\" height=\"28\"\n-         src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n+    <img id=\"p1\" alt=\"SALE -20%\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23d0021b'/><text x='10' y='20' font-size='16' font-family='Arial' font-weight='bold' fill='white'>SALE -20%25</text></svg>\">\n     <h1 id=\"product-h\">Noise-cancelling headphones</h1>\n     <p class=\"row\"><span id=\"rating-css\" class=\"stars four\"></span><span class=\"small\">based on 212 reviews</span></p>\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n",
-  "explanation": "Changed alt text from 'badge' to 'SALE -20%' to match the visible badge text.",
+  "before_html": "<img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\">",
+  "after_html": "<img alt=\"or 4 x R312.25\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -36,7 +36,7 @@\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n-      <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n+      <span id=\"instalment-price\"><img alt=\"or 4 x R312.25\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n     <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n",
+  "explanation": "Changed empty alt to \"or 4 x R312.25\" so the screen reader announces the same instalment option sighted users see.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "c655f717-172d-4572-92a3-86c21eeb0564",
-   "response_id": "resp_6aeb39610c83e7f60b2e4c18",
+   "request_id": "a491b86d-f652-440a-88b3-d2f14b2d2267",
+   "response_id": "resp_6aeb8d1885023b28347942d8",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": true,
-  "sr_name_before": "badge",
-  "sr_name_after": "SALE -20%",
+  "sr_name_before": "",
+  "sr_name_after": "or 4 x R312.25",
   "comparator_still_flags": false
  },
  "decision": null

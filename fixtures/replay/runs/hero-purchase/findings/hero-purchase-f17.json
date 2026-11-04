@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 1,
  "status": "reaudited",
- "sighted_text": "–R125.00",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "Blind user misses the coupon discount amount that explains the total price.",
+ "sighted_text": "gift wrap toggle on",
+ "sr_role": "button",
+ "sr_name": "Gift wrap",
+ "why_it_matters": "Blind user hears no on/off state and does not know gift wrap is currently enabled.",
  "voice": null,
  "bbox": {
-  "x_min": 471,
-  "y_min": 454,
-  "x_max": 499,
-  "y_max": 477
+  "x_min": 605,
+  "y_min": 302,
+  "x_max": 640,
+  "y_max": 338
  },
  "element": {
-  "backend_id": 148,
-  "css_path": "canvas#coupon-savings",
+  "backend_id": 166,
+  "css_path": "button#gift-wrap",
   "box_px": [
-   517,
-   326,
-   607,
-   346
+   745,
+   218,
+   789,
+   242
   ],
-  "outer_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
-  "dom_id": "coupon-savings"
+  "outer_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+  "dom_id": "gift-wrap"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:canvas at canvas#coupon-savings"
+    "detail": "button at button#gift-wrap"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 148,
-   "css_path": "canvas#coupon-savings",
+   "backend_id": 166,
+   "css_path": "button#gift-wrap",
    "box_px": [
-    517,
-    326,
-    607,
-    346
+    745,
+    218,
+    789,
+    242
    ],
-   "outer_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
-   "dom_id": "coupon-savings"
+   "outer_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+   "dom_id": "gift-wrap"
   },
   "feedback": null
  },
@@ -73,37 +73,37 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "Screen-reader user hears Coupon with no amount and cannot know the R125 discount that explains why the total is R1,323.00.",
+  "impact": "User cannot tell gift wrap is currently on and cannot know whether activating the control will turn it on or off.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "d975c8e4-3f4c-4137-9494-883bcb1658bf",
-   "response_id": "resp_6aeb3801505e0c358be1439a",
+   "request_id": "64713a18-2313-4d11-bfcd-40fc926bee43",
+   "response_id": "resp_6aeb8be1f23bbc380cc34469",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas>",
-  "after_html": "<canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"–R125.00\">–R125.00</canvas>",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -28,7 +28,7 @@\n       <span><label for=\"case-qty\" class=\"small\">Qty</label> <input id=\"case-qty\" class=\"qty err\" value=\"12\" inputmode=\"numeric\"> <button id=\"case-remove\" class=\"icon\" type=\"button\" aria-label=\"Remove carry case\">🗑️</button></span>\n     </div>\n     <div class=\"line\"><span>Subtotal</span><span>R1,448.00</span></div>\n-    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"presentation\"></canvas></span></div>\n+    <div class=\"line\"><span>Coupon</span><span><canvas id=\"coupon-savings\" width=\"90\" height=\"20\" role=\"img\" aria-label=\"–R125.00\">–R125.00</canvas></span></div>\n     <div class=\"line\"><span>Delivery</span><span id=\"k4\"><img alt=\"\" width=\"40\" height=\"18\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='18'><text x='0' y='14' font-size='14' font-family='Arial' fill='%230a7d3b' font-weight='bold'>Free</text></svg>\"></span></div>\n     <p class=\"total\">Total: R1,323.00</p>\n     <div class=\"actions\">\n",
-  "explanation": "Removed role=presentation that hid the canvas and added a matching aria-label with fallback text so the screen reader announces –R125.00.",
+  "before_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+  "after_html": "<button id=\"gift-wrap\" class=\"switch on\" type=\"button\" role=\"switch\" aria-checked=\"true\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -39,7 +39,7 @@\n   <section class=\"card\" aria-labelledby=\"options-h\">\n     <h2 id=\"options-h\">Options</h2>\n     <p class=\"row\"><input id=\"promo-input\" placeholder=\"Promo code\"> <button id=\"promo-apply\" class=\"ghost\" type=\"button\">Apply</button></p>\n-    <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button></p>\n+    <p class=\"row\"><span>Gift wrap</span> <button id=\"gift-wrap\" class=\"switch on\" type=\"button\" role=\"switch\" aria-checked=\"true\" aria-label=\"Gift wrap\"><span class=\"knob\"></span></button></p>\n     <p class=\"row\"><span class=\"small\">Delivery</span>\n       <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n",
+  "explanation": "Added role=\"switch\" and aria-checked=\"true\" to expose the visible on state programmatically while keeping the existing label.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "9e378929-135b-4579-aa34-b8ddf018b83f",
-   "response_id": "resp_6aeb3989be6a28dbd8464594",
+   "request_id": "3268c017-2190-417b-aeff-bb4610f8bdfe",
+   "response_id": "resp_6aeb8d354092c65d04274463",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "–R125.00",
-  "comparator_still_flags": false
+  "gap_closed": false,
+  "sr_name_before": "Gift wrap",
+  "sr_name_after": "Gift wrap",
+  "comparator_still_flags": true
  },
  "decision": null
 }

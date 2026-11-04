@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "Offer ends in 02:14:09",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "A blind user misses the time-limited offer countdown that creates urgency for sighted users.",
+ "sighted_text": "heart icon - add to wishlist",
+ "sr_role": "button",
+ "sr_name": "Close",
+ "why_it_matters": "A blind user is told the wishlist button is Close and will misunderstand its action.",
  "voice": null,
  "bbox": {
-  "x_min": 146,
-  "y_min": 556,
-  "x_max": 302,
-  "y_max": 586
+  "x_min": 242,
+  "y_min": 617,
+  "x_max": 275,
+  "y_max": 681
  },
  "element": {
-  "backend_id": 55,
-  "css_path": "canvas#promo-timer",
+  "backend_id": 58,
+  "css_path": "button#p5",
   "box_px": [
-   187,
-   400,
-   387,
-   422
+   310,
+   444,
+   352,
+   490
   ],
-  "outer_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
-  "dom_id": "promo-timer"
+  "outer_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
+  "dom_id": "p5"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:canvas at canvas#promo-timer"
+    "detail": "button at button#p5"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -55,16 +55,16 @@
    }
   },
   "element": {
-   "backend_id": 55,
-   "css_path": "canvas#promo-timer",
+   "backend_id": 58,
+   "css_path": "button#p5",
    "box_px": [
-    187,
-    400,
-    387,
-    422
+    310,
+    444,
+    352,
+    490
    ],
-   "outer_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
-   "dom_id": "promo-timer"
+   "outer_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
+   "dom_id": "p5"
   },
   "feedback": null
  },
@@ -73,36 +73,36 @@
   "severity": "serious",
   "wcag": [
    {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
+    "sc": "4.1.2",
+    "name": "Name, Role, Value"
    }
   ],
-  "impact": "Screen-reader user cannot know the sale price is time-limited or how much time remains to claim it.",
+  "impact": "The user cannot discover or use the add-to-wishlist function because it is announced as Close.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "52781b73-3816-450d-a219-6f20b46ccdb6",
-   "response_id": "resp_6aeb37855e7d95e75f8048fb",
+   "request_id": "d9bb1d6b-1b6b-41af-aa3a-2b39310e76f6",
+   "response_id": "resp_6aeb8b6600f3baf4bf4040bc",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas>",
-  "after_html": "<canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"img\" aria-label=\"Offer ends in 02:14:09\">Offer ends in 02:14:09</canvas>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -37,7 +37,7 @@\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n       <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n-    <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n+    <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"img\" aria-label=\"Offer ends in 02:14:09\">Offer ends in 02:14:09</canvas></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n       <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n",
-  "explanation": "Removed role=presentation that hid the canvas and added matching aria-label plus fallback text so screen readers announce the visible countdown.",
+  "before_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>",
+  "after_html": "<button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -40,7 +40,7 @@\n     <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n-      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Close\">♡</button>\n+      <button id=\"p5\" class=\"icon\" type=\"button\" aria-label=\"Add to wishlist\">♡</button>\n       <button id=\"share-btn\" class=\"icon\" type=\"button\" aria-label=\"Share\">⇪</button>\n       <a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Compare</text></svg>\"></a>\n     </div>\n",
+  "explanation": "Changed aria-label from Close to Add to wishlist so the announced name matches the visible wishlist function.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "8313b2a7-ff3e-4bac-a326-09d92ee0cae3",
-   "response_id": "resp_6aeb397f40a2a1e249754a9f",
+   "request_id": "f2bb04ba-ac3f-4fd8-abc7-2e6ad6510af7",
+   "response_id": "resp_6aeb8d28c04ee561202741d1",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "Offer ends in 02:14:09",
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Add to wishlist",
   "comparator_still_flags": false
  },
  "decision": null

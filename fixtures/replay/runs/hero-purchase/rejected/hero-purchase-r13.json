@@ -1,0 +1,60 @@
+{
+ "id": "hero-purchase-r13",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "heart icon - add to wishlist",
+  "sr_quote": "button, \"Close\"",
+  "why_it_matters": "A blind user hears Close and will not know the button adds the item to the wishlist.",
+  "bbox": {
+   "x_min": 310,
+   "y_min": 618,
+   "x_max": 351,
+   "y_max": 679
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at a#compare-link"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": {
+   "backend_id": 60,
+   "css_path": "a#compare-link",
+   "box_px": [
+    414,
+    457,
+    478,
+    477
+   ],
+   "outer_html": "<a id=\"compare-link\" href=\"#compare\" aria-label=\"More\"><img alt=\"\" width=\"64\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='16'&gt;&lt;text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'&gt;Compare&lt;/text&gt;&lt;/svg&gt;\"></a>",
+   "dom_id": "compare-link"
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+ }
+}

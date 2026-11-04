@@ -6,7 +6,7 @@
  "sighted_text": "ZA-7781-2201-9",
  "sr_role": "",
  "sr_name": "",
- "why_it_matters": "Blind user hears only Tracking without the number and cannot track the order.",
+ "why_it_matters": "A blind user cannot access the tracking number because it is rendered only in a canvas with no accessible name.",
  "voice": null,
  "bbox": {
   "x_min": 191,
@@ -77,12 +77,12 @@
     "name": "Non-text Content"
    }
   ],
-  "impact": "The screen-reader user hears only 'Tracking' without the ZA-7781-2201-9 number and cannot track the order.",
+  "impact": "The screen-reader user hears only 'Tracking' with no value and cannot know or use the tracking number ZA-7781-2201-9 to track the delivery.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "de756589-bbb4-42d0-9fb9-90d18eb59d50",
-   "response_id": "resp_6aeb39463c28dcbb881b4825",
+   "request_id": "45be39f1-f3fe-4c4e-8d17-4daa049a7839",
+   "response_id": "resp_6aeb8d00231991aaad6b496c",
    "status": "completed",
    "incomplete_reason": null
   }
@@ -91,11 +91,11 @@
   "before_html": "<canvas id=\"tracking-canvas\" width=\"180\" height=\"22\" role=\"presentation\"></canvas>",
   "after_html": "<canvas id=\"tracking-canvas\" width=\"180\" height=\"22\" role=\"img\" aria-label=\"ZA-7781-2201-9\">ZA-7781-2201-9</canvas>",
   "diff": "--- a/store/confirm.html\n+++ b/store/confirm.html\n@@ -17,7 +17,7 @@\n     <h1 id=\"confirm-h\">Order confirmed ✓</h1>\n     <p>Order <strong>SR-10428</strong>. Noise-cancelling headphones × 1, R1,249.00 charged to the card ending 1111.</p>\n     <p>A receipt has been sent to your email. Delivery is expected tomorrow.</p>\n-    <p class=\"row\"><span class=\"small\">Tracking</span> <canvas id=\"tracking-canvas\" width=\"180\" height=\"22\" role=\"presentation\"></canvas></p>\n+    <p class=\"row\"><span class=\"small\">Tracking</span> <canvas id=\"tracking-canvas\" width=\"180\" height=\"22\" role=\"img\" aria-label=\"ZA-7781-2201-9\">ZA-7781-2201-9</canvas></p>\n     <ol class=\"steps\" aria-label=\"Delivery status\"><li id=\"status-packed\" class=\"current\">Packed</li><li>Shipped</li><li>Delivered</li></ol>\n     <p class=\"row\"><a id=\"invoice-link\" href=\"#invoice\" aria-label=\"Open\"><img alt=\"\" width=\"130\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='130' height='16'><text x='0' y='12' font-size='14' font-family='Arial' font-weight='normal' fill='%230b57d0' text-decoration='underline'>Download invoice</text></svg>\"></a>\n       <a id=\"rate-link\" href=\"#rate\">Rate your purchase</a></p>\n",
-  "explanation": "Removed role=presentation that hid the canvas and added role=img with aria-label and fallback text matching the visible tracking number so screen readers announce ZA-7781-2201-9.",
+  "explanation": "Changed role from presentation to img and added matching aria-label with fallback text so the canvas tracking number is announced.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "9e5948a2-0ff6-4761-83f7-ab1a4cf32c43",
-   "response_id": "resp_6aeb39ad6b6361925b3d4389",
+   "request_id": "6b94cf6b-051b-432b-8ae3-0cef7424404b",
+   "response_id": "resp_6aeb8d583f054d81cf7c4cec",
    "status": "completed"
   }
  },

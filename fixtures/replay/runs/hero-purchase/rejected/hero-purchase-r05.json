@@ -1,0 +1,60 @@
+{
+ "id": "hero-purchase-r05",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "product thumbnail 2 - dark rounded square",
+  "sr_quote": "image, \"photo 2\"",
+  "why_it_matters": "A blind user gets a meaningless generic name and cannot distinguish this colour/shape variant.",
+  "bbox": {
+   "x_min": 288,
+   "y_min": 296,
+   "x_max": 361,
+   "y_max": 365
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at img#divider-1"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": {
+   "backend_id": 36,
+   "css_path": "img#divider-1",
+   "box_px": [
+    331,
+    214,
+    395,
+    262
+   ],
+   "outer_html": "<img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "divider-1"
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+ }
+}

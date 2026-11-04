@@ -1,0 +1,88 @@
+{
+ "id": "hero-purchase-f31",
+ "run_id": "hero-purchase",
+ "step_index": 3,
+ "status": "judged",
+ "sighted_text": "orange status dot, green status dot, red status dot, dark blue status dot",
+ "sr_role": "image",
+ "sr_name": "celebration graphic",
+ "why_it_matters": "A blind user gets a generic celebration label and loses the four-dot visual information sighted users see.",
+ "voice": null,
+ "bbox": {
+  "x_min": 146,
+  "y_min": 126,
+  "x_max": 240,
+  "y_max": 160
+ },
+ "element": {
+  "backend_id": 322,
+  "css_path": "img#confetti",
+  "box_px": [
+   187,
+   91,
+   307,
+   115
+  ],
+  "outer_html": "<img id=\"confetti\" alt=\"celebration graphic\" width=\"120\" height=\"24\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='24'&gt;&lt;circle cx='10' cy='12' r='4' fill='%23f5a623'/&gt;&lt;circle cx='40' cy='8' r='4' fill='%230a7d3b'/&gt;&lt;circle cx='70' cy='14' r='4' fill='%23d0021b'/&gt;&lt;circle cx='100' cy='9' r='4' fill='%231f3b73'/&gt;&lt;/svg&gt;\">",
+  "dom_id": "confetti"
+ },
+ "verifier": {
+  "passed": true,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "image at img#confetti"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": {
+   "backend_id": 322,
+   "css_path": "img#confetti",
+   "box_px": [
+    187,
+    91,
+    307,
+    115
+   ],
+   "outer_html": "<img id=\"confetti\" alt=\"celebration graphic\" width=\"120\" height=\"24\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='24'&gt;&lt;circle cx='10' cy='12' r='4' fill='%23f5a623'/&gt;&lt;circle cx='40' cy='8' r='4' fill='%230a7d3b'/&gt;&lt;circle cx='70' cy='14' r='4' fill='%23d0021b'/&gt;&lt;circle cx='100' cy='9' r='4' fill='%231f3b73'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "confetti"
+  },
+  "feedback": null
+ },
+ "judgement": {
+  "is_barrier": false,
+  "severity": "minor",
+  "wcag": [],
+  "impact": "The user misses only the decorative confetti dot colors, which carry no information or action beyond the confirmed order heading.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "fallback": false,
+   "request_id": "1b077384-8843-4d04-b8d7-3a193941cc96",
+   "response_id": "resp_6aeb8cfd0c9712df8b9e49db",
+   "status": "completed",
+   "incomplete_reason": null
+  }
+ },
+ "fix": null,
+ "reaudit": null,
+ "decision": null
+}

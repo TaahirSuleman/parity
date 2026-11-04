@@ -3,43 +3,43 @@
  "run_id": "hero-purchase",
  "step_index": 0,
  "status": "reaudited",
- "sighted_text": "or 4 x R312.25",
- "sr_role": "",
- "sr_name": "",
- "why_it_matters": "A blind user gets no announcement of the instalment price option that sighted users see.",
+ "sighted_text": "green dot in stock indicator - stock",
+ "sr_role": "image",
+ "sr_name": "status",
+ "why_it_matters": "A blind user hears only status and misses the green-dot in-stock meaning conveyed by colour.",
  "voice": null,
  "bbox": {
-  "x_min": 270,
-  "y_min": 517,
-  "x_max": 387,
-  "y_max": 539
+  "x_min": 299,
+  "y_min": 436,
+  "x_max": 307,
+  "y_max": 450
  },
  "element": {
-  "backend_id": 53,
-  "css_path": "span#instalment-price > img:nth-of-type(1)",
+  "backend_id": 46,
+  "css_path": "span#stock-dot",
   "box_px": [
-   345,
-   372,
-   495,
-   388
+   383,
+   314,
+   393,
+   324
   ],
-  "outer_html": "<img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'&gt;&lt;text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' &gt;or 4 x R312.25&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": null
+  "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+  "dom_id": "stock-dot"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "silent:img at span#instalment-price > img:nth-of-type(1)"
+    "detail": "image at span#stock-dot"
    },
    "sr_quote_exact": {
     "passed": true,
-    "detail": "no accessibility node with a name at that box"
+    "detail": "quote equals the accessibility tree entry"
    },
    "diverges": {
     "passed": true,
-    "detail": "visible content has no announcement"
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -55,54 +55,58 @@
    }
   },
   "element": {
-   "backend_id": 53,
-   "css_path": "span#instalment-price > img:nth-of-type(1)",
+   "backend_id": 46,
+   "css_path": "span#stock-dot",
    "box_px": [
-    345,
-    372,
-    495,
-    388
+    383,
+    314,
+    393,
+    324
    ],
-   "outer_html": "<img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'&gt;&lt;text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' &gt;or 4 x R312.25&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": null
+   "outer_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+   "dom_id": "stock-dot"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "moderate",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
+   },
+   {
+    "sc": "1.4.1",
+    "name": "Use of Color"
    }
   ],
-  "impact": "Screen-reader user hears the R1,599.00 and R1,249.00 prices but cannot know about the 4 x R312.25 instalment payment option.",
+  "impact": "User hears only status stock and cannot tell the green means in-stock without guessing from other hints.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "55451125-9340-4b9f-ab7b-bb9403090954",
-   "response_id": "resp_6aeb3782b480c844093440ea",
+   "request_id": "9a6bf653-d93c-4975-936d-ac57683d00b4",
+   "response_id": "resp_6aeb8b66cf6d093b625544f6",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\">",
-  "after_html": "<img alt=\"or 4 x R312.25\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\">",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -36,7 +36,7 @@\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n-      <span id=\"instalment-price\"><img alt=\"\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n+      <span id=\"instalment-price\"><img alt=\"or 4 x R312.25\" width=\"150\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='16'><text x='0' y='12' font-size='13' font-family='Arial' font-weight='normal' fill='%235b5f6b' >or 4 x R312.25</text></svg>\"></span></p>\n     <p><canvas id=\"promo-timer\" width=\"200\" height=\"22\" role=\"presentation\"></canvas></p>\n     <div class=\"actions\">\n       <button id=\"p4\" class=\"btn\" type=\"button\">Add to cart</button>\n",
-  "explanation": "Changed empty alt to \"or 4 x R312.25\" so the screen reader announces the same instalment text sighted users see.",
+  "before_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span>",
+  "after_html": "<span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"In stock\"></span>",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -32,7 +32,7 @@\n     <p class=\"row\"><span class=\"small\">Size</span>\n       <button id=\"size-standard\" class=\"tab current\" type=\"button\">Standard</button>\n       <button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>\n-      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"status\"></span><span class=\"small\">stock</span>\n+      <span id=\"stock-dot\" class=\"dot ok\" role=\"img\" aria-label=\"In stock\"></span><span class=\"small\">stock</span>\n     </p>\n     <p>Over-ear, 30-hour battery, USB-C. Ships tomorrow.</p>\n     <p class=\"total\"><s id=\"was-price\" class=\"small\">R1,599.00</s> <span id=\"p3\">R1,249.00</span>\n",
+  "explanation": "Changed aria-label from \"status\" to \"In stock\" so screen readers hear the in-stock meaning conveyed by the green dot.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "f6236605-be57-4abe-aa50-5642900f1c4f",
-   "response_id": "resp_6aeb39783f3e79a1ef6d49dc",
+   "request_id": "7c1f26ab-3330-44f1-8f14-bdaf05d3b208",
+   "response_id": "resp_6aeb8d2a2b933a0210e9424f",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "",
-  "sr_name_after": "or 4 x R312.25",
+  "gap_closed": false,
+  "sr_name_before": "status",
+  "sr_name_after": "In stock",
   "comparator_still_flags": false
  },
  "decision": null

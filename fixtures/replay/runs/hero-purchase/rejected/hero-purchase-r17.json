@@ -1,0 +1,60 @@
+{
+ "id": "hero-purchase-r17",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "candidate": {
+  "step_index": 1,
+  "sighted_text": "trash icon - remove Noise-cancelling headphones",
+  "sr_quote": "button, \"Close\"",
+  "why_it_matters": "Blind user hears Close and will not know it removes the headphones from cart.",
+  "bbox": {
+   "x_min": 417,
+   "y_min": 188,
+   "x_max": 453,
+   "y_max": 252
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#k2"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": {
+   "backend_id": 133,
+   "css_path": "button#k2",
+   "box_px": [
+    521,
+    140,
+    557,
+    180
+   ],
+   "outer_html": "<button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>",
+   "dom_id": "k2"
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+ }
+}

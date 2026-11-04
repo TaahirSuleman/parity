@@ -65,5 +65,5 @@ async def test_replay_start_copies_a_bundle_concurrently(tmp_path):
     finally:
         await index.close()
     copied = await dest.load(run.id)
-    assert len(copied.findings) == 30 and len(copied.steps) == 4 and len(copied.events) > 0
+    assert len(copied.findings) == 31 and len(copied.steps) == 4 and len(copied.events) > 0
     assert dest_store.peak >= 8, f"objects were copied one at a time (peak in flight {dest_store.peak})"

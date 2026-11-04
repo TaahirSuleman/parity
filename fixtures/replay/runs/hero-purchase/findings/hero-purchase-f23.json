@@ -6,12 +6,12 @@
  "sighted_text": "red border around Card number field indicating error",
  "sr_role": "textbox",
  "sr_name": "Card number",
- "why_it_matters": "Blind user gets no error state or message and does not know the card number is invalid.",
+ "why_it_matters": "A blind user gets no error announcement and does not know the card number is invalid.",
  "voice": {
   "clip_key": "checkout.wav",
   "start_ms": 53231,
   "end_ms": 68374,
-  "transcript": "4111 1111 1111 1111 content selected card number edit text you are currently on a text field to enter text in this this field type zero nine slash",
+  "transcript": "4111 1111 1111 content selected card number edit text you are currently on a text field to enter text in this field type zero nine slash",
   "agrees": true
  },
  "bbox": {
@@ -76,43 +76,43 @@
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "serious",
+  "severity": "critical",
   "wcag": [
-   {
-    "sc": "1.4.1",
-    "name": "Use of Color"
-   },
    {
     "sc": "3.3.1",
     "name": "Error Identification"
+   },
+   {
+    "sc": "1.4.1",
+    "name": "Use of Color"
    }
   ],
-  "impact": "The screen-reader user cannot know the card number field is flagged as invalid and needs correction to complete payment.",
+  "impact": "The screen-reader user cannot know the card number is flagged as invalid and cannot correct it to complete payment.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "9ab47e22-1b42-45b1-9dcb-8ee4c528ec90",
-   "response_id": "resp_6aeb3882ce0f82e66d3145c5",
+   "request_id": "3018d55b-9209-44dc-a947-23eed0123669",
+   "response_id": "resp_6aeb8c4820e578803b34409e",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
   "before_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">",
-  "after_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number, invalid\">",
-  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -27,7 +27,7 @@\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n     <h2 id=\"pay-h\">Payment</h2>\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n-    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n+    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number, invalid\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n",
-  "explanation": "Added aria-invalid=\"true\" and included \"invalid\" in the aria-label so the screen reader announces the error state shown visually by the red border.",
+  "after_html": "<input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number invalid\">",
+  "diff": "--- a/store/checkout.html\n+++ b/store/checkout.html\n@@ -27,7 +27,7 @@\n   <section class=\"card\" aria-labelledby=\"pay-h\">\n     <h2 id=\"pay-h\">Payment</h2>\n     <label for=\"name\">Name on card</label><input id=\"name\" value=\"T Suleman\" autocomplete=\"cc-name\">\n-    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\">\n+    <label for=\"card\">Card number</label><input id=\"card\" class=\"err\" value=\"4111 1111 1111 111\" autocomplete=\"cc-number\" inputmode=\"numeric\" aria-invalid=\"true\" aria-label=\"Card number invalid\">\n     <label for=\"exp\">Expiry</label><input id=\"exp\" value=\"09/27\" autocomplete=\"cc-exp\">\n     <p class=\"small\">By paying you agree to the <a id=\"f4\" href=\"#terms\" aria-label=\"Click here\"><img alt=\"\" width=\"46\" height=\"16\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='46' height='16'><text x='0' y='13' font-size='14' font-family='Arial' fill='%230b57d0' text-decoration='underline'>Terms</text></svg>\"></a>.</p>\n     <div class=\"actions\">\n",
+  "explanation": "Added aria-invalid and an accessible name including invalid so screen readers announce the error conveyed visually by the red border.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "aae5768f-5c17-4fcc-8a4e-28322c052b32",
-   "response_id": "resp_6aeb39a10a26acf1d4e24163",
+   "request_id": "322045a9-7704-495b-80e1-0619159f8c5a",
+   "response_id": "resp_6aeb8d4f07c1b5b1dceb4948",
    "status": "completed"
   }
  },
  "reaudit": {
   "gap_closed": false,
   "sr_name_before": "Card number",
-  "sr_name_after": "Card number, invalid",
+  "sr_name_after": "Card number invalid",
   "comparator_still_flags": false
  },
  "decision": null

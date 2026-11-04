@@ -1,0 +1,60 @@
+{
+ "id": "hero-purchase-r18",
+ "run_id": "hero-purchase",
+ "step_index": 1,
+ "candidate": {
+  "step_index": 1,
+  "sighted_text": "Checkout",
+  "sr_quote": "link, \"Checkout\"",
+  "why_it_matters": "Blind user is told it is a link while sighted user sees a button, creating different action expectations.",
+  "bbox": {
+   "x_min": 146,
+   "y_min": 618,
+   "x_max": 228,
+   "y_max": 678
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "link at a#k5"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "quote equals the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": false,
+    "detail": "visible text equals the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": {
+   "backend_id": 155,
+   "css_path": "a#k5",
+   "box_px": [
+    187,
+    446,
+    291,
+    488
+   ],
+   "outer_html": "<a id=\"k5\" class=\"btn\" href=\"checkout.html\" style=\"text-decoration:none;display:inline-block\">Checkout</a>",
+   "dom_id": "k5"
+  },
+  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
+ }
+}

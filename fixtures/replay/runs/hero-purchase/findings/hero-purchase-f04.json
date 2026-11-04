@@ -2,36 +2,36 @@
  "id": "hero-purchase-f04",
  "run_id": "hero-purchase",
  "step_index": 0,
- "status": "judged",
- "sighted_text": "product image 3",
+ "status": "reaudited",
+ "sighted_text": "product thumbnail 1 - dark oval",
  "sr_role": "image",
- "sr_name": "decorative divider graphic",
- "why_it_matters": "A blind user is told the third product image is decorative and misses product visual information.",
+ "sr_name": "photo 1",
+ "why_it_matters": "A blind user hears a generic name that does not convey the thumbnail content.",
  "voice": null,
  "bbox": {
-  "x_min": 259,
+  "x_min": 146,
   "y_min": 297,
-  "x_max": 309,
+  "x_max": 196,
   "y_max": 364
  },
  "element": {
-  "backend_id": 36,
-  "css_path": "img#divider-1",
+  "backend_id": 34,
+  "css_path": "img#gallery-1",
   "box_px": [
-   331,
+   187,
    214,
-   395,
+   251,
    262
   ],
-  "outer_html": "<img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/&gt;&lt;/svg&gt;\">",
-  "dom_id": "divider-1"
+  "outer_html": "<img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+  "dom_id": "gallery-1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#divider-1"
+    "detail": "image at img#gallery-1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,34 +55,55 @@
    }
   },
   "element": {
-   "backend_id": 36,
-   "css_path": "img#divider-1",
+   "backend_id": 34,
+   "css_path": "img#gallery-1",
    "box_px": [
-    331,
+    187,
     214,
-    395,
+    251,
     262
    ],
-   "outer_html": "<img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/&gt;&lt;/svg&gt;\">",
-   "dom_id": "divider-1"
+   "outer_html": "<img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "gallery-1"
   },
   "feedback": null
  },
  "judgement": {
-  "is_barrier": false,
-  "severity": "minor",
-  "wcag": [],
-  "impact": "The user loses no product information because the element is only a decorative divider and all product viewing and buying actions remain available.",
+  "is_barrier": true,
+  "severity": "moderate",
+  "wcag": [
+   {
+    "sc": "1.1.1",
+    "name": "Non-text Content"
+   }
+  ],
+  "impact": "The user cannot know what the first product thumbnail depicts and cannot verify the product's visual appearance.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "1b3d959e-67e3-429b-9596-b35da8491ae7",
-   "response_id": "resp_6aeb376cb799bbfa60414e5c",
+   "request_id": "54f6e0dd-4c95-4802-83cb-150e7740440e",
+   "response_id": "resp_6aeb8b3f2ad6030ab9ad497d",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": null,
- "reaudit": null,
+ "fix": {
+  "before_html": "<img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">",
+  "after_html": "<img id=\"gallery-1\" alt=\"product thumbnail 1 - dark oval\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">",
+  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -20,7 +20,7 @@\n     <p><img id=\"p2\" alt=\"rating\" width=\"110\" height=\"20\"\n          src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='110' height='20'><text x='0' y='16' font-size='16' fill='%23f5a623'>★★★★☆</text><text x='86' y='15' font-size='12' font-family='Arial' fill='%231b1b1f'>4.3</text></svg>\"> <span class=\"small\">(212 reviews)</span></p>\n     <div class=\"thumbs\">\n-      <img id=\"gallery-1\" alt=\"photo 1\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n+      <img id=\"gallery-1\" alt=\"product thumbnail 1 - dark oval\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><ellipse cx='32' cy='24' rx='18' ry='14' fill='%231f2430'/></svg>\">\n       <img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><rect width='64' height='48' rx='4' fill='%23dfe3ea'/><rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/></svg>\">\n       <img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'><path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/></svg>\">\n     </div>\n",
+  "explanation": "Changed alt from generic \"photo 1\" to \"product thumbnail 1 - dark oval\" to match what a sighted user sees.",
+  "model_meta": {
+   "model": "muse-spark-1.3-contributor",
+   "request_id": "3df2c761-8d03-4b98-8588-fb46e812951c",
+   "response_id": "resp_6aeb8d188e5cccfe9d5e4773",
+   "status": "completed"
+  }
+ },
+ "reaudit": {
+  "gap_closed": true,
+  "sr_name_before": "photo 1",
+  "sr_name_after": "product thumbnail 1 - dark oval",
+  "comparator_still_flags": false
+ },
  "decision": null
 }

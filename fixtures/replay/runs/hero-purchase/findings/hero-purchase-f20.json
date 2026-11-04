@@ -3,35 +3,35 @@
  "run_id": "hero-purchase",
  "step_index": 1,
  "status": "reaudited",
- "sighted_text": "Secure checkou",
- "sr_role": "image",
- "sr_name": "image",
- "why_it_matters": "Blind user hears only generic image and misses the assurance that checkout is secure.",
+ "sighted_text": "trash icon - remove Noise-cancelling headphones",
+ "sr_role": "button",
+ "sr_name": "Close",
+ "why_it_matters": "Blind user hears 'Close' and does not know the button removes the headphones from the cart.",
  "voice": null,
  "bbox": {
-  "x_min": 526,
-  "y_min": 400,
-  "x_max": 620,
-  "y_max": 439
+  "x_min": 438,
+  "y_min": 186,
+  "x_max": 474,
+  "y_max": 253
  },
  "element": {
-  "backend_id": 173,
-  "css_path": "img#trust-seal",
+  "backend_id": 134,
+  "css_path": "button#k3",
   "box_px": [
-   673,
-   288,
-   793,
-   316
+   561,
+   134,
+   607,
+   182
   ],
-  "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
-  "dom_id": "trust-seal"
+  "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "dom_id": "k3"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "image at img#trust-seal"
+    "detail": "button at button#k3"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,54 +55,58 @@
    }
   },
   "element": {
-   "backend_id": 173,
-   "css_path": "img#trust-seal",
+   "backend_id": 134,
+   "css_path": "button#k3",
    "box_px": [
-    673,
-    288,
-    793,
-    316
+    561,
+    134,
+    607,
+    182
    ],
-   "outer_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'&gt;&lt;rect width='120' height='28' rx='4' fill='%23eef2ff'/&gt;&lt;text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'&gt;🔒 Secure checkout&lt;/text&gt;&lt;/svg&gt;\">",
-   "dom_id": "trust-seal"
+   "outer_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+   "dom_id": "k3"
   },
   "feedback": null
  },
  "judgement": {
   "is_barrier": true,
-  "severity": "minor",
+  "severity": "serious",
   "wcag": [
    {
     "sc": "1.1.1",
     "name": "Non-text Content"
+   },
+   {
+    "sc": "2.4.6",
+    "name": "Headings and Labels"
    }
   ],
-  "impact": "User hears only generic \"image\" and cannot perceive the visible \"Secure checkout\" assurance sighted users get.",
+  "impact": "The user hears 'Close' and cannot know the button removes the Noise-cancelling headphones from the cart.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "c6149acf-b096-4797-b83e-39694544c201",
-   "response_id": "resp_6aeb38173cf112cb88f94e3f",
+   "request_id": "34d3e923-61b7-46cf-8b01-faa39b0312be",
+   "response_id": "resp_6aeb8bfa1c633c9b095043f5",
    "status": "completed",
    "incomplete_reason": null
   }
  },
  "fix": {
-  "before_html": "<img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
-  "after_html": "<img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\">",
-  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -44,7 +44,7 @@\n       <button id=\"delivery-standard\" class=\"tab current\" type=\"button\">Standard (free)</button>\n       <button id=\"delivery-express\" class=\"tab\" type=\"button\">Express (R99)</button>\n     </p>\n-    <p><img id=\"trust-seal\" alt=\"image\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n+    <p><img id=\"trust-seal\" alt=\"Secure checkout\" width=\"120\" height=\"28\" src=\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='28'><rect width='120' height='28' rx='4' fill='%23eef2ff'/><text x='8' y='19' font-size='13' font-family='Arial' fill='%231f3b73'>🔒 Secure checkout</text></svg>\"></p>\n   </section>\n </main>\n <script>\n",
-  "explanation": "Changed alt from \"image\" to \"Secure checkout\" to match the visible text so screen-reader users hear the same assurance.",
+  "before_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>",
+  "after_html": "<button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>",
+  "diff": "--- a/store/cart.html\n+++ b/store/cart.html\n@@ -20,7 +20,7 @@\n         <button id=\"k1\" class=\"icon\" type=\"button\" aria-label=\"Decrease quantity\">−</button>\n         <span id=\"qty\" aria-live=\"polite\">1</span>\n         <button id=\"k2\" class=\"icon\" type=\"button\" aria-label=\"Increase quantity\">+</button>\n-        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Close\">🗑️</button>\n+        <button id=\"k3\" class=\"icon\" type=\"button\" aria-label=\"Remove Noise-cancelling headphones\">🗑️</button>\n       </span>\n     </div>\n     <div class=\"line\">\n",
+  "explanation": "Changed aria-label from \"Close\" to \"Remove Noise-cancelling headphones\" so the accessible name matches the visible remove action.",
   "model_meta": {
    "model": "muse-spark-1.3-contributor",
-   "request_id": "113d8768-1409-4cc0-a4df-2ddfd3f1a1e0",
-   "response_id": "resp_6aeb399568c17061fbe640db",
+   "request_id": "d3c772a5-16a8-4fe4-a353-1a16ae0aba28",
+   "response_id": "resp_6aeb8d3c1c579dd9f2384748",
    "status": "completed"
   }
  },
  "reaudit": {
-  "gap_closed": true,
-  "sr_name_before": "image",
-  "sr_name_after": "Secure checkout",
+  "gap_closed": false,
+  "sr_name_before": "Close",
+  "sr_name_after": "Remove Noise-cancelling headphones",
   "comparator_still_flags": false
  },
  "decision": null

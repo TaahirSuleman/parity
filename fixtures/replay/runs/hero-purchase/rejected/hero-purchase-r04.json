@@ -1,17 +1,17 @@
 {
  "id": "hero-purchase-r04",
  "run_id": "hero-purchase",
- "step_index": 3,
+ "step_index": 0,
  "candidate": {
-  "step_index": 3,
-  "sighted_text": "Packed",
-  "sr_quote": "text, \"Packed\"",
-  "why_it_matters": "Blind user hears all three stages without knowing Packed is the current stage that sighted users see from bold styling.",
+  "step_index": 0,
+  "sighted_text": "product thumbnail 1 - dark oval",
+  "sr_quote": "image, \"photo 1\"",
+  "why_it_matters": "A blind user gets a meaningless generic name and cannot tell what the thumbnail shows.",
   "bbox": {
-   "x_min": 146,
-   "y_min": 332,
-   "x_max": 184,
-   "y_max": 354
+   "x_min": 211,
+   "y_min": 296,
+   "x_max": 285,
+   "y_max": 365
   },
   "attempt": 1
  },
@@ -20,15 +20,15 @@
   "checks": {
    "located": {
     "passed": true,
-    "detail": "text at li#status-packed"
+    "detail": "image at img#gallery-2"
    },
    "sr_quote_exact": {
-    "passed": true,
-    "detail": "quote equals the accessibility tree entry"
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
    },
    "diverges": {
-    "passed": false,
-    "detail": "visible text equals the accessible name"
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
    },
    "not_axe": {
     "passed": true,
@@ -44,17 +44,17 @@
    }
   },
   "element": {
-   "backend_id": 350,
-   "css_path": "li#status-packed",
+   "backend_id": 35,
+   "css_path": "img#gallery-2",
    "box_px": [
-    187,
-    239,
-    236,
-    255
+    259,
+    214,
+    323,
+    262
    ],
-   "outer_html": "<li id=\"status-packed\" class=\"current\">Packed</li>",
-   "dom_id": "status-packed"
+   "outer_html": "<img id=\"gallery-2\" alt=\"photo 2\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;rect width='64' height='48' rx='4' fill='%23dfe3ea'/&gt;&lt;rect x='14' y='10' width='36' height='28' rx='6' fill='%231f2430'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "gallery-2"
   },
-  "feedback": "the visible text and the accessible name are the same; this is not a divergence, drop it"
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
  }
 }

@@ -1,0 +1,60 @@
+{
+ "id": "hero-purchase-r11",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "Standard",
+  "sr_quote": "button, \"Standard\"",
+  "why_it_matters": "A blind user is not told that Standard is the currently selected size.",
+  "bbox": {
+   "x_min": 254,
+   "y_min": 421,
+   "x_max": 322,
+   "y_max": 462
+  },
+  "attempt": 1
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": true,
+    "detail": "button at button#size-large"
+   },
+   "sr_quote_exact": {
+    "passed": false,
+    "detail": "quote differs from the accessibility tree entry"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible text differs from the accessible name"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": {
+   "backend_id": 45,
+   "css_path": "button#size-large",
+   "box_px": [
+    307,
+    304,
+    365,
+    334
+   ],
+   "outer_html": "<button id=\"size-large\" class=\"tab\" type=\"button\">Large</button>",
+   "dom_id": "size-large"
+  },
+  "feedback": "quote the exact role and accessible name of the element inside the box, as given in the accessibility tree"
+ }
+}

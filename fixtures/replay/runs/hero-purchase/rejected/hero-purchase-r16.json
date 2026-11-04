@@ -1,0 +1,49 @@
+{
+ "id": "hero-purchase-r16",
+ "run_id": "hero-purchase",
+ "step_index": 0,
+ "candidate": {
+  "step_index": 0,
+  "sighted_text": "or 4 x R312.25",
+  "sr_quote": "not announced",
+  "why_it_matters": "A blind user misses the instalment payment option announced only in pixels.",
+  "bbox": {
+   "x_min": 383,
+   "y_min": 518,
+   "x_max": 467,
+   "y_max": 537
+  },
+  "attempt": 2
+ },
+ "verifier": {
+  "passed": false,
+  "checks": {
+   "located": {
+    "passed": false,
+    "detail": "no element at that box"
+   },
+   "sr_quote_exact": {
+    "passed": true,
+    "detail": "no accessibility node with a name at that box"
+   },
+   "diverges": {
+    "passed": true,
+    "detail": "visible content has no announcement"
+   },
+   "not_axe": {
+    "passed": true,
+    "detail": "not an axe-core target"
+   },
+   "unique": {
+    "passed": true,
+    "detail": "first finding on this element"
+   },
+   "seen": {
+    "passed": true,
+    "detail": "the sighted pass saw it"
+   }
+  },
+  "element": null,
+  "feedback": "the box does not land on an element; tighten it around the exact element you mean"
+ }
+}

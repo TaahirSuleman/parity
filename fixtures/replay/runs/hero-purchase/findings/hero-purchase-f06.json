@@ -2,36 +2,36 @@
  "id": "hero-purchase-f06",
  "run_id": "hero-purchase",
  "step_index": 0,
- "status": "reaudited",
- "sighted_text": "Colour Beige option",
- "sr_role": "button",
- "sr_name": "Option 2",
- "why_it_matters": "A blind user hears generic Option 2 and cannot tell it is the Beige colour choice.",
+ "status": "judged",
+ "sighted_text": "product thumbnail 3 - light oval outline",
+ "sr_role": "image",
+ "sr_name": "decorative divider graphic",
+ "why_it_matters": "A blind user is told the product thumbnail is decorative and misses that product image.",
  "voice": null,
  "bbox": {
-  "x_min": 209,
-  "y_min": 375,
-  "x_max": 229,
-  "y_max": 411
+  "x_min": 259,
+  "y_min": 297,
+  "x_max": 309,
+  "y_max": 364
  },
  "element": {
-  "backend_id": 40,
-  "css_path": "button#swatch-2",
+  "backend_id": 36,
+  "css_path": "img#divider-1",
   "box_px": [
-   267,
-   270,
-   293,
-   296
+   331,
+   214,
+   395,
+   262
   ],
-  "outer_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
-  "dom_id": "swatch-2"
+  "outer_html": "<img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/&gt;&lt;/svg&gt;\">",
+  "dom_id": "divider-1"
  },
  "verifier": {
   "passed": true,
   "checks": {
    "located": {
     "passed": true,
-    "detail": "button at button#swatch-2"
+    "detail": "image at img#divider-1"
    },
    "sr_quote_exact": {
     "passed": true,
@@ -55,55 +55,34 @@
    }
   },
   "element": {
-   "backend_id": 40,
-   "css_path": "button#swatch-2",
+   "backend_id": 36,
+   "css_path": "img#divider-1",
    "box_px": [
-    267,
-    270,
-    293,
-    296
+    331,
+    214,
+    395,
+    262
    ],
-   "outer_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
-   "dom_id": "swatch-2"
+   "outer_html": "<img id=\"divider-1\" alt=\"decorative divider graphic\" width=\"64\" height=\"48\" src=\"data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='64' height='48'&gt;&lt;path d='M4 24 Q32 4 60 24 Q32 44 4 24Z' fill='none' stroke='%23b7bbc6'/&gt;&lt;/svg&gt;\">",
+   "dom_id": "divider-1"
   },
   "feedback": null
  },
  "judgement": {
-  "is_barrier": true,
-  "severity": "serious",
-  "wcag": [
-   {
-    "sc": "1.1.1",
-    "name": "Non-text Content"
-   }
-  ],
-  "impact": "User cannot identify which swatch is the Beige colour and may select the wrong variant.",
+  "is_barrier": false,
+  "severity": "minor",
+  "wcag": [],
+  "impact": "The blind user loses no product information or action because the element is only a decorative oval outline with no function.",
   "model_meta": {
-   "model": "muse-spark-1.3",
+   "model": "muse-spark-1.3-contributor",
    "fallback": false,
-   "request_id": "ce274aef-0c5b-43c1-abd8-8b0eb70091c4",
-   "response_id": "resp_6aeb377406345bcc32084b5d",
+   "request_id": "0e940005-09d3-4d16-9dca-4c47cff2f526",
+   "response_id": "resp_6aeb8b51e2213e4636c0418a",
    "status": "completed",
    "incomplete_reason": null
   }
  },
- "fix": {
-  "before_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>",
-  "after_html": "<button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>",
-  "diff": "--- a/store/product.html\n+++ b/store/product.html\n@@ -26,7 +26,7 @@\n     </div>\n     <p class=\"row\"><span class=\"small\">Colour</span>\n       <button id=\"swatch-1\" class=\"swatch selected\" type=\"button\" aria-label=\"Option 1\" style=\"background:#3a3d44\"></button>\n-      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Option 2\" style=\"background:#d9c7a3\"></button>\n+      <button id=\"swatch-2\" class=\"swatch\" type=\"button\" aria-label=\"Beige\" style=\"background:#d9c7a3\"></button>\n       <button id=\"swatch-3\" class=\"swatch\" type=\"button\" aria-label=\"Option 3\" style=\"background:#1f3b73\"></button>\n     </p>\n     <p class=\"row\"><span class=\"small\">Size</span>\n",
-  "explanation": "Changed aria-label from Option 2 to Beige so the accessible name identifies the colour sighted users see.",
-  "model_meta": {
-   "model": "muse-spark-1.3-contributor",
-   "request_id": "30e233e6-e36f-4692-9ab7-778c0c5ed178",
-   "response_id": "resp_6aeb39746ded0139ab6a4c92",
-   "status": "completed"
-  }
- },
- "reaudit": {
-  "gap_closed": false,
-  "sr_name_before": "Option 2",
-  "sr_name_after": "Beige",
-  "comparator_still_flags": false
- },
+ "fix": null,
+ "reaudit": null,
  "decision": null
 }

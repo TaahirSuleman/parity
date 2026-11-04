@@ -19,7 +19,7 @@ from parity.agent.tools import briefs, AgentState, dispatch, screen_key, tool_de
 from parity.flows import Flow
 from parity.meta.client import text_of
 from parity.meta.images import png_to_data_url
-from parity.pipeline.actions import execute, is_allowed_target, settle
+from parity.pipeline.actions import execute, is_allowed_target, settle, snap_click
 from parity.pipeline.audit import RunContext, audit_view
 from parity.pipeline.guard import CHALLENGE_PROBES, Blocked, challenge_reason, guard_action
 
@@ -232,7 +232,11 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                             return AgentResult(turns, False, False, state.summary)
                     executed = dropped = 0
                     off_origin = False
+                    snapped: list[dict[str, Any]] = []
                     for action in actions:
+                        action, snap = await snap_click(page, action)  # a near miss is moved to its control before the guard judges it
+                        if snap is not None:
+                            snapped.append(snap)
                         if ctx.public:
                             try:
                                 target, field_type, submits = await inspect_target(page, action)
@@ -256,7 +260,7 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
                             off_origin = True
                             break  # the rest of the batch (typing, clicks) must not land on an external page
                     await settle(page)
-                    await ctx.emit("nav.actions", {"turn": turn, "actions": [a.get("type") for a in actions], "n": len(actions), "executed": executed, "dropped": dropped,
+                    await ctx.emit("nav.actions", {"turn": turn, "actions": [a.get("type") for a in actions], "n": len(actions), "executed": executed, "dropped": dropped, "snapped": snapped,
                                                    "safety_checks": len(safety), "safety_codes": [c.get("code") for c in safety if isinstance(c, dict)]})
                     if off_origin or not is_allowed_target(page.url, settings, ctx.base_url):
                         await ctx.emit("nav.blocked", {"turn": turn, "url": page.url, "reason": "navigated outside the allowed origins"})

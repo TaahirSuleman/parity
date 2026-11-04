@@ -609,6 +609,54 @@ async def test_a_refused_consent_click_is_dropped_and_the_walk_goes_on(tmp_path,
     assert actions["executed"] == 0 and actions["dropped"] == 1  # the click was never made: nothing was accepted on the visitor's behalf
 
 
+async def test_a_near_miss_click_is_snapped_to_the_control_and_logged(tmp_path, server_url, page):
+    """Attempt 2 of the 4 Nov purchase recording clicked Add to cart 6 px below the button and lost a turn. The executor moves
+    such a click to the control; nav.actions carries the correction; the walk lands on the cart."""
+    await page.goto(server_url + "/store/product.html")
+    box = await page.locator("#p4").bounding_box()
+    below = {"x": box["x"] + box["width"] / 2, "y": box["y"] + box["height"] + 6}
+    script = [turn(computer_call([{"type": "click", **below}], "c1")), turn(function_call("finish", {"summary": "x"}, "c2"))]
+
+    async def factory():
+        return page
+
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory, max_turns=2)
+        loaded = await bundle.load(run.id)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review), run.error
+    assert page.url.endswith("cart.html")  # the click reached the button
+    actions = next(e.data for e in loaded.events if e.type == "nav.actions")
+    assert actions["executed"] == 1 and len(actions["snapped"]) == 1
+    snap = actions["snapped"][0]
+    assert snap["from"] == [below["x"], below["y"]] and snap["target"] == "#p4"
+    assert abs(snap["to"][0] - (box["x"] + box["width"] / 2)) < 1 and abs(snap["to"][1] - (box["y"] + box["height"] / 2)) < 1
+
+
+async def test_the_guard_judges_the_snapped_target_not_the_raw_point(tmp_path, server_url, page):
+    """A near miss beside Pay on a public page: the guard must refuse the real target (Submit), never pass the click because
+    the raw point hit nothing."""
+    await page.goto(server_url + "/store/checkout.html")
+    box = await page.locator("#f5").bounding_box()
+    above = {"x": box["x"] + box["width"] / 2, "y": box["y"] - 6}  # nothing clickable there; Pay is the nearest control (12 px right of Pay is the trash icon, #f6)
+    script = [turn(function_call("audit_view", {"reason": "checkout"}, "c1")), turn(computer_call([{"type": "click", **above}], "c2")),
+              turn(function_call("finish", {"summary": "x"}, "c3"))]
+
+    async def factory():
+        return page
+
+    from parity.flows import Flow
+
+    flow = Flow(id="public-test", name="public", start_url="/store/checkout.html", goal="browse", pages=("checkout.html",), single_page=False)
+    async with harness(tmp_path, script) as (settings, client, bus, bundle, index):
+        run = await run_flow(settings, client, bus, bundle, index, flow, base_url=server_url, page_factory=factory, public=True)
+        loaded = await bundle.load(run.id)
+    assert run.status in (RunStatus.done, RunStatus.awaiting_review) and run.error is None
+    blocked = next(e for e in loaded.events if e.type == "nav.blocked")
+    assert "irreversible" in blocked.data["reason"] and "Submit" in blocked.data["reason"]
+    assert page.url.endswith("checkout.html")
+    assert len(auditor_calls(client)) == 2
+
+
 async def test_a_visitor_walk_stops_after_its_screens(tmp_path, fixture_url, page):
     """Spec §19.3.2, "up to three screens on request": the walk ends, finished, once max_screens screens are audited, before
     the model is asked for another turn."""

@@ -133,6 +133,7 @@ Two layers. Only the first holds data; the second can be deleted at any time.
 | Fixer | `PARITY_MODEL` | medium | Re-audit checks every fix in code |
 | Voice | `muse-voice-transcribe-1.0` | n/a | P6; keyword biasing with the page's AX names |
 | Private mode | `muse-spark-1.3` for every Spark stage | as above | `PARITY_PRIVATE=true`; Wonder judge stays allowed (standard tier) |
+Each stage can be set on its own: `PARITY_NAVIGATOR_MODEL`, `PARITY_SEER_MODEL`, `PARITY_COMPARATOR_MODEL` and `PARITY_FIXER_MODEL` fall back to `PARITY_MODEL`, the Re-audit follows the Comparator, and `PARITY_<STAGE>_EFFORT` overrides the effort above. The hosted app sets none of them; `eval/results/model-sweep.md` is what they were measured with (doc 17).
 The workbench badge shows the exact model ID per step, so the contributor tier is visible, not hidden.
 Expected cost per run with these roles: single page ≈ $0.01 (contributor) plus ≈ $0.03–0.05 per finding if Wonder judges; three-page flow ≈ $0.02–0.05 plus judging.
 - Outputs are read from `output[].content[].type == "output_text"`; failures are detected by HTTP status only.

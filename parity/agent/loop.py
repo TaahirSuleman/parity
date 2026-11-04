@@ -203,7 +203,7 @@ async def run_agent(ctx: RunContext, page: Page, flow: Flow, max_turns: int = 12
             # alone; mixing a new user message into that input is rejected by the API (seen live: HTTP 400 on turn 12).
             instructions += LAST_TURN_NOTICE
         body: dict[str, Any] = {
-            "model": model, "tools": tools, "reasoning": {"effort": "low"}, "truncation": "auto", "parallel_tool_calls": False,
+            "model": model, "tools": tools, "reasoning": {"effort": settings.effort_for("navigator")}, "truncation": "auto", "parallel_tool_calls": False,
             "instructions": instructions, "input": input_items,
         }
         if previous:

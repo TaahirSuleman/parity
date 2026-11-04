@@ -7,6 +7,8 @@ Run (live, costs money):
   .venv/bin/python -m eval.harness --effort-sweep                   # low / medium / high, one run each
   .venv/bin/python -m eval.harness --compare-judge muse-wonder-1.0  # re-judge the same findings with Wonder
   .venv/bin/python -m eval.harness --standard-check                 # one run on standard Spark 1.3
+  .venv/bin/python -m eval.harness --model-sweep                    # rebuild the sweep's files from what is on disk: no key, no call
+  .venv/bin/python -m eval.harness --model-sweep --sweep-row seer:muse-wonder-1.0:medium  # run a row (repeatable), then rebuild
 Each invocation writes eval/results/<timestamp>.json and refreshes latest.json / latest.md.
 """
 
@@ -596,6 +598,84 @@ def _factory_for(settings: Settings, work: Path, tag: str = "main"):
     return client_factory
 
 
+async def _sweep_base() -> tuple[dict[str, dict[str, str]], Path]:
+    """The recorded full-configuration runs of 4 Nov (eval/results/seen-full.json): {run index: {page: run id}} and where their bundles are."""
+    from eval import model_sweep as ms
+
+    doc = json.loads((RESULTS_DIR / "seen-full.json").read_text())
+    per_page = doc["configs"]["full"]["per_page"]
+    n = doc["configs"]["full"]["runs"]
+    return {i: {p: v["runs"][i]["run_id"] for p, v in per_page.items()} for i in range(n)}, ms.SWEEP_DIR / "base" / "data"
+
+
+async def _sweep_rebuild(ms) -> dict[str, Any]:
+    labels = load_labels()
+    prov = provenance()
+    run_ids, data = await _sweep_base()
+    base_path = ms.SWEEP_DIR / "base-records.json"
+    if not base_path.exists():  # the default row, scored once from the recorded bundles
+        bundle = RunBundle(LocalBlobStore(data))
+        records = []
+        for i in sorted(run_ids):
+            records.append(ms.detection_record({p: await bundle.load(r) for p, r in run_ids[i].items()}, labels))
+        base_path.write_text(json.dumps(records, indent=1) + "\n")
+    judge_default = await ms.judge_default_row(data, run_ids[0])
+    return ms.build_block(ms.SWEEP_DIR, judge_default=judge_default, git_sha=prov["git_sha"], labels_sha=prov["labels_sha256"],
+                          n_faults=sum(not r["clean"] for r in labels), n_clean=sum(bool(r["clean"]) for r in labels))
+
+
+async def _model_sweep(args) -> int:
+    from eval import model_sweep as ms
+
+    if not args.sweep_row and not ms.SWEEP_DIR.exists():  # a fresh clone: the committed rows are the record
+        committed = json.loads((RESULTS_DIR / "model-sweep.json").read_text())
+        ms.write_sweep(committed, RESULTS_DIR)
+        print("rebuilt from the committed model-sweep.json (no run bundles on this machine)")
+        return 0
+    if not args.sweep_row:
+        ms.write_sweep(await _sweep_rebuild(ms), RESULTS_DIR)
+        print("rebuilt from the rows on disk; no model was called")
+        return 0
+    base = load_settings()
+    if not base.has_key:
+        print("MODEL_API_KEY missing (expected in .env)")
+        return 1
+    env = {"MODEL_API_KEY": base.model_api_key}
+    server, base_url = _serve(base)
+    run_ids, data = await _sweep_base()
+    cheap = not args.sweep_standard_judge
+    try:
+        for spec in args.sweep_row:
+            stage, model, effort = ms.parse_row(spec)
+            block = await _sweep_rebuild(ms)
+            if block["spend_usd"] >= args.sweep_budget:
+                print(f"budget reached (${block['spend_usd']:.2f} of ${args.sweep_budget:.2f}): {spec} and the rows after it not run")
+                break
+            row_dir = ms.SWEEP_DIR / "rows" / ms.row_slug(stage, model, effort)
+            print(f"row {spec}: spend so far ${block['spend_usd']:.2f}")
+
+            def factory(settings, r, row_dir=row_dir):
+                return MetaClient(settings, cache_dir=row_dir / f"cache-{r}", trace=TraceRouter())
+
+            if stage in ("seer", "comparator"):
+                await ms.run_detection_row(stage, model, effort, runs=args.sweep_runs, base_url=base_url, row_dir=row_dir, env_base=env, client_factory=factory, cheap_judge=cheap)
+            elif stage == "navigator":
+                await ms.run_navigator_row(model, effort, runs=args.sweep_runs, base_url=base_url, row_dir=row_dir, env_base=env, client_factory=factory, cheap_judge=cheap)
+            elif not (row_dir / "row.json").exists():
+                settings = load_settings(env={**env, **ms.row_env(stage, model, effort, cheap_judge=False)})
+                client = MetaClient(settings, cache_dir=row_dir / "cache", trace=ms.ListTraceSink())
+                runner = ms.run_judge_row if stage == "judge" else ms.run_fixer_row
+                row = await runner(model, effort, data, run_ids[0], base_url=base_url, client=client)
+                row_dir.mkdir(parents=True, exist_ok=True)
+                (row_dir / "row.json").write_text(json.dumps(row, indent=1) + "\n")
+            ms.write_sweep(await _sweep_rebuild(ms), RESULTS_DIR)  # after every row: a cut-off still leaves the rows that ran
+    finally:
+        server.should_exit = True
+    block = await _sweep_rebuild(ms)
+    print(f"spend ${block['spend_usd']:.2f}; best: " + "; ".join(f"{s} {b['model']} {b['effort']}" for s, b in block["best"].items()))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--model", default=None, help="PARITY_MODEL for the run (default: settings)")
@@ -612,7 +692,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--standard-check", action="store_true", help="one full run on standard muse-spark-1.3")
     ap.add_argument("--name", default=None, help="results file name (default: timestamp)")
     ap.add_argument("--external", action="store_true", help="the W3C BAD benchmark (doc 19 §19.1): its eight pages, --runs each, read-only; writes latest.json['external']")
+    ap.add_argument("--model-sweep", action="store_true", help="the per-stage sweep: with no --sweep-row, rebuild its files from disk")
+    ap.add_argument("--sweep-row", action="append", default=[], help="stage:model:effort, run in the order given (repeatable); a run already on disk is not paid for again")
+    ap.add_argument("--sweep-runs", type=int, default=1, help="runs a Seer, Comparator or Navigator row should have in total")
+    ap.add_argument("--sweep-budget", type=float, default=15.0, help="no new row starts once the sweep's recorded spend has reached this (USD)")
+    ap.add_argument("--sweep-standard-judge", action="store_true", help="run walking rows with the default judge instead of its contributor tier")
     args = ap.parse_args(argv)
+    if args.model_sweep:
+        return asyncio.run(_model_sweep(args))
     base = load_settings()
     if not base.has_key:
         print("MODEL_API_KEY missing (expected in .env)")

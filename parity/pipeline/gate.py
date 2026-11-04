@@ -78,7 +78,7 @@ async def fix_findings(ctx, page_factory: PageFactory, *, deadline: float | None
                 if over_budget():
                     await ctx.emit("fixer.rejected", {"finding_id": finding.id, "reason": BUDGET_REASON})
                     return finding, None
-                return finding, await propose_fix(ctx.client, finding, cap, run.id, model=settings.model_for("fixer"))
+                return finding, await propose_fix(ctx.client, finding, cap, run.id, model=settings.model_for("fixer"), effort=settings.effort_for("fixer"))
         except (FixRejected, FixNotApplied) as exc:
             await ctx.emit("fixer.rejected", {"finding_id": finding.id, "reason": str(exc)})
         except MetaError as exc:
@@ -103,7 +103,7 @@ async def fix_findings(ctx, page_factory: PageFactory, *, deadline: float | None
             await ctx.emit("reaudit.failed", {"finding_id": finding.id, "reason": BUDGET_REASON})
             continue
         try:
-            result = await reaudit(ctx.client, page_factory, cap.html, cap.url, fix, finding, run.id, model=settings.model_for("comparator"))
+            result = await reaudit(ctx.client, page_factory, cap.html, cap.url, fix, finding, run.id, model=settings.model_for("reaudit"), effort=settings.effort_for("reaudit"))
         except Exception as exc:  # a re-audit that cannot run leaves the fix unverified; the card says so
             log.exception("re-audit failed for %s", finding.id)
             await ctx.emit("reaudit.failed", {"finding_id": finding.id, "reason": f"{type(exc).__name__}: {exc}"})

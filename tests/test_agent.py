@@ -658,3 +658,15 @@ async def test_wall_reason_reads_the_words_of_a_wall_behind_a_shadow_root(page):
     article = "<p>A CAPTCHA asks: are you a robot?</p>" + "<p>More text about the history of the test and the people who built it.</p>" * 80
     await page.set_content(f"<html><head><title>CAPTCHA - Wikipedia</title></head><body>{article}</body></html>")
     assert await wall_reason(page) is None
+
+
+async def test_navigator_sends_its_configured_model_and_effort(tmp_path, server_url, page):
+    async def factory():
+        return page
+
+    script = [turn(function_call("finish", {"summary": "done"}, "c1"), rid="r1")]
+    async with harness(tmp_path, script) as (_, client, bus, bundle, index):
+        settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_NAVIGATOR_MODEL": "m-nav", "PARITY_NAVIGATOR_EFFORT": "high"})
+        await run_flow(settings, client, bus, bundle, index, FLOWS["purchase"], base_url=server_url, page_factory=factory, max_turns=1)
+    first = auditor_calls(client)[0]
+    assert first["model"] == "m-nav" and first["reasoning"]["effort"] == "high"

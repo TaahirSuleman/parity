@@ -798,3 +798,58 @@ async def test_candidates_written_from_the_tree_alone_are_rejected_on_seen(tmp_p
         assert failed == ["seen"], failed  # the five tree checks pass: these are exactly the candidates the old gate let through
     seen_event = next(e for e in loaded.events if e.type == "seer.done")
     assert [p["visible_text"] for p in seen_event.data["percepts"]] == ["We use cookies. Accept all"]
+
+
+async def test_each_stage_sends_its_configured_model_and_effort(tmp_path, server_url, page):
+    """Per-stage settings reach the request bodies; the re-audit's comparison follows the comparator's model at its own effort."""
+    class Recording(FakeMetaClient):
+        seen: list[tuple[str, str, str]] = []
+
+        async def responses(self, body, *, stage, run_id, step_index=None):
+            self.seen.append((stage, body["model"], body["reasoning"]["effort"]))
+            return await super().responses(body, stage=stage, run_id=run_id, step_index=step_index)
+
+    async def factory():
+        return page
+
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_SEER_MODEL": "m-seer", "PARITY_COMPARATOR_MODEL": "m-comp", "PARITY_FIXER_MODEL": "m-fix",
+                                  "PARITY_JUDGE_MODEL": "m-judge", "PARITY_SEER_EFFORT": "high", "PARITY_COMPARATOR_EFFORT": "high", "PARITY_JUDGE_EFFORT": "low", "PARITY_FIXER_EFFORT": "high"})
+    client = Recording(META, stage_defaults=stage_defaults())
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory)
+    finally:
+        await index.close()
+    assert {(m, e) for s, m, e in client.seen if s == "seer"} == {("m-seer", "high")}
+    assert {(m, e) for s, m, e in client.seen if s == "judge"} == {("m-judge", "low")}
+    assert {(m, e) for s, m, e in client.seen if s == "fixer"} == {("m-fix", "high")}
+    # compare at the comparator's effort during the walk, at the re-audit's during the fix stage, always on the comparator's model
+    assert {(m, e) for s, m, e in client.seen if s == "comparator"} == {("m-comp", "high"), ("m-comp", "low")}
+
+
+async def test_ablation_effort_still_drives_seer_and_comparator(tmp_path, server_url, page):
+    from parity.pipeline.audit import Ablation
+
+    class Recording(FakeMetaClient):
+        seen: list[tuple[str, str]] = []
+
+        async def responses(self, body, *, stage, run_id, step_index=None):
+            self.seen.append((stage, body["reasoning"]["effort"]))
+            return await super().responses(body, stage=stage, run_id=run_id, step_index=step_index)
+
+    async def factory():
+        return page
+
+    settings = load_settings(env={"PARITY_DATA_DIR": str(tmp_path / "data"), "PARITY_SEER_EFFORT": "low"})
+    client = Recording(META, stage_defaults=stage_defaults())
+    bundle = RunBundle(LocalBlobStore(tmp_path / "data"))
+    index = RunIndex(tmp_path / "index.db")
+    await index.init()
+    try:
+        await run_single_page(settings, client, bundle=bundle, bus=EventBus(bundle), index=index, flow=FLOWS["checkout"], base_url=server_url, page_factory=factory, ablation=Ablation(effort="high", run_fixes=False))
+    finally:
+        await index.close()
+    assert {e for s, e in client.seen if s in ("seer", "comparator")} == {"high"}
+    assert {e for s, e in client.seen if s == "judge"} == {"medium"}

@@ -15,6 +15,8 @@ from dotenv import dotenv_values
 STANDARD_SPARK = "muse-spark-1.3"
 CONTRIBUTOR_SPARK = "muse-spark-1.3-contributor"
 SPARK_STAGES = {"navigator", "seer", "comparator", "fixer", "reaudit", "auditor"}
+EFFORTS = ("low", "medium", "high")
+DEFAULT_EFFORT = {"navigator": "low", "seer": "medium", "comparator": "medium", "judge": "medium", "fixer": "medium", "reaudit": "low"}  # spec §6.1
 
 
 def _bool(value: str) -> bool:
@@ -40,6 +42,8 @@ class Settings:
     model: str = CONTRIBUTOR_SPARK
     judge_model: str = STANDARD_SPARK
     judge_fallback_model: str = STANDARD_SPARK  # used when the judge model errors (D6: any Wonder error falls back to Spark)
+    stage_models: Mapping[str, str] = field(default_factory=dict)  # PARITY_<STAGE>_MODEL: navigator, seer, comparator, fixer; the rest read `model`
+    stage_efforts: Mapping[str, str] = field(default_factory=dict)  # PARITY_<STAGE>_EFFORT: navigator, seer, comparator, judge, fixer
     eval_model: str = CONTRIBUTOR_SPARK
     voice_model: str = "muse-voice-transcribe-1.0"
     private: bool = False
@@ -83,10 +87,14 @@ class Settings:
         elif stage == "judge_fallback":
             chosen = self.judge_fallback_model
         else:
-            chosen = self.model
+            chosen = self.stage_models.get("comparator" if stage == "reaudit" else stage) or self.model  # the re-audit's comparison is the comparator's model
         if self.private and chosen.endswith("-contributor"):
             return STANDARD_SPARK
         return chosen
+
+    def effort_for(self, stage: str) -> str:
+        """The reasoning effort a stage sends; the eval's Ablation(effort=...) can still set the seer's and the comparator's."""
+        return self.stage_efforts.get(stage) or DEFAULT_EFFORT.get(stage, "medium")
 
     @property
     def has_key(self) -> bool:
@@ -109,12 +117,21 @@ def load_settings(env: Mapping[str, str] | None = None, dotenv_path: Path | None
         value = env.get(name)
         return default if value is None or value == "" else value
 
+    def stage_effort(stage: str) -> str | None:
+        name = f"PARITY_{stage.upper()}_EFFORT"
+        value = get(name, "") or None
+        if value is not None and value not in EFFORTS:
+            raise ValueError(f"{name} must be one of {', '.join(EFFORTS)}")
+        return value
+
     return Settings(
         model_api_key=env.get("MODEL_API_KEY", ""),
         meta_api_base=get("META_API_BASE", Settings.meta_api_base),
         model=get("PARITY_MODEL", Settings.model),
         judge_model=get("PARITY_JUDGE_MODEL", Settings.judge_model),
         judge_fallback_model=get("PARITY_JUDGE_FALLBACK_MODEL", Settings.judge_fallback_model),
+        stage_models={stage: value for stage in ("navigator", "seer", "comparator", "fixer") if (value := get(f"PARITY_{stage.upper()}_MODEL", ""))},
+        stage_efforts={stage: value for stage in ("navigator", "seer", "comparator", "judge", "fixer") if (value := stage_effort(stage))},
         eval_model=get("PARITY_EVAL_MODEL", Settings.eval_model),
         voice_model=get("PARITY_VOICE_MODEL", Settings.voice_model),
         private=_bool(get("PARITY_PRIVATE", "false")),

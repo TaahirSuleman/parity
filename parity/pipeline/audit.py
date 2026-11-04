@@ -34,7 +34,7 @@ class Ablation:
     use_screenshot: bool = True
     use_tree: bool = True
     use_grounding: bool = True  # False: skip the Seer (no percept list)
-    effort: str = "medium"  # reasoning effort for the seer and the comparator (the eval's effort sweep)
+    effort: str | None = None  # reasoning effort for the seer and the comparator (the eval's effort sweep); None: settings.effort_for
     run_fixes: bool = True  # False: stop after the judge (the eval measures detection, not repair)
 
 
@@ -132,7 +132,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
 
     percepts: list[Percept] | None = None  # None: the sighted pass did not run (an ablation, or the cap), so the verifier's `seen` check stands down
     if ctx.ablation.use_grounding and ctx.ablation.use_screenshot and not ctx.over_budget:
-        percepts = await see(ctx.client, cap, run.id, model=settings.model_for("seer"), effort=ctx.ablation.effort)
+        percepts = await see(ctx.client, cap, run.id, model=settings.model_for("seer"), effort=ctx.ablation.effort or settings.effort_for("seer"))
     await ctx.emit("seer.done", {"index": step_index, "percepts": [p.model_dump(mode="json") for p in percepts or []]})
     await ctx.bundle.flush(run.id)  # per stage, not per screen: a crash mid-screen keeps what the seer saw
 
@@ -145,7 +145,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
         if ctx.over_budget:  # checked before every call, not only before the first (review M1)
             break
         candidates = await compare(
-            ctx.client, cap, percepts or [], run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort,
+            ctx.client, cap, percepts or [], run.id, feedback, model=settings.model_for("comparator"), effort=ctx.ablation.effort or settings.effort_for("comparator"),
             use_screenshot=ctx.ablation.use_screenshot, use_tree=ctx.ablation.use_tree, unparseable_retry=unparseable_retry,
         )
         await ctx.emit("comparator.candidates", {"index": step_index, "n": len(candidates), "attempt": attempt, "parse_ok": getattr(candidates, "parse_ok", True)})
@@ -202,7 +202,7 @@ async def audit_view(ctx: RunContext, page: Page, step_index: int, reason: str) 
             return
         try:
             async with gate:
-                judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"))
+                judgement = await judge(ctx.client, finding, cap, run.id, model=settings.model_for("judge"), fallback_model=settings.model_for("judge_fallback"), effort=settings.effort_for("judge"))
         except Exception as exc:  # the judge is advisory: a failure sends the finding to the human, it never hides it
             log.exception("judge failed for %s", finding.id)
             judgement = Judgement(is_barrier=None, severity=Severity.needs_review, model_meta={"error": f"{type(exc).__name__}: {exc}"})

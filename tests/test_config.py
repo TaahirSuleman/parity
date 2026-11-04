@@ -73,3 +73,48 @@ def test_external_caps_lists_and_contact_parse():
                            "PARITY_EXTERNAL_PER_ORIGIN_PER_DAY": "2", "PARITY_EXTERNAL_TIMEOUT_S": "120"})
     assert s.url_deny == ("denied.example", "other.example") and s.suggested_urls == ("https://a.example/", "https://b.example/x")
     assert s.contact_email == "x@y.z" and (s.external_run_usd, s.external_daily_usd, s.external_per_origin_per_day, s.external_timeout_s) == (0.25, 10.0, 2, 120)
+
+
+def test_per_stage_model_override_falls_back_to_parity_model():
+    s = load_settings(env={"PARITY_MODEL": "muse-spark-1.2", "PARITY_SEER_MODEL": "muse-wonder-1.0"})
+    assert s.model_for("seer") == "muse-wonder-1.0"
+    assert s.model_for("comparator") == "muse-spark-1.2"
+    assert s.model_for("navigator") == "muse-spark-1.2"
+    assert s.model_for("fixer") == "muse-spark-1.2"
+
+
+def test_each_stage_reads_its_own_override():
+    s = load_settings(env={"PARITY_NAVIGATOR_MODEL": "n", "PARITY_SEER_MODEL": "s", "PARITY_COMPARATOR_MODEL": "c", "PARITY_FIXER_MODEL": "f", "PARITY_JUDGE_MODEL": "j"})
+    assert [s.model_for(x) for x in ("navigator", "seer", "comparator", "fixer", "judge")] == ["n", "s", "c", "f", "j"]
+
+
+def test_reaudit_follows_the_comparator_model_and_private_mode_still_maps():
+    s = load_settings(env={"PARITY_COMPARATOR_MODEL": "muse-spark-1.2"})
+    assert s.model_for("reaudit") == "muse-spark-1.2"
+    p = load_settings(env={"PARITY_PRIVATE": "true", "PARITY_SEER_MODEL": "muse-spark-1.3-contributor"})
+    assert p.model_for("seer") == "muse-spark-1.3"
+
+
+def test_defaults_are_unchanged_without_overrides():
+    s = load_settings(env={})
+    for stage in ("navigator", "seer", "comparator", "fixer", "reaudit"):
+        assert s.model_for(stage) == "muse-spark-1.3-contributor"
+    assert s.model_for("judge") == "muse-spark-1.3"
+
+
+def test_effort_for_defaults_match_the_spec():
+    s = load_settings(env={})
+    assert {x: s.effort_for(x) for x in ("navigator", "seer", "comparator", "judge", "fixer", "reaudit")} == {
+        "navigator": "low", "seer": "medium", "comparator": "medium", "judge": "medium", "fixer": "medium", "reaudit": "low"}
+
+
+def test_effort_for_reads_per_stage_overrides():
+    s = load_settings(env={"PARITY_NAVIGATOR_EFFORT": "high", "PARITY_SEER_EFFORT": "low", "PARITY_COMPARATOR_EFFORT": "high", "PARITY_JUDGE_EFFORT": "low", "PARITY_FIXER_EFFORT": "high"})
+    assert [s.effort_for(x) for x in ("navigator", "seer", "comparator", "judge", "fixer", "reaudit")] == ["high", "low", "high", "low", "high", "low"]
+
+
+def test_effort_override_outside_the_api_values_is_refused():
+    import pytest
+
+    with pytest.raises(ValueError, match="PARITY_SEER_EFFORT"):
+        load_settings(env={"PARITY_SEER_EFFORT": "extreme"})

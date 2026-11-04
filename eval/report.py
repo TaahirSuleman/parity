@@ -46,6 +46,10 @@ def render(r: dict) -> str:
     if r.get("standard_tier_check"):
         t = r["standard_tier_check"]
         lines += ["", f"Standard-tier check (`{t['model']}`, one run): recall {pct(t['recall'])}, precision {pct(t['precision'])}, ${t['cost_usd']:.3f}."]
+    if r.get("model_sweep"):
+        from eval.model_sweep import render_sweep
+
+        lines += ["", "## Per-stage model and effort sweep", "", render_sweep(r["model_sweep"]).rstrip()]
     if r.get("external"):
         e = r["external"]
         total_barriers = e["n_in_scope"] + e["out_of_scope_count"]
